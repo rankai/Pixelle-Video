@@ -2,7 +2,7 @@
 # Copy this file to config.yaml and fill in your settings
 # ⚠️ Never commit config.yaml to Git!
 
-project_name: Pixelle-Video
+project_name: AI-Video-Factory
 
 # ==================== LLM Configuration ====================
 # Supports any OpenAI SDK compatible API

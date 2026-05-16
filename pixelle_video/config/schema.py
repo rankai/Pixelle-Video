@@ -90,7 +90,7 @@ class TemplateConfig(BaseModel):
 
 class PixelleVideoConfig(BaseModel):
     """Pixelle-Video main configuration"""
-    project_name: str = Field(default="Pixelle-Video", description="Project name")
+    project_name: str = Field(default="AI-Video-Factory", description="Project name")
     llm: LLMConfig = Field(default_factory=LLMConfig)
     comfyui: ComfyUIConfig = Field(default_factory=ComfyUIConfig)
     template: TemplateConfig = Field(default_factory=TemplateConfig)

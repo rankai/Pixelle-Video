@@ -153,10 +153,21 @@ def render_style_config(pixelle_video):
         # TTS Preview (works for both modes)
         # ================================================================
         with st.expander(tr("tts.preview_title"), expanded=False):
+            # Determine default preview text based on selected voice locale
+            _preview_voice = selected_voice if tts_mode == "local" else None
+            if _preview_voice:
+                voice_locale = _preview_voice.split("-")[0].lower() if "-" in _preview_voice else ""
+                if voice_locale == "zh":
+                    default_preview_text = "大家好，这是一段测试语音。"
+                else:
+                    default_preview_text = "Hello, this is a test voice."
+            else:
+                default_preview_text = "大家好，这是一段测试语音。"
+
             # Preview text input
             preview_text = st.text_input(
                 tr("tts.preview_text"),
-                value="大家好，这是一段测试语音。",
+                value=default_preview_text,
                 placeholder=tr("tts.preview_text_placeholder"),
                 key="digital_tts_preview_text"
             )

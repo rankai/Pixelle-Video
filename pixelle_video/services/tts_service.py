@@ -178,13 +178,19 @@ class TTSService(ComfyBaseService):
             # Ensure output directory exists
             Path("output").mkdir(parents=True, exist_ok=True)
         
-        # Call Edge TTS
+        # Call Edge TTS — use locale-aware fallback voice
+        # If text contains CJK characters, fallback to zh-CN voice;
+        # otherwise fallback to en-US voice.
+        _has_cjk = any('一' <= c <= '鿿' or '㐀' <= c <= '䶿' for c in text)
+        _fallback_voice = "zh-CN-XiaoxiaoNeural" if _has_cjk else "en-US-JennyNeural"
+
         try:
             audio_bytes = await edge_tts(
                 text=text,
                 voice=final_voice,
                 rate=rate,
-                output_path=output_path
+                output_path=output_path,
+                fallback_voice=_fallback_voice,
             )
             
             logger.info(f"✅ Generated audio (local Edge TTS): {output_path}")

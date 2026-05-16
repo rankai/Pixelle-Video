@@ -486,7 +486,8 @@ class CustomPipeline(BasePipeline):
         Create specialized prompts based on your use case.
         """
         prompt = f"Generate content based on: {context}"
-        response = await self.llm(prompt, temperature=0.7, max_tokens=500)
+        response = await self.llm(prompt, temperature=1.0,  # kimi-k2.6 only accepts 1.0
+                              max_tokens=500)
         return response.strip()
 
 

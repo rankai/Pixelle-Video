@@ -342,7 +342,7 @@ class AssetBasedPipeline(LinearVideoPipeline):
         script: VideoScript = await self.core.llm(
             prompt=prompt,
             response_type=VideoScript,
-            temperature=0.8,
+            temperature=1.0,  # kimi-k2.6 only accepts 1.0
             max_tokens=4000
         )
         
