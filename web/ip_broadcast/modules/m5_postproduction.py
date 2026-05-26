@@ -19,6 +19,7 @@ from pixelle_video.utils.os_util import (
     list_resource_files,
 )
 from web.ip_broadcast.state import STATUS_ICONS, get_step_status, set_step_status
+from web.ip_broadcast.status_ui import render_step_notice, set_step_notice, show_global_loading
 from web.utils.streamlit_helpers import safe_rerun
 
 
@@ -103,7 +104,6 @@ def render_m5_postproduction(pixelle_video, run_mode: str):
 
     final_path = st.session_state.get("ipb_m5_final_video_path", "")
     if final_path and Path(final_path).exists():
-        st.success("✅ 视频合成完成")
         st.video(final_path)
         with open(final_path, "rb") as f:
             st.download_button(
@@ -112,10 +112,12 @@ def render_m5_postproduction(pixelle_video, run_mode: str):
                 file_name=Path(final_path).name,
                 mime="video/mp4",
             )
+    render_step_notice(5)
 
 
 def _run_postproduction(pixelle_video):
     set_step_status(5, "running")
+    show_global_loading("正在合成最终视频，请稍候...")
     progress = st.progress(0, text="准备中...")
     try:
         uid = uuid.uuid4().hex[:8]
@@ -168,8 +170,10 @@ def _run_postproduction(pixelle_video):
         progress.progress(100, text="完成！")
         st.session_state.ipb_m5_final_video_path = final
         set_step_status(5, "done")
+        set_step_notice(5, "success", "视频合成完成")
         safe_rerun()
     except Exception as e:
+        set_step_notice(5, "error", str(e))
         st.error(str(e))
         logger.exception(e)
         set_step_status(5, "error")

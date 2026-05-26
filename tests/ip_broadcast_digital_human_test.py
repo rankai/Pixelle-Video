@@ -9,6 +9,7 @@ from pixelle_video.services.digital_human_service import (
     _extract_video_output,
     _load_workflow_config,
     _resolve_workflow_input,
+    _runninghub_ai_app_headers,
     _wait_for_runninghub_task,
     list_digital_human_workflows,
 )
@@ -201,6 +202,13 @@ def test_build_ai_app_run_request_uses_documented_endpoint():
         "apiKey": "rk-test",
         "webappId": "2030929648594460673",
         "nodeInfoList": [{"nodeId": "48", "fieldName": "audio", "fieldValue": "voice.mp3"}],
+    }
+
+
+def test_runninghub_ai_app_headers_include_bearer_auth():
+    assert _runninghub_ai_app_headers("rk-test") == {
+        "Authorization": "Bearer rk-test",
+        "Content-Type": "application/json",
     }
 
 

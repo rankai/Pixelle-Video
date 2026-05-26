@@ -9,6 +9,7 @@ from pixelle_video.services.voice_reference_service import VoiceReferenceService
 from pixelle_video.tts_voices import EDGE_TTS_VOICES, get_voice_display_name
 from pixelle_video.utils.os_util import get_temp_path
 from web.ip_broadcast.state import STATUS_ICONS, get_step_status, set_step_status
+from web.ip_broadcast.status_ui import render_step_notice, set_step_notice, show_global_loading
 from web.utils.async_helpers import run_async
 from web.utils.streamlit_helpers import check_and_warn_selfhost_workflow, safe_rerun
 
@@ -58,6 +59,7 @@ def render_m3_voice(pixelle_video, run_mode: str):
         if audio_path and os.path.exists(audio_path):
             st.markdown("**预览生成的语音：**")
             st.audio(audio_path)
+        render_step_notice(3)
 
 
 def _render_local_mode_options():
@@ -310,6 +312,7 @@ def _do_generate_voice(pixelle_video):
     output_path = get_temp_path(f"ipb_audio_{uuid.uuid4().hex[:8]}.mp3")
 
     set_step_status(3, "running")
+    show_global_loading("正在生成语音，请稍候...")
     with st.spinner("正在生成语音…"):
         try:
             tts_kwargs = _build_tts_kwargs(text, output_path)
@@ -317,10 +320,11 @@ def _do_generate_voice(pixelle_video):
 
             st.session_state.ipb_m3_audio_path = audio_path
             set_step_status(3, "done")
-            st.success("语音生成成功！")
+            set_step_notice(3, "success", "语音生成成功")
             safe_rerun()
         except Exception as e:
             set_step_status(3, "error")
+            set_step_notice(3, "error", str(e))
             st.error(str(e))
             logger.exception(e)
 

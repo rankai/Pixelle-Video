@@ -182,6 +182,13 @@ def _build_ai_app_run_request(
     )
 
 
+def _runninghub_ai_app_headers(api_key: str) -> dict[str, str]:
+    return {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+
+
 def list_digital_human_workflows() -> list[dict]:
     workflows = []
     for base in (Path("workflows/runninghub"), Path("workflows/selfhost")):
@@ -356,17 +363,37 @@ async def _execute_runninghub_ai_app(
             api_key=api_key,
             node_info_list=node_info_list,
         )
-        run_result = await client._make_request(
-            "POST",
-            endpoint,
-            data=payload,
-        )
+        run_result = await _make_runninghub_ai_app_run_request(client, endpoint, payload, api_key)
         task_id = (run_result.get("data") or {}).get("taskId")
         if not task_id:
             raise RuntimeError(f"RunningHub AI App did not return taskId: {run_result}")
         return await _wait_for_runninghub_task(client, task_id)
     finally:
         await client.close()
+
+
+async def _make_runninghub_ai_app_run_request(
+    client,
+    endpoint: str,
+    payload: dict,
+    api_key: str,
+) -> dict[str, Any]:
+    import httpx
+
+    url = f"{client.base_url}{endpoint}"
+    async with httpx.AsyncClient(timeout=getattr(client, "timeout", 300)) as http_client:
+        response = await http_client.post(
+            url,
+            json=payload,
+            headers=_runninghub_ai_app_headers(api_key),
+        )
+    if response.status_code != 200:
+        raise RuntimeError(f"HTTP {response.status_code}: {response.text}")
+
+    result = response.json()
+    if result.get("code") not in (0, "0", None):
+        raise RuntimeError(f"RunningHub AI App API error: {result.get('msg', 'Unknown error')}")
+    return result
 
 
 async def _wait_for_runninghub_task(

@@ -10,6 +10,7 @@ from web.ip_broadcast.state import (
     set_final_script,
     set_step_status,
 )
+from web.ip_broadcast.status_ui import render_notice, show_global_loading
 from web.utils.async_helpers import run_async
 
 DEFERRED_ACTION_M2_GENERATE = "m2_generate"
@@ -100,11 +101,11 @@ def _render_generation_status():
         return
     kind, message = status
     if kind == "info":
-        st.info(message)
+        render_notice("info", message)
     elif kind == "error":
-        st.error(message)
+        render_notice("error", message)
     else:
-        st.success(message)
+        render_notice("success", message)
 
 
 def _do_generate(pixelle_video):
@@ -121,6 +122,7 @@ def _do_generate(pixelle_video):
 
     set_step_status(2, "running")
     try:
+        show_global_loading("AI 正在改写/优化文案，请稍候...")
         with st.spinner("生成中..."):
             output = run_async(
                 pixelle_video.llm(prompt=build_rewrite_prompt(source, style, word_count))

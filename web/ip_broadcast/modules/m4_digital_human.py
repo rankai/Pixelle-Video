@@ -7,6 +7,7 @@ from loguru import logger
 
 from pixelle_video.utils.os_util import get_temp_path
 from web.ip_broadcast.state import STATUS_ICONS, get_step_status, set_step_status
+from web.ip_broadcast.status_ui import render_step_notice, set_step_notice, show_global_loading
 from web.utils.async_helpers import run_async
 from web.utils.streamlit_helpers import safe_rerun
 
@@ -60,6 +61,7 @@ def render_m4_digital_human(pixelle_video, run_mode: str):
         if dh_video_path and os.path.exists(dh_video_path):
             st.markdown("**预览生成的数字人视频：**")
             st.video(dh_video_path)
+        render_step_notice(4)
 
 
 def _get_portrait_svc(pixelle_video):
@@ -292,6 +294,7 @@ def _do_generate_video(pixelle_video):
     output_path = get_temp_path(f"ipb_dh_{uuid.uuid4().hex[:8]}.mp4")
 
     set_step_status(4, "running")
+    show_global_loading("正在生成数字人视频，请稍候...")
     with st.spinner("正在生成数字人视频，请稍候…"):
         try:
             dh_video_path = run_async(
@@ -306,10 +309,11 @@ def _do_generate_video(pixelle_video):
             )
             st.session_state.ipb_m4_dh_video_path = dh_video_path
             set_step_status(4, "done")
-            st.success("数字人视频生成成功！")
+            set_step_notice(4, "success", "数字人视频生成成功")
             safe_rerun()
         except Exception as e:
             set_step_status(4, "error")
+            set_step_notice(4, "error", str(e))
             st.error(str(e))
             logger.exception(e)
 

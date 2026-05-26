@@ -9,6 +9,7 @@ from pixelle_video.prompts.ip_broadcast import build_social_meta_prompt
 from pixelle_video.services.subtitle_service import extract_first_frame
 from pixelle_video.utils.os_util import get_temp_path
 from web.ip_broadcast.state import STATUS_ICONS, get_step_status, set_step_status
+from web.ip_broadcast.status_ui import render_step_notice, set_step_notice, show_global_loading
 from web.utils.async_helpers import run_async
 from web.utils.streamlit_helpers import safe_rerun
 
@@ -27,6 +28,7 @@ def render_m6_title_cover(pixelle_video, run_mode: str):
         _generate_meta(pixelle_video, copy_text)
 
     _render_meta_summary()
+    render_step_notice(6)
 
     with st.expander("手动编辑与封面设置", expanded=False):
         st.text_input("视频标题", key="ipb_m6_title", placeholder="输入视频标题（15-20字）")
@@ -57,6 +59,7 @@ def render_m6_title_cover(pixelle_video, run_mode: str):
 
 
 def _generate_meta(pixelle_video, copy_text: str):
+    show_global_loading("AI 正在生成标题和描述，请稍候...")
     with st.spinner("AI正在生成标题和描述..."):
         try:
             result: SocialMetaResult = run_async(
@@ -70,9 +73,10 @@ def _generate_meta(pixelle_video, copy_text: str):
             st.session_state.ipb_m6_hashtags = result.hashtags
             _extract_cover_if_possible()
             set_step_status(6, "done")
-            st.success("AI生成完成！")
+            set_step_notice(6, "success", "标题描述生成完成")
             safe_rerun()
         except Exception as e:
+            set_step_notice(6, "error", str(e))
             st.error(str(e))
             logger.exception(e)
             set_step_status(6, "error")
