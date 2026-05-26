@@ -57,6 +57,12 @@ LLM_PRESETS: List[Dict[str, Any]] = [
         "model": "moonshot-v1-8k",
         "api_key_url": "https://platform.moonshot.cn/console/api-keys",
     },
+    {
+        "name": "Doubao",
+        "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+        "model": "doubao-pro-32k",
+        "api_key_url": "https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey",
+    },
 ]
 
 

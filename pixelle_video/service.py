@@ -36,6 +36,8 @@ from pixelle_video.services.history_manager import HistoryManager
 from pixelle_video.pipelines.standard import StandardPipeline
 from pixelle_video.pipelines.custom import CustomPipeline
 from pixelle_video.pipelines.asset_based import AssetBasedPipeline
+from pixelle_video.services.portrait_service import PortraitService
+from pixelle_video.services.digital_human_service import DigitalHumanService
 
 
 class PixelleVideoCore:
@@ -94,6 +96,8 @@ class PixelleVideoCore:
         self.frame_processor: Optional[FrameProcessor] = None
         self.persistence: Optional[PersistenceService] = None
         self.history: Optional[HistoryManager] = None
+        self.portrait: Optional[PortraitService] = None
+        self.digital_human: Optional[DigitalHumanService] = None
         
         # Video generation pipelines (dictionary of pipeline_name -> pipeline_instance)
         self.pipelines = {}
@@ -204,6 +208,8 @@ class PixelleVideoCore:
         self.frame_processor = FrameProcessor(self)
         self.persistence = PersistenceService(output_dir="output")
         self.history = HistoryManager(self.persistence)
+        self.portrait = PortraitService()
+        self.digital_human = DigitalHumanService(self)
         
         # 2. Register video generation pipelines
         self.pipelines = {

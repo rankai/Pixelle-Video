@@ -46,17 +46,20 @@ def get_pixelle_video():
     Uses st.session_state to cache the instance per user session.
     ComfyKit is lazily initialized and automatically recreated on config changes.
     """
-    from pixelle_video.service import PixelleVideoCore
-    from pixelle_video.config import config_manager
-    
     # Compute config hash for change detection
     import hashlib
     import json
+
+    from pixelle_video.config import config_manager
+    from pixelle_video.service import PixelleVideoCore
     config_dict = config_manager.config.to_dict()
     # Only track ComfyUI config for hash (other config changes don't need core recreation)
     comfyui_config = config_dict.get("comfyui", {})
     config_hash = hashlib.md5(json.dumps(comfyui_config, sort_keys=True).encode()).hexdigest()
     
+    # Required service attributes — if any are missing the cached instance is stale
+    _REQUIRED_ATTRS = ("portrait", "digital_human")
+
     # Check if we need to create or recreate core instance
     need_recreate = False
     if 'pixelle_video' not in st.session_state:
@@ -71,6 +74,12 @@ def get_pixelle_video():
             run_async(old_core.cleanup())
         except Exception as e:
             logger.warning(f"Failed to cleanup old PixelleVideoCore: {e}")
+    elif any(not getattr(st.session_state.pixelle_video, a, None) for a in _REQUIRED_ATTRS):
+        # Stale instance: _initialized=True but new services are missing.
+        # Reset the flag so initialize() will actually run again.
+        st.session_state.pixelle_video._initialized = False
+        need_recreate = True
+        logger.info("Cached PixelleVideoCore is missing new service attributes, reinitialising")
     
     if need_recreate:
         # Create and initialize new instance

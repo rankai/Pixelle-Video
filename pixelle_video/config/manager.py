@@ -170,3 +170,32 @@ class ConfigManager:
         if updates:
             self.update({"comfyui": updates})
 
+    def get_digital_human_service_config(self) -> dict:
+        """Get digital human service configuration as dict"""
+        return {
+            "provider": self.config.digital_human_service.provider,
+            "api_key": self.config.digital_human_service.api_key,
+            "base_url": self.config.digital_human_service.base_url,
+            "timeout": self.config.digital_human_service.timeout,
+        }
+
+    def set_digital_human_service_config(
+        self,
+        provider: Optional[str] = None,
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
+        timeout: Optional[int] = None,
+    ):
+        """Set digital human service configuration"""
+        updates = {}
+        if provider is not None:
+            updates["provider"] = provider
+        if api_key is not None:
+            updates["api_key"] = api_key
+        if base_url is not None:
+            updates["base_url"] = base_url
+        if timeout is not None:
+            updates["timeout"] = timeout
+        if updates:
+            self.update({"digital_human_service": updates})
+

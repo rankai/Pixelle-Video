@@ -52,9 +52,15 @@ def main():
         title="History",
         icon="📚"
     )
-    
+
+    ip_broadcast_page = st.Page(
+        "pages/3_🎙️_IP口播.py",
+        title="IP口播",
+        icon="🎙️"
+    )
+
     # Set up navigation and run
-    pg = st.navigation([home_page, history_page])
+    pg = st.navigation([home_page, history_page, ip_broadcast_page])
     pg.run()
 
 

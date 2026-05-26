@@ -88,12 +88,21 @@ class TemplateConfig(BaseModel):
     )
 
 
+class DigitalHumanServiceConfig(BaseModel):
+    """Digital human generation service configuration"""
+    provider: str = Field(default="comfyui", description="Provider: 'comfyui' | 'heixiang' | 'infomers'")
+    api_key: str = Field(default="", description="Digital human service API key")
+    base_url: str = Field(default="", description="Digital human service base URL")
+    timeout: int = Field(default=300, description="Request timeout in seconds")
+
+
 class PixelleVideoConfig(BaseModel):
     """Pixelle-Video main configuration"""
     project_name: str = Field(default="AI-Video-Factory", description="Project name")
     llm: LLMConfig = Field(default_factory=LLMConfig)
     comfyui: ComfyUIConfig = Field(default_factory=ComfyUIConfig)
     template: TemplateConfig = Field(default_factory=TemplateConfig)
+    digital_human_service: DigitalHumanServiceConfig = Field(default_factory=DigitalHumanServiceConfig)
     
     def is_llm_configured(self) -> bool:
         """Check if LLM is properly configured"""
