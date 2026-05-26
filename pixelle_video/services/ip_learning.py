@@ -150,6 +150,8 @@ async def _fetch_douyin_profile_video_urls(profile_url: str, limit: int = 5) -> 
     except PlaywrightTimeoutError:
         logger.warning("Douyin profile Playwright fetch timed out")
     except Exception as e:
+        if _is_playwright_browser_missing_error(str(e)):
+            raise ProfileFetchBlocked(_playwright_browser_missing_message()) from e
         logger.warning(f"Douyin profile Playwright fetch failed: {e}")
     finally:
         if context:
@@ -216,6 +218,7 @@ def _cookiejar_to_playwright_cookies(cookie_jar) -> list[dict]:
         domain = getattr(cookie, "domain", "")
         if not any(host in domain for host in ("douyin.com", "iesdouyin.com", "amemv.com")):
             continue
+        expires = _normalize_playwright_cookie_expires(cookie.expires)
         cookies.append(
             {
                 "name": cookie.name,
@@ -224,10 +227,20 @@ def _cookiejar_to_playwright_cookies(cookie_jar) -> list[dict]:
                 "path": cookie.path or "/",
                 "secure": bool(cookie.secure),
                 "httpOnly": cookie.has_nonstandard_attr("HttpOnly"),
-                "expires": cookie.expires if cookie.expires is not None else -1,
+                "expires": expires,
             }
         )
     return cookies
+
+
+def _normalize_playwright_cookie_expires(value) -> int:
+    if not value or value <= 0:
+        return -1
+    # Playwright expects a Unix timestamp in seconds; values beyond year 9999
+    # are rejected by Chromium even though some cookie stores contain them.
+    if value > 253402300799:
+        return -1
+    return int(value)
 
 
 def _merge_url_lists(first: list[str], second: list[str], limit: int) -> list[str]:
@@ -365,6 +378,18 @@ def _headless_profile_blocked_message() -> str:
     return (
         "当前 IP 主页在自动页面抓取时出现登录或验证拦截。"
         "请在下方手动粘贴最近 5 条视频链接，系统会继续逐条提取口播文案。"
+    )
+
+
+def _is_playwright_browser_missing_error(message: str) -> bool:
+    lower = message.lower()
+    return "executable doesn't exist" in lower and "playwright install" in lower
+
+
+def _playwright_browser_missing_message() -> str:
+    return (
+        "自动页面抓取需要 Playwright Chromium，但当前环境还没有安装浏览器内核。"
+        "我已尝试安装；如果仍失败，请在项目目录执行：uv run playwright install chromium。"
     )
 
 

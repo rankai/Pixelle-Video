@@ -11,7 +11,9 @@ from pixelle_video.services.ip_learning import (
     _extract_profile_entries,
     _headless_profile_blocked_message,
     _is_login_blocked_message,
+    _is_playwright_browser_missing_error,
     _is_unsupported_url_error,
+    _playwright_browser_missing_message,
     extract_many_video_scripts,
     fetch_latest_video_urls_from_profile,
     parse_manual_video_inputs,
@@ -141,6 +143,54 @@ def test_cookiejar_to_playwright_cookies_filters_douyin_domains():
     ]
 
 
+def test_cookiejar_to_playwright_cookies_normalizes_zero_expiry():
+    cookie = Cookie(
+        version=0,
+        name="sid_guard",
+        value="abc",
+        port=None,
+        port_specified=False,
+        domain=".douyin.com",
+        domain_specified=True,
+        domain_initial_dot=True,
+        path="/",
+        path_specified=True,
+        secure=False,
+        expires=0,
+        discard=False,
+        comment=None,
+        comment_url=None,
+        rest={},
+        rfc2109=False,
+    )
+
+    assert _cookiejar_to_playwright_cookies([cookie])[0]["expires"] == -1
+
+
+def test_cookiejar_to_playwright_cookies_normalizes_huge_expiry():
+    cookie = Cookie(
+        version=0,
+        name="sid_guard",
+        value="abc",
+        port=None,
+        port_specified=False,
+        domain=".douyin.com",
+        domain_specified=True,
+        domain_initial_dot=True,
+        path="/",
+        path_specified=True,
+        secure=False,
+        expires=9223372036854775807,
+        discard=False,
+        comment=None,
+        comment_url=None,
+        rest={},
+        rfc2109=False,
+    )
+
+    assert _cookiejar_to_playwright_cookies([cookie])[0]["expires"] == -1
+
+
 @pytest.mark.parametrize(
     "message",
     [
@@ -181,6 +231,17 @@ def test_headless_profile_blocked_message_does_not_suggest_browser_login_retry()
 
     assert "手动粘贴" in message
     assert "本机浏览器登录" not in message
+
+
+def test_playwright_browser_missing_message_is_actionable():
+    err = (
+        "BrowserType.launch: Executable doesn't exist at "
+        "/Users/nickfury/Library/Caches/ms-playwright/chromium_headless_shell"
+        " Please run the following command to download new browsers: playwright install"
+    )
+
+    assert _is_playwright_browser_missing_error(err)
+    assert "playwright install chromium" in _playwright_browser_missing_message()
 
 
 @pytest.mark.asyncio
