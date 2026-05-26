@@ -172,11 +172,10 @@ def _build_ai_app_run_request(
     api_key: str,
     node_info_list: list[dict],
 ) -> tuple[str, dict]:
+    _ = api_key
     return (
-        "/task/openapi/ai-app/run",
+        f"/openapi/v2/run/ai-app/{webapp_id}",
         {
-            "apiKey": api_key,
-            "webappId": webapp_id,
             "nodeInfoList": node_info_list,
         },
     )

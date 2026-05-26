@@ -18,6 +18,7 @@ from pixelle_video.services.ip_learning import (
     parse_manual_video_inputs,
 )
 from web.ip_broadcast.state import STATUS_ICONS, get_step_status, set_source_text, set_step_status
+from web.ip_broadcast.status_ui import render_step_notice, set_step_notice, show_global_loading
 from web.utils.async_helpers import run_async
 
 # ── 素材来源选项 ────────────────────────────────────────────────────────────
@@ -46,6 +47,7 @@ def render_m1_benchmark(pixelle_video, run_mode: str):
             _render_tab_brain(pixelle_video)
         else:
             _render_ip_learning(pixelle_video)
+        render_step_notice(1)
 
 
 # ── Tab 1：提取脚本 ──────────────────────────────────────────────────────────
@@ -129,6 +131,7 @@ def _render_tab_brain(pixelle_video):
 
     if st.button("生成口播文案", key="ipb_brain_generate_btn", use_container_width=True, type="primary"):
         try:
+            show_global_loading("正在生成行业人设口播文案，请稍候...")
             with st.spinner("生成中..."):
                 result = run_async(
                     pixelle_video.llm(
@@ -143,8 +146,9 @@ def _render_tab_brain(pixelle_video):
                 )
             st.session_state.ipb_brain_result = result
             set_source_text(result, "行业+人设")
-            st.success("IP文案生成完成")
+            set_step_notice(1, "success", "IP文案生成完成")
         except Exception as e:
+            set_step_notice(1, "error", str(e))
             st.error(str(e))
             logger.exception(e)
 
@@ -196,23 +200,28 @@ def _render_ip_learning(pixelle_video):
 
 def _learn_from_profile(pixelle_video, profile_url: str):
     if not profile_url.strip():
+        set_step_notice(1, "warning", "请先输入 IP 主页链接或主页分享文本")
         st.warning("请先输入 IP 主页链接或主页分享文本")
         return
 
     try:
+        show_global_loading("正在抓取该IP最近5条视频并学习，请稍候...")
         with st.spinner("正在抓取该IP最近5条视频链接..."):
             urls = run_async(fetch_latest_video_urls_from_profile(profile_url, limit=5))
         if not urls:
             st.session_state.ipb_ip_show_manual_fallback = True
+            set_step_notice(1, "warning", "未抓取到视频链接，请手动粘贴最近 5 条视频链接继续学习。")
             st.warning("未抓取到视频链接，请手动粘贴最近 5 条视频链接继续学习。")
             return
         st.session_state.ipb_ip_video_urls = urls
         _learn_from_video_inputs(pixelle_video, urls, "IP主页")
     except ProfileFetchBlocked as e:
         st.session_state.ipb_ip_show_manual_fallback = True
+        set_step_notice(1, "warning", str(e))
         st.warning(str(e))
     except Exception as e:
         st.session_state.ipb_ip_show_manual_fallback = True
+        set_step_notice(1, "error", f"主页抓取失败：{e}")
         st.error(f"主页抓取失败：{e}")
         logger.exception(e)
 
@@ -228,12 +237,14 @@ def _learn_from_video_inputs(pixelle_video, video_inputs: list[str], label: str)
     )
 
     try:
+        show_global_loading("正在提取视频口播并生成选题，请稍候...")
         with st.spinner("正在逐条提取口播文案..."):
             results = run_async(extract_many_video_scripts(extractor, video_inputs, limit=5))
         _store_ip_learning_results(results)
 
         scripts = [item.script for item in results if item.ok and item.script]
         if not scripts:
+            set_step_notice(1, "warning", "未能从这些视频中提取到可用口播文案，请检查链接或手动粘贴脚本。")
             st.warning("未能从这些视频中提取到可用口播文案，请检查链接或手动粘贴脚本。")
             return
 
@@ -247,8 +258,9 @@ def _learn_from_video_inputs(pixelle_video, video_inputs: list[str], label: str)
         st.session_state.ipb_ip_learning_topics = result.topics
         st.session_state.ipb_ip_selected_topic = ""
         st.session_state.ipb_ip_topic_script = ""
-        st.success(f"已学习 {len(scripts)} 条视频文案，生成 {len(result.topics)} 个选题")
+        set_step_notice(1, "success", f"已学习 {len(scripts)} 条视频文案，生成 {len(result.topics)} 个选题")
     except Exception as e:
+        set_step_notice(1, "error", f"{label}学习失败：{e}")
         st.error(f"{label}学习失败：{e}")
         logger.exception(e)
 
@@ -298,16 +310,18 @@ def _render_ip_learning_results(pixelle_video):
         if st.button("为此选题生成文案", key="ipb_ip_script_btn", use_container_width=True):
             try:
                 viral_hint = "\n\n".join(item["script"] for item in scripts)[:1200]
+                show_global_loading("正在为选题生成口播文案，请稍候...")
                 with st.spinner("生成文案..."):
                     script = run_async(
                         pixelle_video.llm(
                             prompt=build_script_from_topic_prompt(selected, viral_hint)
                         )
-                    )
+                )
                 st.session_state.ipb_ip_topic_script = script
                 set_source_text(script, "IP学习")
-                st.success("文案生成完成")
+                set_step_notice(1, "success", "文案生成完成")
             except Exception as e:
+                set_step_notice(1, "error", str(e))
                 st.error(str(e))
                 logger.exception(e)
 
@@ -333,6 +347,7 @@ def _ip_learning_result_summary(scripts: list[dict], errors: list[dict]) -> str:
 def _extract_from_url(pixelle_video, url: str):
     """Extract script from a video URL using multi-strategy pipeline."""
     if not url.strip():
+        set_step_notice(1, "warning", "请先输入视频链接或分享文本")
         st.warning("请先输入视频链接或分享文本")
         return
 
@@ -345,28 +360,33 @@ def _extract_from_url(pixelle_video, url: str):
         base_url=llm_cfg["base_url"],
     )
     try:
+        show_global_loading("正在从视频链接提取口播文案，请稍候...")
         with st.spinner("正在从视频URL提取文案（首次可能需要1-2分钟）..."):
             script = run_async(extractor.extract(url))
         script = script.strip()
         if not script:
+            set_step_notice(1, "warning", "没有提取到口播文案，请检查链接或手动粘贴文案")
             st.warning("没有提取到口播文案，请检查链接或手动粘贴文案")
             return
         st.session_state.ipb_m1_raw_script = script
         set_source_text(script, "视频链接")
-        st.success(f"文案提取成功（{len(script)} 字符）")
+        set_step_notice(1, "success", f"文案提取成功（{len(script)} 字符）")
     except Exception as e:
+        set_step_notice(1, "error", f"提取失败：{e}")
         st.error(f"提取失败：{e}")
         logger.exception(e)
 
 
 def _clean_and_set_source(pixelle_video, raw_text: str, label: str):
     try:
+        show_global_loading("正在清洗并生成口播文案，请稍候...")
         with st.spinner("正在清洗并生成口播文案..."):
             cleaned = run_async(pixelle_video.llm(prompt=build_script_extraction_prompt(raw_text)))
         st.session_state.ipb_m1_raw_script = cleaned
         set_source_text(cleaned, label)
-        st.success(f"文案已准备好（{len(cleaned)} 字符）")
+        set_step_notice(1, "success", f"文案已准备好（{len(cleaned)} 字符）")
     except Exception as e:
+        set_step_notice(1, "error", str(e))
         st.error(str(e))
         logger.exception(e)
 
