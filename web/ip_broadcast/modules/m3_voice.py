@@ -194,8 +194,23 @@ def _render_voice_reference_library():
             )
             if recorded_ref is not None:
                 st.audio(recorded_ref)
-                if st.button("保存录音", key="ipb_m3_save_recorded_ref_btn", use_container_width=True):
+                col_save, col_clear = st.columns(2)
+                with col_save:
+                    save_recording = st.button(
+                        "保存录音",
+                        key="ipb_m3_save_recorded_ref_btn",
+                        use_container_width=True,
+                    )
+                with col_clear:
+                    clear_recording = st.button(
+                        "重新录制",
+                        key="ipb_m3_clear_recorded_ref_btn",
+                        use_container_width=True,
+                    )
+                if save_recording:
                     _save_reference_audio(svc, name, recorded_ref, default_ext="wav")
+                if clear_recording:
+                    _clear_recorded_reference_audio()
         else:
             st.caption("当前 Streamlit 版本暂不支持浏览器录音，请先上传音频文件。")
 
@@ -204,6 +219,11 @@ def _set_selected_reference_audio_path(reference_paths: dict[str, str]) -> None:
     selected_id = st.session_state.get("ipb_m3_ref_audio_id", "")
     selected_path = reference_paths.get(selected_id, "")
     st.session_state.ipb_m3_ref_audio_path = selected_path if selected_path and os.path.exists(selected_path) else ""
+
+
+def _clear_recorded_reference_audio() -> None:
+    st.session_state.pop("ipb_m3_ref_audio_recorder", None)
+    safe_rerun()
 
 
 def _save_reference_audio(

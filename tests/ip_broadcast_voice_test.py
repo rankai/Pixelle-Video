@@ -87,6 +87,19 @@ def test_select_reference_audio_sets_tts_reference_path(monkeypatch, tmp_path):
     assert session["ipb_m3_ref_audio_path"] == str(ref)
 
 
+def test_clear_recorded_reference_audio_removes_widget_state(monkeypatch):
+    session = _session()
+    session["ipb_m3_ref_audio_recorder"] = object()
+    rerun_called = []
+    monkeypatch.setattr(m3_voice.st, "session_state", session)
+    monkeypatch.setattr(m3_voice, "safe_rerun", lambda: rerun_called.append(True))
+
+    m3_voice._clear_recorded_reference_audio()
+
+    assert "ipb_m3_ref_audio_recorder" not in session
+    assert rerun_called == [True]
+
+
 def test_preview_generation_uses_separate_output_path(monkeypatch, tmp_path):
     session = _session()
     session["ipb_m3_audio_path"] = "/tmp/existing-final.mp3"
