@@ -187,11 +187,21 @@ def _render_voice_reference_library():
             _save_reference_audio(svc, name, uploaded_ref)
 
         if hasattr(st, "audio_input"):
-            recorded_ref = st.audio_input("直接录制参考音频", key="ipb_m3_ref_audio_recorder")
+            st.caption("若授权后仍停在 00:00，请改用 http://localhost:8501 打开页面，或先用系统录音后上传。")
+            st.link_button(
+                "用 localhost 打开当前页",
+                "http://localhost:8501/IP%E5%8F%A3%E6%92%AD",
+                use_container_width=True,
+            )
+            recorded_ref = st.audio_input(
+                "直接录制参考音频",
+                key="ipb_m3_ref_audio_recorder",
+                help="浏览器麦克风权限按域名保存；127.0.0.1 和 localhost 可能需要分别授权。",
+            )
             if recorded_ref is not None:
                 st.audio(recorded_ref)
-            if st.button("保存录音", key="ipb_m3_save_recorded_ref_btn", use_container_width=True):
-                _save_reference_audio(svc, name, recorded_ref, default_ext="wav")
+                if st.button("保存录音", key="ipb_m3_save_recorded_ref_btn", use_container_width=True):
+                    _save_reference_audio(svc, name, recorded_ref, default_ext="wav")
         else:
             st.caption("当前 Streamlit 版本暂不支持浏览器录音，请先上传音频文件。")
 
