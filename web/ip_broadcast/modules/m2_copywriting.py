@@ -55,6 +55,7 @@ def render_m2_copywriting(pixelle_video, run_mode: str):
         ):
             _request_generate()
 
+        _render_generation_status()
 
 
 def _get_source_text() -> str:
@@ -77,12 +78,41 @@ def _sync_final_script_from_editor():
 
 def _request_generate():
     st.session_state["_ipb_deferred_action"] = DEFERRED_ACTION_M2_GENERATE
+    st.session_state["_ipb_m2_generation_pending"] = True
+    st.session_state["_ipb_m2_last_success"] = ""
+    st.session_state["_ipb_m2_last_error"] = ""
+    st.rerun()
+
+
+def _generation_status_message() -> tuple[str, str] | None:
+    if st.session_state.get("_ipb_m2_generation_pending"):
+        return "info", "AI 正在改写/优化文案，请稍候..."
+    if st.session_state.get("_ipb_m2_last_error"):
+        return "error", st.session_state["_ipb_m2_last_error"]
+    if st.session_state.get("_ipb_m2_last_success"):
+        return "success", st.session_state["_ipb_m2_last_success"]
+    return None
+
+
+def _render_generation_status():
+    status = _generation_status_message()
+    if not status:
+        return
+    kind, message = status
+    if kind == "info":
+        st.info(message)
+    elif kind == "error":
+        st.error(message)
+    else:
+        st.success(message)
 
 
 def _do_generate(pixelle_video):
     """Shared generation logic for both button placements."""
     source = _get_source_text().strip()
     if not source:
+        st.session_state["_ipb_m2_generation_pending"] = False
+        st.session_state["_ipb_m2_last_error"] = "请先在模块1生成文案，或直接填写「最终口播文案」"
         st.warning("请先在模块1生成文案，或直接填写「最终口播文案」")
         return
 
@@ -93,18 +123,23 @@ def _do_generate(pixelle_video):
     try:
         with st.spinner("生成中..."):
             output = run_async(
-                pixelle_video.llm(
-                    prompt=build_rewrite_prompt(source, style, word_count)
-                )
+                pixelle_video.llm(prompt=build_rewrite_prompt(source, style, word_count))
             )
         set_final_script(output)
         set_step_status(2, "done")
+        st.session_state["_ipb_m2_generation_pending"] = False
+        st.session_state["_ipb_m2_last_success"] = "文案生成完成"
+        st.session_state["_ipb_m2_last_error"] = ""
         st.success("文案生成完成")
         st.rerun()
     except Exception as e:
         set_step_status(2, "error")
+        st.session_state["_ipb_m2_generation_pending"] = False
+        st.session_state["_ipb_m2_last_error"] = str(e)
+        st.session_state["_ipb_m2_last_success"] = ""
         st.error(str(e))
         logger.exception(e)
+        st.rerun()
 
 
 async def run_m2(pixelle_video) -> bool:
