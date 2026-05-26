@@ -145,6 +145,8 @@ def _render_tts_workflow_selector(pixelle_video) -> str | None:
 
 
 def _render_voice_reference_library():
+    _apply_reference_audio_form_reset()
+
     svc = VoiceReferenceService()
     references = svc.list_references()
     reference_paths = {item.reference_id: item.asset_path() for item in references}
@@ -179,7 +181,7 @@ def _render_voice_reference_library():
         uploaded_ref = st.file_uploader(
             "上传参考音频",
             type=["mp3", "wav", "flac", "m4a"],
-            key="ipb_m3_ref_audio_uploader",
+            key=_reference_audio_uploader_key(),
         )
         if uploaded_ref is not None:
             st.audio(uploaded_ref)
@@ -226,6 +228,25 @@ def _clear_recorded_reference_audio() -> None:
     safe_rerun()
 
 
+def _apply_reference_audio_form_reset() -> None:
+    saved_id = st.session_state.pop("_ipb_m3_ref_audio_saved_id", "")
+    if not saved_id:
+        return
+
+    st.session_state.ipb_m3_ref_audio_id = saved_id
+    st.session_state.ipb_m3_ref_audio_select = saved_id
+    st.session_state.ipb_m3_new_ref_audio_name = ""
+    st.session_state.ipb_m3_ref_audio_uploader_nonce = (
+        int(st.session_state.get("ipb_m3_ref_audio_uploader_nonce", 0)) + 1
+    )
+    st.session_state.pop("ipb_m3_ref_audio_recorder", None)
+
+
+def _reference_audio_uploader_key() -> str:
+    nonce = int(st.session_state.get("ipb_m3_ref_audio_uploader_nonce", 0))
+    return f"ipb_m3_ref_audio_uploader_{nonce}"
+
+
 def _save_reference_audio(
     svc: VoiceReferenceService,
     name: str,
@@ -245,6 +266,7 @@ def _save_reference_audio(
         info = svc.save_reference(clean_name, uploaded_audio.getvalue(), ext)
         st.session_state.ipb_m3_ref_audio_id = info.reference_id
         st.session_state.ipb_m3_ref_audio_path = info.asset_path()
+        st.session_state._ipb_m3_ref_audio_saved_id = info.reference_id
         st.success(f"参考音频「{clean_name}」已保存。")
         safe_rerun()
     except Exception as e:

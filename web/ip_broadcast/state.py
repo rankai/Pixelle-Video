@@ -69,6 +69,7 @@ def init_ip_broadcast_state(session: MutableMapping | None = None):
         "ipb_m3_preview_text": "大家好，这是一段测试语音。",
         "ipb_m3_ref_audio_id": "",
         "ipb_m3_new_ref_audio_name": "",
+        "ipb_m3_ref_audio_uploader_nonce": 0,
         "ipb_m3_ref_audio_path": "",
         "ipb_m3_audio_path": "",
         # Module 4

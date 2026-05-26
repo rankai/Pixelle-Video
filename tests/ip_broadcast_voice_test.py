@@ -100,6 +100,30 @@ def test_clear_recorded_reference_audio_removes_widget_state(monkeypatch):
     assert rerun_called == [True]
 
 
+def test_apply_reference_audio_form_reset_selects_saved_reference_and_clears_inputs(monkeypatch):
+    session = _session()
+    session.update(
+        {
+            "_ipb_m3_ref_audio_saved_id": "ref-new",
+            "ipb_m3_ref_audio_id": "ref-old",
+            "ipb_m3_ref_audio_select": "ref-old",
+            "ipb_m3_new_ref_audio_name": "老板原声",
+            "ipb_m3_ref_audio_uploader_nonce": 2,
+            "ipb_m3_ref_audio_recorder": object(),
+        }
+    )
+    monkeypatch.setattr(m3_voice.st, "session_state", session)
+
+    m3_voice._apply_reference_audio_form_reset()
+
+    assert session["ipb_m3_ref_audio_id"] == "ref-new"
+    assert session["ipb_m3_ref_audio_select"] == "ref-new"
+    assert session["ipb_m3_new_ref_audio_name"] == ""
+    assert session["ipb_m3_ref_audio_uploader_nonce"] == 3
+    assert "ipb_m3_ref_audio_recorder" not in session
+    assert "_ipb_m3_ref_audio_saved_id" not in session
+
+
 def test_preview_generation_uses_separate_output_path(monkeypatch, tmp_path):
     session = _session()
     session["ipb_m3_audio_path"] = "/tmp/existing-final.mp3"
