@@ -272,3 +272,18 @@ def test_ip_learning_result_summary_counts_success_and_failures():
     summary = m1_benchmark._ip_learning_result_summary(scripts, errors)
 
     assert summary == "已提取 1 条，失败 1 条"
+
+
+def test_finish_step1_task_sets_notice_and_reruns(monkeypatch):
+    session = {}
+    rerun_called = []
+    monkeypatch.setattr(m1_benchmark.st, "session_state", session)
+    monkeypatch.setattr(m1_benchmark, "safe_rerun", lambda: rerun_called.append(True))
+
+    m1_benchmark._finish_step1_task("success", "文案提取成功")
+
+    assert session["_ipb_step_1_notice"] == {
+        "kind": "success",
+        "message": "文案提取成功",
+    }
+    assert rerun_called == [True]
