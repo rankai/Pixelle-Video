@@ -37,15 +37,23 @@ _COOKIE_PERMISSION_PATTERNS = (
 def ytdlp_cookie_options() -> list[list[str]]:
     """Return yt-dlp cookie argument candidates, starting with no-cookie mode."""
     options: list[list[str]] = [[]]
+    for spec in ytdlp_cookie_specs():
+        options.append(["--cookies-from-browser", spec])
+    return options
+
+
+def ytdlp_cookie_specs() -> list[str]:
+    """Return browser cookie specs accepted by yt-dlp's --cookies-from-browser."""
+    specs: list[str] = []
     seen: set[str] = set()
 
     for spec in _BUILTIN_BROWSER_COOKIE_SPECS:
-        _append_cookie_spec(options, seen, spec)
+        _append_cookie_spec(specs, seen, spec)
 
     for profile_path in _domestic_chromium_profile_paths():
-        _append_cookie_spec(options, seen, f"chrome:{profile_path}")
+        _append_cookie_spec(specs, seen, f"chrome:{profile_path}")
 
-    return options
+    return specs
 
 
 def is_cookie_unavailable_error(message: str) -> bool:
@@ -59,11 +67,11 @@ def is_cookie_unavailable_error(message: str) -> bool:
     )
 
 
-def _append_cookie_spec(options: list[list[str]], seen: set[str], spec: str):
+def _append_cookie_spec(specs: list[str], seen: set[str], spec: str):
     if spec in seen:
         return
     seen.add(spec)
-    options.append(["--cookies-from-browser", spec])
+    specs.append(spec)
 
 
 def _domestic_chromium_profile_paths() -> list[Path]:

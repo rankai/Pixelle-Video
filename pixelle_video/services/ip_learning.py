@@ -14,6 +14,7 @@ from pixelle_video.services.script_extractor import VideoScriptExtractor
 from pixelle_video.services.ytdlp_cookies import (
     is_cookie_unavailable_error,
     ytdlp_cookie_options,
+    ytdlp_cookie_specs,
 )
 
 _LOGIN_BLOCK_PATTERNS = (
@@ -109,17 +110,25 @@ async def _fetch_douyin_profile_video_urls(profile_url: str, limit: int = 5) -> 
         return urls
 
     browser = None
+    context = None
     playwright = None
     try:
         playwright = await async_playwright().start()
         browser = await playwright.chromium.launch(headless=True)
-        page = await browser.new_page(
+        context = await browser.new_context(
             user_agent=(
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
             ),
             viewport={"width": 1280, "height": 900},
         )
+        cookies = await asyncio.get_event_loop().run_in_executor(
+            None, _load_playwright_cookies_from_browsers
+        )
+        if cookies:
+            await context.add_cookies(cookies)
+            logger.info(f"Loaded {len(cookies)} Douyin browser cookies for profile fetch")
+        page = await context.new_page()
         await page.goto(profile_url, wait_until="domcontentloaded", timeout=30000)
         for _ in range(3):
             await page.mouse.wheel(0, 1200)
@@ -143,12 +152,82 @@ async def _fetch_douyin_profile_video_urls(profile_url: str, limit: int = 5) -> 
     except Exception as e:
         logger.warning(f"Douyin profile Playwright fetch failed: {e}")
     finally:
+        if context:
+            await context.close()
         if browser:
             await browser.close()
         if playwright:
             await playwright.stop()
 
     return urls
+
+
+def _load_playwright_cookies_from_browsers() -> list[dict]:
+    try:
+        from yt_dlp.cookies import extract_cookies_from_browser
+    except Exception as e:
+        logger.debug(f"yt-dlp cookie loader unavailable: {e}")
+        return []
+
+    cookies: list[dict] = []
+    seen: set[tuple[str, str, str]] = set()
+    for spec in ytdlp_cookie_specs():
+        browser_name, profile, keyring, container = _parse_browser_cookie_spec(spec)
+        try:
+            jar = extract_cookies_from_browser(
+                browser_name,
+                profile,
+                keyring=keyring,
+                container=container,
+            )
+        except Exception as e:
+            logger.debug(f"Skipping browser cookie spec {spec}: {e}")
+            continue
+        for cookie in _cookiejar_to_playwright_cookies(jar):
+            key = (cookie["domain"], cookie["path"], cookie["name"])
+            if key in seen:
+                continue
+            seen.add(key)
+            cookies.append(cookie)
+    return cookies
+
+
+def _parse_browser_cookie_spec(spec: str) -> tuple[str, str | None, str | None, str | None]:
+    container = None
+    if "::" in spec:
+        spec, container = spec.split("::", 1)
+
+    profile = None
+    if ":" in spec:
+        browser_part, profile = spec.split(":", 1)
+    else:
+        browser_part = spec
+
+    if "+" in browser_part:
+        browser_name, keyring = browser_part.split("+", 1)
+    else:
+        browser_name, keyring = browser_part, None
+    return browser_name, profile or None, keyring or None, container or None
+
+
+def _cookiejar_to_playwright_cookies(cookie_jar) -> list[dict]:
+    cookies = []
+    for cookie in cookie_jar:
+        domain = getattr(cookie, "domain", "")
+        if not any(host in domain for host in ("douyin.com", "iesdouyin.com", "amemv.com")):
+            continue
+        cookies.append(
+            {
+                "name": cookie.name,
+                "value": cookie.value,
+                "domain": domain,
+                "path": cookie.path or "/",
+                "secure": bool(cookie.secure),
+                "httpOnly": cookie.has_nonstandard_attr("HttpOnly"),
+                "expires": cookie.expires if cookie.expires is not None else -1,
+            }
+        )
+    return cookies
 
 
 def _merge_url_lists(first: list[str], second: list[str], limit: int) -> list[str]:
@@ -197,6 +276,7 @@ async def fetch_latest_video_urls_from_profile(profile_url: str, limit: int = 5)
         urls = await _fetch_douyin_profile_video_urls(profile_target, limit=limit)
         if urls:
             return urls
+        raise ProfileFetchBlocked(_headless_profile_blocked_message())
 
     last_error = ""
     skipped_cookie_errors: list[str] = []

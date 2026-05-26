@@ -1,7 +1,11 @@
+import asyncio
+from http.cookiejar import Cookie
+
 import pytest
 
 from pixelle_video.services.ip_learning import (
     ProfileFetchBlocked,
+    _cookiejar_to_playwright_cookies,
     _extract_douyin_profile_video_urls_from_text,
     _extract_first_url,
     _extract_profile_entries,
@@ -9,6 +13,7 @@ from pixelle_video.services.ip_learning import (
     _is_login_blocked_message,
     _is_unsupported_url_error,
     extract_many_video_scripts,
+    fetch_latest_video_urls_from_profile,
     parse_manual_video_inputs,
 )
 from web.ip_broadcast.modules.m1_benchmark import SOURCE_MODES
@@ -83,6 +88,59 @@ def test_unsupported_url_error_detection():
     )
 
 
+def test_cookiejar_to_playwright_cookies_filters_douyin_domains():
+    cookie = Cookie(
+        version=0,
+        name="sessionid",
+        value="abc",
+        port=None,
+        port_specified=False,
+        domain=".douyin.com",
+        domain_specified=True,
+        domain_initial_dot=True,
+        path="/",
+        path_specified=True,
+        secure=True,
+        expires=None,
+        discard=True,
+        comment=None,
+        comment_url=None,
+        rest={"HttpOnly": None},
+        rfc2109=False,
+    )
+    other = Cookie(
+        version=0,
+        name="x",
+        value="1",
+        port=None,
+        port_specified=False,
+        domain=".example.com",
+        domain_specified=True,
+        domain_initial_dot=True,
+        path="/",
+        path_specified=True,
+        secure=False,
+        expires=None,
+        discard=True,
+        comment=None,
+        comment_url=None,
+        rest={},
+        rfc2109=False,
+    )
+
+    assert _cookiejar_to_playwright_cookies([cookie, other]) == [
+        {
+            "name": "sessionid",
+            "value": "abc",
+            "domain": ".douyin.com",
+            "path": "/",
+            "secure": True,
+            "httpOnly": True,
+            "expires": -1,
+        }
+    ]
+
+
 @pytest.mark.parametrize(
     "message",
     [
@@ -123,3 +181,23 @@ def test_headless_profile_blocked_message_does_not_suggest_browser_login_retry()
 
     assert "手动粘贴" in message
     assert "本机浏览器登录" not in message
+
+
+@pytest.mark.asyncio
+async def test_douyin_profile_does_not_fall_back_to_ytdlp_unsupported_url(monkeypatch):
+    async def fake_fetch_profile_urls(profile_url, limit=5):
+        return []
+
+    async def fail_if_ytdlp_runs(*args, **kwargs):
+        raise AssertionError("yt-dlp should not run for unsupported Douyin profile URLs")
+
+    monkeypatch.setattr(
+        "pixelle_video.services.ip_learning._fetch_douyin_profile_video_urls",
+        fake_fetch_profile_urls,
+    )
+    monkeypatch.setattr(asyncio, "create_subprocess_exec", fail_if_ytdlp_runs)
+
+    with pytest.raises(ProfileFetchBlocked, match="手动粘贴"):
+        await fetch_latest_video_urls_from_profile(
+            "https://www.douyin.com/user/MS4wLjABAAAACBoxlfmWDjn18FynRdDb9T2LDTers9k-2C5-GFxvlo4"
+        )

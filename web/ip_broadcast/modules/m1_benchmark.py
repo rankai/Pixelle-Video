@@ -170,7 +170,7 @@ def _render_ip_learning(pixelle_video):
         height=80,
         placeholder="例如：https://www.douyin.com/user/... 或复制来的主页分享文本",
     )
-    st.caption("遇到登录、验证码或扫码验证时会停止抓取；可先在本机浏览器登录后重试，或使用下方手动链接兜底。")
+    st.caption("会尝试读取本机浏览器登录态；若仍遇到登录、验证码或扫码验证，请使用下方手动链接兜底。")
 
     if st.button("学习该IP最新视频并生成选题", key="ipb_ip_profile_learn_btn", use_container_width=True, type="primary"):
         _learn_from_profile(pixelle_video, profile_url)

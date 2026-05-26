@@ -4,11 +4,12 @@ from pixelle_video.services.ytdlp_cookies import (
     _chromium_profile_paths_from_roots,
     is_cookie_unavailable_error,
     ytdlp_cookie_options,
+    ytdlp_cookie_specs,
 )
 
 
 def test_cookie_options_include_more_common_browsers():
-    specs = [args[-1] for args in ytdlp_cookie_options() if args]
+    specs = ytdlp_cookie_specs()
 
     assert specs[:9] == [
         "chrome",
@@ -20,6 +21,14 @@ def test_cookie_options_include_more_common_browsers():
         "opera",
         "chromium",
         "whale",
+    ]
+
+
+def test_cookie_options_are_derived_from_specs():
+    specs = ytdlp_cookie_specs()
+
+    assert ytdlp_cookie_options()[1 : len(specs) + 1] == [
+        ["--cookies-from-browser", spec] for spec in specs
     ]
 
 
