@@ -18,6 +18,7 @@ from pixelle_video.services.ip_learning import (
     fetch_latest_video_urls_from_profile,
     parse_manual_video_inputs,
 )
+from web.ip_broadcast.modules import m1_benchmark
 from web.ip_broadcast.modules.m1_benchmark import SOURCE_MODES
 
 
@@ -262,3 +263,12 @@ async def test_douyin_profile_does_not_fall_back_to_ytdlp_unsupported_url(monkey
         await fetch_latest_video_urls_from_profile(
             "https://www.douyin.com/user/MS4wLjABAAAACBoxlfmWDjn18FynRdDb9T2LDTers9k-2C5-GFxvlo4"
         )
+
+
+def test_ip_learning_result_summary_counts_success_and_failures():
+    scripts = [{"source": "https://example.com/1", "script": "第一条口播文案"}]
+    errors = [{"source": "https://example.com/2", "error": "提取失败"}]
+
+    summary = m1_benchmark._ip_learning_result_summary(scripts, errors)
+
+    assert summary == "已提取 1 条，失败 1 条"

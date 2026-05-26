@@ -5,6 +5,7 @@ from pathlib import Path
 import streamlit as st
 from loguru import logger
 
+from pixelle_video.services.voice_reference_service import VoiceReferenceService
 from pixelle_video.tts_voices import EDGE_TTS_VOICES, get_voice_display_name
 from pixelle_video.utils.os_util import get_temp_path
 from web.ip_broadcast.state import STATUS_ICONS, get_step_status, set_step_status
@@ -112,24 +113,8 @@ def _render_comfyui_mode_options(pixelle_video):
     if tts_workflow_key:
         check_and_warn_selfhost_workflow(tts_workflow_key)
 
-    st.caption("上传参考音频可克隆声音，不上传则使用工作流默认声音")
-
-    uploaded_ref = st.file_uploader(
-        "参考音频（可选）",
-        type=["mp3", "wav", "flac", "m4a"],
-        key="ipb_m3_ref_audio_uploader",
-    )
-
-    if uploaded_ref is not None:
-        ref_path = get_temp_path(f"ipb_ref_{uuid.uuid4().hex[:8]}.{uploaded_ref.name.rsplit('.', 1)[-1]}")
-        with open(ref_path, "wb") as f:
-            f.write(uploaded_ref.getbuffer())
-        st.session_state.ipb_m3_ref_audio_path = ref_path
-        st.audio(ref_path)
-    else:
-        # Clear stale reference path only if the user actively removed the file;
-        # preserve across rerenders that don't involve a new upload.
-        pass
+    st.caption("选择已保存的参考音频可克隆声音，不选择则使用工作流默认声音。")
+    _render_voice_reference_library()
 
 
 def _render_tts_workflow_selector(pixelle_video) -> str | None:
@@ -157,6 +142,90 @@ def _render_tts_workflow_selector(pixelle_video) -> str | None:
     selected_key = workflow_keys[selected_idx]
     st.session_state.ipb_m3_tts_workflow = selected_key
     return selected_key
+
+
+def _render_voice_reference_library():
+    svc = VoiceReferenceService()
+    references = svc.list_references()
+    reference_paths = {item.reference_id: item.asset_path() for item in references}
+
+    options = [""] + [item.reference_id for item in references]
+    labels = {"": "不使用参考音频"}
+    labels.update({item.reference_id: f"{item.name}（{item.created_at}）" for item in references})
+
+    current_id = st.session_state.get("ipb_m3_ref_audio_id", "")
+    if current_id not in options:
+        current_id = ""
+    selected_id = st.selectbox(
+        "参考音频库",
+        options=options,
+        index=options.index(current_id),
+        format_func=lambda ref_id: labels.get(ref_id, ref_id),
+        key="ipb_m3_ref_audio_select",
+    )
+    st.session_state.ipb_m3_ref_audio_id = selected_id
+    _set_selected_reference_audio_path(reference_paths)
+
+    selected_path = st.session_state.get("ipb_m3_ref_audio_path", "")
+    if selected_path and os.path.exists(selected_path):
+        st.audio(selected_path)
+
+    with st.expander("保存新的参考音频", expanded=False):
+        name = st.text_input(
+            "声音名称",
+            key="ipb_m3_new_ref_audio_name",
+            placeholder="例如：老板本人声音、女主播A",
+        )
+        uploaded_ref = st.file_uploader(
+            "上传参考音频",
+            type=["mp3", "wav", "flac", "m4a"],
+            key="ipb_m3_ref_audio_uploader",
+        )
+        if uploaded_ref is not None:
+            st.audio(uploaded_ref)
+        if st.button("保存上传音频", key="ipb_m3_save_uploaded_ref_btn", use_container_width=True):
+            _save_reference_audio(svc, name, uploaded_ref)
+
+        if hasattr(st, "audio_input"):
+            recorded_ref = st.audio_input("直接录制参考音频", key="ipb_m3_ref_audio_recorder")
+            if recorded_ref is not None:
+                st.audio(recorded_ref)
+            if st.button("保存录音", key="ipb_m3_save_recorded_ref_btn", use_container_width=True):
+                _save_reference_audio(svc, name, recorded_ref, default_ext="wav")
+        else:
+            st.caption("当前 Streamlit 版本暂不支持浏览器录音，请先上传音频文件。")
+
+
+def _set_selected_reference_audio_path(reference_paths: dict[str, str]) -> None:
+    selected_id = st.session_state.get("ipb_m3_ref_audio_id", "")
+    selected_path = reference_paths.get(selected_id, "")
+    st.session_state.ipb_m3_ref_audio_path = selected_path if selected_path and os.path.exists(selected_path) else ""
+
+
+def _save_reference_audio(
+    svc: VoiceReferenceService,
+    name: str,
+    uploaded_audio,
+    default_ext: str | None = None,
+) -> None:
+    clean_name = name.strip()
+    if not clean_name:
+        st.warning("请先填写声音名称。")
+        return
+    if uploaded_audio is None:
+        st.warning("请先上传或录制参考音频。")
+        return
+
+    try:
+        ext = default_ext or uploaded_audio.name.rsplit(".", 1)[-1].lower()
+        info = svc.save_reference(clean_name, uploaded_audio.getvalue(), ext)
+        st.session_state.ipb_m3_ref_audio_id = info.reference_id
+        st.session_state.ipb_m3_ref_audio_path = info.asset_path()
+        st.success(f"参考音频「{clean_name}」已保存。")
+        safe_rerun()
+    except Exception as e:
+        st.error(str(e))
+        logger.exception(e)
 
 
 def _render_voice_preview(pixelle_video):

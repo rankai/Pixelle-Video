@@ -75,6 +75,18 @@ def test_build_tts_kwargs_for_comfyui_mode_with_workflow_and_ref(monkeypatch, tm
     }
 
 
+def test_select_reference_audio_sets_tts_reference_path(monkeypatch, tmp_path):
+    session = _session()
+    ref = tmp_path / "saved.wav"
+    ref.write_bytes(b"audio")
+    session["ipb_m3_ref_audio_id"] = "ref-1"
+    monkeypatch.setattr(m3_voice.st, "session_state", session)
+
+    m3_voice._set_selected_reference_audio_path({"ref-1": str(ref)})
+
+    assert session["ipb_m3_ref_audio_path"] == str(ref)
+
+
 def test_preview_generation_uses_separate_output_path(monkeypatch, tmp_path):
     session = _session()
     session["ipb_m3_audio_path"] = "/tmp/existing-final.mp3"

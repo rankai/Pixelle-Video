@@ -53,6 +53,7 @@ def init_ip_broadcast_state(session: MutableMapping | None = None):
         "ipb_ip_learning_topics": [],
         "ipb_ip_selected_topic": "",
         "ipb_ip_topic_script": "",
+        "ipb_ip_show_manual_fallback": False,
         # Module 2
         "ipb_m2_style_prompt": "口语化、亲切自然、有感染力",
         "ipb_m2_word_count": 200,
@@ -66,6 +67,8 @@ def init_ip_broadcast_state(session: MutableMapping | None = None):
         "ipb_m3_speed": 1.2,
         "ipb_m3_tts_workflow": "",
         "ipb_m3_preview_text": "大家好，这是一段测试语音。",
+        "ipb_m3_ref_audio_id": "",
+        "ipb_m3_new_ref_audio_name": "",
         "ipb_m3_ref_audio_path": "",
         "ipb_m3_audio_path": "",
         # Module 4

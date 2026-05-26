@@ -173,9 +173,11 @@ def _render_ip_learning(pixelle_video):
     st.caption("会尝试读取本机浏览器登录态；若仍遇到登录、验证码或扫码验证，请使用下方手动链接兜底。")
 
     if st.button("学习该IP最新视频并生成选题", key="ipb_ip_profile_learn_btn", use_container_width=True, type="primary"):
+        st.session_state.ipb_ip_show_manual_fallback = False
         _learn_from_profile(pixelle_video, profile_url)
 
-    with st.expander("抓取失败时手动粘贴最近5条视频链接"):
+    fallback_expanded = bool(st.session_state.get("ipb_ip_show_manual_fallback", False))
+    with st.expander("手动兜底：粘贴最近5条视频链接", expanded=fallback_expanded):
         manual_links = st.text_area(
             "视频链接或抖音分享文本",
             height=150,
@@ -200,11 +202,17 @@ def _learn_from_profile(pixelle_video, profile_url: str):
     try:
         with st.spinner("正在抓取该IP最近5条视频链接..."):
             urls = run_async(fetch_latest_video_urls_from_profile(profile_url, limit=5))
+        if not urls:
+            st.session_state.ipb_ip_show_manual_fallback = True
+            st.warning("未抓取到视频链接，请手动粘贴最近 5 条视频链接继续学习。")
+            return
         st.session_state.ipb_ip_video_urls = urls
         _learn_from_video_inputs(pixelle_video, urls, "IP主页")
     except ProfileFetchBlocked as e:
+        st.session_state.ipb_ip_show_manual_fallback = True
         st.warning(str(e))
     except Exception as e:
+        st.session_state.ipb_ip_show_manual_fallback = True
         st.error(f"主页抓取失败：{e}")
         logger.exception(e)
 
@@ -259,7 +267,8 @@ def _render_ip_learning_results(pixelle_video):
     errors: list[dict] = st.session_state.get("ipb_ip_learning_errors", [])
 
     if scripts or errors:
-        with st.expander("学习结果", expanded=bool(scripts)):
+        st.caption(_ip_learning_result_summary(scripts, errors))
+        with st.expander("查看每条视频文案", expanded=False):
             for idx, item in enumerate(scripts, start=1):
                 st.markdown(f"**视频 {idx}：已提取**")
                 st.caption(item["source"])
@@ -310,6 +319,13 @@ def _render_ip_learning_results(pixelle_video):
             key="ipb_ip_topic_script_display",
             disabled=True,
         )
+
+
+def _ip_learning_result_summary(scripts: list[dict], errors: list[dict]) -> str:
+    parts = [f"已提取 {len(scripts)} 条"]
+    if errors:
+        parts.append(f"失败 {len(errors)} 条")
+    return "，".join(parts)
 
 
 # ── 辅助函数 ─────────────────────────────────────────────────────────────────

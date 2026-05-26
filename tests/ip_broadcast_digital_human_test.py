@@ -196,12 +196,12 @@ def test_build_ai_app_run_request_uses_documented_endpoint():
         node_info_list=[{"nodeId": "48", "fieldName": "audio", "fieldValue": "voice.mp3"}],
     )
 
-    assert endpoint == "/run/ai-app/2030929648594460673"
+    assert endpoint == "/task/openapi/ai-app/run"
     assert payload == {
         "apiKey": "rk-test",
+        "webappId": "2030929648594460673",
         "nodeInfoList": [{"nodeId": "48", "fieldName": "audio", "fieldValue": "voice.mp3"}],
     }
-    assert "webappId" not in payload
 
 
 @pytest.mark.asyncio
