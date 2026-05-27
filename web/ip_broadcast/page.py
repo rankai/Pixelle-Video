@@ -5,6 +5,7 @@ import streamlit as st
 from web.ip_broadcast.runner import run_from_current_state
 from web.ip_broadcast.state import (
     get_completed_step_count,
+    get_missing_requirements,
     get_next_action,
     init_ip_broadcast_state,
     refresh_step_readiness,
@@ -63,6 +64,9 @@ def _render_production_console(pixelle_video):
         with title_col:
             st.markdown("**生产主控台**")
             st.caption(f"下一步：{action.description}")
+            missing = get_missing_requirements()
+            if missing:
+                st.caption(" · ".join(missing))
             st.progress(done_count / 6, text=f"进度：{done_count}/6")
         with action_col:
             st.markdown("<div style='height:26px'></div>", unsafe_allow_html=True)

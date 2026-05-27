@@ -251,6 +251,23 @@ def get_next_action(session: MutableMapping | None = None) -> NextAction:
     return NextAction("publish", 6, "查看并下载", "最终视频和发布素材已准备好")
 
 
+def get_missing_requirements(session: MutableMapping | None = None) -> list[str]:
+    session = _session(session)
+    init_ip_broadcast_state(session)
+    missing = []
+    if not session.get("ipb_final_script") and not session.get("ipb_m2_output"):
+        missing.append("缺文案")
+    if not _path_exists(session.get("ipb_m3_audio_path", "")):
+        missing.append("缺语音")
+    if not session.get("ipb_m4_portrait_id"):
+        missing.append("缺形象")
+    if not _path_exists(session.get("ipb_m4_dh_video_path", "")):
+        missing.append("缺数字人视频")
+    if not _path_exists(session.get("ipb_m5_final_video_path", "")):
+        missing.append("缺最终视频")
+    return missing
+
+
 def split_script_to_segments(text: str) -> list[str]:
     """Split a script into user-visible paragraphs by Enter/newlines."""
     return [part.strip() for part in re.split(r"\n+", text.strip()) if part.strip()]

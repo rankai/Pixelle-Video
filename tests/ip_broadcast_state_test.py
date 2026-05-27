@@ -56,6 +56,29 @@ def test_get_next_action_moves_to_voice_when_final_script_exists():
     assert action.step == 3
 
 
+def test_get_missing_requirements_reports_current_blockers(tmp_path):
+    session = _base_session()
+
+    assert state.get_missing_requirements(session=session) == [
+        "缺文案",
+        "缺语音",
+        "缺形象",
+        "缺数字人视频",
+        "缺最终视频",
+    ]
+
+    audio_path = tmp_path / "voice.mp3"
+    audio_path.write_text("audio")
+    state.set_final_script("final copy", session=session)
+    session["ipb_m3_audio_path"] = str(audio_path)
+
+    assert state.get_missing_requirements(session=session) == [
+        "缺形象",
+        "缺数字人视频",
+        "缺最终视频",
+    ]
+
+
 def test_get_next_action_moves_to_digital_human_when_audio_and_portrait_exist(tmp_path):
     session = _base_session()
     state.set_final_script("final copy", session=session)

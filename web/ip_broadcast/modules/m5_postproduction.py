@@ -171,6 +171,7 @@ def render_m5_postproduction(pixelle_video, run_mode: str):
 
     st.checkbox("添加字幕", key="ipb_m5_subtitle_enabled")
     _render_template_selector()
+    _render_video_asset_management()
     _render_overlay_planning()
 
     with st.expander("高级成片设置", expanded=False):

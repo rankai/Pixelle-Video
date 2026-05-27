@@ -4,7 +4,6 @@ import streamlit as st
 
 from web.ip_broadcast.modules.m5_video_assets import (
     render_group_video_asset_selector,
-    render_video_asset_management,
 )
 from web.ip_broadcast.state import (
     create_overlay_group,
@@ -32,8 +31,6 @@ def render_overlay_planning() -> None:
         help="用于在指定文案段落对应的时间范围内叠加上传视频或 AI 视频。",
     )
     st.session_state.ipb_storyboard_enabled = enabled
-
-    render_video_asset_management()
 
     if st.button("按当前文案更新段落", key="ipb_overlay_refresh_btn", use_container_width=True):
         sync_story_segments_from_script(script)
