@@ -1,4 +1,5 @@
 from contextlib import nullcontext
+from pathlib import Path
 
 import pytest
 
@@ -277,20 +278,28 @@ def test_generate_voice_does_not_render_immediate_duplicate_audio(monkeypatch, t
     monkeypatch.setattr(m3_voice.st, "audio", lambda path: audio_calls.append(path))
     monkeypatch.setattr(m3_runner, "run_async", lambda _coro: str(final_audio))
     monkeypatch.setattr(m3_runner, "get_temp_path", lambda _name: str(tmp_path / "target.mp3"))
+    monkeypatch.setattr(
+        "pixelle_video.services.ip_broadcast_cache.get_data_path",
+        lambda *parts: str(tmp_path.joinpath(*parts)),
+    )
     monkeypatch.setattr(m3_runner, "safe_rerun", lambda: None)
 
     m3_voice._do_generate_voice(FakePixelleVideo())
 
-    assert session["ipb_m3_audio_path"] == str(final_audio)
+    assert Path(session["ipb_m3_audio_path"]).read_bytes() == b"audio"
     assert audio_calls == []
 
 
 @pytest.mark.asyncio
-async def test_run_m3_failure_writes_error_notice_and_preserves_script(monkeypatch):
+async def test_run_m3_failure_writes_error_notice_and_preserves_script(monkeypatch, tmp_path):
     session = _session()
     session["ipb_m2_output"] = "正式文案"
     notices = []
     monkeypatch.setattr(m3_runner.st, "session_state", session)
+    monkeypatch.setattr(
+        "pixelle_video.services.ip_broadcast_cache.get_data_path",
+        lambda *parts: str(tmp_path.joinpath(*parts)),
+    )
     monkeypatch.setattr(m3_runner, "set_step_notice", lambda *args: notices.append(args))
 
     class FailingPixelleVideo:
@@ -303,3 +312,37 @@ async def test_run_m3_failure_writes_error_notice_and_preserves_script(monkeypat
     assert session["ipb_step_status"][3] == "error"
     assert session["ipb_m2_output"] == "正式文案"
     assert notices[-1] == (3, "error", "TTS failed")
+
+
+@pytest.mark.asyncio
+async def test_run_m3_reuses_tts_cache_for_same_inputs(monkeypatch, tmp_path):
+    session = _session()
+    session["ipb_m2_output"] = "正式文案"
+    session["ipb_m3_inference_mode"] = "local"
+    source_audio = tmp_path / "generated.mp3"
+    source_audio.write_bytes(b"audio")
+    calls = []
+    notices = []
+
+    monkeypatch.setattr(m3_runner.st, "session_state", session)
+    monkeypatch.setattr(m3_runner, "get_temp_path", lambda _name: str(tmp_path / _name))
+    monkeypatch.setattr(
+        "pixelle_video.services.ip_broadcast_cache.get_data_path",
+        lambda *parts: str(tmp_path.joinpath(*parts)),
+    )
+    monkeypatch.setattr(m3_runner, "set_step_notice", lambda *args: notices.append(args))
+
+    class FakePixelleVideo:
+        async def tts(self, **_kwargs):
+            calls.append(_kwargs)
+            return str(source_audio)
+
+    assert await m3_runner.run_m3(FakePixelleVideo()) is True
+    first_cached_path = session["ipb_m3_audio_path"]
+    session["ipb_m3_audio_path"] = ""
+
+    assert await m3_runner.run_m3(FakePixelleVideo()) is True
+
+    assert len(calls) == 1
+    assert session["ipb_m3_audio_path"] == first_cached_path
+    assert notices[-1] == (3, "success", "已复用上次生成结果")

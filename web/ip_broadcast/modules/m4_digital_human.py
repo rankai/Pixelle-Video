@@ -9,6 +9,12 @@ from pathlib import Path
 import streamlit as st
 from loguru import logger
 
+from pixelle_video.services.ip_broadcast_cache import (
+    existing_cache_path,
+    file_sha256,
+    stable_hash,
+    store_cache_file,
+)
 from pixelle_video.utils.os_util import get_temp_path
 from web.ip_broadcast.state import STATUS_ICONS, get_step_status, set_step_status
 from web.ip_broadcast.status_ui import (
@@ -404,15 +410,38 @@ def _do_generate_video(pixelle_video):
     loading = show_global_loading("正在生成数字人视频，请稍候...")
     with st.spinner("正在生成数字人视频，请稍候…"):
         try:
+            duration = float(st.session_state.get("ipb_m4_duration", 0.0) or 0.0)
+            prompt = st.session_state.get("ipb_m4_prompt", "")
+            cached_path = _get_cached_digital_human_path(
+                audio_path=audio_path,
+                portrait_path=portrait_path,
+                workflow=workflow,
+                duration=duration,
+                prompt=prompt,
+            )
+            if cached_path:
+                st.session_state.ipb_m4_dh_video_path = cached_path
+                set_step_status(4, "done")
+                set_step_notice(4, "success", "已复用上次生成结果")
+                safe_rerun()
+                return
             dh_video_path = run_async(
                 _get_dh_svc(pixelle_video).generate(
                     portrait_path=portrait_path,
                     audio_path=audio_path,
                     output_path=output_path,
                     workflow=workflow,
-                    duration=float(st.session_state.get("ipb_m4_duration", 0.0) or 0.0),
-                    prompt=st.session_state.get("ipb_m4_prompt", ""),
+                    duration=duration,
+                    prompt=prompt,
                 )
+            )
+            dh_video_path = _store_digital_human_cache(
+                audio_path=audio_path,
+                portrait_path=portrait_path,
+                workflow=workflow,
+                duration=duration,
+                prompt=prompt,
+                video_path=dh_video_path,
             )
             st.session_state.ipb_m4_dh_video_path = dh_video_path
             set_step_status(4, "done")
@@ -446,13 +475,36 @@ async def run_m4(pixelle_video) -> bool:
     output_path = get_temp_path(f"ipb_dh_{uuid.uuid4().hex[:8]}.mp4")
 
     try:
+        workflow = st.session_state.get("ipb_m4_workflow")
+        duration = float(st.session_state.get("ipb_m4_duration", 0.0) or 0.0)
+        prompt = st.session_state.get("ipb_m4_prompt", "")
+        cached_path = _get_cached_digital_human_path(
+            audio_path=audio_path,
+            portrait_path=portrait_path,
+            workflow=workflow,
+            duration=duration,
+            prompt=prompt,
+        )
+        if cached_path:
+            st.session_state.ipb_m4_dh_video_path = cached_path
+            set_step_status(4, "done")
+            set_step_notice(4, "success", "已复用上次生成结果")
+            return True
         dh_video_path = await _get_dh_svc(pixelle_video).generate(
             portrait_path=portrait_path,
             audio_path=audio_path,
             output_path=output_path,
-            workflow=st.session_state.get("ipb_m4_workflow"),
-            duration=float(st.session_state.get("ipb_m4_duration", 0.0) or 0.0),
-            prompt=st.session_state.get("ipb_m4_prompt", ""),
+            workflow=workflow,
+            duration=duration,
+            prompt=prompt,
+        )
+        dh_video_path = _store_digital_human_cache(
+            audio_path=audio_path,
+            portrait_path=portrait_path,
+            workflow=workflow,
+            duration=duration,
+            prompt=prompt,
+            video_path=dh_video_path,
         )
         st.session_state.ipb_m4_dh_video_path = dh_video_path
         set_step_status(4, "done")
@@ -463,3 +515,66 @@ async def run_m4(pixelle_video) -> bool:
         set_step_notice(4, "error", str(e))
         logger.exception(e)
         return False
+
+
+def _digital_human_cache_key(
+    *,
+    audio_path: str,
+    portrait_path: str,
+    workflow: str,
+    duration: float,
+    prompt: str,
+) -> str:
+    return stable_hash(
+        {
+            "audio_hash": file_sha256(audio_path),
+            "portrait_hash": file_sha256(portrait_path),
+            "workflow": workflow,
+            "duration": duration,
+            "prompt": prompt,
+        }
+    )
+
+
+def _get_cached_digital_human_path(
+    *,
+    audio_path: str,
+    portrait_path: str,
+    workflow: str,
+    duration: float,
+    prompt: str,
+) -> str | None:
+    return existing_cache_path(
+        "digital_human",
+        _digital_human_cache_key(
+            audio_path=audio_path,
+            portrait_path=portrait_path,
+            workflow=workflow,
+            duration=duration,
+            prompt=prompt,
+        ),
+        ".mp4",
+    )
+
+
+def _store_digital_human_cache(
+    *,
+    audio_path: str,
+    portrait_path: str,
+    workflow: str,
+    duration: float,
+    prompt: str,
+    video_path: str,
+) -> str:
+    return store_cache_file(
+        video_path,
+        "digital_human",
+        _digital_human_cache_key(
+            audio_path=audio_path,
+            portrait_path=portrait_path,
+            workflow=workflow,
+            duration=duration,
+            prompt=prompt,
+        ),
+        ".mp4",
+    )

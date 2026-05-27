@@ -1,4 +1,5 @@
 from contextlib import nullcontext
+from pathlib import Path
 
 import pytest
 
@@ -107,6 +108,10 @@ def test_generate_digital_human_does_not_render_immediate_duplicate_video(monkey
 
     monkeypatch.setattr(m4_digital_human, "run_async", fake_run_async)
     monkeypatch.setattr(m4_digital_human, "get_temp_path", lambda _name: str(output_path))
+    monkeypatch.setattr(
+        "pixelle_video.services.ip_broadcast_cache.get_data_path",
+        lambda *parts: str(tmp_path.joinpath(*parts)),
+    )
     monkeypatch.setattr(m4_digital_human, "safe_rerun", lambda: None)
     monkeypatch.setattr(
         m4_digital_human,
@@ -122,7 +127,7 @@ def test_generate_digital_human_does_not_render_immediate_duplicate_video(monkey
 
     m4_digital_human._do_generate_video(FakePixelleVideo())
 
-    assert session["ipb_m4_dh_video_path"] == str(output_path)
+    assert Path(session["ipb_m4_dh_video_path"]).read_bytes() == b"video"
     assert video_calls == []
     assert fake_dh_svc.calls[0]["workflow"] == session["ipb_m4_workflow"]
 
@@ -199,6 +204,10 @@ def test_generate_digital_human_error_closes_loading_and_shows_single_step_notic
     monkeypatch.setattr(m4_digital_human, "show_global_loading", lambda _text: FakeLoading())
     monkeypatch.setattr(m4_digital_human, "set_step_notice", lambda *args: notices.append(args))
     monkeypatch.setattr(m4_digital_human, "get_temp_path", lambda _name: str(output_path))
+    monkeypatch.setattr(
+        "pixelle_video.services.ip_broadcast_cache.get_data_path",
+        lambda *parts: str(tmp_path.joinpath(*parts)),
+    )
     monkeypatch.setattr(m4_digital_human, "safe_rerun", lambda: None)
     monkeypatch.setattr(m4_digital_human, "run_async", lambda _coro: (_ for _ in ()).throw(RuntimeError("HTTP 401")))
     monkeypatch.setattr(
@@ -242,6 +251,10 @@ async def test_run_m4_failure_writes_error_notice_and_preserves_audio(monkeypatc
     notices = []
 
     monkeypatch.setattr(m4_digital_human.st, "session_state", session)
+    monkeypatch.setattr(
+        "pixelle_video.services.ip_broadcast_cache.get_data_path",
+        lambda *parts: str(tmp_path.joinpath(*parts)),
+    )
     monkeypatch.setattr(m4_digital_human, "set_step_notice", lambda *args: notices.append(args))
     monkeypatch.setattr(
         m4_digital_human,
@@ -264,3 +277,56 @@ async def test_run_m4_failure_writes_error_notice_and_preserves_audio(monkeypatc
     assert session["ipb_step_status"][4] == "error"
     assert session["ipb_m3_audio_path"] == str(audio_path)
     assert notices[-1] == (4, "error", "digital human failed")
+
+
+@pytest.mark.asyncio
+async def test_run_m4_reuses_digital_human_cache_for_same_inputs(monkeypatch, tmp_path):
+    session = AttrDict()
+    state.init_ip_broadcast_state(session)
+    audio_path = tmp_path / "voice.mp3"
+    portrait_path = tmp_path / "portrait.png"
+    generated_video = tmp_path / "generated.mp4"
+    audio_path.write_bytes(b"audio")
+    portrait_path.write_bytes(b"image")
+    generated_video.write_bytes(b"video")
+    session.update(
+        {
+            "ipb_m3_audio_path": str(audio_path),
+            "ipb_m4_portrait_id": "portrait-1",
+        }
+    )
+    notices = []
+
+    monkeypatch.setattr(m4_digital_human.st, "session_state", session)
+    monkeypatch.setattr(m4_digital_human, "get_temp_path", lambda _name: str(tmp_path / _name))
+    monkeypatch.setattr(
+        "pixelle_video.services.ip_broadcast_cache.get_data_path",
+        lambda *parts: str(tmp_path.joinpath(*parts)),
+    )
+    monkeypatch.setattr(m4_digital_human, "set_step_notice", lambda *args: notices.append(args))
+    monkeypatch.setattr(
+        m4_digital_human,
+        "_get_portrait_svc",
+        lambda _pixelle_video: FakePortraitService(portrait_path),
+    )
+    class AsyncDigitalHumanService(FakeDigitalHumanService):
+        async def generate(self, **kwargs):
+            self.calls.append(kwargs)
+            return str(self._output_path)
+
+    fake_dh_svc = AsyncDigitalHumanService(generated_video)
+    monkeypatch.setattr(
+        m4_digital_human,
+        "_get_dh_svc",
+        lambda _pixelle_video: fake_dh_svc,
+    )
+
+    assert await m4_digital_human.run_m4(FakePixelleVideo()) is True
+    first_cached_path = session["ipb_m4_dh_video_path"]
+    session["ipb_m4_dh_video_path"] = ""
+
+    assert await m4_digital_human.run_m4(FakePixelleVideo()) is True
+
+    assert len(fake_dh_svc.calls) == 1
+    assert session["ipb_m4_dh_video_path"] == first_cached_path
+    assert notices[-1] == (4, "success", "已复用上次生成结果")
