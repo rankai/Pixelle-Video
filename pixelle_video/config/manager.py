@@ -17,9 +17,11 @@ Provides unified access to configuration with automatic validation.
 """
 from pathlib import Path
 from typing import Any, Optional
+
 from loguru import logger
-from .schema import PixelleVideoConfig
+
 from .loader import load_config_dict, save_config_dict
+from .schema import PixelleVideoConfig
 
 
 class ConfigManager:

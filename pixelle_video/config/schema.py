@@ -16,6 +16,7 @@ Configuration schema with Pydantic models
 Single source of truth for all configuration defaults and validation.
 """
 from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
