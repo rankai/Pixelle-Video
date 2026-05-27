@@ -3,7 +3,7 @@ import pytest
 from pixelle_video.services.subtitle_service import _build_subtitles_filter
 from pixelle_video.services.video import VideoService
 from web.ip_broadcast import state
-from web.ip_broadcast.modules import m5_postproduction
+from web.ip_broadcast.modules import m5_composer, m5_postproduction
 from web.ip_broadcast.modules.m5_postproduction import (
     _build_bgm_mix_command,
     _visible_overlay_groups,
@@ -152,9 +152,9 @@ async def test_run_m5_failure_writes_error_notice_and_preserves_digital_human(
     notices = []
 
     monkeypatch.setattr(m5_postproduction.st, "session_state", session)
-    monkeypatch.setattr(m5_postproduction, "set_step_notice", lambda *args: notices.append(args))
+    monkeypatch.setattr(m5_composer, "set_step_notice", lambda *args: notices.append(args))
     monkeypatch.setattr(
-        m5_postproduction,
+        m5_composer,
         "merge_audio_into_video",
         lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("compose failed")),
     )
