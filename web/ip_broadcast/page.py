@@ -1,16 +1,14 @@
 """IP broadcast page — top-level renderer with manual/auto run modes"""
 
 import streamlit as st
-from loguru import logger
 
+from web.ip_broadcast.runner import run_from_current_state
 from web.ip_broadcast.state import (
     get_completed_step_count,
     get_next_action,
     init_ip_broadcast_state,
     refresh_step_readiness,
-    set_step_status,
 )
-from web.utils.async_helpers import run_async
 from web.utils.streamlit_helpers import safe_rerun
 
 
@@ -26,7 +24,7 @@ def render_ip_broadcast_page(pixelle_video):
 
     if st.session_state.get("_ipb_continue_requested"):
         st.session_state._ipb_continue_requested = False
-        _run_from_current_state(pixelle_video)
+        run_from_current_state(pixelle_video)
         safe_rerun()
 
     st.divider()
@@ -84,52 +82,6 @@ def _render_production_console(pixelle_video):
             st.warning("请在「4. 数字人视频」中选择或上传形象后继续。")
         elif action.key == "publish":
             st.success("成片和发布素材已准备好，请在「6. 视频发布」下载。")
-
-
-def _run_from_current_state(pixelle_video):
-    """Continue from the current ready step until a user decision is required."""
-    from web.ip_broadcast.modules.m2_copywriting import run_m2
-    from web.ip_broadcast.modules.m3_voice import run_m3
-    from web.ip_broadcast.modules.m4_digital_human import run_m4
-    from web.ip_broadcast.modules.m5_postproduction import run_m5
-    from web.ip_broadcast.modules.m7_publish import run_m7
-
-    runners = {
-        "rewrite": (2, run_m2, "文案确认"),
-        "voice": (3, run_m3, "声音生成"),
-        "digital_human": (4, run_m4, "数字人视频"),
-        "postproduce": (5, run_m5, "一键成片"),
-        "publish": (6, run_m7, "视频发布"),
-    }
-
-    placeholder = st.empty()
-    while True:
-        action = get_next_action()
-        if action.key in {"prepare_source", "select_portrait", "publish"}:
-            placeholder.info(action.description)
-            return
-
-        runner = runners.get(action.key)
-        if not runner:
-            placeholder.info(action.description)
-            return
-
-        step_num, runner_fn, label = runner
-        set_step_status(step_num, "running")
-        placeholder.info(f"正在执行：{label}（步骤 {step_num}/6）...")
-        try:
-            ok = run_async(runner_fn(pixelle_video))
-            if ok:
-                set_step_status(step_num, "done")
-            else:
-                set_step_status(step_num, "error")
-                placeholder.error(f"步骤 {step_num}（{label}）执行失败，流程中止。")
-                return
-        except Exception as e:
-            set_step_status(step_num, "error")
-            placeholder.error(f"步骤 {step_num}（{label}）出错：{e}")
-            logger.exception(e)
-            return
 
 
 def _run_deferred_action(pixelle_video):
