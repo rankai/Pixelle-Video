@@ -1,7 +1,7 @@
 import asyncio
 
 from web.ip_broadcast import state
-from web.ip_broadcast.modules import m3_voice, m4_digital_human
+from web.ip_broadcast.modules import m3_runner, m3_voice, m4_digital_human
 
 
 class AttrDict(dict):
@@ -55,8 +55,8 @@ def test_overlay_planning_does_not_split_tts_calls(monkeypatch, tmp_path):
     session["ipb_storyboard_enabled"] = True
     session["ipb_overlay_enabled"] = True
 
-    monkeypatch.setattr(m3_voice.st, "session_state", session)
-    monkeypatch.setattr(m3_voice, "get_temp_path", lambda _name: str(audio_path))
+    monkeypatch.setattr(m3_runner.st, "session_state", session)
+    monkeypatch.setattr(m3_runner, "get_temp_path", lambda _name: str(audio_path))
     fake = FakePixelleVideo(audio_path)
 
     assert asyncio.run(m3_voice.run_m3(fake)) is True

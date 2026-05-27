@@ -4,7 +4,7 @@ import pytest
 
 from pixelle_video.services.tts_service import TTSService
 from web.ip_broadcast import state
-from web.ip_broadcast.modules import m3_voice
+from web.ip_broadcast.modules import m3_runner, m3_voice, m3_voice_references
 
 
 class AttrDict(dict):
@@ -212,8 +212,8 @@ def test_clear_recorded_reference_audio_removes_widget_state(monkeypatch):
     session = _session()
     session["ipb_m3_ref_audio_recorder"] = object()
     rerun_called = []
-    monkeypatch.setattr(m3_voice.st, "session_state", session)
-    monkeypatch.setattr(m3_voice, "safe_rerun", lambda: rerun_called.append(True))
+    monkeypatch.setattr(m3_voice_references.st, "session_state", session)
+    monkeypatch.setattr(m3_voice_references, "safe_rerun", lambda: rerun_called.append(True))
 
     m3_voice._clear_recorded_reference_audio()
 
@@ -269,15 +269,15 @@ def test_generate_voice_does_not_render_immediate_duplicate_audio(monkeypatch, t
     )
     audio_calls = []
 
-    monkeypatch.setattr(m3_voice.st, "session_state", session)
-    monkeypatch.setattr(m3_voice.st, "spinner", lambda _text: nullcontext())
-    monkeypatch.setattr(m3_voice.st, "success", lambda _text: None)
-    monkeypatch.setattr(m3_voice.st, "warning", lambda _text: None)
-    monkeypatch.setattr(m3_voice.st, "error", lambda _text: None)
+    monkeypatch.setattr(m3_runner.st, "session_state", session)
+    monkeypatch.setattr(m3_runner.st, "spinner", lambda _text: nullcontext())
+    monkeypatch.setattr(m3_runner.st, "success", lambda _text: None)
+    monkeypatch.setattr(m3_runner.st, "warning", lambda _text: None)
+    monkeypatch.setattr(m3_runner.st, "error", lambda _text: None)
     monkeypatch.setattr(m3_voice.st, "audio", lambda path: audio_calls.append(path))
-    monkeypatch.setattr(m3_voice, "run_async", lambda _coro: str(final_audio))
-    monkeypatch.setattr(m3_voice, "get_temp_path", lambda _name: str(tmp_path / "target.mp3"))
-    monkeypatch.setattr(m3_voice, "safe_rerun", lambda: None)
+    monkeypatch.setattr(m3_runner, "run_async", lambda _coro: str(final_audio))
+    monkeypatch.setattr(m3_runner, "get_temp_path", lambda _name: str(tmp_path / "target.mp3"))
+    monkeypatch.setattr(m3_runner, "safe_rerun", lambda: None)
 
     m3_voice._do_generate_voice(FakePixelleVideo())
 
@@ -290,8 +290,8 @@ async def test_run_m3_failure_writes_error_notice_and_preserves_script(monkeypat
     session = _session()
     session["ipb_m2_output"] = "正式文案"
     notices = []
-    monkeypatch.setattr(m3_voice.st, "session_state", session)
-    monkeypatch.setattr(m3_voice, "set_step_notice", lambda *args: notices.append(args))
+    monkeypatch.setattr(m3_runner.st, "session_state", session)
+    monkeypatch.setattr(m3_runner, "set_step_notice", lambda *args: notices.append(args))
 
     class FailingPixelleVideo:
         async def tts(self, **_kwargs):
