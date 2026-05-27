@@ -1,13 +1,22 @@
+import base64
+import html
+import mimetypes
 import os
 import subprocess
 import uuid
+from pathlib import Path
 
 import streamlit as st
 from loguru import logger
 
 from pixelle_video.utils.os_util import get_temp_path
 from web.ip_broadcast.state import STATUS_ICONS, get_step_status, set_step_status
-from web.ip_broadcast.status_ui import render_step_notice, set_step_notice, show_global_loading
+from web.ip_broadcast.status_ui import (
+    hide_global_loading,
+    render_step_notice,
+    set_step_notice,
+    show_global_loading,
+)
 from web.utils.async_helpers import run_async
 from web.utils.streamlit_helpers import safe_rerun
 
@@ -84,6 +93,17 @@ def _get_dh_svc(pixelle_video):
     return svc
 
 
+def _is_ai_app_workflow(workflow: str | None) -> bool:
+    if not workflow:
+        return False
+    try:
+        from pixelle_video.services.digital_human_service import _load_workflow_config
+
+        return _load_workflow_config(workflow).get("type") == "ai_app"
+    except Exception:
+        return False
+
+
 def _render_portrait_library(pixelle_video):
     """Render the portrait grid + upload form inside the expander."""
     portrait_svc = _get_portrait_svc(pixelle_video)
@@ -91,32 +111,27 @@ def _render_portrait_library(pixelle_video):
 
     if portraits:
         st.markdown("**已有形象**")
-        cols_per_row = 4
+        cols_per_row = 3
         rows = [portraits[i : i + cols_per_row] for i in range(0, len(portraits), cols_per_row)]
         for row in rows:
             cols = st.columns(cols_per_row)
             for col, p in zip(cols, row):
                 with col:
-                    if p.exists():
-                        if p.is_video():
-                            st.video(p.asset_path())
-                        else:
-                            st.image(p.asset_path(), width=120)
-                    else:
-                        st.caption("（素材缺失）")
-                    st.caption(p.name)
-                    st.caption("视频形象" if p.is_video() else "图片形象")
-                    st.caption(p.created_at)
-                    if st.button("🗑️", key=f"del_portrait_{p.portrait_id}"):
-                        try:
-                            portrait_svc.delete_portrait(p.portrait_id)
-                            # Clear selection if deleted portrait was selected
-                            if st.session_state.get("ipb_m4_portrait_id") == p.portrait_id:
-                                st.session_state.ipb_m4_portrait_id = ""
-                        except Exception as e:
-                            st.error(str(e))
-                            logger.exception(e)
-                        safe_rerun()
+                    with st.container(border=True):
+                        _render_portrait_thumbnail(p.asset_path(), p.is_video(), p.name)
+                        st.markdown(f"**{p.name}**")
+                        st.caption("视频形象" if p.is_video() else "图片形象")
+                        st.caption(p.created_at)
+                        if st.button("删除", key=f"del_portrait_{p.portrait_id}", use_container_width=True):
+                            try:
+                                portrait_svc.delete_portrait(p.portrait_id)
+                                # Clear selection if deleted portrait was selected
+                                if st.session_state.get("ipb_m4_portrait_id") == p.portrait_id:
+                                    st.session_state.ipb_m4_portrait_id = ""
+                            except Exception as e:
+                                st.error(str(e))
+                                logger.exception(e)
+                            safe_rerun()
     else:
         st.info("暂无形象，请在下方上传。")
 
@@ -152,7 +167,7 @@ def _render_portrait_library(pixelle_video):
 
 
 def _render_portrait_selection(pixelle_video):
-    """Render radio-button portrait selector + thumbnail preview."""
+    """Render compact portrait selection cards."""
     portrait_svc = _get_portrait_svc(pixelle_video)
     portraits = portrait_svc.list_portraits()
 
@@ -161,34 +176,75 @@ def _render_portrait_selection(pixelle_video):
         st.session_state.ipb_m4_portrait_id = ""
         return
 
-    options = [p.portrait_id for p in portraits]
-    labels = {p.portrait_id: f"{p.name}（{p.created_at}）" for p in portraits}
-
     current_id = st.session_state.get("ipb_m4_portrait_id", "")
-    try:
-        default_idx = options.index(current_id) if current_id in options else 0
-    except ValueError:
-        default_idx = 0
+    portrait_ids = [p.portrait_id for p in portraits]
+    if current_id not in portrait_ids:
+        current_id = portrait_ids[0]
+        st.session_state.ipb_m4_portrait_id = current_id
 
-    selected_id = st.radio(
-        "选择数字人形象",
-        options=options,
-        index=default_idx,
-        format_func=lambda pid: labels.get(pid, pid),
-        key="ipb_m4_portrait_radio",
+    st.markdown("**选择数字人形象**")
+    cols_per_row = 3
+    rows = [portraits[i : i + cols_per_row] for i in range(0, len(portraits), cols_per_row)]
+    for row in rows:
+        cols = st.columns(cols_per_row)
+        for col, portrait in zip(cols, row):
+            with col:
+                selected = portrait.portrait_id == current_id
+                with st.container(border=True):
+                    _render_portrait_thumbnail(portrait.asset_path(), portrait.is_video(), portrait.name)
+                    st.markdown(f"**{portrait.name}**")
+                    st.caption("视频形象" if portrait.is_video() else "图片形象")
+                    if selected:
+                        st.success("已选择")
+                    elif st.button(
+                        "选择",
+                        key=f"select_portrait_{portrait.portrait_id}",
+                        use_container_width=True,
+                    ):
+                        st.session_state.ipb_m4_portrait_id = portrait.portrait_id
+                        safe_rerun()
+
+
+def _render_portrait_thumbnail(asset_path: str, is_video: bool, label: str, height: int = 96):
+    path = Path(asset_path)
+    if not path.exists():
+        st.caption("素材缺失")
+        return
+    if is_video:
+        st.markdown(
+            _build_portrait_video_placeholder_html(label=label, height=height),
+            unsafe_allow_html=True,
+        )
+        return
+    st.markdown(
+        _build_portrait_image_html(str(path), label=label, height=height),
+        unsafe_allow_html=True,
     )
-    st.session_state.ipb_m4_portrait_id = selected_id
 
-    # Show preview thumbnail for selected portrait
-    portrait_map = {p.portrait_id: p for p in portraits}
-    if selected_id and selected_id in portrait_map:
-        selected_portrait = portrait_map[selected_id]
-        if selected_portrait.exists():
-            if selected_portrait.is_video():
-                st.video(selected_portrait.asset_path())
-                st.caption(f"{selected_portrait.name}（闭口视频形象）")
-            else:
-                st.image(selected_portrait.asset_path(), width=120, caption=selected_portrait.name)
+
+def _build_portrait_image_html(image_path: str, label: str, height: int = 96) -> str:
+    path = Path(image_path)
+    mime_type = mimetypes.guess_type(path.name)[0] or "image/png"
+    data = base64.b64encode(path.read_bytes()).decode("ascii")
+    safe_label = html.escape(label)
+    return f"""
+    <div style="height:{height}px; border:1px solid #e5e7eb; border-radius:6px; overflow:hidden; background:#f8fafc;">
+        <img src="data:{mime_type};base64,{data}" alt="{safe_label}"
+             style="width:100%; height:{height}px; object-fit:cover; display:block;" />
+    </div>
+    """
+
+
+def _build_portrait_video_placeholder_html(label: str, height: int = 96) -> str:
+    safe_label = html.escape(label)
+    return f"""
+    <div style="height:{height}px; border:1px solid #e5e7eb; border-radius:6px; background:#111827;
+                color:#f9fafb; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <div style="font-size:22px; line-height:1;">▶</div>
+        <div style="font-size:13px; font-weight:700; margin-top:8px;">视频形象</div>
+        <div style="font-size:12px; color:#cbd5e1; margin-top:4px; max-width:90%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{safe_label}</div>
+    </div>
+    """
 
 
 def _render_workflow_options():
@@ -291,10 +347,22 @@ def _do_generate_video(pixelle_video):
         st.error("所选形象文件不存在，请重新上传。")
         return
 
+    workflow = st.session_state.get("ipb_m4_workflow")
+    portrait_media_type = portrait_svc.get_portrait_media_type(portrait_id)
+    if _is_ai_app_workflow(workflow) and portrait_media_type == "video":
+        message = (
+            "当前 RunningHub AI App 数字人口播工作流的形象节点是 image，"
+            "只支持图片形象。请上传 jpg/png/webp 图片形象，或切换回 digital_combination 工作流使用视频形象。"
+        )
+        set_step_status(4, "error")
+        set_step_notice(4, "error", message)
+        st.error(message)
+        return
+
     output_path = get_temp_path(f"ipb_dh_{uuid.uuid4().hex[:8]}.mp4")
 
     set_step_status(4, "running")
-    show_global_loading("正在生成数字人视频，请稍候...")
+    loading = show_global_loading("正在生成数字人视频，请稍候...")
     with st.spinner("正在生成数字人视频，请稍候…"):
         try:
             dh_video_path = run_async(
@@ -302,7 +370,7 @@ def _do_generate_video(pixelle_video):
                     portrait_path=portrait_path,
                     audio_path=audio_path,
                     output_path=output_path,
-                    workflow=st.session_state.get("ipb_m4_workflow"),
+                    workflow=workflow,
                     duration=float(st.session_state.get("ipb_m4_duration", 0.0) or 0.0),
                     prompt=st.session_state.get("ipb_m4_prompt", ""),
                 )
@@ -314,8 +382,9 @@ def _do_generate_video(pixelle_video):
         except Exception as e:
             set_step_status(4, "error")
             set_step_notice(4, "error", str(e))
-            st.error(str(e))
             logger.exception(e)
+        finally:
+            hide_global_loading(loading)
 
 
 async def run_m4(pixelle_video) -> bool:

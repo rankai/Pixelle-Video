@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      width: 1080px;
+      height: 1920px;
+      font-family: "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      background: #f6f7f9;
+      color: #101828;
+      overflow: hidden;
+    }
+    .bg {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.92)), url("{{background}}");
+      background-size: cover;
+      background-position: center;
+    }
+    .title {
+      position: absolute;
+      left: 76px;
+      right: 76px;
+      top: 160px;
+      font-size: 78px;
+      line-height: 1.14;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    .subtitle {
+      position: absolute;
+      left: 76px;
+      right: 76px;
+      bottom: 150px;
+      padding: 26px 34px;
+      border-left: 12px solid #1f6feb;
+      background: rgba(255, 255, 255, .86);
+      font-size: 38px;
+      line-height: 1.35;
+      color: #344054;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="title">{{title}}</div>
+  <div class="subtitle">{{subtitle=老板 IP 口播}}</div>
+</body>
+</html>

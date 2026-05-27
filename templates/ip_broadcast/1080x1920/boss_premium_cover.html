@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      width: 1080px;
+      height: 1920px;
+      font-family: "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      background: #0f1115;
+      color: #f7e7b2;
+      overflow: hidden;
+    }
+    .bg {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(180deg, rgba(15,17,21,.2), rgba(15,17,21,.95)), url("{{background}}");
+      background-size: cover;
+      background-position: center;
+      filter: saturate(.85);
+    }
+    .panel {
+      position: absolute;
+      left: 72px;
+      right: 72px;
+      bottom: 180px;
+      padding: 58px 52px;
+      background: rgba(15,17,21,.78);
+      border: 1px solid rgba(247,231,178,.42);
+    }
+    .title {
+      font-size: 78px;
+      line-height: 1.12;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    .subtitle {
+      margin-top: 34px;
+      font-size: 36px;
+      line-height: 1.45;
+      color: #f4f0df;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="panel">
+    <div class="title">{{title}}</div>
+    <div class="subtitle">{{subtitle=高价值老板 IP 内容}}</div>
+  </div>
+</body>
+</html>

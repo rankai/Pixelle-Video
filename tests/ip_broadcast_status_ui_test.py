@@ -42,3 +42,25 @@ def test_render_notice_uses_matching_streamlit_background(monkeypatch):
         ("warning", "注意"),
         ("info", "进行中"),
     ]
+
+
+def test_global_loading_can_be_closed(monkeypatch):
+    calls = []
+
+    class FakePlaceholder:
+        def markdown(self, message, unsafe_allow_html=False):
+            calls.append(("markdown", message, unsafe_allow_html))
+
+        def empty(self):
+            calls.append(("empty",))
+
+    placeholder = FakePlaceholder()
+    monkeypatch.setattr(status_ui.st, "empty", lambda: placeholder)
+
+    returned = status_ui.show_global_loading("处理中")
+    status_ui.hide_global_loading(returned)
+
+    assert returned is placeholder
+    assert calls[0][0] == "markdown"
+    assert "处理中" in calls[0][1]
+    assert calls[-1] == ("empty",)

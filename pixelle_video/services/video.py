@@ -26,6 +26,7 @@ Note: Requires FFmpeg to be installed on the system.
 
 import os
 import shutil
+import subprocess
 import tempfile
 import uuid
 from pathlib import Path
@@ -37,7 +38,7 @@ from loguru import logger
 from pixelle_video.utils.os_util import (
     get_resource_path,
     list_resource_files,
-    resource_exists
+    resource_exists,
 )
 
 
@@ -234,12 +235,11 @@ class VideoService:
             ])
             
             # Run command
-            import subprocess
-            result = subprocess.run(
+            subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
-                check=True
+                check=True,
             )
             
             logger.success(f"Videos concatenated successfully: {output}")
@@ -413,7 +413,6 @@ class VideoService:
                 fps = fps_num / fps_den if fps_den != 0 else 30
                 
                 # Create black video for padding
-                black_video_path = self._get_unique_temp_path("black_pad", os.path.basename(output))
                 black_input = ffmpeg.input(
                     f'color=c=black:s={width}x{height}:r={fps}',
                     f='lavfi',
@@ -435,7 +434,7 @@ class VideoService:
             audio_stream = audio_stream.filter('apad', whole_dur=target_duration)
         
         if not video_has_audio:
-            logger.info(f"Video has no audio stream, adding audio track")
+            logger.info("Video has no audio stream, adding audio track")
             # Video is silent, just add the audio
             try:
                 (
@@ -597,6 +596,119 @@ class VideoService:
             error_msg = e.stderr.decode() if e.stderr else str(e)
             logger.error(f"FFmpeg overlay error: {error_msg}")
             raise RuntimeError(f"Failed to overlay image on video: {error_msg}")
+
+    @staticmethod
+    def _format_ffmpeg_time(value: float) -> str:
+        return f"{value:.3f}".rstrip("0").rstrip(".")
+
+    @staticmethod
+    def _build_overlay_video_segment_command(
+        base_video: str,
+        overlay_video: str,
+        output_path: str,
+        start_time: float,
+        end_time: float,
+        mode: Literal["fullscreen", "pip"],
+        base_width: int,
+        base_height: int,
+    ) -> list[str]:
+        duration = max(end_time - start_time, 0.01)
+        start = VideoService._format_ffmpeg_time(start_time)
+        end = VideoService._format_ffmpeg_time(end_time)
+        duration_text = VideoService._format_ffmpeg_time(duration)
+
+        if mode == "pip":
+            overlay_width = max(int(base_width * 0.36), 160)
+            overlay_filter = (
+                f"[1:v]trim=duration={duration_text},"
+                f"setpts=PTS-STARTPTS+{start}/TB,"
+                f"scale={overlay_width}:-2[ov];"
+                f"[0:v][ov]overlay=main_w-overlay_w-48:80:"
+                f"enable='between(t,{start},{end})'[v]"
+            )
+        else:
+            overlay_filter = (
+                f"[1:v]trim=duration={duration_text},"
+                f"setpts=PTS-STARTPTS+{start}/TB,"
+                f"scale={base_width}:{base_height}:force_original_aspect_ratio=increase,"
+                f"crop={base_width}:{base_height}[ov];"
+                f"[0:v][ov]overlay=0:0:enable='between(t,{start},{end})'[v]"
+            )
+
+        return [
+            "ffmpeg",
+            "-y",
+            "-i",
+            base_video,
+            "-stream_loop",
+            "-1",
+            "-i",
+            overlay_video,
+            "-filter_complex",
+            overlay_filter,
+            "-map",
+            "[v]",
+            "-map",
+            "0:a?",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "veryfast",
+            "-crf",
+            "20",
+            "-c:a",
+            "copy",
+            "-shortest",
+            output_path,
+        ]
+
+    def overlay_video_segment(
+        self,
+        base_video: str,
+        overlay_video: str,
+        output_path: str,
+        start_time: float,
+        end_time: float,
+        mode: Literal["fullscreen", "pip"] = "fullscreen",
+    ) -> str:
+        """
+        Overlay a video clip on a time range of the base video while preserving base audio.
+
+        The overlay clip is looped when shorter than the selected range. In IP broadcast
+        this keeps the digital-human master audio/video as the main track, and only
+        replaces or floats additional visuals during selected script ranges.
+        """
+        self._ensure_ffmpeg()
+        if end_time <= start_time:
+            raise ValueError("end_time must be greater than start_time")
+        if mode not in {"fullscreen", "pip"}:
+            raise ValueError("mode must be 'fullscreen' or 'pip'")
+
+        probe = ffmpeg.probe(base_video)
+        video_stream = next(
+            stream for stream in probe["streams"] if stream["codec_type"] == "video"
+        )
+        width = int(video_stream["width"])
+        height = int(video_stream["height"])
+        cmd = self._build_overlay_video_segment_command(
+            base_video=base_video,
+            overlay_video=overlay_video,
+            output_path=output_path,
+            start_time=start_time,
+            end_time=end_time,
+            mode=mode,
+            base_width=width,
+            base_height=height,
+        )
+
+        try:
+            subprocess.run(cmd, check=True, capture_output=True, text=True)
+            logger.success(f"Overlay video segment created: {output_path}")
+            return output_path
+        except subprocess.CalledProcessError as e:
+            error_msg = e.stderr if e.stderr else str(e)
+            logger.error(f"FFmpeg overlay segment error: {error_msg}")
+            raise RuntimeError(f"Failed to overlay video segment: {error_msg}") from e
     
     def create_video_from_image(
         self,
@@ -1001,4 +1113,3 @@ class VideoService:
             error_msg = e.stderr.decode() if e.stderr else str(e)
             logger.error(f"FFmpeg error padding video: {error_msg}")
             raise RuntimeError(f"Failed to pad video: {error_msg}")
-

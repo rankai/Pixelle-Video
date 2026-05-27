@@ -9,8 +9,9 @@ from web.ip_broadcast.state import (
     get_step_status,
     set_final_script,
     set_step_status,
+    sync_story_segments_from_script,
 )
-from web.ip_broadcast.status_ui import render_notice, show_global_loading
+from web.ip_broadcast.status_ui import hide_global_loading, render_notice, show_global_loading
 from web.utils.async_helpers import run_async
 
 DEFERRED_ACTION_M2_GENERATE = "m2_generate"
@@ -74,6 +75,7 @@ def _ensure_editor_matches_final_script():
 def _sync_final_script_from_editor():
     editor_value = st.session_state.get("ipb_final_script_editor", "")
     set_final_script(editor_value)
+    sync_story_segments_from_script(editor_value)
     st.session_state["_ipb_editor_synced_value"] = editor_value
 
 
@@ -121,8 +123,8 @@ def _do_generate(pixelle_video):
     word_count = st.session_state.get("ipb_m2_word_count", 200)
 
     set_step_status(2, "running")
+    loading = show_global_loading("AI 正在改写/优化文案，请稍候...")
     try:
-        show_global_loading("AI 正在改写/优化文案，请稍候...")
         with st.spinner("生成中..."):
             output = run_async(
                 pixelle_video.llm(prompt=build_rewrite_prompt(source, style, word_count))
@@ -141,7 +143,8 @@ def _do_generate(pixelle_video):
         st.session_state["_ipb_m2_last_success"] = ""
         st.error(str(e))
         logger.exception(e)
-        st.rerun()
+    finally:
+        hide_global_loading(loading)
 
 
 async def run_m2(pixelle_video) -> bool:

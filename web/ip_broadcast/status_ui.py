@@ -29,9 +29,10 @@ def render_notice(kind: str, message: str) -> None:
         st.info(message)
 
 
-def show_global_loading(message: str) -> None:
+def show_global_loading(message: str):
     safe_message = html.escape(message)
-    st.markdown(
+    placeholder = st.empty()
+    placeholder.markdown(
         f"""
         <div style="
             position: fixed;
@@ -76,3 +77,9 @@ def show_global_loading(message: str) -> None:
         """,
         unsafe_allow_html=True,
     )
+    return placeholder
+
+
+def hide_global_loading(placeholder) -> None:
+    if placeholder is not None:
+        placeholder.empty()

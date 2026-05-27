@@ -1,5 +1,6 @@
 """Session state helpers for IP broadcast page. All keys prefixed ipb_"""
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import MutableMapping
@@ -25,7 +26,7 @@ def init_ip_broadcast_state(session: MutableMapping | None = None):
     defaults = {
         # Global control
         "ipb_run_mode": "manual",
-        "ipb_step_status": {i: "pending" for i in range(1, 8)},
+        "ipb_step_status": {i: "pending" for i in range(1, 7)},
         "ipb_active_step": 1,
         # Module 1 — Tab: 提取脚本
         "ipb_source_mode": "视频链接",
@@ -79,6 +80,7 @@ def init_ip_broadcast_state(session: MutableMapping | None = None):
         "ipb_m4_prompt": "自然口播，正面镜头，表情稳定，唇形同步",
         "ipb_m4_duration": 0.0,
         # Module 5
+        "ipb_m5_template_id": "boss_clean",
         "ipb_m5_subtitle_enabled": True,
         "ipb_m5_bgm_path": "",
         "ipb_m5_bgm_volume": 0.3,
@@ -91,10 +93,19 @@ def init_ip_broadcast_state(session: MutableMapping | None = None):
         "ipb_m6_hashtags": [],
         "ipb_m6_cover_mode": "first_frame",
         "ipb_m6_cover_path": "",
+        # Overlay planning
+        "ipb_overlay_enabled": False,
+        "ipb_storyboard_enabled": False,
+        "ipb_story_segments": [],
+        "ipb_visual_groups": [],
     }
     for key, val in defaults.items():
         if key not in session:
             session[key] = val
+    session["ipb_step_status"] = {
+        i: session.get("ipb_step_status", {}).get(i, "pending")
+        for i in range(1, 7)
+    }
 
     if session.get("ipb_m2_output") and not session.get("ipb_final_script"):
         session["ipb_final_script"] = session["ipb_m2_output"]
@@ -117,7 +128,7 @@ def get_step_status(step: int, session: MutableMapping | None = None) -> str:
 def set_step_status(step: int, status: str, session: MutableMapping | None = None):
     session = _session(session)
     if "ipb_step_status" not in session:
-        session["ipb_step_status"] = {i: "pending" for i in range(1, 8)}
+        session["ipb_step_status"] = {i: "pending" for i in range(1, 7)}
     session["ipb_step_status"][step] = status
 
 
@@ -138,11 +149,21 @@ def set_final_script(text: str, session: MutableMapping | None = None):
     final = text.strip()
     session["ipb_final_script"] = final
     session["ipb_m2_output"] = final
+    sync_story_segments_from_script(final, session)
     if final:
         session["ipb_active_step"] = 3
         set_step_status(2, "done", session)
         if not session.get("ipb_m3_audio_path"):
             set_step_status(3, "ready", session)
+
+
+def mark_voice_generated(audio_path: str, session: MutableMapping | None = None):
+    session = _session(session)
+    init_ip_broadcast_state(session)
+    session["ipb_m3_audio_path"] = audio_path
+    session["ipb_active_step"] = 4
+    if audio_path:
+        set_step_status(3, "done", session)
 
 
 def _path_exists(value: str) -> bool:
@@ -158,7 +179,11 @@ def refresh_step_readiness(session: MutableMapping | None = None):
         set_step_status(2, "done", session)
     elif session.get("ipb_source_text") and get_step_status(2, session) == "pending":
         set_step_status(2, "ready", session)
-    if session.get("ipb_final_script") and not _path_exists(session.get("ipb_m3_audio_path", "")):
+    if (
+        session.get("ipb_final_script")
+        and not _path_exists(session.get("ipb_m3_audio_path", ""))
+        and get_step_status(3, session) != "done"
+    ):
         set_step_status(3, "ready", session)
     if _path_exists(session.get("ipb_m3_audio_path", "")):
         set_step_status(3, "done", session)
@@ -170,10 +195,15 @@ def refresh_step_readiness(session: MutableMapping | None = None):
         set_step_status(5, "done", session)
     elif _path_exists(session.get("ipb_m4_dh_video_path", "")):
         set_step_status(5, "ready", session)
-    if session.get("ipb_m6_title") and session.get("ipb_m6_description"):
-        set_step_status(6, "done", session)
-    elif session.get("ipb_final_script") and get_step_status(6, session) == "pending":
+    if _path_exists(session.get("ipb_m5_final_video_path", "")):
         set_step_status(6, "ready", session)
+
+
+def get_completed_step_count(session: MutableMapping | None = None) -> int:
+    session = _session(session)
+    init_ip_broadcast_state(session)
+    refresh_step_readiness(session)
+    return sum(1 for status in session.get("ipb_step_status", {}).values() if status == "done")
 
 
 def get_next_action(session: MutableMapping | None = None) -> NextAction:
@@ -193,6 +223,139 @@ def get_next_action(session: MutableMapping | None = None) -> NextAction:
         return NextAction("digital_human", 4, "生成数字人视频", "使用形象和语音生成口播视频")
     if not _path_exists(session.get("ipb_m5_final_video_path", "")):
         return NextAction("postproduce", 5, "合成最终视频", "添加字幕、音量和成片设置")
-    if not session.get("ipb_m6_title") or not session.get("ipb_m6_description"):
-        return NextAction("social_meta", 6, "生成标题封面", "生成发布标题、描述和标签")
-    return NextAction("publish", 7, "查看并下载", "最终视频和发布素材已准备好")
+    return NextAction("publish", 6, "查看并下载", "最终视频和发布素材已准备好")
+
+
+def split_script_to_segments(text: str) -> list[str]:
+    """Split a script into user-visible paragraphs by Enter/newlines."""
+    return [part.strip() for part in re.split(r"\n+", text.strip()) if part.strip()]
+
+
+def _new_segment(index: int, text: str, group_id: str) -> dict:
+    return {
+        "segment_id": f"segment_{index}",
+        "index": index,
+        "text": text,
+        "visual_group_id": group_id,
+        "audio_path": "",
+        "duration": 0.0,
+    }
+
+
+def _new_group(index: int, segment_ids: list[str]) -> dict:
+    return {
+        "group_id": f"group_{index}",
+        "segment_ids": segment_ids,
+        "visual_type": "digital_human",
+        "overlay_type": "none",
+        "overlay_mode": "fullscreen",
+        "prompt": "",
+        "uploaded_video_path": "",
+        "generated_video_path": "",
+        "start_time": 0.0,
+        "end_time": 0.0,
+        "status": "pending",
+        "error": "",
+    }
+
+
+def sync_story_segments_from_script(text: str, session: MutableMapping | None = None):
+    session = _session(session)
+    init_ip_broadcast_state(session)
+    parts = split_script_to_segments(text)
+    old_segments = {item.get("text"): item for item in session.get("ipb_story_segments", [])}
+    old_groups = {item.get("group_id"): item for item in session.get("ipb_visual_groups", [])}
+
+    segments = []
+    groups = []
+    for idx, part in enumerate(parts, start=1):
+        old = old_segments.get(part, {})
+        old_group_id = old.get("visual_group_id")
+        if old_group_id and old_group_id in old_groups:
+            group_id = old_group_id
+        else:
+            group_id = f"group_{idx}"
+        segment = _new_segment(idx, part, group_id)
+        segment["audio_path"] = old.get("audio_path", "")
+        segment["duration"] = old.get("duration", 0.0)
+        segments.append(segment)
+
+    grouped_segment_ids: dict[str, list[str]] = {}
+    for segment in segments:
+        grouped_segment_ids.setdefault(segment["visual_group_id"], []).append(segment["segment_id"])
+
+    for idx, (group_id, segment_ids) in enumerate(grouped_segment_ids.items(), start=1):
+        old_group = old_groups.get(group_id, {})
+        group = _new_group(idx, segment_ids)
+        group["group_id"] = group_id
+        for key in (
+            "visual_type",
+            "overlay_type",
+            "overlay_mode",
+            "prompt",
+            "uploaded_video_path",
+            "generated_video_path",
+            "start_time",
+            "end_time",
+            "status",
+            "error",
+        ):
+            if key in old_group:
+                group[key] = old_group[key]
+        groups.append(group)
+
+    session["ipb_story_segments"] = segments
+    session["ipb_visual_groups"] = groups
+
+
+def merge_story_segments(segment_ids: list[str], session: MutableMapping | None = None):
+    session = _session(session)
+    init_ip_broadcast_state(session)
+    requested = [sid for sid in segment_ids if sid]
+    if len(requested) < 2:
+        return
+
+    segment_by_id = {item["segment_id"]: item for item in session.get("ipb_story_segments", [])}
+    indexes = sorted(segment_by_id[sid]["index"] for sid in requested if sid in segment_by_id)
+    if not indexes or indexes != list(range(indexes[0], indexes[-1] + 1)):
+        raise ValueError("只支持连续段落合并为同一个画面组")
+
+    new_group_id = f"group_{indexes[0]}_{indexes[-1]}"
+    for segment in session.get("ipb_story_segments", []):
+        if segment["index"] in indexes:
+            segment["visual_group_id"] = new_group_id
+
+    old_group_by_id = {item["group_id"]: item for item in session.get("ipb_visual_groups", [])}
+    first_requested = segment_by_id.get(requested[0], {})
+    seed_group = old_group_by_id.get(first_requested.get("visual_group_id"), {})
+    groups = []
+    seen = set()
+    for segment in session.get("ipb_story_segments", []):
+        group_id = segment["visual_group_id"]
+        if group_id in seen:
+            continue
+        seen.add(group_id)
+        group_segments = [
+            item["segment_id"]
+            for item in session.get("ipb_story_segments", [])
+            if item["visual_group_id"] == group_id
+        ]
+        group = _new_group(len(groups) + 1, group_segments)
+        group["group_id"] = group_id
+        source = seed_group if group_id == new_group_id else old_group_by_id.get(group_id, {})
+        for key in (
+            "visual_type",
+            "overlay_type",
+            "overlay_mode",
+            "prompt",
+            "uploaded_video_path",
+            "generated_video_path",
+            "start_time",
+            "end_time",
+            "status",
+            "error",
+        ):
+            if key in source:
+                group[key] = source[key]
+        groups.append(group)
+    session["ipb_visual_groups"] = groups

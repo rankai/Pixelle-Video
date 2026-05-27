@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 from types import SimpleNamespace
@@ -171,13 +172,33 @@ def _build_ai_app_run_request(
     webapp_id: str,
     api_key: str,
     node_info_list: list[dict],
+    instance_type: str | None = None,
+    use_personal_queue: bool | str = False,
+    include_api_key: bool = False,
 ) -> tuple[str, dict]:
-    _ = api_key
+    use_personal_queue_value = (
+        use_personal_queue
+        if isinstance(use_personal_queue, str)
+        else "true" if use_personal_queue else "false"
+    )
+    payload = {
+        "nodeInfoList": node_info_list,
+        "instanceType": instance_type or "default",
+        "usePersonalQueue": use_personal_queue_value,
+    }
+    if include_api_key:
+        payload["apiKey"] = api_key
     return (
         f"/openapi/v2/run/ai-app/{webapp_id}",
-        {
-            "nodeInfoList": node_info_list,
-        },
+        payload,
+    )
+
+
+def _resolve_runninghub_api_key(comfyui_config: dict) -> str:
+    return (
+        comfyui_config.get("runninghub_api_key")
+        or os.getenv("RUNNINGHUB_API_KEY")
+        or ""
     )
 
 
@@ -333,7 +354,7 @@ async def _execute_runninghub_ai_app(
     from comfykit.comfyui.runninghub_client import RunningHubClient
 
     comfyui_config = config_manager.get_comfyui_config()
-    api_key = comfyui_config.get("runninghub_api_key")
+    api_key = _resolve_runninghub_api_key(comfyui_config)
     if not api_key:
         raise RuntimeError("RunningHub API key is required for AI App digital human workflow")
 
@@ -347,8 +368,12 @@ async def _execute_runninghub_ai_app(
         instance_type=comfyui_config.get("runninghub_instance_type"),
     )
     try:
-        uploaded_portrait = await client.upload_file(portrait_path)
-        uploaded_audio = await client.upload_file(audio_path)
+        uploaded_portrait = await _upload_runninghub_ai_app_media(client, portrait_path, api_key)
+        uploaded_audio = await _upload_runninghub_ai_app_media(client, audio_path, api_key)
+        logger.info(
+            "RunningHub AI App uploaded files: "
+            f"portrait={uploaded_portrait}, audio={uploaded_audio}"
+        )
         node_info_list = _build_ai_app_node_info_list(
             workflow_config,
             uploaded_portrait=uploaded_portrait,
@@ -361,14 +386,62 @@ async def _execute_runninghub_ai_app(
             webapp_id=webapp_id,
             api_key=api_key,
             node_info_list=node_info_list,
+            instance_type=comfyui_config.get("runninghub_instance_type") or "default",
         )
         run_result = await _make_runninghub_ai_app_run_request(client, endpoint, payload, api_key)
-        task_id = (run_result.get("data") or {}).get("taskId")
+        task_id = run_result.get("taskId") or (run_result.get("data") or {}).get("taskId")
         if not task_id:
             raise RuntimeError(f"RunningHub AI App did not return taskId: {run_result}")
-        return await _wait_for_runninghub_task(client, task_id)
+        return await _wait_for_runninghub_ai_app_task(client, task_id, api_key)
     finally:
         await client.close()
+
+
+async def _upload_runninghub_ai_app_media(client, file_path: str, api_key: str) -> str:
+    import aiohttp
+
+    path = Path(file_path)
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    url = f"{client.base_url}/openapi/v2/media/upload/binary"
+    logger.info(f"RunningHub AI App media upload: url={url}, file={path.name}")
+    form = aiohttp.FormData()
+    form.add_field(
+        "file",
+        path.read_bytes(),
+        filename=path.name,
+        content_type="application/octet-stream",
+    )
+
+    session = await client._get_session()
+    async with session.post(
+        url,
+        data=form,
+        headers={"Authorization": f"Bearer {api_key}"},
+    ) as response:
+        text = await response.text()
+        if response.status != 200:
+            raise RuntimeError(f"RunningHub AI App media upload HTTP {response.status}: {text}")
+        try:
+            result = await response.json()
+        except Exception as e:
+            raise RuntimeError(f"RunningHub AI App media upload returned invalid JSON: {text}") from e
+
+    if result.get("code") not in (0, "0", None):
+        raise RuntimeError(
+            "RunningHub AI App media upload API error: "
+            f"{result.get('message') or result.get('msg') or result}"
+        )
+    data = result.get("data") or {}
+    uploaded_value = data.get("download_url") or data.get("fileName")
+    if not uploaded_value:
+        raise RuntimeError(f"RunningHub AI App media upload returned no URL: {result}")
+    logger.info(
+        "RunningHub AI App media upload completed: "
+        f"type={data.get('type')}, value={uploaded_value}, fileName={data.get('fileName')}"
+    )
+    return str(uploaded_value)
 
 
 async def _make_runninghub_ai_app_run_request(
@@ -377,21 +450,63 @@ async def _make_runninghub_ai_app_run_request(
     payload: dict,
     api_key: str,
 ) -> dict[str, Any]:
-    import httpx
-
     url = f"{client.base_url}{endpoint}"
-    async with httpx.AsyncClient(timeout=getattr(client, "timeout", 300)) as http_client:
-        response = await http_client.post(
-            url,
-            json=payload,
-            headers=_runninghub_ai_app_headers(api_key),
+    logger.info(
+        "RunningHub AI App run request: "
+        f"url={url}, node_count={len(payload.get('nodeInfoList') or [])}, "
+        f"instanceType={payload.get('instanceType')}, "
+        f"usePersonalQueue={payload.get('usePersonalQueue')}"
+    )
+    session = await client._get_session()
+    result = await _post_runninghub_ai_app_run(
+        session=session,
+        url=url,
+        payload=payload,
+        headers=_runninghub_ai_app_headers(api_key),
+    )
+    if result.get("_http_status") == 401:
+        logger.warning(
+            "RunningHub AI App Bearer auth returned 401; retrying with apiKey in JSON body"
         )
-    if response.status_code != 200:
-        raise RuntimeError(f"HTTP {response.status_code}: {response.text}")
+        fallback_payload = {**payload, "apiKey": api_key}
+        result = await _post_runninghub_ai_app_run(
+            session=session,
+            url=url,
+            payload=fallback_payload,
+            headers={"Content-Type": "application/json"},
+        )
 
-    result = response.json()
-    if result.get("code") not in (0, "0", None):
+    http_status = result.pop("_http_status", 200)
+    if http_status != 200:
+        raise RuntimeError(f"HTTP {http_status}: {result.get('_text', result)}")
+
+    if result.get("errorCode"):
+        error_message = result.get("errorMessage") or result.get("msg") or "Unknown error"
+        raise RuntimeError(
+            f"RunningHub AI App API error {result.get('errorCode')}: {error_message}"
+        )
+    if result.get("code") not in (0, "0", None) and not result.get("taskId"):
         raise RuntimeError(f"RunningHub AI App API error: {result.get('msg', 'Unknown error')}")
+    return result
+
+
+async def _post_runninghub_ai_app_run(
+    session,
+    url: str,
+    payload: dict,
+    headers: dict[str, str],
+) -> dict[str, Any]:
+    async with session.post(
+        url,
+        json=payload,
+        headers=headers,
+    ) as response:
+        text = await response.text()
+        try:
+            result = await response.json()
+        except Exception:
+            result = {"_text": text}
+        result["_http_status"] = response.status
     return result
 
 
@@ -418,6 +533,77 @@ async def _wait_for_runninghub_task(
                 msg=status_info.get("msg") or f"RunningHub AI App task {task_id} failed",
             )
         await asyncio.sleep(poll_interval)
+
+
+async def _query_runninghub_ai_app_task(client, task_id: str, api_key: str) -> dict[str, Any]:
+    url = f"{client.base_url}/openapi/v2/query"
+    session = await client._get_session()
+    async with session.post(
+        url,
+        json={"taskId": task_id},
+        headers=_runninghub_ai_app_headers(api_key),
+    ) as response:
+        text = await response.text()
+        if response.status != 200:
+            raise RuntimeError(f"RunningHub AI App query HTTP {response.status}: {text}")
+        try:
+            result = await response.json()
+        except Exception as e:
+            raise RuntimeError(f"RunningHub AI App query returned invalid JSON: {text}") from e
+    if result.get("errorCode"):
+        error_message = result.get("errorMessage") or result.get("msg") or "Unknown error"
+        raise RuntimeError(
+            f"RunningHub AI App query error {result.get('errorCode')}: {error_message}"
+        )
+    return result
+
+
+async def _wait_for_runninghub_ai_app_task(
+    client,
+    task_id: str,
+    api_key: str,
+    max_wait_time: float | None = None,
+    poll_interval: float | None = None,
+):
+    max_wait_time = RUNNINGHUB_AI_APP_DEFAULT_TIMEOUT if max_wait_time is None else max_wait_time
+    poll_interval = RUNNINGHUB_AI_APP_POLL_INTERVAL if poll_interval is None else poll_interval
+    start_time = asyncio.get_event_loop().time()
+    while True:
+        if max_wait_time is not None and asyncio.get_event_loop().time() - start_time > max_wait_time:
+            return SimpleNamespace(status="error", msg=f"RunningHub AI App task {task_id} timeout")
+        task_info = await _query_runninghub_ai_app_task(client, task_id, api_key)
+        task_status = task_info.get("status")
+        if task_status == "SUCCESS":
+            return _runninghub_ai_app_outputs_to_result(task_id, task_info)
+        if task_status == "FAILED":
+            return SimpleNamespace(
+                status="error",
+                msg=task_info.get("errorMessage") or f"RunningHub AI App task {task_id} failed",
+                outputs={"raw_data": task_info},
+            )
+        await asyncio.sleep(poll_interval)
+
+
+def _runninghub_ai_app_outputs_to_result(task_id: str, task_info: dict[str, Any]):
+    videos = []
+    files = []
+    for item in task_info.get("results") or []:
+        if not isinstance(item, dict):
+            continue
+        file_url = item.get("url")
+        if not file_url:
+            continue
+        files.append(file_url)
+        output_type = str(item.get("outputType", "")).lower()
+        if output_type in {"mp4", "mov", "webm", "mkv", "avi"} or _looks_like_video(file_url):
+            videos.append(file_url)
+    return SimpleNamespace(
+        status="completed",
+        prompt_id=task_id,
+        videos=videos,
+        files=files,
+        outputs={"raw_data": task_info},
+    )
 
 
 def _runninghub_outputs_to_result(task_id: str, result_data: Any):

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="640" viewBox="0 0 360 640">
+  <rect width="360" height="640" fill="#0f1115"/>
+  <radialGradient id="r" cx=".55" cy=".35" r=".7">
+    <stop offset="0" stop-color="#30343d"/>
+    <stop offset="1" stop-color="#0f1115"/>
+  </radialGradient>
+  <rect width="360" height="640" fill="url(#r)"/>
+  <circle cx="186" cy="236" r="92" fill="#242933"/>
+  <rect x="112" y="314" width="150" height="164" rx="26" fill="#1d222b"/>
+  <rect x="28" y="416" width="304" height="142" fill="#101215" opacity=".84" stroke="#f7e7b2" stroke-opacity=".48"/>
+  <text x="50" y="466" font-family="PingFang SC, Arial" font-size="29" font-weight="800" fill="#f7e7b2">高价值老板</text>
+  <text x="50" y="504" font-family="PingFang SC, Arial" font-size="29" font-weight="800" fill="#f7e7b2">访谈封面</text>
+  <text x="46" y="590" font-family="PingFang SC, Arial" font-size="18" font-weight="800" fill="#f7e7b2" stroke="#050505" stroke-width="2" paint-order="stroke">金色字幕在底部，沉稳高级</text>
+</svg>

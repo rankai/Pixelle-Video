@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="640" viewBox="0 0 360 640">
+  <rect width="360" height="640" fill="#f6f7f9"/>
+  <rect x="0" y="0" width="360" height="640" fill="#e8edf4"/>
+  <circle cx="188" cy="266" r="92" fill="#c8d2df"/>
+  <rect x="110" y="344" width="156" height="170" rx="28" fill="#bcc8d8"/>
+  <rect x="25" y="50" width="310" height="150" rx="4" fill="#ffffff" opacity=".88"/>
+  <text x="44" y="92" font-family="PingFang SC, Arial" font-size="26" font-weight="800" fill="#101828">老板IP三步</text>
+  <text x="44" y="128" font-family="PingFang SC, Arial" font-size="26" font-weight="800" fill="#101828">讲清增长</text>
+  <rect x="25" y="486" width="310" height="78" rx="6" fill="#ffffff" opacity=".9"/>
+  <rect x="25" y="486" width="8" height="78" rx="2" fill="#1f6feb"/>
+  <text x="44" y="519" font-family="PingFang SC, Arial" font-size="17" font-weight="700" fill="#344054">字幕位于底部半透明白条</text>
+  <text x="44" y="546" font-family="PingFang SC, Arial" font-size="15" fill="#667085">干净、商务、适合知识口播</text>
+</svg>

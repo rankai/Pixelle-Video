@@ -4,6 +4,7 @@ import streamlit as st
 from loguru import logger
 
 from web.ip_broadcast.state import (
+    get_completed_step_count,
     get_next_action,
     init_ip_broadcast_state,
     refresh_step_readiness,
@@ -30,26 +31,26 @@ def render_ip_broadcast_page(pixelle_video):
 
     st.divider()
 
-    # ── 2-column layout: fewer cramped controls, clearer production flow ──
+    # ── 3-column layout: source/copy, voice/avatar, final/publish ──
     from web.ip_broadcast.modules.m1_benchmark import render_m1_benchmark
     from web.ip_broadcast.modules.m2_copywriting import render_m2_copywriting
     from web.ip_broadcast.modules.m3_voice import render_m3_voice
     from web.ip_broadcast.modules.m4_digital_human import render_m4_digital_human
     from web.ip_broadcast.modules.m5_postproduction import render_m5_postproduction
-    from web.ip_broadcast.modules.m6_title_cover import render_m6_title_cover
     from web.ip_broadcast.modules.m7_publish import render_m7_publish
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns([1.05, 1, 1.05])
 
     with col1:
         render_m1_benchmark(pixelle_video, run_mode)
         render_m2_copywriting(pixelle_video, run_mode)
-        render_m3_voice(pixelle_video, run_mode)
 
     with col2:
+        render_m3_voice(pixelle_video, run_mode)
         render_m4_digital_human(pixelle_video, run_mode)
+
+    with col3:
         render_m5_postproduction(pixelle_video, run_mode)
-        render_m6_title_cover(pixelle_video, run_mode)
         render_m7_publish(pixelle_video, run_mode)
 
     _run_deferred_action(pixelle_video)
@@ -57,15 +58,14 @@ def render_ip_broadcast_page(pixelle_video):
 
 def _render_production_console(pixelle_video):
     action = get_next_action()
-    step_status = st.session_state.get("ipb_step_status", {})
-    done_count = sum(1 for s in step_status.values() if s == "done")
+    done_count = get_completed_step_count()
 
     with st.container(border=True):
         title_col, action_col = st.columns([3, 1])
         with title_col:
             st.markdown("**生产主控台**")
             st.caption(f"下一步：{action.description}")
-            st.progress(done_count / 7, text=f"进度：{done_count}/7")
+            st.progress(done_count / 6, text=f"进度：{done_count}/6")
         with action_col:
             st.markdown("<div style='height:26px'></div>", unsafe_allow_html=True)
             clicked = st.button(
@@ -83,7 +83,7 @@ def _render_production_console(pixelle_video):
         elif action.key == "select_portrait":
             st.warning("请在「4. 数字人视频」中选择或上传形象后继续。")
         elif action.key == "publish":
-            st.success("成片和发布素材已准备好，请在「7. 视频发布」下载。")
+            st.success("成片和发布素材已准备好，请在「6. 视频发布」下载。")
 
 
 def _run_from_current_state(pixelle_video):
@@ -92,7 +92,6 @@ def _run_from_current_state(pixelle_video):
     from web.ip_broadcast.modules.m3_voice import run_m3
     from web.ip_broadcast.modules.m4_digital_human import run_m4
     from web.ip_broadcast.modules.m5_postproduction import run_m5
-    from web.ip_broadcast.modules.m6_title_cover import run_m6
     from web.ip_broadcast.modules.m7_publish import run_m7
 
     runners = {
@@ -100,8 +99,7 @@ def _run_from_current_state(pixelle_video):
         "voice": (3, run_m3, "声音生成"),
         "digital_human": (4, run_m4, "数字人视频"),
         "postproduce": (5, run_m5, "一键成片"),
-        "social_meta": (6, run_m6, "标题封面"),
-        "publish": (7, run_m7, "视频发布"),
+        "publish": (6, run_m7, "视频发布"),
     }
 
     placeholder = st.empty()
@@ -118,7 +116,7 @@ def _run_from_current_state(pixelle_video):
 
         step_num, runner_fn, label = runner
         set_step_status(step_num, "running")
-        placeholder.info(f"正在执行：{label}（步骤 {step_num}/7）...")
+        placeholder.info(f"正在执行：{label}（步骤 {step_num}/6）...")
         try:
             ok = run_async(runner_fn(pixelle_video))
             if ok:
