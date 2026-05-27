@@ -692,6 +692,7 @@ async def run_m3(pixelle_video) -> bool:
         return True
     except Exception as e:
         set_step_status(3, "error")
+        set_step_notice(3, "error", str(e))
         logger.exception(e)
         return False
 

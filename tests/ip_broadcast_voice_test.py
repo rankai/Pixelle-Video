@@ -283,3 +283,23 @@ def test_generate_voice_does_not_render_immediate_duplicate_audio(monkeypatch, t
 
     assert session["ipb_m3_audio_path"] == str(final_audio)
     assert audio_calls == []
+
+
+@pytest.mark.asyncio
+async def test_run_m3_failure_writes_error_notice_and_preserves_script(monkeypatch):
+    session = _session()
+    session["ipb_m2_output"] = "正式文案"
+    notices = []
+    monkeypatch.setattr(m3_voice.st, "session_state", session)
+    monkeypatch.setattr(m3_voice, "set_step_notice", lambda *args: notices.append(args))
+
+    class FailingPixelleVideo:
+        async def tts(self, **_kwargs):
+            raise RuntimeError("TTS failed")
+
+    ok = await m3_voice.run_m3(FailingPixelleVideo())
+
+    assert ok is False
+    assert session["ipb_step_status"][3] == "error"
+    assert session["ipb_m2_output"] == "正式文案"
+    assert notices[-1] == (3, "error", "TTS failed")

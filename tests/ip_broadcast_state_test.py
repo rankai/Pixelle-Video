@@ -46,6 +46,30 @@ def test_get_next_action_reports_missing_portrait_before_video_generation(tmp_pa
     assert action.step == 4
 
 
+def test_get_next_action_moves_to_voice_when_final_script_exists():
+    session = _base_session()
+    state.set_final_script("final copy", session=session)
+
+    action = state.get_next_action(session=session)
+
+    assert action.key == "voice"
+    assert action.step == 3
+
+
+def test_get_next_action_moves_to_digital_human_when_audio_and_portrait_exist(tmp_path):
+    session = _base_session()
+    state.set_final_script("final copy", session=session)
+    audio_path = tmp_path / "voice.mp3"
+    audio_path.write_text("audio")
+    session["ipb_m3_audio_path"] = str(audio_path)
+    session["ipb_m4_portrait_id"] = "portrait-1"
+
+    action = state.get_next_action(session=session)
+
+    assert action.key == "digital_human"
+    assert action.step == 4
+
+
 def test_mark_voice_generated_advances_progress_to_step_three(tmp_path):
     session = _base_session()
     audio_path = tmp_path / "voice.mp3"

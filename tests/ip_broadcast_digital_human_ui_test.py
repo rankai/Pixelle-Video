@@ -1,5 +1,7 @@
 from contextlib import nullcontext
 
+import pytest
+
 from web.ip_broadcast import state
 from web.ip_broadcast.modules import m4_digital_human
 
@@ -217,3 +219,48 @@ def test_generate_digital_human_error_closes_loading_and_shows_single_step_notic
     assert errors == []
     assert notices[-1] == (4, "error", "HTTP 401")
     assert loading_calls == ["empty"]
+
+
+async def _raise_digital_human_error(**_kwargs):
+    raise RuntimeError("digital human failed")
+
+
+@pytest.mark.asyncio
+async def test_run_m4_failure_writes_error_notice_and_preserves_audio(monkeypatch, tmp_path):
+    session = AttrDict()
+    state.init_ip_broadcast_state(session)
+    audio_path = tmp_path / "voice.mp3"
+    portrait_path = tmp_path / "portrait.png"
+    audio_path.write_bytes(b"audio")
+    portrait_path.write_bytes(b"image")
+    session.update(
+        {
+            "ipb_m3_audio_path": str(audio_path),
+            "ipb_m4_portrait_id": "portrait-1",
+        }
+    )
+    notices = []
+
+    monkeypatch.setattr(m4_digital_human.st, "session_state", session)
+    monkeypatch.setattr(m4_digital_human, "set_step_notice", lambda *args: notices.append(args))
+    monkeypatch.setattr(
+        m4_digital_human,
+        "_get_portrait_svc",
+        lambda _pixelle_video: FakePortraitService(portrait_path),
+    )
+
+    class FailingDigitalHumanService:
+        generate = staticmethod(_raise_digital_human_error)
+
+    monkeypatch.setattr(
+        m4_digital_human,
+        "_get_dh_svc",
+        lambda _pixelle_video: FailingDigitalHumanService(),
+    )
+
+    ok = await m4_digital_human.run_m4(FakePixelleVideo())
+
+    assert ok is False
+    assert session["ipb_step_status"][4] == "error"
+    assert session["ipb_m3_audio_path"] == str(audio_path)
+    assert notices[-1] == (4, "error", "digital human failed")

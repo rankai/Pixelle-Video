@@ -830,6 +830,7 @@ async def run_m5(pixelle_video) -> bool:
     except Exception as e:
         logger.exception(e)
         set_step_status(5, "error")
+        set_step_notice(5, "error", str(e))
         return False
 
 

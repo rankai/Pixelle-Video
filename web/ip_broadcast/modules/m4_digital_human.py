@@ -460,5 +460,6 @@ async def run_m4(pixelle_video) -> bool:
         return True
     except Exception as e:
         set_step_status(4, "error")
+        set_step_notice(4, "error", str(e))
         logger.exception(e)
         return False

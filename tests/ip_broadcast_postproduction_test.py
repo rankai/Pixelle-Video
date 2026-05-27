@@ -1,3 +1,5 @@
+import pytest
+
 from pixelle_video.services.subtitle_service import _build_subtitles_filter
 from pixelle_video.services.video import VideoService
 from web.ip_broadcast import state
@@ -128,3 +130,38 @@ def test_overlay_video_segment_command_preserves_base_audio_and_limits_time_rang
     assert "enable='between(t,2.5,5)'" in cmd[filter_index]
     assert "scale=388:-2" in cmd[filter_index]
     assert "overlay=main_w-overlay_w-48:80" in cmd[filter_index]
+
+
+@pytest.mark.asyncio
+async def test_run_m5_failure_writes_error_notice_and_preserves_digital_human(
+    monkeypatch,
+    tmp_path,
+):
+    session = {}
+    state.init_ip_broadcast_state(session)
+    audio_path = tmp_path / "voice.mp3"
+    dh_path = tmp_path / "dh.mp4"
+    audio_path.write_bytes(b"audio")
+    dh_path.write_bytes(b"video")
+    session.update(
+        {
+            "ipb_m3_audio_path": str(audio_path),
+            "ipb_m4_dh_video_path": str(dh_path),
+        }
+    )
+    notices = []
+
+    monkeypatch.setattr(m5_postproduction.st, "session_state", session)
+    monkeypatch.setattr(m5_postproduction, "set_step_notice", lambda *args: notices.append(args))
+    monkeypatch.setattr(
+        m5_postproduction,
+        "merge_audio_into_video",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("compose failed")),
+    )
+
+    ok = await m5_postproduction.run_m5(object())
+
+    assert ok is False
+    assert session["ipb_step_status"][5] == "error"
+    assert session["ipb_m4_dh_video_path"] == str(dh_path)
+    assert notices[-1] == (5, "error", "compose failed")
