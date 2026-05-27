@@ -13,9 +13,16 @@ from typing import Callable
 from loguru import logger
 
 from pixelle_video.services.subtitle_service import extract_first_frame
+from pixelle_video.services.upload_security import (
+    atomic_write_json,
+    normalize_extension,
+    safe_library_child,
+    validate_file_size,
+)
 from pixelle_video.utils.os_util import get_data_path
 
 SUPPORTED_VIDEO_ASSET_EXTENSIONS = {"mp4", "mov", "webm"}
+MAX_VIDEO_ASSET_BYTES = 1024 * 1024 * 1024
 
 
 @dataclass
@@ -64,10 +71,7 @@ class VideoAssetService:
             return []
 
     def _save_manifest(self, assets: list[dict]) -> None:
-        self._manifest_path.write_text(
-            json.dumps(assets, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
+        atomic_write_json(self._manifest_path, assets)
 
     def list_assets(self) -> list[VideoAssetInfo]:
         with self._lock:
@@ -88,9 +92,8 @@ class VideoAssetService:
         return result
 
     def save_asset(self, name: str, video_bytes: bytes, ext: str) -> VideoAssetInfo:
-        clean_ext = ext.lstrip(".").lower()
-        if clean_ext not in SUPPORTED_VIDEO_ASSET_EXTENSIONS:
-            raise ValueError(f"Unsupported video asset extension: {clean_ext}")
+        clean_ext = normalize_extension(ext, SUPPORTED_VIDEO_ASSET_EXTENSIONS)
+        validate_file_size(video_bytes, MAX_VIDEO_ASSET_BYTES, "Video asset")
 
         asset_id = uuid.uuid4().hex[:12]
         filename = f"{asset_id}.{clean_ext}"
@@ -139,10 +142,14 @@ class VideoAssetService:
             removed = next(item for item in assets if item["asset_id"] == asset_id)
             self._save_manifest(updated)
 
-        (self._assets_dir / removed["filename"]).unlink(missing_ok=True)
+        asset_path = safe_library_child(self._assets_dir, removed.get("filename", ""))
+        if asset_path:
+            asset_path.unlink(missing_ok=True)
         thumbnail = removed.get("thumbnail_filename")
         if thumbnail:
-            (self._assets_dir / thumbnail).unlink(missing_ok=True)
+            thumbnail_path = safe_library_child(self._assets_dir, thumbnail)
+            if thumbnail_path:
+                thumbnail_path.unlink(missing_ok=True)
         logger.info(f"Video asset deleted: {asset_id}")
         return True
 
@@ -151,7 +158,9 @@ class VideoAssetService:
             manifest = self._load_manifest()
         for item in manifest:
             if item["asset_id"] == asset_id:
-                path = self._assets_dir / item["filename"]
+                path = safe_library_child(self._assets_dir, item.get("filename", ""))
+                if not path:
+                    return None
                 return str(path) if path.exists() else None
         return None
 

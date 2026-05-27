@@ -10,9 +10,16 @@ from pathlib import Path
 
 from loguru import logger
 
+from pixelle_video.services.upload_security import (
+    atomic_write_json,
+    normalize_extension,
+    safe_library_child,
+    validate_file_size,
+)
 from pixelle_video.utils.os_util import get_data_path
 
 SUPPORTED_VOICE_REFERENCE_EXTENSIONS = {"mp3", "wav", "flac", "m4a"}
+MAX_VOICE_REFERENCE_BYTES = 100 * 1024 * 1024
 
 
 @dataclass
@@ -48,10 +55,7 @@ class VoiceReferenceService:
             return []
 
     def _save_manifest(self, references: list[dict]) -> None:
-        self._manifest_path.write_text(
-            json.dumps(references, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
+        atomic_write_json(self._manifest_path, references)
 
     def list_references(self) -> list[VoiceReferenceInfo]:
         with self._lock:
@@ -69,9 +73,15 @@ class VoiceReferenceService:
         return result
 
     def save_reference(self, name: str, audio_bytes: bytes, ext: str) -> VoiceReferenceInfo:
-        clean_ext = ext.lstrip(".").lower()
-        if clean_ext not in SUPPORTED_VOICE_REFERENCE_EXTENSIONS:
-            raise ValueError(f"Unsupported voice reference extension: {clean_ext}")
+        try:
+            clean_ext = normalize_extension(ext, SUPPORTED_VOICE_REFERENCE_EXTENSIONS)
+        except ValueError as e:
+            if "Unsupported file extension" in str(e):
+                raise ValueError(
+                    f"Unsupported voice reference extension: {ext.lstrip('.').lower()}"
+                ) from e
+            raise
+        validate_file_size(audio_bytes, MAX_VOICE_REFERENCE_BYTES, "Voice reference")
 
         reference_id = uuid.uuid4().hex[:12]
         filename = f"{reference_id}.{clean_ext}"
@@ -105,8 +115,9 @@ class VoiceReferenceService:
             removed = next(item for item in references if item["reference_id"] == reference_id)
             self._save_manifest(updated)
 
-        audio_path = self._references_dir / removed["filename"]
-        audio_path.unlink(missing_ok=True)
+        audio_path = safe_library_child(self._references_dir, removed.get("filename", ""))
+        if audio_path:
+            audio_path.unlink(missing_ok=True)
         logger.info(f"Voice reference deleted: {reference_id}")
         return True
 
@@ -115,6 +126,8 @@ class VoiceReferenceService:
             manifest = self._load_manifest()
         for item in manifest:
             if item["reference_id"] == reference_id:
-                path = self._references_dir / item["filename"]
+                path = safe_library_child(self._references_dir, item.get("filename", ""))
+                if not path:
+                    return None
                 return str(path) if path.exists() else None
         return None
