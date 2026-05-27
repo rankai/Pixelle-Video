@@ -1,3 +1,6 @@
+import base64
+import html
+import mimetypes
 import shutil
 import subprocess
 import uuid
@@ -24,6 +27,7 @@ from pixelle_video.services.subtitle_service import (
     remove_silence,
 )
 from pixelle_video.services.video import VideoService
+from pixelle_video.services.video_asset_service import VideoAssetService
 from pixelle_video.utils.os_util import (
     get_output_path,
     get_resource_path,
@@ -32,8 +36,9 @@ from pixelle_video.utils.os_util import (
 )
 from web.ip_broadcast.state import (
     STATUS_ICONS,
+    create_overlay_group,
     get_step_status,
-    merge_story_segments,
+    remove_overlay_group,
     set_step_status,
     sync_story_segments_from_script,
 )
@@ -159,10 +164,22 @@ def _render_template_selector():
             selected = template.template_id == current_id
             with st.container(border=True):
                 _render_template_preview(template.preview_image_path)
-                st.markdown(f"**{template.display_name}**")
-                st.caption("展示封面标题位置、字幕位置和模板风格")
+                st.markdown(
+                    _build_card_text_html(
+                        title=template.display_name,
+                        subtitle=template.short_description,
+                        tooltip=template.full_description,
+                    ),
+                    unsafe_allow_html=True,
+                )
                 if selected:
-                    st.success("已选择")
+                    st.button(
+                        "已选择",
+                        key=f"ipb_m5_template_selected_{template.template_id}",
+                        use_container_width=True,
+                        disabled=True,
+                        type="primary",
+                    )
                 elif st.button(
                     "选择",
                     key=f"ipb_m5_template_select_{template.template_id}",
@@ -176,9 +193,53 @@ def _render_template_selector():
 def _render_template_preview(preview_path: str):
     path = Path(preview_path)
     if not path.exists():
-        st.caption("暂无效果图")
+        st.markdown(_build_template_missing_preview_html(height=180), unsafe_allow_html=True)
         return
-    st.image(str(path), use_container_width=True)
+    st.markdown(_build_template_preview_html(str(path), height=180), unsafe_allow_html=True)
+
+
+def _build_card_text_html(title: str, subtitle: str, tooltip: str = "") -> str:
+    safe_title = html.escape(title)
+    safe_subtitle = html.escape(subtitle)
+    safe_tooltip = html.escape(tooltip or subtitle, quote=True)
+    return f"""
+    <div style="padding:8px 2px 2px;">
+        <div style="min-height:20px; display:flex; align-items:flex-start;
+                    font-size:14px; line-height:20px; font-weight:700; color:#111827;">
+            {safe_title}
+        </div>
+        <div title="{safe_tooltip}"
+             style="min-height:34px; font-size:12px; line-height:17px; color:#6b7280;
+                    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+                    overflow:hidden;">
+            {safe_subtitle}
+        </div>
+    </div>
+    """
+
+
+def _build_template_preview_html(preview_path: str, height: int = 180) -> str:
+    path = Path(preview_path)
+    mime_type = mimetypes.guess_type(path.name)[0] or "image/png"
+    data = base64.b64encode(path.read_bytes()).decode("ascii")
+    return f"""
+    <div style="height:{height}px; border:1px solid #e5e7eb; border-radius:6px;
+                overflow:hidden; background:#f8fafc; display:flex; align-items:center;
+                justify-content:center;">
+        <img src="data:{mime_type};base64,{data}" alt="画面模板效果图"
+             style="width:100%; height:{height}px; object-fit:contain; display:block;" />
+    </div>
+    """
+
+
+def _build_template_missing_preview_html(height: int = 180) -> str:
+    return f"""
+    <div style="height:{height}px; border:1px dashed #cbd5e1; border-radius:6px;
+                background:#f8fafc; display:flex; align-items:center; justify-content:center;
+                color:#94a3b8; font-size:13px;">
+        暂无效果图
+    </div>
+    """
 
 
 def _render_overlay_planning():
@@ -200,6 +261,8 @@ def _render_overlay_planning():
     )
     st.session_state.ipb_storyboard_enabled = enabled
 
+    _render_video_asset_management()
+
     if st.button("按当前文案更新段落", key="ipb_overlay_refresh_btn", use_container_width=True):
         sync_story_segments_from_script(script)
         st.success("画面规划段落已更新")
@@ -212,49 +275,41 @@ def _render_overlay_planning():
     if not enabled:
         return
 
-    merge_col1, merge_col2, merge_col3 = st.columns([1, 1, 1.3])
-    with merge_col1:
-        start_idx = st.number_input(
-            "覆盖起始段",
-            min_value=1,
-            max_value=len(segments),
-            value=1,
-            step=1,
-            key="ipb_overlay_merge_start",
-        )
-    with merge_col2:
-        end_idx = st.number_input(
-            "覆盖结束段",
-            min_value=1,
-            max_value=len(segments),
-            value=min(2, len(segments)),
-            step=1,
-            key="ipb_overlay_merge_end",
-        )
-    with merge_col3:
-        st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
-        if st.button("合并连续段落为覆盖组", key="ipb_overlay_merge_btn", use_container_width=True):
-            try:
-                selected = [
-                    item["segment_id"]
-                    for item in segments
-                    if int(start_idx) <= item["index"] <= int(end_idx)
-                ]
-                merge_story_segments(selected)
-                st.success("已合并为同一个覆盖组")
-                safe_rerun()
-            except Exception as e:
-                st.error(str(e))
+    st.markdown("**勾选连续段落创建覆盖组**")
+    selected_segment_ids = _render_overlay_segment_picker(segments, groups)
+    if st.button("创建覆盖组", key="ipb_overlay_create_group_btn", use_container_width=True):
+        try:
+            create_overlay_group(selected_segment_ids)
+            _clear_overlay_segment_picker(segments)
+            st.success("覆盖组已创建")
+            safe_rerun()
+        except Exception as e:
+            st.error(str(e))
 
-    with st.expander("编辑覆盖组", expanded=True):
-        for group in groups:
+    visible_groups = _visible_overlay_groups(groups)
+    with st.expander("编辑覆盖组", expanded=bool(visible_groups)):
+        if not visible_groups:
+            st.caption("勾选一个或多个连续段落后创建覆盖组，再在这里配置覆盖视频。")
+            return
+
+        for group in visible_groups:
             group_segments = [
                 segment for segment in segments
                 if segment["segment_id"] in group.get("segment_ids", [])
             ]
             label = "、".join(f"第{segment['index']}段" for segment in group_segments)
             with st.container(border=True):
-                st.markdown(f"**覆盖组 {group['group_id']}：{label}**")
+                title_col, action_col = st.columns([3, 1])
+                with title_col:
+                    st.markdown(f"**覆盖组 {group['group_id']}：{label}**")
+                with action_col:
+                    if st.button(
+                        "取消覆盖组",
+                        key=f"ipb_overlay_remove_{group['group_id']}",
+                        use_container_width=True,
+                    ):
+                        remove_overlay_group(group["group_id"])
+                        safe_rerun()
                 for segment in group_segments:
                     st.caption(f"{segment['index']}. {segment['text'][:80]}")
                 overlay_type = _normalize_overlay_type(group)
@@ -288,19 +343,7 @@ def _render_overlay_planning():
                     key=f"ipb_overlay_mode_{group['group_id']}",
                 )
                 if overlay_type == "uploaded_video":
-                    uploaded = st.file_uploader(
-                        "上传覆盖视频",
-                        type=["mp4", "mov", "webm"],
-                        key=f"ipb_overlay_upload_{group['group_id']}",
-                    )
-                    if uploaded is not None:
-                        ext = Path(uploaded.name).suffix or ".mp4"
-                        path = get_temp_path(f"ipb_overlay_{uuid.uuid4().hex[:8]}{ext}")
-                        with open(path, "wb") as f:
-                            f.write(uploaded.getbuffer())
-                        group["uploaded_video_path"] = path
-                    if group.get("uploaded_video_path"):
-                        st.caption(f"已选择：{Path(group['uploaded_video_path']).name}")
+                    _render_group_video_asset_selector(group)
                 elif overlay_type == "ai_video":
                     group["prompt"] = st.text_area(
                         "AI 视频提示词",
@@ -308,6 +351,219 @@ def _render_overlay_planning():
                         height=80,
                         key=f"ipb_overlay_prompt_{group['group_id']}",
                     )
+
+
+def _get_video_asset_svc() -> VideoAssetService:
+    return VideoAssetService()
+
+
+def _render_video_asset_management() -> None:
+    svc = _get_video_asset_svc()
+    with st.expander("视频素材管理", expanded=False):
+        assets = svc.list_assets()
+        if assets:
+            cols_per_row = 3
+            rows = [assets[i : i + cols_per_row] for i in range(0, len(assets), cols_per_row)]
+            for row in rows:
+                cols = st.columns(cols_per_row)
+                for col, asset in zip(cols, row):
+                    with col:
+                        with st.container(border=True):
+                            _render_video_asset_cover(asset)
+                            st.markdown(
+                                _build_card_text_html(
+                                    title=asset.name,
+                                    subtitle=_format_video_asset_meta(asset),
+                                    tooltip=f"{asset.name} · {asset.created_at}",
+                                ),
+                                unsafe_allow_html=True,
+                            )
+                            if st.button(
+                                "删除",
+                                key=f"ipb_video_asset_delete_{asset.asset_id}",
+                                use_container_width=True,
+                            ):
+                                _delete_video_asset(svc, asset.asset_id)
+        else:
+            st.caption("暂无视频素材。")
+
+        st.markdown("**上传新视频素材**")
+        name = st.text_input(
+            "素材名称",
+            key="ipb_video_asset_new_name",
+            placeholder="例如：客户案例、门店环境、产品演示",
+        )
+        uploaded = st.file_uploader(
+            "上传视频素材",
+            type=["mp4", "mov", "webm"],
+            key="ipb_video_asset_uploader",
+        )
+        if st.button("保存视频素材", key="ipb_video_asset_save_btn", use_container_width=True):
+            _save_video_asset(svc, name, uploaded)
+
+
+def _render_group_video_asset_selector(group: dict[str, Any]) -> None:
+    svc = _get_video_asset_svc()
+    assets = svc.list_assets()
+    if not assets:
+        st.warning("暂无视频素材，请先在上方「视频素材管理」里上传。")
+        return
+
+    asset_paths = {asset.asset_id: asset.asset_path() for asset in assets}
+    options = [""] + [asset.asset_id for asset in assets]
+    labels = {"": "请选择视频素材"}
+    labels.update({asset.asset_id: asset.name for asset in assets})
+    current_id = group.get("video_asset_id", "")
+    if current_id not in options:
+        current_id = ""
+    selected_id = st.selectbox(
+        "选择视频素材",
+        options=options,
+        index=options.index(current_id),
+        format_func=lambda asset_id: labels.get(asset_id, asset_id),
+        key=f"ipb_overlay_asset_{group['group_id']}",
+    )
+    if selected_id:
+        _apply_video_asset_to_group(group, selected_id, asset_paths[selected_id])
+        asset = next(item for item in assets if item.asset_id == selected_id)
+        _render_video_asset_cover(asset, height=90)
+    else:
+        group["video_asset_id"] = ""
+        group["uploaded_video_path"] = ""
+
+
+def _apply_video_asset_to_group(group: dict[str, Any], asset_id: str, asset_path: str) -> None:
+    group["video_asset_id"] = asset_id
+    group["uploaded_video_path"] = asset_path
+
+
+def _save_video_asset(svc: VideoAssetService, name: str, uploaded) -> None:
+    clean_name = name.strip()
+    if not clean_name:
+        st.warning("请填写素材名称。")
+        return
+    if uploaded is None:
+        st.warning("请上传视频素材。")
+        return
+    try:
+        ext = uploaded.name.rsplit(".", 1)[-1].lower()
+        svc.save_asset(clean_name, uploaded.getvalue(), ext)
+        st.success(f"视频素材「{clean_name}」已保存。")
+        safe_rerun()
+    except Exception as e:
+        st.error(str(e))
+        logger.exception(e)
+
+
+def _delete_video_asset(svc: VideoAssetService, asset_id: str) -> None:
+    if _video_asset_in_use(asset_id):
+        st.warning("该素材正在覆盖组中使用，请先取消对应覆盖组或更换素材。")
+        return
+    svc.delete_asset(asset_id)
+    safe_rerun()
+
+
+def _video_asset_in_use(asset_id: str) -> bool:
+    return any(
+        group.get("video_asset_id") == asset_id
+        for group in st.session_state.get("ipb_visual_groups", [])
+    )
+
+
+def _render_video_asset_cover(asset, height: int = 120) -> None:
+    if asset.thumbnail_exists():
+        st.markdown(
+            _build_video_asset_cover_html(asset.thumbnail_path(), height=height),
+            unsafe_allow_html=True,
+        )
+        return
+    st.markdown(_build_video_asset_missing_cover_html(height=height), unsafe_allow_html=True)
+
+
+def _build_video_asset_cover_html(cover_path: str, height: int = 120) -> str:
+    path = Path(cover_path)
+    mime_type = mimetypes.guess_type(path.name)[0] or "image/jpeg"
+    data = base64.b64encode(path.read_bytes()).decode("ascii")
+    return f"""
+    <div style="height:{height}px; border:1px solid #e5e7eb; border-radius:6px;
+                overflow:hidden; background:#111827;">
+        <img src="data:{mime_type};base64,{data}" alt="视频素材封面"
+             style="width:100%; height:{height}px; object-fit:cover; display:block;" />
+    </div>
+    """
+
+
+def _build_video_asset_missing_cover_html(height: int = 120) -> str:
+    return f"""
+    <div style="height:{height}px; border:1px dashed #cbd5e1; border-radius:6px;
+                background:#f8fafc; display:flex; align-items:center; justify-content:center;
+                color:#94a3b8; font-size:13px;">
+        暂无封面
+    </div>
+    """
+
+
+def _format_video_asset_meta(asset) -> str:
+    parts = []
+    if asset.duration:
+        parts.append(f"{asset.duration:.1f}s")
+    if asset.size:
+        parts.append(_format_file_size(asset.size))
+    return " · ".join(parts) or asset.created_at
+
+
+def _format_file_size(size: int) -> str:
+    if size < 1024 * 1024:
+        return f"{size / 1024:.1f}KB"
+    return f"{size / (1024 * 1024):.1f}MB"
+
+
+def _render_overlay_segment_picker(
+    segments: list[dict[str, Any]],
+    groups: list[dict[str, Any]],
+) -> list[str]:
+    group_by_segment = {
+        segment_id: group
+        for group in groups
+        for segment_id in group.get("segment_ids", [])
+    }
+    selected_segment_ids = []
+    with st.container(border=True):
+        for segment in segments:
+            segment_id = segment["segment_id"]
+            current_group = group_by_segment.get(segment_id, {})
+            group_label = ""
+            if current_group.get("is_overlay_group") or _normalize_overlay_type(current_group) != "none":
+                group_label = f" · 已在 {current_group.get('group_id', '覆盖组')}"
+            picked = st.checkbox(
+                f"第{segment['index']}段{group_label}",
+                key=_overlay_pick_key(segment_id),
+            )
+            st.caption(segment.get("text", "")[:96])
+            if picked:
+                selected_segment_ids.append(segment_id)
+    st.caption("提示：一次只能创建连续段落的覆盖组。未加入覆盖组的段落默认保留数字人画面。")
+    return selected_segment_ids
+
+
+def _clear_overlay_segment_picker(segments: list[dict[str, Any]]) -> None:
+    st.session_state["ipb_overlay_picker_nonce"] = int(
+        st.session_state.get("ipb_overlay_picker_nonce", 0)
+    ) + 1
+
+
+def _overlay_pick_key(segment_id: str) -> str:
+    nonce = int(st.session_state.get("ipb_overlay_picker_nonce", 0))
+    return f"ipb_overlay_pick_{nonce}_{segment_id}"
+
+
+def _visible_overlay_groups(groups: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        group for group in groups
+        if group.get("is_overlay_group")
+        or _normalize_overlay_type(group) != "none"
+        or len(group.get("segment_ids", [])) > 1
+    ]
 
 
 def _render_publish_asset_settings():

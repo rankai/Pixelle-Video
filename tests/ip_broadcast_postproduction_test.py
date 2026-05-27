@@ -1,8 +1,10 @@
 from pixelle_video.services.subtitle_service import _build_subtitles_filter
 from pixelle_video.services.video import VideoService
 from web.ip_broadcast import state
+from web.ip_broadcast.modules import m5_postproduction
 from web.ip_broadcast.modules.m5_postproduction import (
     _build_bgm_mix_command,
+    _visible_overlay_groups,
     estimate_overlay_timeline,
 )
 
@@ -57,6 +59,53 @@ def test_estimate_overlay_timeline_uses_segment_character_ratio():
             "overlay_mode": "fullscreen",
         }
     ]
+
+
+def test_visible_overlay_groups_excludes_default_segment_groups():
+    session = {}
+    state.init_ip_broadcast_state(session)
+    state.set_final_script("一\n二\n三", session=session)
+    state.create_overlay_group(["segment_2"], session=session)
+
+    visible = _visible_overlay_groups(session["ipb_visual_groups"])
+
+    assert [group["segment_ids"] for group in visible] == [["segment_2"]]
+
+
+def test_clear_overlay_segment_picker_uses_nonce_instead_of_mutating_widget_keys(monkeypatch):
+    session = {"ipb_overlay_picker_nonce": 3}
+    monkeypatch.setattr(m5_postproduction.st, "session_state", session)
+
+    m5_postproduction._clear_overlay_segment_picker([{"segment_id": "segment_1"}])
+
+    assert session["ipb_overlay_picker_nonce"] == 4
+    assert "ipb_overlay_pick_3_segment_1" not in session
+
+
+def test_apply_video_asset_to_overlay_group_sets_asset_and_legacy_path(tmp_path):
+    video = tmp_path / "asset.mp4"
+    video.write_bytes(b"video")
+    group = {}
+
+    m5_postproduction._apply_video_asset_to_group(
+        group,
+        asset_id="asset-1",
+        asset_path=str(video),
+    )
+
+    assert group["video_asset_id"] == "asset-1"
+    assert group["uploaded_video_path"] == str(video)
+
+
+def test_video_asset_cover_html_uses_fixed_height(tmp_path):
+    cover = tmp_path / "cover.jpg"
+    cover.write_bytes(b"cover")
+
+    html = m5_postproduction._build_video_asset_cover_html(str(cover), height=120)
+
+    assert "height:120px" in html
+    assert "object-fit:cover" in html
+    assert "data:image/jpeg;base64" in html
 
 
 def test_overlay_video_segment_command_preserves_base_audio_and_limits_time_range():

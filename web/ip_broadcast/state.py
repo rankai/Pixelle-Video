@@ -64,9 +64,32 @@ def init_ip_broadcast_state(session: MutableMapping | None = None):
         "ipb_m2_output": "",
         # Module 3
         "ipb_m3_inference_mode": "local",
+        "ipb_m3_language": "zh-CN",
         "ipb_m3_voice": "zh-CN-YunjianNeural",
         "ipb_m3_speed": 1.2,
+        "ipb_m3_pitch": 0,
+        "ipb_m3_volume": 0,
         "ipb_m3_tts_workflow": "",
+        "ipb_m3_workflow_language": "zh-CN",
+        "ipb_m3_workflow_voice": "[Chinese] zh-CN Yunjian",
+        "ipb_m3_workflow_speed": 1.0,
+        "ipb_m3_workflow_pitch": 0,
+        "ipb_m3_spark_gender": "male",
+        "ipb_m3_spark_speed": "moderate",
+        "ipb_m3_spark_pitch": "moderate",
+        "ipb_m3_index_mode": "Auto",
+        "ipb_m3_index_do_sample_mode": "on",
+        "ipb_m3_temperature": 0.8,
+        "ipb_m3_top_p": 0.9,
+        "ipb_m3_top_k": 30,
+        "ipb_m3_num_beams": 3,
+        "ipb_m3_repetition_penalty": 10.0,
+        "ipb_m3_length_penalty": 0.0,
+        "ipb_m3_max_mel_tokens": 1815,
+        "ipb_m3_max_tokens_per_sentence": 120,
+        "ipb_m3_max_new_tokens": 3000,
+        "ipb_m3_do_sample": True,
+        "ipb_m3_seed": 0,
         "ipb_m3_preview_text": "大家好，这是一段测试语音。",
         "ipb_m3_ref_audio_id": "",
         "ipb_m3_new_ref_audio_name": "",
@@ -95,6 +118,8 @@ def init_ip_broadcast_state(session: MutableMapping | None = None):
         "ipb_m6_cover_path": "",
         # Overlay planning
         "ipb_overlay_enabled": False,
+        "ipb_overlay_selected_segments": [],
+        "ipb_overlay_picker_nonce": 0,
         "ipb_storyboard_enabled": False,
         "ipb_story_segments": [],
         "ipb_visual_groups": [],
@@ -250,12 +275,14 @@ def _new_group(index: int, segment_ids: list[str]) -> dict:
         "overlay_type": "none",
         "overlay_mode": "fullscreen",
         "prompt": "",
+        "video_asset_id": "",
         "uploaded_video_path": "",
         "generated_video_path": "",
         "start_time": 0.0,
         "end_time": 0.0,
         "status": "pending",
         "error": "",
+        "is_overlay_group": False,
     }
 
 
@@ -293,12 +320,14 @@ def sync_story_segments_from_script(text: str, session: MutableMapping | None = 
             "overlay_type",
             "overlay_mode",
             "prompt",
+            "video_asset_id",
             "uploaded_video_path",
             "generated_video_path",
             "start_time",
             "end_time",
             "status",
             "error",
+            "is_overlay_group",
         ):
             if key in old_group:
                 group[key] = old_group[key]
@@ -309,10 +338,14 @@ def sync_story_segments_from_script(text: str, session: MutableMapping | None = 
 
 
 def merge_story_segments(segment_ids: list[str], session: MutableMapping | None = None):
+    create_overlay_group(segment_ids, session)
+
+
+def create_overlay_group(segment_ids: list[str], session: MutableMapping | None = None):
     session = _session(session)
     init_ip_broadcast_state(session)
     requested = [sid for sid in segment_ids if sid]
-    if len(requested) < 2:
+    if not requested:
         return
 
     segment_by_id = {item["segment_id"]: item for item in session.get("ipb_story_segments", [])}
@@ -320,14 +353,40 @@ def merge_story_segments(segment_ids: list[str], session: MutableMapping | None 
     if not indexes or indexes != list(range(indexes[0], indexes[-1] + 1)):
         raise ValueError("只支持连续段落合并为同一个画面组")
 
-    new_group_id = f"group_{indexes[0]}_{indexes[-1]}"
+    first_segment = segment_by_id.get(requested[0], {})
+    old_group_by_id = {item["group_id"]: item for item in session.get("ipb_visual_groups", [])}
+    seed_group = old_group_by_id.get(first_segment.get("visual_group_id"), {})
+    new_group_id = (
+        first_segment.get("visual_group_id", f"group_{indexes[0]}")
+        if len(indexes) == 1
+        else f"group_{indexes[0]}_{indexes[-1]}"
+    )
     for segment in session.get("ipb_story_segments", []):
         if segment["index"] in indexes:
             segment["visual_group_id"] = new_group_id
 
+    _rebuild_visual_groups(session, overlay_group_id=new_group_id, seed_group=seed_group)
+
+
+def remove_overlay_group(group_id: str, session: MutableMapping | None = None):
+    session = _session(session)
+    init_ip_broadcast_state(session)
+    if not group_id:
+        return
+
+    for segment in session.get("ipb_story_segments", []):
+        if segment.get("visual_group_id") == group_id:
+            segment["visual_group_id"] = f"group_{segment['index']}"
+
+    _rebuild_visual_groups(session)
+
+
+def _rebuild_visual_groups(
+    session: MutableMapping,
+    overlay_group_id: str = "",
+    seed_group: dict | None = None,
+):
     old_group_by_id = {item["group_id"]: item for item in session.get("ipb_visual_groups", [])}
-    first_requested = segment_by_id.get(requested[0], {})
-    seed_group = old_group_by_id.get(first_requested.get("visual_group_id"), {})
     groups = []
     seen = set()
     for segment in session.get("ipb_story_segments", []):
@@ -342,20 +401,24 @@ def merge_story_segments(segment_ids: list[str], session: MutableMapping | None 
         ]
         group = _new_group(len(groups) + 1, group_segments)
         group["group_id"] = group_id
-        source = seed_group if group_id == new_group_id else old_group_by_id.get(group_id, {})
+        source = seed_group or {} if group_id == overlay_group_id else old_group_by_id.get(group_id, {})
         for key in (
             "visual_type",
             "overlay_type",
             "overlay_mode",
             "prompt",
+            "video_asset_id",
             "uploaded_video_path",
             "generated_video_path",
             "start_time",
             "end_time",
             "status",
             "error",
+            "is_overlay_group",
         ):
             if key in source:
                 group[key] = source[key]
+        if group_id == overlay_group_id:
+            group["is_overlay_group"] = True
         groups.append(group)
     session["ipb_visual_groups"] = groups

@@ -25,6 +25,26 @@ from pixelle_video.tts_voices import speed_to_rate
 from pixelle_video.utils.tts_util import edge_tts
 
 
+def _format_percent_change(value: Optional[float | int | str]) -> str:
+    if value is None:
+        return "+0%"
+    if isinstance(value, str):
+        return value
+    percentage = int(value)
+    sign = "+" if percentage >= 0 else ""
+    return f"{sign}{percentage}%"
+
+
+def _format_pitch_change(value: Optional[float | int | str]) -> str:
+    if value is None:
+        return "+0Hz"
+    if isinstance(value, str):
+        return value
+    pitch = int(value)
+    sign = "+" if pitch >= 0 else ""
+    return f"{sign}{pitch}Hz"
+
+
 class TTSService(ComfyBaseService):
     """
     TTS (Text-to-Speech) service - Workflow-based
@@ -69,7 +89,9 @@ class TTSService(ComfyBaseService):
         runninghub_api_key: Optional[str] = None,
         # TTS parameters
         voice: Optional[str] = None,
-        speed: Optional[float] = None,
+        speed: Optional[float | str] = None,
+        pitch: Optional[float | str] = None,
+        volume: Optional[float | str] = None,
         # Inference mode override
         inference_mode: Optional[str] = None,
         # Output path
@@ -86,6 +108,8 @@ class TTSService(ComfyBaseService):
             runninghub_api_key: RunningHub API key (optional, overrides config)
             voice: Voice ID (for local mode: Edge TTS voice ID; for ComfyUI: workflow-specific)
             speed: Speech speed multiplier (1.0 = normal, >1.0 = faster, <1.0 = slower)
+            pitch: Local Edge pitch in Hz or workflow-specific pitch value
+            volume: Local Edge volume percentage change
             inference_mode: Override inference mode ("local" or "comfyui", default: from config)
             output_path: Custom output path (auto-generated if None)
             **params: Additional workflow parameters
@@ -118,6 +142,8 @@ class TTSService(ComfyBaseService):
                 text=text,
                 voice=voice,
                 speed=speed,
+                pitch=pitch,
+                volume=volume,
                 output_path=output_path
             )
         else:  # comfyui
@@ -132,6 +158,7 @@ class TTSService(ComfyBaseService):
                 runninghub_api_key=runninghub_api_key,
                 voice=voice,
                 speed=speed,
+                pitch=pitch,
                 output_path=output_path,
                 **params
             )
@@ -141,6 +168,8 @@ class TTSService(ComfyBaseService):
         text: str,
         voice: Optional[str] = None,
         speed: Optional[float] = None,
+        pitch: Optional[float | str] = None,
+        volume: Optional[float | str] = None,
         output_path: Optional[str] = None,
     ) -> str:
         """
@@ -150,6 +179,8 @@ class TTSService(ComfyBaseService):
             text: Text to convert to speech
             voice: Edge TTS voice ID (default: from config)
             speed: Speech speed multiplier (default: from config)
+            pitch: Pitch change in Hz (default: +0Hz)
+            volume: Volume change in percent (default: +0%)
             output_path: Custom output path (auto-generated if None)
         
         Returns:
@@ -161,11 +192,19 @@ class TTSService(ComfyBaseService):
         # Determine voice and speed (param > config)
         final_voice = voice or local_config.get("voice", "zh-CN-YunjianNeural")
         final_speed = speed if speed is not None else local_config.get("speed", 1.2)
+        final_pitch = pitch if pitch is not None else local_config.get("pitch", 0)
+        final_volume = volume if volume is not None else local_config.get("volume", 0)
         
         # Convert speed to rate parameter
         rate = speed_to_rate(final_speed)
         
-        logger.info(f"🎙️  Using local Edge TTS: voice={final_voice}, speed={final_speed}x (rate={rate})")
+        pitch_value = _format_pitch_change(final_pitch)
+        volume_value = _format_percent_change(final_volume)
+
+        logger.info(
+            f"🎙️  Using local Edge TTS: voice={final_voice}, speed={final_speed}x "
+            f"(rate={rate}, pitch={pitch_value}, volume={volume_value})"
+        )
         
         # Generate output path if not provided
         if not output_path:
@@ -187,6 +226,8 @@ class TTSService(ComfyBaseService):
                 text=text,
                 voice=final_voice,
                 rate=rate,
+                volume=volume_value,
+                pitch=pitch_value,
                 output_path=output_path,
                 fallback_voice=_fallback_voice,
             )
@@ -205,7 +246,8 @@ class TTSService(ComfyBaseService):
         comfyui_url: Optional[str] = None,
         runninghub_api_key: Optional[str] = None,
         voice: Optional[str] = None,
-        speed: float = 1.0,
+        speed: Optional[float | str] = 1.0,
+        pitch: Optional[float | str] = None,
         output_path: Optional[str] = None,
         **params
     ) -> str:
@@ -219,6 +261,7 @@ class TTSService(ComfyBaseService):
             runninghub_api_key: RunningHub API key
             voice: Voice ID (workflow-specific)
             speed: Speech speed multiplier (workflow-specific)
+            pitch: Pitch value (workflow-specific)
             output_path: Custom output path (downloads if URL returned)
             **params: Additional workflow parameters
         
@@ -235,6 +278,8 @@ class TTSService(ComfyBaseService):
             workflow_params["voice"] = voice
         if speed is not None and speed != 1.0:
             workflow_params["speed"] = speed
+        if pitch is not None:
+            workflow_params["pitch"] = pitch
         
         # Add any additional parameters
         workflow_params.update(params)

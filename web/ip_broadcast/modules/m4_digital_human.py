@@ -119,9 +119,14 @@ def _render_portrait_library(pixelle_video):
                 with col:
                     with st.container(border=True):
                         _render_portrait_thumbnail(p.asset_path(), p.is_video(), p.name)
-                        st.markdown(f"**{p.name}**")
-                        st.caption("视频形象" if p.is_video() else "图片形象")
-                        st.caption(p.created_at)
+                        st.markdown(
+                            _build_portrait_card_text_html(
+                                title=p.name,
+                                subtitle="视频形象" if p.is_video() else "图片形象",
+                                meta=p.created_at,
+                            ),
+                            unsafe_allow_html=True,
+                        )
                         if st.button("删除", key=f"del_portrait_{p.portrait_id}", use_container_width=True):
                             try:
                                 portrait_svc.delete_portrait(p.portrait_id)
@@ -192,10 +197,21 @@ def _render_portrait_selection(pixelle_video):
                 selected = portrait.portrait_id == current_id
                 with st.container(border=True):
                     _render_portrait_thumbnail(portrait.asset_path(), portrait.is_video(), portrait.name)
-                    st.markdown(f"**{portrait.name}**")
-                    st.caption("视频形象" if portrait.is_video() else "图片形象")
+                    st.markdown(
+                        _build_portrait_card_text_html(
+                            title=portrait.name,
+                            subtitle="视频形象" if portrait.is_video() else "图片形象",
+                        ),
+                        unsafe_allow_html=True,
+                    )
                     if selected:
-                        st.success("已选择")
+                        st.button(
+                            "已选择",
+                            key=f"selected_portrait_{portrait.portrait_id}",
+                            use_container_width=True,
+                            disabled=True,
+                            type="primary",
+                        )
                     elif st.button(
                         "选择",
                         key=f"select_portrait_{portrait.portrait_id}",
@@ -243,6 +259,29 @@ def _build_portrait_video_placeholder_html(label: str, height: int = 96) -> str:
         <div style="font-size:22px; line-height:1;">▶</div>
         <div style="font-size:13px; font-weight:700; margin-top:8px;">视频形象</div>
         <div style="font-size:12px; color:#cbd5e1; margin-top:4px; max-width:90%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{safe_label}</div>
+    </div>
+    """
+
+
+def _build_portrait_card_text_html(title: str, subtitle: str, meta: str = "") -> str:
+    safe_title = html.escape(title)
+    safe_subtitle = html.escape(subtitle)
+    safe_meta = html.escape(meta)
+    meta_html = (
+        f'<div style="min-height:18px; font-size:11px; line-height:16px; color:#9ca3af;">{safe_meta}</div>'
+        if meta
+        else ""
+    )
+    return f"""
+    <div style="padding:8px 2px 2px;">
+        <div style="min-height:20px; display:flex; align-items:flex-start;
+                    font-size:14px; line-height:20px; font-weight:700; color:#111827;">
+            {safe_title}
+        </div>
+        <div style="min-height:20px; font-size:12px; line-height:17px; color:#6b7280;">
+            {safe_subtitle}
+        </div>
+        {meta_html}
     </div>
     """
 

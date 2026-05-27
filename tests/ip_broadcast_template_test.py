@@ -5,6 +5,7 @@ from pixelle_video.services.ip_broadcast_templates import (
     get_ip_broadcast_template,
     list_ip_broadcast_templates,
 )
+from web.ip_broadcast.modules import m5_postproduction
 
 
 def test_ip_broadcast_template_registry_contains_three_templates():
@@ -15,6 +16,14 @@ def test_ip_broadcast_template_registry_contains_three_templates():
         "boss_authority",
         "boss_premium",
     ]
+
+
+def test_ip_broadcast_templates_have_distinct_card_descriptions():
+    templates = list_ip_broadcast_templates()
+    descriptions = [template.short_description for template in templates]
+
+    assert len(set(descriptions)) == len(templates)
+    assert all(template.full_description for template in templates)
 
 
 def test_ip_broadcast_template_cover_files_exist():
@@ -35,3 +44,28 @@ def test_build_ass_force_style_uses_selected_template_subtitle_style():
     assert "Fontsize=54" in force_style
     assert "Alignment=2" in force_style
     assert "Outline=4" in force_style
+
+
+def test_template_card_text_uses_fixed_title_and_description_heights():
+    html = m5_postproduction._build_card_text_html(
+        title="强观点标题风",
+        subtitle="顶部强标题，下方字幕突出观点节奏。",
+        tooltip="封面顶部大标题强化观点；字幕字号更大、描边更重，适合金句、观点输出和强转化口播。",
+    )
+
+    assert "min-height:20px" in html
+    assert "min-height:34px" in html
+    assert "padding:8px 2px 2px" in html
+    assert "-webkit-line-clamp:2" in html
+    assert 'title="封面顶部大标题强化观点；字幕字号更大、描边更重，适合金句、观点输出和强转化口播。"' in html
+
+
+def test_template_preview_html_uses_fixed_height(tmp_path):
+    preview = tmp_path / "preview.png"
+    preview.write_bytes(b"image")
+
+    html = m5_postproduction._build_template_preview_html(str(preview), height=180)
+
+    assert "height:180px" in html
+    assert "object-fit:contain" in html
+    assert "data:image/png;base64" in html

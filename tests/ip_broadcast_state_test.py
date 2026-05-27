@@ -162,3 +162,48 @@ def test_merge_story_segments_requires_contiguous_ranges():
     assert len(merged_groups) == 1
     assert session["ipb_story_segments"][1]["visual_group_id"] == merged_groups[0]["group_id"]
     assert session["ipb_story_segments"][2]["visual_group_id"] == merged_groups[0]["group_id"]
+
+
+def test_create_overlay_group_marks_single_segment_as_editable_overlay_group():
+    session = _base_session()
+    state.sync_story_segments_from_script("一\n二\n三", session=session)
+
+    state.create_overlay_group(["segment_2"], session=session)
+
+    group = next(
+        item for item in session["ipb_visual_groups"]
+        if item["segment_ids"] == ["segment_2"]
+    )
+    assert group["is_overlay_group"] is True
+    assert session["ipb_story_segments"][1]["visual_group_id"] == group["group_id"]
+
+
+def test_create_overlay_group_rejects_non_contiguous_selection():
+    session = _base_session()
+    state.sync_story_segments_from_script("一\n二\n三", session=session)
+
+    try:
+        state.create_overlay_group(["segment_1", "segment_3"], session=session)
+    except ValueError as e:
+        assert "只支持连续段落" in str(e)
+    else:
+        raise AssertionError("Expected ValueError for non-contiguous overlay group")
+
+
+def test_remove_overlay_group_splits_segments_back_to_default_groups():
+    session = _base_session()
+    state.sync_story_segments_from_script("一\n二\n三", session=session)
+    state.create_overlay_group(["segment_1", "segment_2"], session=session)
+    group = next(
+        item for item in session["ipb_visual_groups"]
+        if item["segment_ids"] == ["segment_1", "segment_2"]
+    )
+
+    state.remove_overlay_group(group["group_id"], session=session)
+
+    assert [item["visual_group_id"] for item in session["ipb_story_segments"]] == [
+        "group_1",
+        "group_2",
+        "group_3",
+    ]
+    assert all(not item.get("is_overlay_group") for item in session["ipb_visual_groups"])

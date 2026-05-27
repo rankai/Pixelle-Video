@@ -67,6 +67,16 @@ def test_portrait_video_preview_html_uses_fixed_height():
     assert "闭口视频" in html
 
 
+def test_portrait_card_text_matches_template_card_spacing():
+    html = m4_digital_human._build_portrait_card_text_html(
+        title="老板形象",
+        subtitle="图片形象",
+    )
+
+    assert html.count("min-height:20px") >= 2
+    assert "padding:8px 2px 2px" in html
+
+
 def test_generate_digital_human_does_not_render_immediate_duplicate_video(monkeypatch, tmp_path):
     session = AttrDict()
     state.init_ip_broadcast_state(session)
