@@ -109,14 +109,27 @@ export function App() {
   const [storyboardOpen, setStoryboardOpen] = useState(false);
 
   useEffect(() => {
-    createSession()
-      .then((created) => {
-        setSession(created);
-        setActiveStep(created.current_step || 1);
-      })
-      .catch((err) => setError(String(err)));
+    restoreOrCreateSession().catch((err) => setError(String(err)));
     reloadAssets().catch((err) => setError(String(err)));
   }, []);
+
+  async function restoreOrCreateSession() {
+    const storedSessionId = window.localStorage.getItem("pixelle_ipb_session_id");
+    if (storedSessionId) {
+      try {
+        const restored = await getSession(storedSessionId);
+        setSession(restored);
+        setActiveStep(restored.current_step || 1);
+        return;
+      } catch {
+        window.localStorage.removeItem("pixelle_ipb_session_id");
+      }
+    }
+    const created = await createSession();
+    window.localStorage.setItem("pixelle_ipb_session_id", created.session_id);
+    setSession(created);
+    setActiveStep(created.current_step || 1);
+  }
 
   useEffect(() => {
     if (!task || !session) return;
@@ -1488,7 +1501,8 @@ function TaskCenterView() {
             <div>
               <strong>{item.display_name || item.task_id}</strong>
               <span>
-                {item.flow_name || "任务"} · {item.step_key || "-"} · {item.status}
+                {item.flow_name || "任务"} · {taskStepLabel(item.step_key || "")} ·{" "}
+                {taskStatusLabel(item.status)}
               </span>
               {item.error ? <small className="task-error">{item.error}</small> : null}
             </div>
@@ -1504,6 +1518,31 @@ function TaskCenterView() {
         ))}
       </div>
     </section>
+  );
+}
+
+function taskStepLabel(stepKey: string) {
+  return (
+    {
+      source: "素材来源",
+      copywriting: "文案确认",
+      voice: "声音生成",
+      digital_human: "数字人视频",
+      postproduction: "一键成片",
+      publish: "视频发布",
+    }[stepKey] || stepKey || "-"
+  );
+}
+
+function taskStatusLabel(status: TaskInfo["status"]) {
+  return (
+    {
+      pending: "等待中",
+      running: "运行中",
+      completed: "已完成",
+      failed: "失败",
+      cancelled: "已取消",
+    }[status] || status
   );
 }
 

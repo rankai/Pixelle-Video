@@ -61,11 +61,13 @@ async def run_step(session_id: str, step_key: str, pixelle_video: PixelleVideoDe
     )
 
     async def _execute():
+        task_manager.update_progress(task.task_id, 1, 3, _step_progress_message(step_key))
         ok = await run_ip_broadcast_step(pixelle_video, session, step_key)
         if not ok:
             step = STEP_KEYS.get(step_key)
             notice = session.notices.get(step, {})
             raise RuntimeError(notice.get("message") or f"IP broadcast step failed: {step_key}")
+        task_manager.update_progress(task.task_id, 3, 3, "步骤执行完成。")
         return session.to_response()
 
     await task_manager.execute_task(task.task_id, _execute)
@@ -144,3 +146,14 @@ def _step_artifacts(step_key: str) -> list[str]:
         "postproduction": ["final_video", "publish_package_json", "script"],
         "publish": ["publish_package_json", "script"],
     }.get(step_key, [])
+
+
+def _step_progress_message(step_key: str) -> str:
+    return {
+        "source": "正在整理素材文本。",
+        "copywriting": "正在改写口播文案，通常需要几十秒。",
+        "voice": "正在生成配音。",
+        "digital_human": "正在生成数字人视频，远程任务通常需要 1-5 分钟，可在 RunningHub 后台查看进度。",
+        "postproduction": "正在合成最终视频。",
+        "publish": "正在准备发布素材包。",
+    }.get(step_key, "正在执行任务。")

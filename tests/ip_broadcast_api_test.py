@@ -29,7 +29,7 @@ def test_create_ip_broadcast_session_returns_default_state():
     assert payload["artifacts"] == {}
 
 
-def test_update_session_config_moves_ready_state_to_voice_step():
+def test_update_session_config_moves_ready_state_to_copywriting_step():
     client = _client()
     session_id = client.post("/api/ip-broadcast/sessions").json()["session_id"]
 
@@ -40,11 +40,11 @@ def test_update_session_config_moves_ready_state_to_voice_step():
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["current_step"] == 3
-    assert payload["completed_steps"] == 2
-    assert payload["next_action"]["key"] == "voice"
+    assert payload["current_step"] == 2
+    assert payload["completed_steps"] == 1
+    assert payload["next_action"]["key"] == "copywriting"
     assert payload["step_status"]["1"] == "done"
-    assert payload["step_status"]["2"] == "done"
+    assert payload["step_status"]["2"] == "ready"
 
 
 async def test_run_source_step_uses_pasted_text_without_streamlit():
@@ -67,8 +67,8 @@ async def test_run_source_step_uses_pasted_text_without_streamlit():
     assert result is True
     assert session.state["final_script"] == "粘贴的原始口播文案。"
     assert session.step_status[1] == "done"
-    assert session.step_status[2] == "done"
-    assert session.next_action()["key"] == "voice"
+    assert session.step_status[2] == "ready"
+    assert session.next_action()["key"] == "copywriting"
 
 
 def test_artifact_download_rejects_unknown_artifact():

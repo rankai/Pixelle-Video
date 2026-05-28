@@ -54,6 +54,7 @@ def _default_state() -> dict[str, Any]:
         "style_prompt": "口语化、亲切自然、有感染力",
         "word_count": 200,
         "final_script": "",
+        "copywriting_confirmed": False,
         "tts_inference_mode": "local",
         "tts_voice": "zh-CN-YunjianNeural",
         "tts_speed": 1.2,
@@ -122,17 +123,18 @@ class IpBroadcastSession:
 
     def refresh_readiness(self) -> None:
         has_script = bool(self.state.get("final_script"))
+        has_confirmed_script = has_script and bool(self.state.get("copywriting_confirmed"))
         has_audio = _path_exists(self.state.get("audio_path", ""))
         has_digital_human = _path_exists(self.state.get("digital_human_video_path", ""))
         has_final_video = _path_exists(self.state.get("final_video_path", ""))
 
         if self.state.get("source_text") or has_script:
             self.step_status[1] = "done"
-        if has_script:
+        if has_confirmed_script:
             self.step_status[2] = "done"
-        elif self.state.get("source_text") and self.step_status.get(2) == "pending":
+        elif has_script or (self.state.get("source_text") and self.step_status.get(2) == "pending"):
             self.step_status[2] = "ready"
-        if has_script and not has_audio and self.step_status.get(3) != "done":
+        if has_confirmed_script and not has_audio and self.step_status.get(3) != "done":
             self.step_status[3] = "ready"
         if has_audio or has_final_video:
             self.step_status[3] = "done"
@@ -166,6 +168,14 @@ class IpBroadcastSession:
                 "step": 2,
                 "label": "AI 改写/优化文案",
                 "description": "已有来源文案，下一步确认最终口播稿",
+                "disabled": False,
+            }
+        if not self.state.get("copywriting_confirmed"):
+            return {
+                "key": STEP_COPYWRITING,
+                "step": 2,
+                "label": "AI 改写/优化文案",
+                "description": "先确认最终口播稿，再进入配音",
                 "disabled": False,
             }
         if not _path_exists(self.state.get("audio_path", "")):
@@ -297,9 +307,10 @@ async def _run_source(session: IpBroadcastSession) -> None:
     if not source_text:
         raise ValueError("请先提供素材文本")
     session.state["final_script"] = source_text
+    session.state["copywriting_confirmed"] = False
     session.state["source_label"] = session.state.get("source_mode") or "素材来源"
     session.step_status[1] = "done"
-    session.step_status[2] = "done"
+    session.step_status[2] = "ready"
 
 
 async def _run_copywriting(pixelle_video, session: IpBroadcastSession) -> None:
@@ -312,6 +323,7 @@ async def _run_copywriting(pixelle_video, session: IpBroadcastSession) -> None:
     word_count = int(session.state.get("word_count") or 200)
     output = await pixelle_video.llm(prompt=build_rewrite_prompt(source, style, word_count))
     session.state["final_script"] = output
+    session.state["copywriting_confirmed"] = True
 
 
 async def _run_voice(pixelle_video, session: IpBroadcastSession) -> None:

@@ -6,6 +6,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from api.routers.ip_broadcast import _step_progress_message
 from api.tasks import TaskType
 from api.tasks.manager import TaskManager
 from pixelle_video.services.ip_broadcast_composer import (
@@ -35,6 +36,7 @@ async def test_publish_step_creates_productized_publish_package(monkeypatch, tmp
     session.update_config(
         {
             "final_script": "第一段口播文案。\n第二段口播文案。",
+            "copywriting_confirmed": True,
             "final_video_path": str(final_video),
             "title": "老板口播标题",
             "description": "老板口播描述",
@@ -134,6 +136,12 @@ def test_task_manager_keeps_product_task_metadata():
     assert task.session_id == "s1"
     assert task.artifact_keys == ["audio"]
     assert task.retry_payload == {"kind": "ip_step"}
+
+
+def test_ip_step_progress_message_is_business_readable():
+    assert _step_progress_message("digital_human") == (
+        "正在生成数字人视频，远程任务通常需要 1-5 分钟，可在 RunningHub 后台查看进度。"
+    )
 
 
 def test_composer_builds_segment_timeline_by_character_ratio():
