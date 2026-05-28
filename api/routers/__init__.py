@@ -14,6 +14,7 @@
 API Routers
 """
 
+from api.routers.assets import router as assets_router
 from api.routers.content import router as content_router
 from api.routers.desktop import router as desktop_router
 from api.routers.files import router as files_router
@@ -30,6 +31,7 @@ from api.routers.video import router as video_router
 __all__ = [
     "health_router",
     "desktop_router",
+    "assets_router",
     "llm_router",
     "tts_router",
     "image_router",

@@ -52,6 +52,7 @@ from api.desktop_security import (
 
 # Import routers
 from api.routers import (
+    assets_router,
     content_router,
     desktop_router,
     files_router,
@@ -138,6 +139,7 @@ if is_desktop_mode():
 # Health check (no prefix)
 app.include_router(health_router)
 app.include_router(desktop_router, prefix=api_config.api_prefix)
+app.include_router(assets_router, prefix=api_config.api_prefix)
 
 # API routers (with /api prefix)
 app.include_router(llm_router, prefix=api_config.api_prefix)
