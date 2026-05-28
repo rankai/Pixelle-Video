@@ -26,6 +26,10 @@ ENV/
 env/
 .venv/
 
+# Desktop frontend/build artifacts
+desktop/node_modules/
+desktop/src-tauri/target/
+
 # IDEs
 .vscode/
 .idea/

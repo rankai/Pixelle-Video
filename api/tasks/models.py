@@ -23,6 +23,7 @@ from pydantic import BaseModel, Field
 
 class TaskStatus(str, Enum):
     """Task status"""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -32,11 +33,14 @@ class TaskStatus(str, Enum):
 
 class TaskType(str, Enum):
     """Task type"""
+
     VIDEO_GENERATION = "video_generation"
+    IP_BROADCAST_STEP = "ip_broadcast_step"
 
 
 class TaskProgress(BaseModel):
     """Task progress information"""
+
     current: int = 0
     total: int = 0
     percentage: float = 0.0
@@ -45,27 +49,25 @@ class TaskProgress(BaseModel):
 
 class Task(BaseModel):
     """Task model"""
+
     task_id: str
     task_type: TaskType
     status: TaskStatus = TaskStatus.PENDING
-    
+
     # Progress tracking
     progress: Optional[TaskProgress] = None
-    
+
     # Result
     result: Optional[Any] = None
     error: Optional[str] = None
-    
+
     # Metadata
     created_at: datetime = Field(default_factory=datetime.now)
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
-    
+
     # Request parameters (for reference)
     request_params: Optional[dict] = None
-    
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
 
+    class Config:
+        json_encoders = {datetime: lambda v: v.isoformat()}

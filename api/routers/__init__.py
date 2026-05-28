@@ -15,10 +15,12 @@ API Routers
 """
 
 from api.routers.content import router as content_router
+from api.routers.desktop import router as desktop_router
 from api.routers.files import router as files_router
 from api.routers.frame import router as frame_router
 from api.routers.health import router as health_router
 from api.routers.image import router as image_router
+from api.routers.ip_broadcast import router as ip_broadcast_router
 from api.routers.llm import router as llm_router
 from api.routers.resources import router as resources_router
 from api.routers.tasks import router as tasks_router
@@ -27,9 +29,11 @@ from api.routers.video import router as video_router
 
 __all__ = [
     "health_router",
+    "desktop_router",
     "llm_router",
     "tts_router",
     "image_router",
+    "ip_broadcast_router",
     "content_router",
     "video_router",
     "tasks_router",
@@ -37,4 +41,3 @@ __all__ = [
     "resources_router",
     "frame_router",
 ]
-
