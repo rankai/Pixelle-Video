@@ -22,6 +22,7 @@ import {
   Segmented,
   Space,
   Steps,
+  Tabs,
   Tag,
   Typography,
 } from "antd";
@@ -104,6 +105,13 @@ const stepTitles = [
   "一键成片",
   "视频发布",
 ];
+
+const sourceModeLabels: Record<string, string> = {
+  video_extract: "视频提取",
+  paste: "粘贴脚本",
+  industry_persona: "行业+人设",
+  ip_learning: "IP学习",
+};
 
 const emptyAssets: AssetState = {
   voices: [],
@@ -534,6 +542,16 @@ function SourceStep({
 }) {
   const selectedPreset = presets.find((item) => item.preset_id === session.state.business_preset_id);
   const selectedBrand = brands.find((item) => item.brand_id === session.state.brand_kit_id);
+  const sourceMode = String(session.state.source_mode || "video_extract");
+  const ipTopics = Array.isArray(session.state.ip_learning_topics)
+    ? (session.state.ip_learning_topics as string[])
+    : [];
+  const ipScripts = Array.isArray(session.state.ip_learning_scripts)
+    ? (session.state.ip_learning_scripts as Array<Record<string, string>>)
+    : [];
+  const ipErrors = Array.isArray(session.state.ip_learning_errors)
+    ? (session.state.ip_learning_errors as Array<Record<string, string>>)
+    : [];
   async function applyPreset(presetId: string) {
     const preset = presets.find((item) => item.preset_id === presetId);
     if (!preset) {
@@ -548,6 +566,12 @@ function SourceStep({
       subtitle_enabled: preset.default_subtitle_enabled,
     });
   }
+  const sourceActions: Record<string, string> = {
+    video_extract: "提取视频口播文案",
+    paste: "整理为口播文案",
+    industry_persona: "生成口播文案",
+    ip_learning: ipTopics.length ? "用选题生成文案" : "学习最近 5 条视频",
+  };
   return (
     <div>
       <div className="grid2">
@@ -590,16 +614,231 @@ function SourceStep({
           {selectedBrand ? <small className="muted">{selectedBrand.coupon_phrase}</small> : null}
         </div>
       </div>
-      <label>素材文本</label>
-      <textarea
-        defaultValue={(session.state.source_text as string) || ""}
-        onBlur={(event) => patch({ source_mode: "paste", source_text: event.target.value })}
-        placeholder="粘贴口播文案、视频提取后的文本，或 IP 学习后的选题文案。"
+      <Tabs
+        className="source-tabs"
+        activeKey={sourceMode}
+        onChange={(key) => patch({ source_mode: key })}
+        items={[
+          {
+            key: "video_extract",
+            label: sourceModeLabels.video_extract,
+            children: (
+              <div className="source-panel">
+                <Typography.Paragraph type="secondary">
+                  粘贴抖音分享口令、短链或视频链接，系统会解析真实视频并提取口播文案。
+                </Typography.Paragraph>
+                <label>视频链接或抖音分享文本</label>
+                <textarea
+                  className="small-textarea"
+                  defaultValue={
+                    ((session.state.video_input as string) || session.state.source_text || "") as string
+                  }
+                  onBlur={(event) =>
+                    patch({
+                      source_mode: "video_extract",
+                      video_input: event.target.value,
+                      source_text: event.target.value,
+                    })
+                  }
+                  placeholder="例如：https://v.douyin.com/... 或“复制打开抖音...”完整分享文本"
+                />
+              </div>
+            ),
+          },
+          {
+            key: "paste",
+            label: sourceModeLabels.paste,
+            children: (
+              <div className="source-panel">
+                <Typography.Paragraph type="secondary">
+                  适合已有文案、手动整理的视频文案，或从其他工具复制来的脚本。
+                </Typography.Paragraph>
+                <label>粘贴脚本文字</label>
+                <textarea
+                  defaultValue={(session.state.source_text as string) || ""}
+                  onBlur={(event) =>
+                    patch({ source_mode: "paste", source_text: event.target.value })
+                  }
+                  placeholder="将视频口播文案粘贴到此处..."
+                />
+              </div>
+            ),
+          },
+          {
+            key: "industry_persona",
+            label: sourceModeLabels.industry_persona,
+            children: (
+              <div className="source-panel">
+                <Typography.Paragraph type="secondary">
+                  没有现成素材时，用行业、人设和卖点直接生成第一版口播文案。
+                </Typography.Paragraph>
+                <div className="grid2">
+                  <div>
+                    <label>视频类型</label>
+                    <select
+                      value={(session.state.video_type as string) || "口播文案"}
+                      onChange={(event) =>
+                        patch({ source_mode: "industry_persona", video_type: event.target.value })
+                      }
+                    >
+                      {["口播文案", "种草带货", "干货教程", "故事分享", "情绪表达", "品牌推广"].map(
+                        (item) => (
+                          <option key={item} value={item}>
+                            {item}
+                          </option>
+                        ),
+                      )}
+                    </select>
+                  </div>
+                  <div>
+                    <label>文案类型</label>
+                    <select
+                      value={(session.state.copy_type as string) || "人设型"}
+                      onChange={(event) =>
+                        patch({ source_mode: "industry_persona", copy_type: event.target.value })
+                      }
+                    >
+                      {["人设型", "干货型", "情绪共鸣型", "痛点解决型", "促销转化型"].map((item) => (
+                        <option key={item} value={item}>
+                          {item}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <label>行业与人设</label>
+                <textarea
+                  className="small-textarea"
+                  defaultValue={(session.state.industry_persona as string) || ""}
+                  onBlur={(event) =>
+                    patch({ source_mode: "industry_persona", industry_persona: event.target.value })
+                  }
+                  placeholder="例如：火锅店老板，十年重庆火锅经验，熟悉牛油锅底和本地客群"
+                />
+                <div className="grid2">
+                  <div>
+                    <label>核心卖点</label>
+                    <textarea
+                      className="small-textarea"
+                      defaultValue={(session.state.selling_points as string) || ""}
+                      onBlur={(event) =>
+                        patch({ source_mode: "industry_persona", selling_points: event.target.value })
+                      }
+                      placeholder="例如：牛油锅底每天现炒，鲜切黄牛肉，午市双人餐"
+                    />
+                  </div>
+                  <div>
+                    <label>目标客户</label>
+                    <textarea
+                      className="small-textarea"
+                      defaultValue={(session.state.target_customer as string) || ""}
+                      onBlur={(event) =>
+                        patch({ source_mode: "industry_persona", target_customer: event.target.value })
+                      }
+                      placeholder="例如：附近上班族、朋友聚餐、家庭聚会"
+                    />
+                  </div>
+                </div>
+                <label>活动/转化口令</label>
+                <input
+                  defaultValue={(session.state.conversion_phrase as string) || ""}
+                  onBlur={(event) =>
+                    patch({ source_mode: "industry_persona", conversion_phrase: event.target.value })
+                  }
+                  placeholder="例如：到店报口令打九折"
+                />
+              </div>
+            ),
+          },
+          {
+            key: "ip_learning",
+            label: sourceModeLabels.ip_learning,
+            children: (
+              <div className="source-panel">
+                <Typography.Paragraph type="secondary">
+                  输入一个 IP 主页，学习最近 5 条视频口播内容并生成选题。主页抓取失败时可展开手动兜底。
+                </Typography.Paragraph>
+                <label>IP 主页链接或主页分享文本</label>
+                <textarea
+                  className="small-textarea"
+                  defaultValue={
+                    ((session.state.ip_profile_url as string) || session.state.source_text || "") as string
+                  }
+                  onBlur={(event) =>
+                    patch({
+                      source_mode: "ip_learning",
+                      ip_profile_url: event.target.value,
+                      source_text: event.target.value,
+                    })
+                  }
+                  placeholder="例如：https://www.douyin.com/user/..."
+                />
+                <details className="advanced">
+                  <summary>手动兜底：粘贴最近 5 条视频链接</summary>
+                  <textarea
+                    className="small-textarea"
+                    defaultValue={(session.state.ip_manual_video_links as string) || ""}
+                    onBlur={(event) =>
+                      patch({ source_mode: "ip_learning", ip_manual_video_links: event.target.value })
+                    }
+                    placeholder="每行一条视频链接，或每段粘贴一条完整抖音分享文本"
+                  />
+                </details>
+                {session.state.ip_learning_summary ? (
+                  <div className="summary-box subtle">
+                    <strong>{session.state.ip_learning_summary as string}</strong>
+                    {ipScripts.length ? (
+                      <details className="source-learning-details">
+                        <summary>查看已提取文案</summary>
+                        {ipScripts.map((item, index) => (
+                          <div key={`${item.source}-${index}`} className="source-learning-item">
+                            <strong>视频 {index + 1}</strong>
+                            <small>{item.source}</small>
+                            <p>{item.script}</p>
+                          </div>
+                        ))}
+                      </details>
+                    ) : null}
+                    {ipErrors.length ? (
+                      <details className="source-learning-details">
+                        <summary>查看失败链接</summary>
+                        {ipErrors.map((item, index) => (
+                          <div key={`${item.source}-${index}`} className="source-learning-item error">
+                            <strong>失败 {index + 1}</strong>
+                            <small>{item.source}</small>
+                            <p>{item.error}</p>
+                          </div>
+                        ))}
+                      </details>
+                    ) : null}
+                  </div>
+                ) : null}
+                {ipTopics.length ? (
+                  <div className="topic-grid">
+                    {ipTopics.map((topic) => (
+                      <button
+                        key={topic}
+                        className={`topic-card ${
+                          session.state.ip_learning_selected_topic === topic ? "selected" : ""
+                        }`}
+                        onClick={() =>
+                          patch({ source_mode: "ip_learning", ip_learning_selected_topic: topic })
+                        }
+                      >
+                        {topic}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ),
+          },
+        ]}
       />
       <div className="panel-actions">
-        <button className="primary" onClick={() => execute("source")} disabled={busy}>
-          生成口播文案
-        </button>
+        <Button type="primary" onClick={() => execute("source")} disabled={busy}>
+          {sourceActions[sourceMode] || "生成口播文案"}
+        </Button>
       </div>
     </div>
   );

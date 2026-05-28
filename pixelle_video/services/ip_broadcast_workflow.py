@@ -11,7 +11,15 @@ from typing import Any
 
 from loguru import logger
 
-from pixelle_video.prompts.ip_broadcast import build_rewrite_prompt
+from pixelle_video.config import config_manager
+from pixelle_video.models.ip_broadcast import HotTopicsResult
+from pixelle_video.prompts.ip_broadcast import (
+    build_hot_topics_from_viral_prompt,
+    build_ip_brain_generation_prompt,
+    build_rewrite_prompt,
+    build_script_extraction_prompt,
+    build_script_from_topic_prompt,
+)
 from pixelle_video.services.digital_human_service import _load_workflow_config
 from pixelle_video.services.ip_broadcast_composer import compose_ip_broadcast_video
 from pixelle_video.services.ip_broadcast_errors import classify_ip_broadcast_error
@@ -19,6 +27,12 @@ from pixelle_video.services.ip_broadcast_templates import (
     build_ass_force_style,
     get_ip_broadcast_template,
 )
+from pixelle_video.services.ip_learning import (
+    extract_many_video_scripts,
+    fetch_latest_video_urls_from_profile,
+    parse_manual_video_inputs,
+)
+from pixelle_video.services.script_extractor import VideoScriptExtractor
 from pixelle_video.services.subtitle_service import (
     embed_subtitles,
     generate_srt,
@@ -46,11 +60,27 @@ STEP_KEYS = {
 
 def _default_state() -> dict[str, Any]:
     return {
-        "source_mode": "paste",
+        "source_mode": "video_extract",
+        "video_input": "",
         "business_preset_id": "",
         "brand_kit_id": "",
         "source_text": "",
         "source_label": "",
+        "video_type": "口播文案",
+        "copy_type": "人设型",
+        "industry_persona": "",
+        "selling_points": "",
+        "target_customer": "",
+        "conversion_phrase": "",
+        "other_reqs": "",
+        "ip_profile_url": "",
+        "ip_manual_video_links": "",
+        "ip_learning_video_urls": [],
+        "ip_learning_scripts": [],
+        "ip_learning_errors": [],
+        "ip_learning_topics": [],
+        "ip_learning_summary": "",
+        "ip_learning_selected_topic": "",
         "style_prompt": "口语化、亲切自然、有感染力",
         "word_count": 200,
         "final_script": "",
@@ -280,7 +310,7 @@ async def run_ip_broadcast_step(
     session.step_status[step] = "running"
     try:
         if step_key == STEP_SOURCE:
-            await _run_source(session)
+            await _run_source(pixelle_video, session)
         elif step_key == STEP_COPYWRITING:
             await _run_copywriting(pixelle_video, session)
         elif step_key == STEP_VOICE:
@@ -302,15 +332,154 @@ async def run_ip_broadcast_step(
         return False
 
 
-async def _run_source(session: IpBroadcastSession) -> None:
+async def _run_source(pixelle_video, session: IpBroadcastSession) -> None:
+    source_mode = str(session.state.get("source_mode") or "paste")
+    if source_mode == "video_extract":
+        await _run_video_extract_source(session)
+    elif source_mode == "industry_persona":
+        await _run_industry_persona_source(pixelle_video, session)
+    elif source_mode == "ip_learning":
+        await _run_ip_learning_source(pixelle_video, session)
+    else:
+        await _run_paste_source(pixelle_video, session)
+    session.step_status[1] = "done"
+    session.step_status[2] = "ready"
+
+
+async def _run_paste_source(pixelle_video, session: IpBroadcastSession) -> None:
     source_text = str(session.state.get("source_text", "")).strip()
     if not source_text:
         raise ValueError("请先提供素材文本")
-    session.state["final_script"] = source_text
+    if pixelle_video:
+        source_text = (
+            await pixelle_video.llm(prompt=build_script_extraction_prompt(source_text))
+        ).strip()
+    session.state["source_text"] = source_text
+    _set_source_script(session, source_text, "粘贴脚本")
+
+
+async def _run_video_extract_source(session: IpBroadcastSession) -> None:
+    video_input = str(
+        session.state.get("video_input") or session.state.get("source_text") or ""
+    ).strip()
+    if not video_input:
+        raise ValueError("请先输入视频链接或抖音分享文本")
+    extractor = _build_script_extractor()
+    script = (await extractor.extract(video_input)).strip()
+    if not script:
+        raise ValueError("没有提取到口播文案，请检查链接或手动粘贴文案")
+    session.state["video_input"] = video_input
+    session.state["source_text"] = script
+    _set_source_script(session, script, "视频提取")
+
+
+async def _run_industry_persona_source(pixelle_video, session: IpBroadcastSession) -> None:
+    if pixelle_video is None:
+        raise ValueError("行业+人设生成需要可用的 LLM 服务")
+    industry_persona = str(session.state.get("industry_persona") or "").strip()
+    selling_points = str(session.state.get("selling_points") or "").strip()
+    target_customer = str(session.state.get("target_customer") or "").strip()
+    conversion_phrase = str(session.state.get("conversion_phrase") or "").strip()
+    other_reqs = str(session.state.get("other_reqs") or "").strip()
+    if not any([industry_persona, selling_points, target_customer, conversion_phrase, other_reqs]):
+        raise ValueError("请至少填写行业人设、核心卖点或目标客户")
+    merged_reqs = "\n".join(
+        item
+        for item in [
+            f"目标客户：{target_customer}" if target_customer else "",
+            f"转化口令：{conversion_phrase}" if conversion_phrase else "",
+            other_reqs,
+        ]
+        if item
+    )
+    script = (
+        await pixelle_video.llm(
+            prompt=build_ip_brain_generation_prompt(
+                video_type=str(session.state.get("video_type") or "口播文案"),
+                copy_type=str(session.state.get("copy_type") or "人设型"),
+                industry_persona=industry_persona,
+                selling_points=selling_points,
+                other_reqs=merged_reqs,
+            )
+        )
+    ).strip()
+    session.state["source_text"] = script
+    _set_source_script(session, script, "行业+人设")
+
+
+async def _run_ip_learning_source(pixelle_video, session: IpBroadcastSession) -> None:
+    if pixelle_video is None:
+        raise ValueError("IP 学习需要可用的 LLM 服务")
+    existing_scripts = session.state.get("ip_learning_scripts")
+    selected_topic = str(session.state.get("ip_learning_selected_topic") or "").strip()
+    if selected_topic and isinstance(existing_scripts, list) and existing_scripts:
+        viral_hint = "\n\n".join(
+            str(item.get("script", "")) for item in existing_scripts if isinstance(item, dict)
+        )[:1200]
+        script = str(
+            await pixelle_video.llm(prompt=build_script_from_topic_prompt(selected_topic, viral_hint))
+        ).strip()
+        session.state["source_text"] = script
+        _set_source_script(session, script, "IP学习")
+        return
+
+    video_inputs = parse_manual_video_inputs(str(session.state.get("ip_manual_video_links") or ""))
+    if video_inputs:
+        urls = video_inputs[:5]
+    else:
+        profile_url = str(
+            session.state.get("ip_profile_url") or session.state.get("source_text") or ""
+        ).strip()
+        if not profile_url:
+            raise ValueError("请先输入 IP 主页链接，或手动粘贴最近 5 条视频链接")
+        urls = await fetch_latest_video_urls_from_profile(profile_url, limit=5)
+    if not urls:
+        raise ValueError("未抓取到视频链接，请手动粘贴最近 5 条视频链接继续学习")
+
+    extractor = _build_script_extractor()
+    results = await extract_many_video_scripts(extractor, urls, limit=5)
+    scripts = [{"source": item.source, "script": item.script} for item in results if item.ok and item.script]
+    errors = [{"source": item.source, "error": item.error} for item in results if not item.ok]
+    if not scripts:
+        raise ValueError("未能从这些视频中提取到可用口播文案，请检查链接或手动粘贴脚本")
+
+    topics_result: HotTopicsResult = await pixelle_video.llm(
+        prompt=build_hot_topics_from_viral_prompt("\n\n".join(item["script"] for item in scripts)),
+        response_type=HotTopicsResult,
+    )
+    topics = topics_result.topics
+    selected_topic = str(session.state.get("ip_learning_selected_topic") or "").strip()
+    if not selected_topic and topics:
+        selected_topic = topics[0]
+    if not selected_topic:
+        raise ValueError("IP 学习未生成可用选题")
+
+    viral_hint = "\n\n".join(item["script"] for item in scripts)[:1200]
+    script = str(
+        await pixelle_video.llm(prompt=build_script_from_topic_prompt(selected_topic, viral_hint))
+    ).strip()
+    session.state["ip_learning_video_urls"] = urls
+    session.state["ip_learning_scripts"] = scripts
+    session.state["ip_learning_errors"] = errors
+    session.state["ip_learning_topics"] = topics
+    session.state["ip_learning_selected_topic"] = selected_topic
+    session.state["ip_learning_summary"] = f"已提取 {len(scripts)} 条，失败 {len(errors)} 条"
+    session.state["source_text"] = script
+    _set_source_script(session, script, "IP学习")
+
+
+def _set_source_script(session: IpBroadcastSession, script: str, label: str) -> None:
+    session.state["final_script"] = script
     session.state["copywriting_confirmed"] = False
-    session.state["source_label"] = session.state.get("source_mode") or "素材来源"
-    session.step_status[1] = "done"
-    session.step_status[2] = "ready"
+    session.state["source_label"] = label
+
+
+def _build_script_extractor() -> VideoScriptExtractor:
+    llm_cfg = config_manager.get_llm_config()
+    return VideoScriptExtractor(
+        api_key=llm_cfg["api_key"],
+        base_url=llm_cfg["base_url"],
+    )
 
 
 async def _run_copywriting(pixelle_video, session: IpBroadcastSession) -> None:
