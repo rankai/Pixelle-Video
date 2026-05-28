@@ -69,5 +69,14 @@ class Task(BaseModel):
     # Request parameters (for reference)
     request_params: Optional[dict] = None
 
+    # Product-facing task metadata
+    display_name: str = ""
+    flow_name: str = ""
+    step_key: str = ""
+    session_id: str = ""
+    artifact_keys: list[str] = Field(default_factory=list)
+    duration_ms: Optional[int] = None
+    retry_payload: Optional[dict] = None
+
     class Config:
         json_encoders = {datetime: lambda v: v.isoformat()}

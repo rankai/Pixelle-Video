@@ -14,7 +14,9 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   assetBlobUrl,
   cancelTask,
+  createBrandKit,
   createSession,
+  deleteBrandKit,
   deletePortraitAsset,
   deleteVideoAsset,
   deleteVoiceAsset,
@@ -23,17 +25,24 @@ import {
   getDiagnostics,
   getSession,
   getTask,
+  listBrandKits,
+  listIpPresetAssets,
   listIpTemplateAssets,
   listPortraitAssets,
+  listTasks,
   listVideoAssets,
   listVoiceAssets,
   PortraitAsset,
+  BrandKit,
   DesktopConfig,
   IpBroadcastState,
+  IpPresetAsset,
   IpTemplateAsset,
+  retryTask,
   runStep,
   saveDesktopConfig,
   TaskInfo,
+  updateBrandKit,
   updateSessionConfig,
   uploadPortraitAsset,
   uploadVideoAsset,
@@ -42,14 +51,16 @@ import {
   VoiceAsset,
 } from "./api";
 
-type View = "ip" | "assets" | "config" | "diagnostics";
-type AssetTab = "voices" | "portraits" | "templates" | "videos";
+type View = "ip" | "assets" | "tasks" | "config" | "diagnostics";
+type AssetTab = "voices" | "portraits" | "templates" | "videos" | "brands";
 
 type AssetState = {
   voices: VoiceAsset[];
   portraits: PortraitAsset[];
   templates: IpTemplateAsset[];
+  presets: IpPresetAsset[];
   videos: VideoAsset[];
+  brands: BrandKit[];
 };
 
 type StorySegment = {
@@ -81,7 +92,9 @@ const emptyAssets: AssetState = {
   voices: [],
   portraits: [],
   templates: [],
+  presets: [],
   videos: [],
+  brands: [],
 };
 
 export function App() {
@@ -133,17 +146,21 @@ export function App() {
   }, [session]);
 
   async function reloadAssets() {
-    const [voices, portraits, templates, videos] = await Promise.all([
+    const [voices, portraits, templates, presets, videos, brands] = await Promise.all([
       listVoiceAssets(),
       listPortraitAssets(),
       listIpTemplateAssets(),
+      listIpPresetAssets(),
       listVideoAssets(),
+      listBrandKits(),
     ]);
     setAssets({
       voices: voices.items,
       portraits: portraits.items,
       templates: templates.items,
+      presets: presets.items,
       videos: videos.items,
+      brands: brands.items,
     });
   }
 
@@ -203,6 +220,9 @@ export function App() {
             onClick={() => setView("assets")}
           >
             <Package size={16} /> 素材资产
+          </button>
+          <button className={view === "tasks" ? "active" : ""} onClick={() => setView("tasks")}>
+            <CheckCircle2 size={16} /> 任务中心
           </button>
           <button className={view === "config" ? "active" : ""} onClick={() => setView("config")}>
             <Settings size={16} /> 配置
@@ -279,6 +299,7 @@ export function App() {
           reload={reloadAssets}
         />
       ) : null}
+      {view === "tasks" ? <TaskCenterView /> : null}
       {view === "config" ? <ConfigView /> : null}
       {view === "diagnostics" ? <DiagnosticsView /> : null}
     </main>
@@ -400,7 +421,16 @@ function StepPanel({
           <p>{stepHint(step)}</p>
         </div>
       </div>
-      {step === 1 ? <SourceStep session={session} patch={patch} execute={execute} busy={busy} /> : null}
+      {step === 1 ? (
+        <SourceStep
+          session={session}
+          presets={assets.presets}
+          brands={assets.brands}
+          patch={patch}
+          execute={execute}
+          busy={busy}
+        />
+      ) : null}
       {step === 2 ? <CopywritingStep session={session} patch={patch} execute={execute} busy={busy} /> : null}
       {step === 3 ? (
         <VoiceStep session={session} voices={assets.voices} patch={patch} execute={execute} busy={busy} />
@@ -435,17 +465,77 @@ function StepPanel({
 
 function SourceStep({
   session,
+  presets,
+  brands,
   patch,
   execute,
   busy,
 }: {
   session: IpBroadcastState;
+  presets: IpPresetAsset[];
+  brands: BrandKit[];
   patch: (values: Record<string, unknown>) => Promise<void>;
   execute: (stepKey: string) => Promise<void>;
   busy: boolean;
 }) {
+  const selectedPreset = presets.find((item) => item.preset_id === session.state.business_preset_id);
+  const selectedBrand = brands.find((item) => item.brand_id === session.state.brand_kit_id);
+  async function applyPreset(presetId: string) {
+    const preset = presets.find((item) => item.preset_id === presetId);
+    if (!preset) {
+      await patch({ business_preset_id: "" });
+      return;
+    }
+    await patch({
+      business_preset_id: preset.preset_id,
+      word_count: preset.recommended_word_count,
+      style_prompt: preset.default_style_prompt,
+      template_id: preset.default_template_id,
+      subtitle_enabled: preset.default_subtitle_enabled,
+    });
+  }
   return (
     <div>
+      <div className="grid2">
+        <div>
+          <label>业务预设</label>
+          <select
+            value={(session.state.business_preset_id as string) || ""}
+            onChange={(event) => applyPreset(event.target.value)}
+          >
+            <option value="">不使用预设</option>
+            {presets.map((preset) => (
+              <option key={preset.preset_id} value={preset.preset_id}>
+                {preset.display_name}
+              </option>
+            ))}
+          </select>
+          {selectedPreset ? (
+            <small className="muted">{selectedPreset.recommended_visual_strategy}</small>
+          ) : null}
+        </div>
+        <div>
+          <label>品牌包</label>
+          <select
+            value={(session.state.brand_kit_id as string) || ""}
+            onChange={(event) => {
+              const brand = brands.find((item) => item.brand_id === event.target.value);
+              patch({
+                brand_kit_id: event.target.value,
+                bgm_path: brand?.default_bgm_path || session.state.bgm_path || "",
+              });
+            }}
+          >
+            <option value="">不使用品牌包</option>
+            {brands.map((brand) => (
+              <option key={brand.brand_id} value={brand.brand_id}>
+                {brand.brand_name}
+              </option>
+            ))}
+          </select>
+          {selectedBrand ? <small className="muted">{selectedBrand.coupon_phrase}</small> : null}
+        </div>
+      </div>
       <label>素材文本</label>
       <textarea
         defaultValue={(session.state.source_text as string) || ""}
@@ -804,8 +894,31 @@ function PublishStep({
   session: IpBroadcastState;
   downloadFinalVideo: () => Promise<void>;
 }) {
+  const publishPackage = (session.state.publish_package as Record<string, unknown>) || {};
+  const platformSuggestions =
+    (publishPackage.platform_suggestions as Record<string, Record<string, unknown>>) ||
+    ((session.state.platform_suggestions as Record<string, Record<string, unknown>>) ?? {});
+  const title = (publishPackage.title as string) || (session.state.title as string) || "";
+  const description =
+    (publishPackage.description as string) || (session.state.description as string) || "";
+  const hashtags = ((publishPackage.hashtags as string[]) || (session.state.hashtags as string[]) || []).join(
+    " ",
+  );
+  const script = (publishPackage.script as string) || (session.state.final_script as string) || "";
   return (
-    <div className="publish-grid">
+    <div>
+      <div className="summary-box">
+        <div>
+          <strong>发布素材包</strong>
+          <p>视频、标题、描述、标签、封面和口播文案集中在这里。</p>
+        </div>
+        {session.artifacts.publish_package_json ? (
+          <button onClick={() => downloadArtifact(session.session_id, "publish_package_json")}>
+            下载 JSON
+          </button>
+        ) : null}
+      </div>
+      <div className="publish-grid">
       <div>
         <label>最终视频</label>
         <p className="result-path">{(session.state.final_video_path as string) || "暂无最终视频"}</p>
@@ -817,17 +930,60 @@ function PublishStep({
       </div>
       <div>
         <label>标题</label>
-        <textarea readOnly value={(session.state.title as string) || ""} />
+        <textarea readOnly value={title} />
+        <CopyButton text={title} />
       </div>
       <div>
         <label>描述</label>
-        <textarea readOnly value={(session.state.description as string) || ""} />
+        <textarea readOnly value={description} />
+        <CopyButton text={description} />
       </div>
       <div>
         <label>标签</label>
-        <input readOnly value={((session.state.hashtags as string[]) || []).join(" ")} />
+        <input readOnly value={hashtags} />
+        <CopyButton text={hashtags} />
+      </div>
+      <div>
+        <label>口播文案</label>
+        <textarea readOnly value={script} />
+        <CopyButton text={script} />
+        {session.artifacts.script ? (
+          <button onClick={() => downloadArtifact(session.session_id, "script")}>下载文案</button>
+        ) : null}
+      </div>
+      </div>
+      <div className="platform-grid">
+        {Object.entries(platformSuggestions).map(([platform, value]) => (
+          <section key={platform} className="asset-card">
+            <strong>{platformLabel(platform)}</strong>
+            <span>{String(value.title || "")}</span>
+            <p>{String(value.description || "")}</p>
+            <CopyButton
+              text={`${String(value.title || "")}\n${String(value.description || "")}`}
+            />
+          </section>
+        ))}
       </div>
     </div>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  return (
+    <button onClick={() => navigator.clipboard.writeText(text)} disabled={!text}>
+      复制
+    </button>
+  );
+}
+
+function platformLabel(platform: string) {
+  return (
+    {
+      douyin: "抖音",
+      xiaohongshu: "小红书",
+      shipinhao: "视频号",
+      kuaishou: "快手",
+    }[platform] || platform
   );
 }
 
@@ -1080,6 +1236,7 @@ function AssetsView({
     { key: "portraits", label: "形象库", icon: <UserSquare2 size={16} /> },
     { key: "templates", label: "画面模板库", icon: <Images size={16} /> },
     { key: "videos", label: "视频素材库", icon: <Video size={16} /> },
+    { key: "brands", label: "品牌包", icon: <Package size={16} /> },
   ];
   return (
     <section className="asset-center">
@@ -1098,6 +1255,7 @@ function AssetsView({
       {activeTab === "portraits" ? <PortraitLibrary items={assets.portraits} reload={reload} /> : null}
       {activeTab === "templates" ? <TemplateLibrary items={assets.templates} /> : null}
       {activeTab === "videos" ? <VideoLibrary items={assets.videos} reload={reload} /> : null}
+      {activeTab === "brands" ? <BrandKitLibrary items={assets.brands} reload={reload} /> : null}
     </section>
   );
 }
@@ -1201,6 +1359,151 @@ function VideoLibrary({ items, reload }: { items: VideoAsset[]; reload: () => Pr
         </div>
       }
     />
+  );
+}
+
+function BrandKitLibrary({ items, reload }: { items: BrandKit[]; reload: () => Promise<void> }) {
+  const [draft, setDraft] = useState<Partial<BrandKit>>({
+    brand_name: "",
+    primary_color: "#1f6feb",
+    secondary_color: "#0f766e",
+    store_address: "",
+    phone: "",
+    coupon_phrase: "",
+  });
+
+  async function save() {
+    await createBrandKit(draft);
+    setDraft({
+      brand_name: "",
+      primary_color: "#1f6feb",
+      secondary_color: "#0f766e",
+      store_address: "",
+      phone: "",
+      coupon_phrase: "",
+    });
+    await reload();
+  }
+
+  return (
+    <section className="card wide">
+      <h2>品牌包</h2>
+      <p className="muted">保存企业固定品牌信息，后续可自动应用到模板、BGM 和发布素材包。</p>
+      <div className="brand-form">
+        <input
+          placeholder="品牌/门店名称"
+          value={draft.brand_name || ""}
+          onChange={(event) => setDraft({ ...draft, brand_name: event.target.value })}
+        />
+        <input
+          placeholder="品牌色"
+          value={draft.primary_color || ""}
+          onChange={(event) => setDraft({ ...draft, primary_color: event.target.value })}
+        />
+        <input
+          placeholder="门店地址"
+          value={draft.store_address || ""}
+          onChange={(event) => setDraft({ ...draft, store_address: event.target.value })}
+        />
+        <input
+          placeholder="电话"
+          value={draft.phone || ""}
+          onChange={(event) => setDraft({ ...draft, phone: event.target.value })}
+        />
+        <input
+          placeholder="团购口令"
+          value={draft.coupon_phrase || ""}
+          onChange={(event) => setDraft({ ...draft, coupon_phrase: event.target.value })}
+        />
+        <button className="primary" disabled={!draft.brand_name} onClick={save}>
+          保存品牌包
+        </button>
+      </div>
+      <div className="asset-grid">
+        {items.map((item) => (
+          <section key={item.brand_id} className="asset-card">
+            <strong>{item.brand_name}</strong>
+            <span>{item.store_address || item.coupon_phrase || "暂无业务信息"}</span>
+            <div className="swatches">
+              <i style={{ background: item.primary_color }} />
+              <i style={{ background: item.secondary_color }} />
+            </div>
+            <input
+              placeholder="默认 BGM 路径"
+              defaultValue={item.default_bgm_path}
+              onBlur={(event) =>
+                updateBrandKit(item.brand_id, { default_bgm_path: event.target.value }).then(reload)
+              }
+            />
+            <button onClick={() => deleteBrandKit(item.brand_id).then(reload)}>删除</button>
+          </section>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function TaskCenterView() {
+  const [status, setStatus] = useState("");
+  const [tasks, setTasks] = useState<TaskInfo[]>([]);
+  const [error, setError] = useState("");
+
+  async function reload(nextStatus = status) {
+    try {
+      const items = await listTasks(nextStatus, 100);
+      setTasks(items);
+    } catch (err) {
+      setError(String(err));
+    }
+  }
+
+  useEffect(() => {
+    reload();
+    const timer = window.setInterval(() => reload(), 3000);
+    return () => window.clearInterval(timer);
+  }, [status]);
+
+  return (
+    <section className="card wide">
+      <div className="card-title">
+        <h2>任务中心</h2>
+        <select
+          value={status}
+          onChange={(event) => {
+            setStatus(event.target.value);
+            reload(event.target.value);
+          }}
+        >
+          <option value="">全部</option>
+          <option value="running">运行中</option>
+          <option value="completed">已完成</option>
+          <option value="failed">失败</option>
+          <option value="cancelled">已取消</option>
+        </select>
+      </div>
+      {error ? <div className="notice error">{error}</div> : null}
+      <div className="task-list">
+        {tasks.map((item) => (
+          <section key={item.task_id} className="task-row">
+            <div>
+              <strong>{item.display_name || item.task_id}</strong>
+              <span>
+                {item.flow_name || "任务"} · {item.step_key || "-"} · {item.status}
+              </span>
+              {item.error ? <small className="task-error">{item.error}</small> : null}
+            </div>
+            <div className="task-actions">
+              {item.status === "failed" ? (
+                <button onClick={() => retryTask(item.task_id).then(() => reload())}>重试</button>
+              ) : null}
+              {["pending", "running"].includes(item.status) ? (
+                <button onClick={() => cancelTask(item.task_id).then(() => reload())}>停止</button>
+              ) : null}
+            </div>
+          </section>
+        ))}
+      </div>
+    </section>
   );
 }
 

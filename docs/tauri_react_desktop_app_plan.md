@@ -788,6 +788,385 @@ v2 范围：
 
 这样未来从单机工具升级为团队版不会推倒重来。
 
+## Executable Plan: ToB Items 1-5 and Composition Chain
+
+本节把 ToB 产品建议中优先级最高的 5 项拆成可执行阶段，并补齐第 5 步“画面规划覆盖”的合成链路。执行原则：
+
+- 不改变当前 1-6 步主流程。
+- 不拆分生成语音和数字人，继续使用“整段音频 + 整段数字人视频”。
+- 画面规划只在第 5 步合成阶段覆盖画面，避免多次调用 TTS 和数字人工作流。
+- 每个阶段独立可验证，先做 v1 再增强。
+
+### Phase A：发布素材包产品化
+
+目标：
+
+- 第 6 步从“下载视频”升级为“发布素材包”。
+- 用户可以一次拿到发布所需全部内容。
+
+后端任务：
+
+- 扩展 IP 口播 session state：
+  - `publish_package`
+  - `platform_suggestions`
+  - `script_summary`
+- 新增或复用 artifact：
+  - `final_video`
+  - `cover`
+  - `script`
+  - `publish_package_json`
+- 第 5 步完成后自动生成发布素材包。
+- 第 6 步支持下载：
+  - 最终视频。
+  - 封面。
+  - 发布素材 JSON。
+  - 口播文案 TXT。
+
+前端任务：
+
+- 第 6 步改为“发布素材包”卡片：
+  - 视频下载。
+  - 封面预览/下载。
+  - 标题复制。
+  - 描述复制。
+  - 标签复制。
+  - 口播文案复制。
+- 增加平台 Tab：
+  - 通用。
+  - 抖音。
+  - 小红书。
+  - 视频号。
+  - 快手。
+- 首版只生成建议文案，不接真实发布 API。
+
+验收标准：
+
+- 一键成片后第 6 步自动出现完整发布素材包。
+- 每个文本字段有复制按钮。
+- artifact 下载不允许前端传任意路径。
+- `uv run pytest -q`、`uv run ruff check .`、React build 通过。
+
+### Phase B：错误提示业务化
+
+目标：
+
+- 用户看到可执行的业务提示，技术错误保留在可展开详情里。
+
+后端任务：
+
+- 新增错误标准化工具：
+  - `classify_ip_broadcast_error(error) -> BusinessError`
+- `BusinessError` 字段：
+  - `user_message`
+  - `technical_message`
+  - `category`
+  - `retryable`
+  - `next_action`
+- 覆盖常见错误：
+  - RunningHub 401/403。
+  - RunningHub 超时。
+  - workflow 缺失。
+  - 文件不存在。
+  - 上传文件过大。
+  - 数字人 workflow 类型与形象类型不匹配。
+  - FFmpeg 失败。
+  - Playwright 缺失。
+
+前端任务：
+
+- 所有步骤 notice 统一显示：
+  - 用户提示。
+  - 下一步建议。
+  - 技术详情展开。
+  - 复制错误详情。
+- 当前任务面板显示失败原因摘要。
+
+验收标准：
+
+- 401 显示“RunningHub Key 无效或无权限，请到配置中心检查”。
+- workflow 类型错误显示“当前工作流只支持图片/视频形象”。
+- 技术详情可以展开复制。
+- 任一步失败后 loading 关闭，已有产物不清空。
+
+### Phase C：简单任务中心 v1.1
+
+目标：
+
+- 从“当前任务”升级为“最近任务列表”，解决长任务不可见和失败后难定位。
+
+后端任务：
+
+- 任务模型增加：
+  - `display_name`
+  - `flow_name`
+  - `step_key`
+  - `session_id`
+  - `artifact_keys`
+  - `duration_ms`
+  - `retry_payload`
+- `TaskManager` 保留最近任务列表。
+- API：
+  - `GET /api/tasks?status=&limit=`
+  - `GET /api/tasks/{task_id}`
+  - `DELETE /api/tasks/{task_id}`
+  - `POST /api/tasks/{task_id}/retry`。
+- v1.1 先做进程内任务记录；持久化任务历史放 v2。
+
+前端任务：
+
+- 新增“任务中心”菜单。
+- 支持状态筛选：
+  - 全部。
+  - 运行中。
+  - 已完成。
+  - 失败。
+  - 已取消。
+- 每条任务显示：
+  - 任务名称。
+  - 流程/步骤。
+  - 状态。
+  - 开始时间。
+  - 耗时。
+  - 失败原因。
+  - 重试。
+  - 打开结果。
+
+验收标准：
+
+- 运行一次声音生成和数字人生成后，任务中心能看到记录。
+- 失败任务可重试。
+- 完成任务可回到对应 session 或下载结果。
+- 取消任务状态正确展示。
+
+### Phase D：业务预设 v1
+
+目标：
+
+- 用业务场景替代复杂参数，让用户先选“我要做什么内容”。
+
+预设清单 v1：
+
+- 老板人设口播。
+- 门店探店。
+- 新品推荐。
+- 团购转化。
+- 客户案例。
+
+预设字段：
+
+- `preset_id`
+- `display_name`
+- `description`
+- `script_structure`
+- `recommended_word_count`
+- `default_style_prompt`
+- `default_template_id`
+- `default_subtitle_enabled`
+- `recommended_visual_strategy`
+- `publish_platform_hints`
+
+后端任务：
+
+- 新增预设注册表：
+  - `pixelle_video/services/ip_broadcast_presets.py`
+- API：
+  - `GET /api/assets/presets/ip-broadcast`
+- session state 增加：
+  - `business_preset_id`
+- 选择预设时写入推荐默认值，不强制覆盖用户已手动修改的字段。
+
+前端任务：
+
+- 第 1 步顶部增加“业务预设”选择。
+- 选择预设后显示：
+  - 推荐文案结构。
+  - 推荐模板。
+  - 推荐发布平台。
+- 高级参数继续收起。
+
+验收标准：
+
+- 用户选择“门店探店”后，默认字数、风格指令、模板会自动更新。
+- 用户手动改过的字段不会被二次选择预设意外覆盖，除非点击“重新应用预设”。
+- 预设 API 有测试覆盖。
+
+### Phase E：品牌包 v1
+
+目标：
+
+- 中小企业能复用自己的品牌元素，不需要每条视频重复设置。
+
+品牌包字段 v1：
+
+- `brand_id`
+- `brand_name`
+- `logo_path`
+- `primary_color`
+- `secondary_color`
+- `font_family`
+- `default_bgm_path`
+- `default_subtitle_style`
+- `ending_card_text`
+- `store_address`
+- `phone`
+- `coupon_phrase`
+
+后端任务：
+
+- 新增品牌包服务：
+  - `pixelle_video/services/brand_kit_service.py`
+- 数据目录：
+  - `data/brand_kits/`
+- API：
+  - `GET /api/assets/brand-kits`
+  - `POST /api/assets/brand-kits`
+  - `PATCH /api/assets/brand-kits/{brand_id}`
+  - `DELETE /api/assets/brand-kits/{brand_id}`
+  - `POST /api/assets/brand-kits/{brand_id}/logo`
+- session state 增加：
+  - `brand_kit_id`
+- 第 5 步合成时读取品牌包默认值：
+  - BGM。
+  - 字幕样式。
+  - 封面 logo。
+  - 片尾信息。
+- 第 6 步发布素材包读取品牌信息：
+  - 门店地址。
+  - 电话。
+  - 团购口令。
+
+前端任务：
+
+- 素材资产新增“品牌包”页面。
+- 工作台顶部或第 1 步选择当前品牌包。
+- 选择品牌包后，模板、字幕、BGM、发布素材默认带出。
+
+验收标准：
+
+- 创建品牌包后能在工作台选择。
+- 品牌色和 logo 能进入封面/发布素材包。
+- 删除正在使用的品牌包需要提示解除引用。
+
+### Phase F：画面规划合成链路 v1
+
+目标：
+
+- 把第 5 步保存的画面规划真正应用到最终视频。
+- 不多次调用 TTS 和数字人。
+- 不改变默认路径：没有画面规划时仍然直接使用整段数字人视频。
+
+输入：
+
+- `final_script`
+- `audio_path`
+- `digital_human_video_path`
+- `story_segments`
+- `visual_groups`
+- `template_id`
+- `brand_kit_id`
+- BGM/字幕/去静音设置
+
+核心策略：
+
+- 整段语音只生成一次。
+- 整段数字人视频只生成一次。
+- 数字人视频作为主视频轨。
+- 画面规划在指定时间段覆盖主视频：
+  - `uploaded_video`：使用视频素材库素材。
+  - `ai_video`：先生成 AI 视频素材，再作为覆盖素材。
+  - `digital_human`：不覆盖，保留原数字人画面。
+- 覆盖方式 v1：
+  - 全屏替换。
+- 画中画放 v1.1。
+
+时间轴计算：
+
+- v1 不做逐字对齐。
+- 根据文案段落字数占比估算每段时间：
+  - `segment_duration = total_audio_duration * segment_char_count / total_char_count`
+- 连续段落成组时，组时间为首段开始到末段结束。
+- 后续 v2 可接入更精确的字幕时间戳或语音识别对齐。
+
+合成顺序：
+
+1. 获取整段音频时长。
+2. 将数字人视频裁剪/补齐到音频时长。
+3. 根据文案段落生成 segment timeline。
+4. 根据 `visual_groups` 生成 overlay timeline。
+5. 对每个覆盖素材做预处理：
+   - 裁剪到目标时长。
+   - 不足时循环补齐。
+   - 静音原视频。
+   - 分辨率适配到主视频。
+6. 使用 FFmpeg filter_complex 按时间段覆盖主视频。
+7. 合并整段音频。
+8. 按模板生成字幕样式并嵌入字幕。
+9. 混合 BGM，BGM 长于视频时按主视频长度截断。
+10. 生成封面和发布素材包。
+
+缓存策略：
+
+- 覆盖合成缓存 key：
+  - 数字人视频 hash。
+  - 音频 hash。
+  - visual_groups hash。
+  - template_id。
+  - brand_kit_id。
+  - BGM/字幕参数。
+- 缓存目录：
+  - `data/ip_broadcast_cache/composition/`
+- 命中缓存时跳过 FFmpeg 重算。
+
+后端任务：
+
+- 新增 composer 模块：
+  - `pixelle_video/services/ip_broadcast_composer.py`
+- 职责：
+  - timeline 计算。
+  - 覆盖素材预处理。
+  - FFmpeg filter_complex 生成。
+  - 最终合成。
+- `ip_broadcast_workflow._run_postproduction()` 改为调用 composer。
+- AI 视频覆盖 v1 可以先保存 prompt 和占位状态；真正生成 AI 视频作为 v1.1，避免扩大首版风险。
+
+前端任务：
+
+- 画面规划弹窗新增覆盖方式字段，但 v1 只开放“全屏替换”。
+- 第 5 步摘要显示：
+  - 覆盖组数量。
+  - 覆盖时长估算。
+  - 未配置素材的覆盖组 warning。
+- 一键成片前检查：
+  - `uploaded_video` 组必须选择素材。
+  - `ai_video` 组必须填写 prompt。
+
+验收标准：
+
+- 不启用画面规划时，现有一键成片路径不回归。
+- 启用一个视频素材覆盖组时，最终视频对应时间段画面被替换。
+- 覆盖视频短于目标时长会循环补齐。
+- 覆盖视频长于目标时长会裁剪。
+- 最终视频长度等于整段音频/主视频目标长度，不被 BGM 或覆盖素材拉长。
+- 字幕仍按模板位置显示在最终视频上。
+
+### Recommended Execution Order
+
+建议执行顺序：
+
+1. Phase A：发布素材包产品化。
+2. Phase B：错误提示业务化。
+3. Phase F：画面规划合成链路 v1。
+4. Phase C：简单任务中心 v1.1。
+5. Phase D：业务预设 v1。
+6. Phase E：品牌包 v1。
+
+理由：
+
+- 发布素材包和错误提示最直接提升 ToB 可用性。
+- 合成链路是当前产品能力闭环的关键，应该在更多产品层功能前补齐。
+- 任务中心依赖标准化任务信息和错误信息，放在错误体系之后更稳。
+- 业务预设和品牌包会影响默认参数，适合在主链路稳定后加入。
+
 ## Security Requirements
 
 - 后端只监听 `127.0.0.1`。

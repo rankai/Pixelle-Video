@@ -6,12 +6,42 @@ from typing import Annotated, Any
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
+from pixelle_video.services.brand_kit_service import BrandKitService
+from pixelle_video.services.ip_broadcast_presets import list_ip_broadcast_presets
 from pixelle_video.services.ip_broadcast_templates import list_ip_broadcast_templates
 from pixelle_video.services.portrait_service import PortraitService
 from pixelle_video.services.video_asset_service import VideoAssetService
 from pixelle_video.services.voice_reference_service import VoiceReferenceService
 
 router = APIRouter(prefix="/assets", tags=["Assets"])
+
+
+@router.get("/presets/ip-broadcast")
+async def list_ip_broadcast_preset_assets():
+    return {"items": [preset.to_dict() for preset in list_ip_broadcast_presets()]}
+
+
+@router.get("/brand-kits")
+async def list_brand_kits():
+    return {"items": [item.to_dict() for item in BrandKitService().list_brand_kits()]}
+
+
+@router.post("/brand-kits")
+async def create_brand_kit(values: dict[str, Any]):
+    return BrandKitService().create_brand_kit(values).to_dict()
+
+
+@router.patch("/brand-kits/{brand_id}")
+async def update_brand_kit(brand_id: str, values: dict[str, Any]):
+    updated = BrandKitService().update_brand_kit(brand_id, values)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Brand kit not found")
+    return updated.to_dict()
+
+
+@router.delete("/brand-kits/{brand_id}")
+async def delete_brand_kit(brand_id: str):
+    return {"deleted": BrandKitService().delete_brand_kit(brand_id)}
 
 
 @router.get("/templates/ip-broadcast")

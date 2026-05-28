@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 import uuid
 from dataclasses import dataclass, field
@@ -12,6 +13,8 @@ from loguru import logger
 
 from pixelle_video.prompts.ip_broadcast import build_rewrite_prompt
 from pixelle_video.services.digital_human_service import _load_workflow_config
+from pixelle_video.services.ip_broadcast_composer import compose_ip_broadcast_video
+from pixelle_video.services.ip_broadcast_errors import classify_ip_broadcast_error
 from pixelle_video.services.ip_broadcast_templates import (
     build_ass_force_style,
     get_ip_broadcast_template,
@@ -44,6 +47,8 @@ STEP_KEYS = {
 def _default_state() -> dict[str, Any]:
     return {
         "source_mode": "paste",
+        "business_preset_id": "",
+        "brand_kit_id": "",
         "source_text": "",
         "source_label": "",
         "style_prompt": "口语化、亲切自然、有感染力",
@@ -81,6 +86,9 @@ def _default_state() -> dict[str, Any]:
         "description": "",
         "hashtags": [],
         "cover_path": "",
+        "publish_package": {},
+        "platform_suggestions": {},
+        "script_summary": "",
     }
 
 
@@ -100,6 +108,17 @@ class IpBroadcastSession:
 
     def set_notice(self, step: int, kind: str, message: str) -> None:
         self.notices[step] = {"kind": kind, "message": message}
+
+    def set_error_notice(self, step: int, error: Exception) -> None:
+        business_error = classify_ip_broadcast_error(error)
+        self.notices[step] = {
+            "kind": "error",
+            "message": business_error.user_message,
+            "technical_message": business_error.technical_message,
+            "category": business_error.category,
+            "retryable": str(business_error.retryable).lower(),
+            "next_action": business_error.next_action,
+        }
 
     def refresh_readiness(self) -> None:
         has_script = bool(self.state.get("final_script"))
@@ -268,7 +287,7 @@ async def run_ip_broadcast_step(
         return True
     except Exception as e:
         session.step_status[step] = "error"
-        session.set_notice(step, "error", str(e))
+        session.set_error_notice(step, e)
         logger.exception(e)
         return False
 
@@ -355,19 +374,33 @@ async def _run_postproduction(pixelle_video, session: IpBroadcastSession) -> Non
     if session.state.get("remove_silence"):
         working_audio = remove_silence(audio_path, get_temp_path(f"ipb_clean_{uid}.mp3"))
 
-    merged = merge_audio_into_video(
-        dh_video,
-        working_audio,
-        get_temp_path(f"ipb_merged_{uid}.mp4"),
-    )
     final = get_output_path(f"ipb_{uid}_final.mp4")
-    if session.state.get("subtitle_enabled", True) and session.state.get("final_script"):
-        srt = get_temp_path(f"ipb_{uid}.srt")
-        generate_srt(session.state["final_script"], working_audio, srt)
-        template = get_ip_broadcast_template(session.state.get("template_id"))
-        embed_subtitles(merged, srt, final, force_style=build_ass_force_style(template))
+    if session.state.get("overlay_enabled") and session.state.get("visual_groups"):
+        compose_ip_broadcast_video(
+            base_video=dh_video,
+            audio_path=working_audio,
+            output_path=final,
+            script=session.state.get("final_script", ""),
+            story_segments=session.state.get("story_segments") or [],
+            visual_groups=session.state.get("visual_groups") or [],
+            template_id=session.state.get("template_id"),
+            subtitle_enabled=bool(session.state.get("subtitle_enabled", True)),
+            width=int(session.state.get("digital_human_width") or 720),
+            height=int(session.state.get("digital_human_height") or 1280),
+        )
     else:
-        shutil.copy2(merged, final)
+        merged = merge_audio_into_video(
+            dh_video,
+            working_audio,
+            get_temp_path(f"ipb_merged_{uid}.mp4"),
+        )
+        if session.state.get("subtitle_enabled", True) and session.state.get("final_script"):
+            srt = get_temp_path(f"ipb_{uid}.srt")
+            generate_srt(session.state["final_script"], working_audio, srt)
+            template = get_ip_broadcast_template(session.state.get("template_id"))
+            embed_subtitles(merged, srt, final, force_style=build_ass_force_style(template))
+        else:
+            shutil.copy2(merged, final)
 
     session.state["final_video_path"] = final
     session.artifacts["final_video"] = final
@@ -386,6 +419,70 @@ async def _run_publish(session: IpBroadcastSession) -> None:
         session.artifacts["final_video"] = session.state["final_video_path"]
     if session.state.get("cover_path"):
         session.artifacts["cover"] = session.state["cover_path"]
+    _write_publish_package(session)
+
+
+def _write_publish_package(session: IpBroadcastSession) -> None:
+    script = str(session.state.get("final_script", "")).strip()
+    hashtags = session.state.get("hashtags") or ["老板口播", "IP口播"]
+    package = {
+        "video_path": session.state.get("final_video_path", ""),
+        "cover_path": session.state.get("cover_path", ""),
+        "title": session.state.get("title", ""),
+        "description": session.state.get("description", ""),
+        "hashtags": hashtags,
+        "script": script,
+        "script_summary": script[:80],
+        "platform_suggestions": _build_platform_suggestions(
+            session.state.get("title", ""),
+            session.state.get("description", ""),
+            hashtags,
+        ),
+    }
+    session.state["publish_package"] = package
+    session.state["platform_suggestions"] = package["platform_suggestions"]
+    session.state["script_summary"] = package["script_summary"]
+
+    uid = session.session_id[:8]
+    script_path = get_output_path(f"ipb_{uid}_script.txt")
+    package_path = get_output_path(f"ipb_{uid}_publish_package.json")
+    Path(script_path).write_text(script, encoding="utf-8")
+    Path(package_path).write_text(
+        json.dumps(package, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    session.artifacts["script"] = script_path
+    session.artifacts["publish_package_json"] = package_path
+
+
+def _build_platform_suggestions(
+    title: str,
+    description: str,
+    hashtags: list[str],
+) -> dict[str, dict[str, Any]]:
+    tag_text = " ".join(f"#{tag}" for tag in hashtags)
+    return {
+        "douyin": {
+            "title": title[:55],
+            "description": f"{description}\n{tag_text}".strip(),
+            "hashtags": hashtags,
+        },
+        "xiaohongshu": {
+            "title": title[:20],
+            "description": f"{description}\n\n{tag_text}".strip(),
+            "hashtags": hashtags,
+        },
+        "shipinhao": {
+            "title": title[:30],
+            "description": description,
+            "hashtags": hashtags,
+        },
+        "kuaishou": {
+            "title": title[:40],
+            "description": f"{description} {tag_text}".strip(),
+            "hashtags": hashtags,
+        },
+    }
 
 
 def _validate_portrait_media_type(workflow: str | None, media_type: str) -> None:

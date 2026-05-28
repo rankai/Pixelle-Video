@@ -79,7 +79,13 @@ class TaskManager:
     def create_task(
         self,
         task_type: TaskType,
-        request_params: Optional[dict] = None
+        request_params: Optional[dict] = None,
+        display_name: str = "",
+        flow_name: str = "",
+        step_key: str = "",
+        session_id: str = "",
+        artifact_keys: Optional[list[str]] = None,
+        retry_payload: Optional[dict] = None,
     ) -> Task:
         """
         Create a new task
@@ -97,6 +103,12 @@ class TaskManager:
             task_type=task_type,
             status=TaskStatus.PENDING,
             request_params=request_params,
+            display_name=display_name,
+            flow_name=flow_name,
+            step_key=step_key,
+            session_id=session_id,
+            artifact_keys=artifact_keys or [],
+            retry_payload=retry_payload,
         )
         
         self._tasks[task_id] = task
@@ -138,12 +150,14 @@ class TaskManager:
                 task.status = TaskStatus.COMPLETED
                 task.result = result
                 task.completed_at = datetime.now()
+                task.duration_ms = _duration_ms(task.started_at, task.completed_at)
                 logger.info(f"Task {task_id} completed")
                 
             except Exception as e:
                 task.status = TaskStatus.FAILED
                 task.error = str(e)
                 task.completed_at = datetime.now()
+                task.duration_ms = _duration_ms(task.started_at, task.completed_at)
                 logger.error(f"Task {task_id} failed: {e}")
         
         # Start execution
@@ -233,6 +247,7 @@ class TaskManager:
         # Update task status
         task.status = TaskStatus.CANCELLED
         task.completed_at = datetime.now()
+        task.duration_ms = _duration_ms(task.started_at, task.completed_at)
         logger.info(f"Cancelled task {task_id}")
         return True
     
@@ -269,3 +284,8 @@ class TaskManager:
 # Global task manager instance
 task_manager = TaskManager()
 
+
+def _duration_ms(started_at: Optional[datetime], completed_at: Optional[datetime]) -> int | None:
+    if not started_at or not completed_at:
+        return None
+    return int((completed_at - started_at).total_seconds() * 1000)

@@ -79,8 +79,44 @@ export type IpTemplateAsset = {
   subtitle_style: Record<string, unknown>;
 };
 
+export type IpPresetAsset = {
+  preset_id: string;
+  display_name: string;
+  description: string;
+  script_structure: string[];
+  recommended_word_count: number;
+  default_style_prompt: string;
+  default_template_id: string;
+  default_subtitle_enabled: boolean;
+  recommended_visual_strategy: string;
+  publish_platform_hints: string[];
+};
+
+export type BrandKit = {
+  brand_id: string;
+  brand_name: string;
+  created_at: string;
+  logo_path: string;
+  primary_color: string;
+  secondary_color: string;
+  font_family: string;
+  default_bgm_path: string;
+  default_subtitle_style: string;
+  ending_card_text: string;
+  store_address: string;
+  phone: string;
+  coupon_phrase: string;
+};
+
 export type TaskInfo = {
   task_id: string;
+  display_name?: string;
+  flow_name?: string;
+  step_key?: string;
+  session_id?: string;
+  artifact_keys?: string[];
+  duration_ms?: number | null;
+  retry_payload?: Record<string, unknown> | null;
   status: "pending" | "running" | "completed" | "failed" | "cancelled";
   progress?: {
     current: number;
@@ -153,10 +189,21 @@ export function getTask(taskId: string) {
   return apiFetch<TaskInfo>(`/api/tasks/${taskId}`);
 }
 
+export function listTasks(status = "", limit = 50) {
+  const query = new URLSearchParams();
+  if (status) query.set("status", status);
+  query.set("limit", String(limit));
+  return apiFetch<TaskInfo[]>(`/api/tasks?${query.toString()}`);
+}
+
 export function cancelTask(taskId: string) {
   return apiFetch<{ success: boolean; message: string }>(`/api/tasks/${taskId}`, {
     method: "DELETE",
   });
+}
+
+export function retryTask(taskId: string) {
+  return apiFetch<TaskInfo>(`/api/tasks/${taskId}/retry`, { method: "POST" });
 }
 
 export function getDesktopConfig() {
@@ -227,6 +274,34 @@ export function deleteVideoAsset(assetId: string) {
 
 export function listIpTemplateAssets() {
   return apiFetch<{ items: IpTemplateAsset[] }>("/api/assets/templates/ip-broadcast");
+}
+
+export function listIpPresetAssets() {
+  return apiFetch<{ items: IpPresetAsset[] }>("/api/assets/presets/ip-broadcast");
+}
+
+export function listBrandKits() {
+  return apiFetch<{ items: BrandKit[] }>("/api/assets/brand-kits");
+}
+
+export function createBrandKit(values: Partial<BrandKit>) {
+  return apiFetch<BrandKit>("/api/assets/brand-kits", {
+    method: "POST",
+    body: JSON.stringify(values),
+  });
+}
+
+export function updateBrandKit(brandId: string, values: Partial<BrandKit>) {
+  return apiFetch<BrandKit>(`/api/assets/brand-kits/${brandId}`, {
+    method: "PATCH",
+    body: JSON.stringify(values),
+  });
+}
+
+export function deleteBrandKit(brandId: string) {
+  return apiFetch<{ deleted: boolean }>(`/api/assets/brand-kits/${brandId}`, {
+    method: "DELETE",
+  });
 }
 
 export async function assetUrl(path: string) {

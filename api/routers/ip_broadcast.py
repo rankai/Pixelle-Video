@@ -52,6 +52,12 @@ async def run_step(session_id: str, step_key: str, pixelle_video: PixelleVideoDe
     task = task_manager.create_task(
         task_type=TaskType.IP_BROADCAST_STEP,
         request_params={"session_id": session_id, "step_key": step_key},
+        display_name=_step_display_name(step_key),
+        flow_name="IP口播",
+        step_key=step_key,
+        session_id=session_id,
+        artifact_keys=_step_artifacts(step_key),
+        retry_payload={"kind": "ip_broadcast_step", "session_id": session_id, "step_key": step_key},
     )
 
     async def _execute():
@@ -118,3 +124,23 @@ def _is_allowed_artifact_path(path: Path) -> bool:
         except ValueError:
             continue
     return False
+
+
+def _step_display_name(step_key: str) -> str:
+    return {
+        "source": "生成口播文案",
+        "copywriting": "AI 改写文案",
+        "voice": "生成语音",
+        "digital_human": "生成数字人视频",
+        "postproduction": "一键成片",
+        "publish": "生成发布素材包",
+    }.get(step_key, step_key)
+
+
+def _step_artifacts(step_key: str) -> list[str]:
+    return {
+        "voice": ["audio"],
+        "digital_human": ["digital_human_video"],
+        "postproduction": ["final_video", "publish_package_json", "script"],
+        "publish": ["publish_package_json", "script"],
+    }.get(step_key, [])
