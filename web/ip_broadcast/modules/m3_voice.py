@@ -121,20 +121,10 @@ def render_m3_voice(pixelle_video, run_mode: str):
     step = 3
     status = get_step_status(step)
     icon = STATUS_ICONS.get(status, "○")
+    generate_clicked = False
 
     with st.container(border=True):
-        header_col, btn_col = st.columns([3, 1])
-        with header_col:
-            st.markdown(f"**{icon} 3. 声音生成**")
-        with btn_col:
-            generate_clicked = False
-            if run_mode == "manual":
-                generate_clicked = st.button(
-                    "生成语音",
-                    key="ipb_m3_generate_btn",
-                    use_container_width=True,
-                    type="primary",
-                )
+        st.markdown(f"**{icon} 3. 声音生成**")
 
         has_copy = bool(st.session_state.get("ipb_m2_output", "").strip())
         if not has_copy:
@@ -147,6 +137,14 @@ def render_m3_voice(pixelle_video, run_mode: str):
             _render_comfyui_mode_options(pixelle_video)
 
         _render_voice_preview(pixelle_video)
+
+        if run_mode == "manual":
+            generate_clicked = st.button(
+                "生成语音",
+                key="ipb_m3_generate_btn",
+                use_container_width=True,
+                type="primary",
+            )
 
         if generate_clicked:
             if not has_copy:

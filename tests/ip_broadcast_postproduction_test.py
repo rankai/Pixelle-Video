@@ -3,7 +3,7 @@ import pytest
 from pixelle_video.services.subtitle_service import _build_subtitles_filter
 from pixelle_video.services.video import VideoService
 from web.ip_broadcast import state
-from web.ip_broadcast.modules import m5_composer, m5_postproduction
+from web.ip_broadcast.modules import m5_composer, m5_postproduction, m5_publish_assets
 from web.ip_broadcast.modules.m5_postproduction import (
     _build_bgm_mix_command,
     _visible_overlay_groups,
@@ -130,6 +130,117 @@ def test_overlay_video_segment_command_preserves_base_audio_and_limits_time_rang
     assert "enable='between(t,2.5,5)'" in cmd[filter_index]
     assert "scale=388:-2" in cmd[filter_index]
     assert "overlay=main_w-overlay_w-48:80" in cmd[filter_index]
+
+
+class AttrDict(dict):
+    def __getattr__(self, key):
+        try:
+            return self[key]
+        except KeyError as e:
+            raise AttributeError(key) from e
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
+
+def test_publish_asset_settings_uses_shadow_widget_keys(monkeypatch):
+    session = AttrDict()
+    state.init_ip_broadcast_state(session)
+    seen_keys = []
+
+    def fake_text_input(_label, **kwargs):
+        seen_keys.append(kwargs["key"])
+        return kwargs.get("value", "")
+
+    def fake_text_area(_label, **kwargs):
+        seen_keys.append(kwargs["key"])
+        return kwargs.get("value", "")
+
+    monkeypatch.setattr(m5_publish_assets.st, "session_state", session)
+    monkeypatch.setattr(m5_publish_assets.st, "text_input", fake_text_input)
+    monkeypatch.setattr(m5_publish_assets.st, "text_area", fake_text_area)
+    monkeypatch.setattr(m5_publish_assets.st, "radio", lambda *args, **kwargs: "first_frame")
+
+    m5_publish_assets.render_publish_asset_settings()
+
+    assert "ipb_m6_title" not in seen_keys
+    assert "ipb_m6_description" not in seen_keys
+    assert "_ipb_m6_title_input" in seen_keys
+    assert "_ipb_m6_description_input" in seen_keys
+
+
+def test_run_postproduction_error_uses_single_step_notice(monkeypatch):
+    session = AttrDict()
+    state.init_ip_broadcast_state(session)
+    notices = []
+    errors = []
+
+    class FakeProgress:
+        def progress(self, *_args, **_kwargs):
+            pass
+
+        def empty(self):
+            pass
+
+    class FakeLoading:
+        def empty(self):
+            pass
+
+    monkeypatch.setattr(m5_composer.st, "session_state", session)
+    monkeypatch.setattr(m5_composer.st, "progress", lambda *_args, **_kwargs: FakeProgress())
+    monkeypatch.setattr(m5_composer.st, "error", lambda message: errors.append(message))
+    monkeypatch.setattr(m5_composer, "show_global_loading", lambda _message: FakeLoading())
+    monkeypatch.setattr(m5_composer, "set_step_notice", lambda *args: notices.append(args))
+    monkeypatch.setattr(m5_composer, "_prepare_audio", lambda _uid: (_ for _ in ()).throw(RuntimeError("compose failed")))
+
+    m5_composer.run_postproduction(object())
+
+    assert errors == []
+    assert notices == [(5, "error", "compose failed")]
+
+
+@pytest.mark.asyncio
+async def test_publish_cover_uses_subtitle_free_source_video(monkeypatch, tmp_path):
+    session = AttrDict()
+    state.init_ip_broadcast_state(session)
+    final_video = tmp_path / "final_with_subtitles.mp4"
+    cover_source = tmp_path / "merged_without_subtitles.mp4"
+    final_video.write_bytes(b"final")
+    cover_source.write_bytes(b"source")
+    session.update(
+        {
+            "ipb_m2_output": "",
+            "ipb_m6_title": "标题",
+            "ipb_m6_description": "描述",
+            "ipb_m6_cover_mode": "first_frame",
+        }
+    )
+    extracted_from = []
+
+    monkeypatch.setattr(m5_publish_assets.st, "session_state", session)
+    monkeypatch.setattr(
+        m5_publish_assets,
+        "extract_first_frame",
+        lambda video_path, output_path: extracted_from.append(video_path) or output_path,
+    )
+
+    async def fake_render_cover(**kwargs):
+        return kwargs["output_path"]
+
+    monkeypatch.setattr(m5_publish_assets, "render_ip_broadcast_cover", fake_render_cover)
+    monkeypatch.setattr(
+        m5_publish_assets,
+        "get_temp_path",
+        lambda name: str(tmp_path / name),
+    )
+
+    await m5_publish_assets.ensure_publish_assets_async(
+        object(),
+        str(final_video),
+        cover_source_path=str(cover_source),
+    )
+
+    assert extracted_from == [str(cover_source)]
 
 
 @pytest.mark.asyncio

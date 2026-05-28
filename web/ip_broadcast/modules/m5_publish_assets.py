@@ -10,15 +10,28 @@ from pixelle_video.services.subtitle_service import extract_first_frame
 from pixelle_video.utils.os_util import get_temp_path
 from web.utils.async_helpers import run_async
 
+TITLE_INPUT_KEY = "_ipb_m6_title_input"
+DESCRIPTION_INPUT_KEY = "_ipb_m6_description_input"
+
 
 def render_publish_asset_settings() -> None:
-    st.text_input("视频标题", key="ipb_m6_title", placeholder="留空则一键成片时自动生成")
-    st.text_area(
+    _sync_publish_text_widget("ipb_m6_title", TITLE_INPUT_KEY)
+    _sync_publish_text_widget("ipb_m6_description", DESCRIPTION_INPUT_KEY)
+
+    title = st.text_input(
+        "视频标题",
+        key=TITLE_INPUT_KEY,
+        placeholder="留空则一键成片时自动生成",
+    )
+    description = st.text_area(
         "视频描述",
-        key="ipb_m6_description",
+        key=DESCRIPTION_INPUT_KEY,
         height=90,
         placeholder="留空则一键成片时自动生成",
     )
+    st.session_state.ipb_m6_title = title.strip()
+    st.session_state.ipb_m6_description = description.strip()
+
     tags = st.session_state.get("ipb_m6_hashtags", [])
     tags_text = ", ".join(tags) if tags else ""
     updated_tags = st.text_input(
@@ -53,6 +66,15 @@ def render_publish_asset_settings() -> None:
             st.image(uploaded, caption="封面预览", use_container_width=True)
 
 
+def _sync_publish_text_widget(state_key: str, widget_key: str) -> None:
+    value = st.session_state.get(state_key, "")
+    current = st.session_state.get(widget_key, "")
+    if value and current != value:
+        st.session_state[widget_key] = value
+    elif widget_key not in st.session_state:
+        st.session_state[widget_key] = value
+
+
 def render_publish_asset_summary() -> None:
     title = st.session_state.get("ipb_m6_title", "")
     description = st.session_state.get("ipb_m6_description", "")
@@ -72,11 +94,25 @@ def render_publish_asset_summary() -> None:
             st.caption(" ".join(f"#{tag}" for tag in hashtags))
 
 
-def ensure_publish_assets(pixelle_video, final_video_path: str) -> None:
-    run_async(ensure_publish_assets_async(pixelle_video, final_video_path))
+def ensure_publish_assets(
+    pixelle_video,
+    final_video_path: str,
+    cover_source_path: str | None = None,
+) -> None:
+    run_async(
+        ensure_publish_assets_async(
+            pixelle_video,
+            final_video_path,
+            cover_source_path=cover_source_path,
+        )
+    )
 
 
-async def ensure_publish_assets_async(pixelle_video, final_video_path: str) -> None:
+async def ensure_publish_assets_async(
+    pixelle_video,
+    final_video_path: str,
+    cover_source_path: str | None = None,
+) -> None:
     copy_text = st.session_state.get("ipb_m2_output", "")
     if copy_text and (
         not st.session_state.get("ipb_m6_title")
@@ -94,12 +130,13 @@ async def ensure_publish_assets_async(pixelle_video, final_video_path: str) -> N
         return
     if st.session_state.get("ipb_m6_cover_mode", "first_frame") != "first_frame":
         return
-    if not final_video_path or not Path(final_video_path).exists():
+    frame_source_path = cover_source_path or final_video_path
+    if not frame_source_path or not Path(frame_source_path).exists():
         return
 
     uid = uuid.uuid4().hex[:8]
     first_frame_path = get_temp_path(f"ipb_cover_bg_{uid}.png")
-    extract_first_frame(final_video_path, first_frame_path)
+    extract_first_frame(frame_source_path, first_frame_path)
     title = st.session_state.get("ipb_m6_title") or "老板IP口播"
     subtitle = st.session_state.get("ipb_m6_description") or "高价值短视频内容"
     cover_path = get_temp_path(f"ipb_cover_{uid}.png")

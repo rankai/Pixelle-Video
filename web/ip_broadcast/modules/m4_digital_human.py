@@ -32,20 +32,10 @@ def render_m4_digital_human(pixelle_video, run_mode: str):
     step = 4
     status = get_step_status(step)
     icon = STATUS_ICONS.get(status, "○")
+    generate_clicked = False
 
     with st.container(border=True):
-        header_col, btn_col = st.columns([3, 1])
-        with header_col:
-            st.markdown(f"**{icon} 4. 数字人视频**")
-        with btn_col:
-            generate_clicked = False
-            if run_mode == "manual":
-                generate_clicked = st.button(
-                    "生成视频",
-                    key="ipb_m4_generate_btn",
-                    use_container_width=True,
-                    type="primary",
-                )
+        st.markdown(f"**{icon} 4. 数字人视频**")
 
         # Soft hint — portrait library is always accessible
         has_audio = bool(st.session_state.get("ipb_m3_audio_path", "").strip())
@@ -63,6 +53,14 @@ def render_m4_digital_human(pixelle_video, run_mode: str):
         # ----------------------------------------------------------------
         _render_portrait_selection(pixelle_video)
         _render_workflow_options()
+
+        if run_mode == "manual":
+            generate_clicked = st.button(
+                "生成视频",
+                key="ipb_m4_generate_btn",
+                use_container_width=True,
+                type="primary",
+            )
 
         # Generate button action — guard inside, not as early return
         if generate_clicked:
@@ -102,6 +100,20 @@ def _get_dh_svc(pixelle_video):
 def _is_ai_app_workflow(workflow: str | None) -> bool:
     if not workflow:
         return False
+
+
+def _required_portrait_media_type(workflow: str | None) -> str:
+    if not workflow:
+        return "image"
+    try:
+        from pixelle_video.services.digital_human_service import _load_workflow_config
+
+        config = _load_workflow_config(workflow)
+        if config.get("type") != "ai_app":
+            return "any"
+        return config.get("ip_broadcast", {}).get("portrait_media_type", "image")
+    except Exception:
+        return "image"
     try:
         from pixelle_video.services.digital_human_service import _load_workflow_config
 
@@ -323,7 +335,12 @@ def _render_workflow_options():
     if selected_workflow.get("description"):
         st.caption(selected_workflow["description"])
 
-    if selected_workflow.get("supports_duration") or selected_workflow.get("supports_prompt"):
+    if (
+        selected_workflow.get("supports_duration")
+        or selected_workflow.get("supports_prompt")
+        or selected_workflow.get("supports_width")
+        or selected_workflow.get("supports_height")
+    ):
         with st.expander("工作流参数", expanded=True):
             if selected_workflow.get("supports_duration"):
                 default_duration = _probe_duration_safe(
@@ -341,6 +358,30 @@ def _render_workflow_options():
                     key="ipb_m4_duration",
                     help="默认按语音时长填写，可手动调整。",
                 )
+            if selected_workflow.get("supports_width") or selected_workflow.get("supports_height"):
+                size_col1, size_col2 = st.columns(2)
+                default_width = int(selected_workflow.get("default_width") or 720)
+                default_height = int(selected_workflow.get("default_height") or 1280)
+                with size_col1:
+                    st.number_input(
+                        "宽",
+                        min_value=256,
+                        max_value=2160,
+                        step=8,
+                        value=int(st.session_state.get("ipb_m4_width") or default_width),
+                        key="ipb_m4_width",
+                        help="快速版默认 720，可按工作流能力手动调整。",
+                    )
+                with size_col2:
+                    st.number_input(
+                        "高",
+                        min_value=256,
+                        max_value=3840,
+                        step=8,
+                        value=int(st.session_state.get("ipb_m4_height") or default_height),
+                        key="ipb_m4_height",
+                        help="快速版默认 1280，可按工作流能力手动调整。",
+                    )
             if selected_workflow.get("supports_prompt"):
                 st.text_area(
                     "提示词描述",
@@ -394,11 +435,10 @@ def _do_generate_video(pixelle_video):
 
     workflow = st.session_state.get("ipb_m4_workflow")
     portrait_media_type = portrait_svc.get_portrait_media_type(portrait_id)
-    if _is_ai_app_workflow(workflow) and portrait_media_type == "video":
-        message = (
-            "当前 RunningHub AI App 数字人口播工作流的形象节点是 image，"
-            "只支持图片形象。请上传 jpg/png/webp 图片形象，或切换回 digital_combination 工作流使用视频形象。"
-        )
+    required_media_type = _required_portrait_media_type(workflow)
+    if required_media_type != "any" and portrait_media_type != required_media_type:
+        media_text = "视频形象" if required_media_type == "video" else "图片形象"
+        message = f"当前 RunningHub AI App 工作流只支持{media_text}，请切换形象或选择其他数字人工作流。"
         set_step_status(4, "error")
         set_step_notice(4, "error", message)
         st.error(message)
@@ -412,12 +452,16 @@ def _do_generate_video(pixelle_video):
         try:
             duration = float(st.session_state.get("ipb_m4_duration", 0.0) or 0.0)
             prompt = st.session_state.get("ipb_m4_prompt", "")
+            width = int(st.session_state.get("ipb_m4_width", 720) or 720)
+            height = int(st.session_state.get("ipb_m4_height", 1280) or 1280)
             cached_path = _get_cached_digital_human_path(
                 audio_path=audio_path,
                 portrait_path=portrait_path,
                 workflow=workflow,
                 duration=duration,
                 prompt=prompt,
+                width=width,
+                height=height,
             )
             if cached_path:
                 st.session_state.ipb_m4_dh_video_path = cached_path
@@ -433,6 +477,8 @@ def _do_generate_video(pixelle_video):
                     workflow=workflow,
                     duration=duration,
                     prompt=prompt,
+                    width=width,
+                    height=height,
                 )
             )
             dh_video_path = _store_digital_human_cache(
@@ -441,6 +487,8 @@ def _do_generate_video(pixelle_video):
                 workflow=workflow,
                 duration=duration,
                 prompt=prompt,
+                width=width,
+                height=height,
                 video_path=dh_video_path,
             )
             st.session_state.ipb_m4_dh_video_path = dh_video_path
@@ -478,12 +526,16 @@ async def run_m4(pixelle_video) -> bool:
         workflow = st.session_state.get("ipb_m4_workflow")
         duration = float(st.session_state.get("ipb_m4_duration", 0.0) or 0.0)
         prompt = st.session_state.get("ipb_m4_prompt", "")
+        width = int(st.session_state.get("ipb_m4_width", 720) or 720)
+        height = int(st.session_state.get("ipb_m4_height", 1280) or 1280)
         cached_path = _get_cached_digital_human_path(
             audio_path=audio_path,
             portrait_path=portrait_path,
             workflow=workflow,
             duration=duration,
             prompt=prompt,
+            width=width,
+            height=height,
         )
         if cached_path:
             st.session_state.ipb_m4_dh_video_path = cached_path
@@ -497,6 +549,8 @@ async def run_m4(pixelle_video) -> bool:
             workflow=workflow,
             duration=duration,
             prompt=prompt,
+            width=width,
+            height=height,
         )
         dh_video_path = _store_digital_human_cache(
             audio_path=audio_path,
@@ -504,6 +558,8 @@ async def run_m4(pixelle_video) -> bool:
             workflow=workflow,
             duration=duration,
             prompt=prompt,
+            width=width,
+            height=height,
             video_path=dh_video_path,
         )
         st.session_state.ipb_m4_dh_video_path = dh_video_path
@@ -524,6 +580,8 @@ def _digital_human_cache_key(
     workflow: str,
     duration: float,
     prompt: str,
+    width: int,
+    height: int,
 ) -> str:
     return stable_hash(
         {
@@ -532,6 +590,8 @@ def _digital_human_cache_key(
             "workflow": workflow,
             "duration": duration,
             "prompt": prompt,
+            "width": width,
+            "height": height,
         }
     )
 
@@ -543,6 +603,8 @@ def _get_cached_digital_human_path(
     workflow: str,
     duration: float,
     prompt: str,
+    width: int,
+    height: int,
 ) -> str | None:
     return existing_cache_path(
         "digital_human",
@@ -552,6 +614,8 @@ def _get_cached_digital_human_path(
             workflow=workflow,
             duration=duration,
             prompt=prompt,
+            width=width,
+            height=height,
         ),
         ".mp4",
     )
@@ -564,6 +628,8 @@ def _store_digital_human_cache(
     workflow: str,
     duration: float,
     prompt: str,
+    width: int,
+    height: int,
     video_path: str,
 ) -> str:
     return store_cache_file(
@@ -575,6 +641,8 @@ def _store_digital_human_cache(
             workflow=workflow,
             duration=duration,
             prompt=prompt,
+            width=width,
+            height=height,
         ),
         ".mp4",
     )

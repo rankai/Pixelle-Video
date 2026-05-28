@@ -125,8 +125,10 @@ def render_comfyui_mode_options(pixelle_video) -> None:
 
     workflow_kind = workflow_kind_for(tts_workflow_key or "")
     if workflow_kind == "edge":
+        st.caption(reference_audio_notice(tts_workflow_key or ""))
         render_comfyui_edge_options()
     elif workflow_kind == "spark":
+        st.caption(reference_audio_notice(tts_workflow_key or ""))
         render_spark_options()
     elif workflow_kind == "index":
         st.caption("选择已保存的参考音频可克隆声音，不选择则使用工作流默认声音。")
@@ -430,6 +432,15 @@ def workflow_kind_for(workflow: str) -> str:
     if "edge" in workflow_name:
         return "edge"
     return "generic"
+
+
+def reference_audio_notice(workflow: str) -> str:
+    workflow_kind = workflow_kind_for(workflow)
+    if workflow_kind == "edge":
+        return "当前 Edge TTS 工作流不使用参考音频；如需克隆声音，请切换到 Index 声音克隆工作流。"
+    if workflow_kind == "spark":
+        return "当前 Spark TTS 工作流按性别、语速、音调生成声音，不读取参考音频。"
+    return ""
 
 
 def available_voice_locales() -> list[str]:

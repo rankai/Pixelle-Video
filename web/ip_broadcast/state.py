@@ -102,6 +102,8 @@ def init_ip_broadcast_state(session: MutableMapping | None = None):
         "ipb_m4_workflow": "workflows/runninghub/digital_combination.json",
         "ipb_m4_prompt": "自然口播，正面镜头，表情稳定，唇形同步",
         "ipb_m4_duration": 0.0,
+        "ipb_m4_width": 720,
+        "ipb_m4_height": 1280,
         # Module 5
         "ipb_m5_template_id": "boss_clean",
         "ipb_m5_subtitle_enabled": True,
@@ -198,29 +200,34 @@ def _path_exists(value: str) -> bool:
 def refresh_step_readiness(session: MutableMapping | None = None):
     session = _session(session)
     init_ip_broadcast_state(session)
-    if session.get("ipb_source_text"):
+    has_copy = bool(session.get("ipb_final_script") or session.get("ipb_m2_output"))
+    has_audio = _path_exists(session.get("ipb_m3_audio_path", ""))
+    has_digital_human = _path_exists(session.get("ipb_m4_dh_video_path", ""))
+    has_final_video = _path_exists(session.get("ipb_m5_final_video_path", ""))
+
+    if session.get("ipb_source_text") or has_copy:
         set_step_status(1, "done", session)
-    if session.get("ipb_final_script") or session.get("ipb_m2_output"):
+    if has_copy:
         set_step_status(2, "done", session)
     elif session.get("ipb_source_text") and get_step_status(2, session) == "pending":
         set_step_status(2, "ready", session)
     if (
         session.get("ipb_final_script")
-        and not _path_exists(session.get("ipb_m3_audio_path", ""))
+        and not has_audio
         and get_step_status(3, session) != "done"
     ):
         set_step_status(3, "ready", session)
-    if _path_exists(session.get("ipb_m3_audio_path", "")):
+    if has_audio or has_final_video:
         set_step_status(3, "done", session)
-    if _path_exists(session.get("ipb_m4_dh_video_path", "")):
+    if has_digital_human or has_final_video:
         set_step_status(4, "done", session)
-    elif _path_exists(session.get("ipb_m3_audio_path", "")) and session.get("ipb_m4_portrait_id"):
+    elif has_audio and session.get("ipb_m4_portrait_id"):
         set_step_status(4, "ready", session)
-    if _path_exists(session.get("ipb_m5_final_video_path", "")):
+    if has_final_video:
         set_step_status(5, "done", session)
-    elif _path_exists(session.get("ipb_m4_dh_video_path", "")):
+    elif has_digital_human:
         set_step_status(5, "ready", session)
-    if _path_exists(session.get("ipb_m5_final_video_path", "")):
+    if has_final_video:
         set_step_status(6, "ready", session)
 
 

@@ -1,3 +1,4 @@
+import inspect
 from contextlib import nullcontext
 from pathlib import Path
 
@@ -5,7 +6,7 @@ import pytest
 
 from pixelle_video.services.tts_service import TTSService
 from web.ip_broadcast import state
-from web.ip_broadcast.modules import m3_runner, m3_voice, m3_voice_references
+from web.ip_broadcast.modules import m3_runner, m3_tts_config, m3_voice, m3_voice_references
 
 
 class AttrDict(dict):
@@ -31,6 +32,12 @@ def _session():
     session = AttrDict()
     state.init_ip_broadcast_state(session)
     return session
+
+
+def test_render_m3_places_generate_button_after_configuration():
+    source = inspect.getsource(m3_voice.render_m3_voice)
+
+    assert source.index("_render_voice_preview(pixelle_video)") < source.index('"生成语音"')
 
 
 def test_build_tts_kwargs_for_local_mode(monkeypatch):
@@ -167,6 +174,16 @@ def test_build_tts_kwargs_for_comfyui_spark_mode(monkeypatch):
         "do_sample": False,
         "seed": 67890,
     }
+
+
+def test_reference_audio_notice_explains_non_clone_workflows():
+    assert m3_tts_config.reference_audio_notice("runninghub/tts_edge.json") == (
+        "当前 Edge TTS 工作流不使用参考音频；如需克隆声音，请切换到 Index 声音克隆工作流。"
+    )
+    assert m3_tts_config.reference_audio_notice("runninghub/tts_spark.json") == (
+        "当前 Spark TTS 工作流按性别、语速、音调生成声音，不读取参考音频。"
+    )
+    assert m3_tts_config.reference_audio_notice("runninghub/tts_index2.json") == ""
 
 
 @pytest.mark.asyncio

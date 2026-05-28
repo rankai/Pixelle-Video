@@ -1,3 +1,4 @@
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -5,6 +6,7 @@ import pytest
 from pixelle_video.services.digital_human_service import (
     _build_ai_app_node_info_list,
     _build_ai_app_run_request,
+    _build_trim_video_to_duration_command,
     _build_workflow_params,
     _extract_video_output,
     _load_workflow_config,
@@ -13,6 +15,7 @@ from pixelle_video.services.digital_human_service import (
     _resolve_workflow_input,
     _runninghub_ai_app_headers,
     _runninghub_ai_app_outputs_to_result,
+    _trim_video_to_audio_duration_if_needed,
     _upload_runninghub_ai_app_media,
     _wait_for_runninghub_task,
     list_digital_human_workflows,
@@ -190,6 +193,171 @@ def test_build_ai_app_node_info_list_uses_runninghub_api_node_mapping():
             "fieldName": "text",
             "fieldValue": "女孩说话，正视镜头",
             "description": "prompt",
+        },
+    ]
+
+
+def test_build_ai_app_node_info_list_supports_fast_workflow_width_height():
+    workflow_config = {
+        "ip_broadcast": {
+            "params": {
+                "portrait": {"node_id": "269", "field_name": "image", "description": "image"},
+                "audio": {"node_id": "276", "field_name": "audio", "description": "audio"},
+                "width": {"node_id": "368", "field_name": "value", "description": "宽"},
+                "height": {"node_id": "382", "field_name": "value", "description": "高"},
+                "prompt": {"node_id": "391", "field_name": "value", "description": "value"},
+            }
+        }
+    }
+
+    node_info = _build_ai_app_node_info_list(
+        workflow_config,
+        uploaded_portrait="portrait.png",
+        uploaded_audio="voice.mp3",
+        width=720,
+        height=1280,
+        prompt="生成一个中国电影片段，镜头固定。",
+    )
+
+    assert node_info == [
+        {
+            "nodeId": "269",
+            "fieldName": "image",
+            "fieldValue": "portrait.png",
+            "description": "image",
+        },
+        {
+            "nodeId": "276",
+            "fieldName": "audio",
+            "fieldValue": "voice.mp3",
+            "description": "audio",
+        },
+        {
+            "nodeId": "368",
+            "fieldName": "value",
+            "fieldValue": "720",
+            "description": "宽",
+        },
+        {
+            "nodeId": "382",
+            "fieldName": "value",
+            "fieldValue": "1280",
+            "description": "高",
+        },
+        {
+            "nodeId": "391",
+            "fieldName": "value",
+            "fieldValue": "生成一个中国电影片段，镜头固定。",
+            "description": "value",
+        },
+    ]
+
+
+def test_build_ai_app_node_info_list_includes_lip_sync_static_defaults():
+    workflow_config = {
+        "ip_broadcast": {
+            "defaults": {
+                "audio_source_select": "1",
+                "frame_load_cap": 0,
+                "skip_first_frames": 10,
+                "width": 480,
+                "height": 832,
+            },
+            "params": {
+                "audio_source_select": {
+                    "node_id": "520",
+                    "field_name": "select",
+                    "description": "音频对口型路径",
+                    "order": 1,
+                },
+                "audio": {
+                    "node_id": "348",
+                    "field_name": "audio",
+                    "description": "上传自定义音频",
+                    "order": 2,
+                },
+                "portrait": {
+                    "node_id": "473",
+                    "field_name": "video",
+                    "description": "对口型视频+音频",
+                    "order": 3,
+                },
+                "frame_load_cap": {
+                    "node_id": "473",
+                    "field_name": "frame_load_cap",
+                    "description": "视频总帧率（0为原长度，25帧/s）",
+                    "order": 4,
+                },
+                "skip_first_frames": {
+                    "node_id": "473",
+                    "field_name": "skip_first_frames",
+                    "description": "跳过前n帧",
+                    "order": 5,
+                },
+                "width": {
+                    "node_id": "521",
+                    "field_name": "value",
+                    "description": "宽度",
+                    "order": 6,
+                },
+                "height": {
+                    "node_id": "522",
+                    "field_name": "value",
+                    "description": "高度",
+                    "order": 7,
+                },
+            },
+        }
+    }
+
+    node_info = _build_ai_app_node_info_list(
+        workflow_config,
+        uploaded_portrait="talking.mp4",
+        uploaded_audio="voice.mp3",
+    )
+
+    assert node_info == [
+        {
+            "nodeId": "520",
+            "fieldName": "select",
+            "fieldValue": "1",
+            "description": "音频对口型路径",
+        },
+        {
+            "nodeId": "348",
+            "fieldName": "audio",
+            "fieldValue": "voice.mp3",
+            "description": "上传自定义音频",
+        },
+        {
+            "nodeId": "473",
+            "fieldName": "video",
+            "fieldValue": "talking.mp4",
+            "description": "对口型视频+音频",
+        },
+        {
+            "nodeId": "473",
+            "fieldName": "frame_load_cap",
+            "fieldValue": "0",
+            "description": "视频总帧率（0为原长度，25帧/s）",
+        },
+        {
+            "nodeId": "473",
+            "fieldName": "skip_first_frames",
+            "fieldValue": "10",
+            "description": "跳过前n帧",
+        },
+        {
+            "nodeId": "521",
+            "fieldName": "value",
+            "fieldValue": "480",
+            "description": "宽度",
+        },
+        {
+            "nodeId": "522",
+            "fieldName": "value",
+            "fieldValue": "832",
+            "description": "高度",
         },
     ]
 
@@ -635,6 +803,77 @@ def test_build_workflow_params_defaults_to_legacy_videoimage_mapping():
         "videoimage": "/tmp/person.png",
         "audio": "/tmp/voice.mp3",
     }
+
+
+def test_build_trim_video_to_duration_command_reencodes_precisely():
+    command = _build_trim_video_to_duration_command(
+        "/tmp/long.mp4",
+        "/tmp/trimmed.mp4",
+        2.0,
+    )
+
+    assert command[:6] == ["ffmpeg", "-y", "-i", "/tmp/long.mp4", "-t", "2.000"]
+    assert "-map" in command
+    assert "0:v:0" in command
+    assert "0:a?" in command
+    assert command[-1] == "/tmp/trimmed.mp4"
+
+
+def test_trim_video_to_audio_duration_if_needed_trims_long_video(tmp_path, monkeypatch):
+    video = tmp_path / "fast_workflow.mp4"
+    audio = tmp_path / "voice.flac"
+    video.write_bytes(b"long video")
+    audio.write_bytes(b"audio")
+    durations = {
+        str(video): 13.708333,
+        str(audio): 2.0,
+    }
+    calls = []
+
+    def fake_probe(path):
+        return durations[path]
+
+    def fake_run(command, capture_output, text, check):
+        calls.append(command)
+        Path(command[-1]).write_bytes(b"trimmed")
+        return SimpleNamespace(stdout="", stderr="")
+
+    monkeypatch.setattr(
+        "pixelle_video.services.digital_human_service._probe_media_duration",
+        fake_probe,
+    )
+    monkeypatch.setattr(
+        "pixelle_video.services.digital_human_service.subprocess.run",
+        fake_run,
+    )
+
+    did_trim = _trim_video_to_audio_duration_if_needed(str(video), str(audio))
+
+    assert did_trim is True
+    assert calls
+    assert calls[0][calls[0].index("-t") + 1] == "2.000"
+    assert video.read_bytes() == b"trimmed"
+
+
+def test_trim_video_to_audio_duration_if_needed_skips_matching_duration(tmp_path, monkeypatch):
+    video = tmp_path / "normal.mp4"
+    audio = tmp_path / "voice.flac"
+    video.write_bytes(b"normal video")
+    audio.write_bytes(b"audio")
+    durations = {
+        str(video): 2.2,
+        str(audio): 2.0,
+    }
+
+    monkeypatch.setattr(
+        "pixelle_video.services.digital_human_service._probe_media_duration",
+        lambda path: durations[path],
+    )
+
+    did_trim = _trim_video_to_audio_duration_if_needed(str(video), str(audio))
+
+    assert did_trim is False
+    assert video.read_bytes() == b"normal video"
 
 
 def test_list_workflows_only_includes_direct_talking_workflows(tmp_path, monkeypatch):

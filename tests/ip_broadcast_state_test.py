@@ -174,6 +174,23 @@ def test_get_next_action_skips_social_meta_after_final_video_exists(tmp_path):
     assert action.step == 6
 
 
+def test_final_video_implies_completed_production_progress(tmp_path):
+    session = _base_session()
+    state.set_final_script("final copy", session=session)
+    audio_path = tmp_path / "voice.mp3"
+    final_path = tmp_path / "final.mp4"
+    audio_path.write_text("audio")
+    final_path.write_text("ok")
+    session["ipb_m3_audio_path"] = str(audio_path)
+    session["ipb_m4_portrait_id"] = "portrait-1"
+    session["ipb_m4_dh_video_path"] = str(tmp_path / "missing_dh.mp4")
+    session["ipb_m5_final_video_path"] = str(final_path)
+
+    assert state.get_completed_step_count(session=session) == 5
+    assert session["ipb_step_status"][4] == "done"
+    assert session["ipb_step_status"][5] == "done"
+
+
 def test_split_script_to_segments_uses_entered_paragraphs():
     assert state.split_script_to_segments("开场\n\n案例一\n案例二") == [
         "开场",

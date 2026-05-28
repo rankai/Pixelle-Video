@@ -45,7 +45,7 @@ _TEMPLATES = [
         full_description="封面标题居中偏上，整体留白更克制；字幕位于画面下方，描边较轻，适合日常知识分享、品牌介绍和稳重口播。",
         cover_template_path=str(_TEMPLATE_ROOT / "boss_clean_cover.html"),
         preview_image_path=str(_TEMPLATE_ROOT / "boss_clean_preview.png"),
-        subtitle_style=SubtitleStyle(font_size=46, outline=2, margin_v=155),
+        subtitle_style=SubtitleStyle(font_size=40, outline=2, margin_v=210),
     ),
     IPBroadcastTemplate(
         template_id="boss_authority",
@@ -54,7 +54,7 @@ _TEMPLATES = [
         full_description="封面顶部大标题强化观点；字幕字号更大、描边更重，适合金句、观点输出和强转化口播。",
         cover_template_path=str(_TEMPLATE_ROOT / "boss_authority_cover.html"),
         preview_image_path=str(_TEMPLATE_ROOT / "boss_authority_preview.png"),
-        subtitle_style=SubtitleStyle(font_size=54, outline=4, shadow=0, margin_v=135),
+        subtitle_style=SubtitleStyle(font_size=46, outline=4, shadow=0, margin_v=220),
     ),
     IPBroadcastTemplate(
         template_id="boss_premium",
@@ -64,12 +64,12 @@ _TEMPLATES = [
         cover_template_path=str(_TEMPLATE_ROOT / "boss_premium_cover.html"),
         preview_image_path=str(_TEMPLATE_ROOT / "boss_premium_preview.png"),
         subtitle_style=SubtitleStyle(
-            font_size=48,
+            font_size=42,
             primary_colour="&H00F7E7B2",
             outline_colour="&HAA101010",
             back_colour="&H77101010",
             outline=3,
-            margin_v=165,
+            margin_v=210,
         ),
     ),
 ]

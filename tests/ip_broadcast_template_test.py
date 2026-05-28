@@ -41,9 +41,36 @@ def test_build_ass_force_style_uses_selected_template_subtitle_style():
 
     force_style = build_ass_force_style(template)
 
-    assert "Fontsize=54" in force_style
+    assert "Fontsize=46" in force_style
     assert "Alignment=2" in force_style
     assert "Outline=4" in force_style
+
+
+def test_boss_clean_template_keeps_title_and_subtitles_in_safe_zones():
+    template = get_ip_broadcast_template("boss_clean")
+    cover_html = Path(template.cover_template_path).read_text()
+    force_style = build_ass_force_style(template)
+
+    assert "top: 220px" in cover_html
+    assert "font-size: 62px" in cover_html
+    assert "max-height: 360px" in cover_html
+    assert "Fontsize=40" in force_style
+    assert "MarginV=210" in force_style
+
+
+def test_all_templates_keep_video_subtitles_below_cover_title_zone():
+    expected = {
+        "boss_clean": ("Fontsize=40", "MarginV=210"),
+        "boss_authority": ("Fontsize=46", "MarginV=220"),
+        "boss_premium": ("Fontsize=42", "MarginV=210"),
+    }
+
+    for template_id, (font_size, margin_v) in expected.items():
+        force_style = build_ass_force_style(get_ip_broadcast_template(template_id))
+
+        assert font_size in force_style
+        assert margin_v in force_style
+        assert "Alignment=2" in force_style
 
 
 def test_template_card_text_uses_fixed_title_and_description_heights():

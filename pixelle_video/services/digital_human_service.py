@@ -3,6 +3,8 @@
 import asyncio
 import json
 import os
+import subprocess
+import uuid
 from abc import ABC, abstractmethod
 from pathlib import Path
 from types import SimpleNamespace
@@ -80,7 +82,10 @@ def _normalize_workflow_path(workflow: str) -> Path:
     if workflow_path.exists():
         return workflow_path
 
-    if not workflow_path.is_absolute() and workflow_path.parts[:1] in (("runninghub",), ("selfhost",)):
+    if not workflow_path.is_absolute() and workflow_path.parts[:1] in (
+        ("runninghub",),
+        ("selfhost",),
+    ):
         workflow_path = Path("workflows") / workflow_path
 
     return workflow_path
@@ -153,15 +158,46 @@ def _build_ai_app_node_info_list(
     uploaded_audio: str,
     duration: float | None = None,
     prompt: str | None = None,
+    width: int | None = None,
+    height: int | None = None,
 ) -> list[dict]:
-    mapping = workflow_config.get("ip_broadcast", {}).get("params", {})
+    ipb_config = workflow_config.get("ip_broadcast", {})
+    mapping = ipb_config.get("params", {})
+    defaults = ipb_config.get("defaults", {})
     node_info = []
-    for key, value in (
-        ("portrait", uploaded_portrait),
-        ("audio", uploaded_audio),
-        ("duration", int(round(duration)) if duration else None),
-        ("prompt", prompt),
-    ):
+    emitted_keys = set()
+    value_by_key = {
+        "portrait": uploaded_portrait,
+        "audio": uploaded_audio,
+        "duration": int(round(duration)) if duration else None,
+        "width": int(width) if width else defaults.get("width"),
+        "height": int(height) if height else defaults.get("height"),
+        "prompt": prompt,
+    }
+    ordered_keys = [
+        "audio_source_select",
+        "portrait",
+        "audio",
+        "duration",
+        "frame_load_cap",
+        "skip_first_frames",
+        "width",
+        "height",
+        "prompt",
+    ]
+    ordered_keys = sorted(
+        ordered_keys,
+        key=lambda key: int(mapping.get(key, {}).get("order", ordered_keys.index(key))),
+    )
+    for key in ordered_keys:
+        value = value_by_key.get(key, defaults.get(key))
+        node = _param_node(mapping.get(key), value)
+        if node:
+            node_info.append(node)
+            emitted_keys.add(key)
+    for key, value in defaults.items():
+        if key in emitted_keys or key in {"width", "height", "duration", "prompt"}:
+            continue
         node = _param_node(mapping.get(key), value)
         if node:
             node_info.append(node)
@@ -179,7 +215,9 @@ def _build_ai_app_run_request(
     use_personal_queue_value = (
         use_personal_queue
         if isinstance(use_personal_queue, str)
-        else "true" if use_personal_queue else "false"
+        else "true"
+        if use_personal_queue
+        else "false"
     )
     payload = {
         "nodeInfoList": node_info_list,
@@ -195,11 +233,7 @@ def _build_ai_app_run_request(
 
 
 def _resolve_runninghub_api_key(comfyui_config: dict) -> str:
-    return (
-        comfyui_config.get("runninghub_api_key")
-        or os.getenv("RUNNINGHUB_API_KEY")
-        or ""
-    )
+    return comfyui_config.get("runninghub_api_key") or os.getenv("RUNNINGHUB_API_KEY") or ""
 
 
 def _runninghub_ai_app_headers(api_key: str) -> dict[str, str]:
@@ -232,6 +266,18 @@ def list_digital_human_workflows() -> list[dict]:
                     "description": config.get("ip_broadcast", {}).get("description", ""),
                     "supports_prompt": bool(ipb_params.get("prompt")),
                     "supports_duration": bool(ipb_params.get("duration")),
+                    "supports_width": bool(ipb_params.get("width")),
+                    "supports_height": bool(ipb_params.get("height")),
+                    "portrait_media_type": config.get("ip_broadcast", {}).get(
+                        "portrait_media_type",
+                        "image",
+                    ),
+                    "default_width": config.get("ip_broadcast", {})
+                    .get("defaults", {})
+                    .get("width"),
+                    "default_height": config.get("ip_broadcast", {})
+                    .get("defaults", {})
+                    .get("height"),
                 }
             )
     return workflows
@@ -251,6 +297,8 @@ class DigitalHumanProvider(ABC):
         workflow: str | None = None,
         duration: float | None = None,
         prompt: str | None = None,
+        width: int | None = None,
+        height: int | None = None,
     ) -> str:
         """
         Generate a digital human video.
@@ -281,13 +329,13 @@ class ComfyUIDigitalHumanProvider(DigitalHumanProvider):
         workflow: str | None = None,
         duration: float | None = None,
         prompt: str | None = None,
+        width: int | None = None,
+        height: int | None = None,
     ) -> str:
         kit = await self._core._get_or_create_comfykit()
         dh_config = config_manager.get_digital_human_service_config()
         workflow = (
-            workflow
-            or dh_config.get("base_url")
-            or "workflows/runninghub/digital_combination.json"
+            workflow or dh_config.get("base_url") or "workflows/runninghub/digital_combination.json"
         )
         workflow_config = _load_workflow_config(workflow)
         if workflow_config.get("type") == "ai_app":
@@ -297,6 +345,8 @@ class ComfyUIDigitalHumanProvider(DigitalHumanProvider):
                 audio_path=audio_path,
                 duration=duration,
                 prompt=prompt,
+                width=width,
+                height=height,
             )
             if getattr(result, "status", "completed") != "completed":
                 error_msg = getattr(result, "msg", None) or "Unknown error"
@@ -304,6 +354,7 @@ class ComfyUIDigitalHumanProvider(DigitalHumanProvider):
             video_url_or_path = _extract_video_output(result)
             if video_url_or_path:
                 await _save_video_output(video_url_or_path, output_path)
+                _trim_video_to_audio_duration_if_needed(output_path, audio_path)
                 return output_path
             logger.error(
                 f"Digital human AI App result has no recognized video output: {_summarize_result(result)}"
@@ -335,9 +386,12 @@ class ComfyUIDigitalHumanProvider(DigitalHumanProvider):
         video_url_or_path = _extract_video_output(result)
         if video_url_or_path:
             await _save_video_output(video_url_or_path, output_path)
+            _trim_video_to_audio_duration_if_needed(output_path, audio_path)
             return output_path
 
-        logger.error(f"Digital human result has no recognized video output: {_summarize_result(result)}")
+        logger.error(
+            f"Digital human result has no recognized video output: {_summarize_result(result)}"
+        )
         raise RuntimeError(
             "Digital human generation returned no video output. "
             "请检查数字人工作流是否输出 mp4/webm/mov 视频文件。"
@@ -350,6 +404,8 @@ async def _execute_runninghub_ai_app(
     audio_path: str,
     duration: float | None,
     prompt: str | None,
+    width: int | None = None,
+    height: int | None = None,
 ):
     from comfykit.comfyui.runninghub_client import RunningHubClient
 
@@ -380,6 +436,9 @@ async def _execute_runninghub_ai_app(
             uploaded_audio=uploaded_audio,
             duration=duration,
             prompt=prompt,
+            width=width or workflow_config.get("ip_broadcast", {}).get("defaults", {}).get("width"),
+            height=height
+            or workflow_config.get("ip_broadcast", {}).get("defaults", {}).get("height"),
         )
         logger.info(f"RunningHub AI App nodeInfoList: {node_info_list}")
         endpoint, payload = _build_ai_app_run_request(
@@ -426,7 +485,9 @@ async def _upload_runninghub_ai_app_media(client, file_path: str, api_key: str) 
         try:
             result = await response.json()
         except Exception as e:
-            raise RuntimeError(f"RunningHub AI App media upload returned invalid JSON: {text}") from e
+            raise RuntimeError(
+                f"RunningHub AI App media upload returned invalid JSON: {text}"
+            ) from e
 
     if result.get("code") not in (0, "0", None):
         raise RuntimeError(
@@ -520,7 +581,10 @@ async def _wait_for_runninghub_task(
     poll_interval = RUNNINGHUB_AI_APP_POLL_INTERVAL if poll_interval is None else poll_interval
     start_time = asyncio.get_event_loop().time()
     while True:
-        if max_wait_time is not None and asyncio.get_event_loop().time() - start_time > max_wait_time:
+        if (
+            max_wait_time is not None
+            and asyncio.get_event_loop().time() - start_time > max_wait_time
+        ):
             return SimpleNamespace(status="error", msg=f"RunningHub AI App task {task_id} timeout")
         status_info = await client.query_task_status(task_id)
         task_status = status_info.get("status")
@@ -569,7 +633,10 @@ async def _wait_for_runninghub_ai_app_task(
     poll_interval = RUNNINGHUB_AI_APP_POLL_INTERVAL if poll_interval is None else poll_interval
     start_time = asyncio.get_event_loop().time()
     while True:
-        if max_wait_time is not None and asyncio.get_event_loop().time() - start_time > max_wait_time:
+        if (
+            max_wait_time is not None
+            and asyncio.get_event_loop().time() - start_time > max_wait_time
+        ):
             return SimpleNamespace(status="error", msg=f"RunningHub AI App task {task_id} timeout")
         task_info = await _query_runninghub_ai_app_task(client, task_id, api_key)
         task_status = task_info.get("status")
@@ -647,6 +714,99 @@ async def _save_video_output(video_url_or_path: str, output_path: str) -> None:
         shutil.copy2(video_url_or_path, output_path)
 
 
+def _probe_media_duration(media_path: str) -> float:
+    result = subprocess.run(
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
+            media_path,
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return float(result.stdout.strip())
+
+
+def _build_trim_video_to_duration_command(
+    video_path: str,
+    output_path: str,
+    duration: float,
+) -> list[str]:
+    return [
+        "ffmpeg",
+        "-y",
+        "-i",
+        video_path,
+        "-t",
+        f"{duration:.3f}",
+        "-map",
+        "0:v:0",
+        "-map",
+        "0:a?",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "veryfast",
+        "-crf",
+        "18",
+        "-c:a",
+        "aac",
+        "-movflags",
+        "+faststart",
+        output_path,
+    ]
+
+
+def _trim_video_to_audio_duration_if_needed(
+    video_path: str,
+    audio_path: str,
+    tolerance_seconds: float = 0.35,
+) -> bool:
+    """Trim generated digital-human video when a workflow returns a silent tail."""
+    try:
+        video_duration = _probe_media_duration(video_path)
+        audio_duration = _probe_media_duration(audio_path)
+    except Exception as e:
+        logger.warning(f"Failed to probe digital human durations, skip trimming: {e}")
+        return False
+
+    if audio_duration <= 0 or video_duration <= audio_duration + tolerance_seconds:
+        return False
+
+    output = Path(video_path)
+    temp_output = output.with_name(
+        f"{output.stem}.trim_{uuid.uuid4().hex[:8]}{output.suffix or '.mp4'}"
+    )
+    logger.info(
+        "Trimming digital human video to audio duration: "
+        f"video={video_duration:.2f}s, audio={audio_duration:.2f}s, path={video_path}"
+    )
+    try:
+        subprocess.run(
+            _build_trim_video_to_duration_command(
+                video_path,
+                str(temp_output),
+                audio_duration,
+            ),
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        temp_output.replace(output)
+        return True
+    except subprocess.CalledProcessError as e:
+        if temp_output.exists():
+            temp_output.unlink()
+        stderr = e.stderr or str(e)
+        raise RuntimeError(f"Failed to trim digital human video to audio duration: {stderr}") from e
+
+
 class HTTPDigitalHumanProvider(DigitalHumanProvider):
     """Future provider: 黑链/infomers HTTP API — placeholder until API docs are received"""
 
@@ -660,6 +820,8 @@ class HTTPDigitalHumanProvider(DigitalHumanProvider):
         workflow: str | None = None,
         duration: float | None = None,
         prompt: str | None = None,
+        width: int | None = None,
+        height: int | None = None,
     ) -> str:
         raise NotImplementedError(
             "HTTP digital human provider is not yet implemented. "
@@ -696,6 +858,8 @@ class DigitalHumanService:
         workflow: str | None = None,
         duration: float | None = None,
         prompt: str | None = None,
+        width: int | None = None,
+        height: int | None = None,
     ) -> str:
         provider = self._get_provider()
         logger.info(f"Digital human generation via provider: {provider.provider_id}")
@@ -706,4 +870,6 @@ class DigitalHumanService:
             workflow=workflow,
             duration=duration,
             prompt=prompt,
+            width=width,
+            height=height,
         )

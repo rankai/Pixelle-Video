@@ -92,7 +92,7 @@ def run_postproduction(pixelle_video) -> None:
         final = _write_final_video(merged, audio, uid, progress)
 
         progress.progress(92, text="生成发布素材...")
-        ensure_publish_assets(pixelle_video, final)
+        ensure_publish_assets(pixelle_video, final, cover_source_path=merged)
         progress.progress(100, text="完成！")
         st.session_state.ipb_m5_final_video_path = final
         set_step_status(5, "done")
@@ -100,7 +100,6 @@ def run_postproduction(pixelle_video) -> None:
         safe_rerun()
     except Exception as e:
         set_step_notice(5, "error", str(e))
-        st.error(str(e))
         logger.exception(e)
         set_step_status(5, "error")
         progress.empty()
@@ -125,7 +124,7 @@ async def run_m5(pixelle_video) -> bool:
         merged = _mix_bgm_if_needed(merged, uid)
         final = _write_final_video(merged, audio, uid)
 
-        await ensure_publish_assets_async(pixelle_video, final)
+        await ensure_publish_assets_async(pixelle_video, final, cover_source_path=merged)
         st.session_state.ipb_m5_final_video_path = final
         set_step_status(5, "done")
         return True

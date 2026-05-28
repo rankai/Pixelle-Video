@@ -1,3 +1,4 @@
+import inspect
 from contextlib import nullcontext
 from pathlib import Path
 
@@ -42,6 +43,21 @@ class FakeDigitalHumanService:
 
 class FakePixelleVideo:
     pass
+
+
+def test_render_m4_places_generate_button_after_configuration():
+    source = inspect.getsource(m4_digital_human.render_m4_digital_human)
+
+    assert source.index("_render_workflow_options()") < source.index('"生成视频"')
+
+
+def test_lip_sync_ai_app_accepts_video_portrait():
+    assert (
+        m4_digital_human._required_portrait_media_type(
+            "workflows/runninghub/digital_lip_sync_video.json"
+        )
+        == "video"
+    )
 
 
 def test_portrait_image_preview_html_uses_fixed_height(tmp_path):
@@ -330,3 +346,102 @@ async def test_run_m4_reuses_digital_human_cache_for_same_inputs(monkeypatch, tm
     assert len(fake_dh_svc.calls) == 1
     assert session["ipb_m4_dh_video_path"] == first_cached_path
     assert notices[-1] == (4, "success", "已复用上次生成结果")
+
+
+@pytest.mark.asyncio
+async def test_run_m4_passes_editable_fast_workflow_dimensions(monkeypatch, tmp_path):
+    session = AttrDict()
+    state.init_ip_broadcast_state(session)
+    audio_path = tmp_path / "voice.mp3"
+    portrait_path = tmp_path / "portrait.png"
+    generated_video = tmp_path / "generated.mp4"
+    audio_path.write_bytes(b"audio")
+    portrait_path.write_bytes(b"image")
+    generated_video.write_bytes(b"video")
+    session.update(
+        {
+            "ipb_m3_audio_path": str(audio_path),
+            "ipb_m4_portrait_id": "portrait-1",
+            "ipb_m4_workflow": "workflows/runninghub/digital_talk_fast_720p.json",
+            "ipb_m4_width": 720,
+            "ipb_m4_height": 1280,
+        }
+    )
+
+    monkeypatch.setattr(m4_digital_human.st, "session_state", session)
+    monkeypatch.setattr(m4_digital_human, "get_temp_path", lambda _name: str(tmp_path / _name))
+    monkeypatch.setattr(
+        "pixelle_video.services.ip_broadcast_cache.get_data_path",
+        lambda *parts: str(tmp_path.joinpath(*parts)),
+    )
+    monkeypatch.setattr(
+        m4_digital_human,
+        "_get_portrait_svc",
+        lambda _pixelle_video: FakePortraitService(portrait_path),
+    )
+
+    fake_dh_svc = FakeDigitalHumanService(generated_video)
+
+    async def fake_generate(**kwargs):
+        fake_dh_svc.calls.append(kwargs)
+        return str(generated_video)
+
+    fake_dh_svc.generate = fake_generate
+    monkeypatch.setattr(
+        m4_digital_human,
+        "_get_dh_svc",
+        lambda _pixelle_video: fake_dh_svc,
+    )
+
+    assert await m4_digital_human.run_m4(FakePixelleVideo()) is True
+
+    assert fake_dh_svc.calls[0]["width"] == 720
+    assert fake_dh_svc.calls[0]["height"] == 1280
+
+
+@pytest.mark.asyncio
+async def test_run_m4_allows_video_portrait_for_lip_sync_ai_app(monkeypatch, tmp_path):
+    session = AttrDict()
+    state.init_ip_broadcast_state(session)
+    audio_path = tmp_path / "voice.mp3"
+    portrait_path = tmp_path / "portrait.mp4"
+    generated_video = tmp_path / "generated.mp4"
+    audio_path.write_bytes(b"audio")
+    portrait_path.write_bytes(b"video")
+    generated_video.write_bytes(b"video")
+    session.update(
+        {
+            "ipb_m3_audio_path": str(audio_path),
+            "ipb_m4_portrait_id": "portrait-1",
+            "ipb_m4_workflow": "workflows/runninghub/digital_lip_sync_video.json",
+        }
+    )
+
+    monkeypatch.setattr(m4_digital_human.st, "session_state", session)
+    monkeypatch.setattr(m4_digital_human, "get_temp_path", lambda _name: str(tmp_path / _name))
+    monkeypatch.setattr(
+        "pixelle_video.services.ip_broadcast_cache.get_data_path",
+        lambda *parts: str(tmp_path.joinpath(*parts)),
+    )
+    monkeypatch.setattr(
+        m4_digital_human,
+        "_get_portrait_svc",
+        lambda _pixelle_video: FakePortraitService(portrait_path, media_type="video"),
+    )
+
+    fake_dh_svc = FakeDigitalHumanService(generated_video)
+
+    async def fake_generate(**kwargs):
+        fake_dh_svc.calls.append(kwargs)
+        return str(generated_video)
+
+    fake_dh_svc.generate = fake_generate
+    monkeypatch.setattr(
+        m4_digital_human,
+        "_get_dh_svc",
+        lambda _pixelle_video: fake_dh_svc,
+    )
+
+    assert await m4_digital_human.run_m4(FakePixelleVideo()) is True
+
+    assert fake_dh_svc.calls[0]["portrait_path"] == str(portrait_path)
