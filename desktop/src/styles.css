@@ -1,9 +1,48 @@
 :root {
   color: #121826;
-  background: #f5f7fb;
+  background: #f3f6fa;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
+  --app-bg: #f3f6fa;
+  --app-sidebar: #172033;
+  --app-sidebar-muted: #263449;
+  --app-primary: #2f6fed;
+  --app-primary-soft: #dbeafe;
+  --app-surface: #ffffff;
+  --app-border: #dce4ee;
+  --app-text: #111827;
+  --app-muted: #64748b;
+  --app-success: #16a34a;
+  --app-success-soft: #dcfce7;
+  --app-warning: #d97706;
+  --app-warning-soft: #fef3c7;
+  --app-danger: #dc2626;
+  --app-danger-soft: #fee2e2;
+}
+
+[data-theme="graphite"] {
+  --app-bg: #f3f6fa;
+  --app-sidebar: #172033;
+  --app-sidebar-muted: #263449;
+  --app-primary: #2f6fed;
+  --app-primary-soft: #dbeafe;
+}
+
+[data-theme="warm"] {
+  --app-bg: #f7f8f5;
+  --app-sidebar: #1f2933;
+  --app-sidebar-muted: #374151;
+  --app-primary: #d97706;
+  --app-primary-soft: #fff4dd;
+}
+
+[data-theme="brand"] {
+  --app-bg: #f5f6f8;
+  --app-sidebar: #111827;
+  --app-sidebar-muted: #2a3443;
+  --app-primary: #c2410c;
+  --app-primary-soft: #ffedd5;
 }
 
 * {
@@ -12,6 +51,7 @@
 
 body {
   margin: 0;
+  background: var(--app-bg);
 }
 
 button,
@@ -21,7 +61,7 @@ select {
   font: inherit;
 }
 
-button {
+button:not(.ant-btn) {
   border: 1px solid #d6dbe6;
   border-radius: 8px;
   padding: 9px 12px;
@@ -30,12 +70,12 @@ button {
   cursor: pointer;
 }
 
-button:disabled {
+button:not(.ant-btn):disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }
 
-button.primary {
+button:not(.ant-btn).primary {
   border-color: #1f6feb;
   background: #1f6feb;
   color: #ffffff;
@@ -43,7 +83,83 @@ button.primary {
 
 .app-shell {
   min-height: 100vh;
-  padding: 24px;
+  background: var(--app-bg);
+}
+
+.app-sidebar {
+  min-height: 100vh;
+  background: var(--app-sidebar) !important;
+  border-right: 1px solid rgb(255 255 255 / 8%);
+}
+
+.brand-mark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 18px;
+  color: #ffffff;
+}
+
+.brand-mark span {
+  display: block;
+  margin-top: 2px;
+  color: rgb(255 255 255 / 62%);
+  font-size: 12px;
+}
+
+.brand-logo {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--app-primary);
+  color: #ffffff;
+  font-weight: 850;
+}
+
+.side-menu {
+  border-inline-end: 0 !important;
+  background: transparent !important;
+  color: rgb(255 255 255 / 72%);
+}
+
+.side-menu .ant-menu-item {
+  width: calc(100% - 20px);
+  margin-inline: 10px;
+  color: rgb(255 255 255 / 72%) !important;
+}
+
+.side-menu .ant-menu-item-selected {
+  background: var(--app-primary) !important;
+  color: #ffffff !important;
+}
+
+.app-header {
+  display: flex;
+  height: auto;
+  min-height: 76px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--app-border);
+  padding: 16px 24px;
+  line-height: normal;
+  background: rgb(255 255 255 / 82%);
+  backdrop-filter: blur(10px);
+}
+
+.app-header h3 {
+  margin: 0;
+}
+
+.app-content {
+  min-height: calc(100vh - 76px);
+  padding: 22px 24px 28px;
+  background: var(--app-bg);
+}
+
+.global-alert {
+  margin-bottom: 16px;
 }
 
 .topbar,
@@ -89,11 +205,15 @@ nav button.active {
 }
 
 .console {
+  margin: 18px 0;
+}
+
+.console .ant-card-body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 18px 0;
-  padding: 16px 18px;
+  gap: 24px;
+  padding: 18px 20px;
 }
 
 .console p {
@@ -244,6 +364,7 @@ textarea {
 
 .console-main {
   min-width: 380px;
+  flex: 1;
 }
 
 .task-panel {
@@ -251,6 +372,8 @@ textarea {
   justify-items: end;
   gap: 6px;
   color: #536173;
+  max-width: 460px;
+  text-align: right;
 }
 
 .task-actions,
@@ -280,6 +403,18 @@ textarea {
   gap: 10px;
 }
 
+.stepbar-card {
+  border: 1px solid var(--app-border);
+}
+
+.stepbar-card .ant-card-body {
+  padding: 8px 12px;
+}
+
+.stepbar-card .ant-steps-item-container {
+  border-radius: 10px;
+}
+
 .step-pill {
   display: grid;
   gap: 5px;
@@ -307,6 +442,14 @@ textarea {
 .step-workspace,
 .step-card {
   min-height: 520px;
+}
+
+.step-card {
+  border: 1px solid var(--app-border);
+}
+
+.step-card > .ant-card-body {
+  padding: 20px;
 }
 
 .step-heading {
@@ -521,8 +664,95 @@ button.asset-card {
 
 .publish-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 14px;
+}
+
+.publish-workbench {
+  display: grid;
+  gap: 16px;
+}
+
+.publish-hero .ant-card-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.publish-hero h4 {
+  margin: 0 0 4px;
+}
+
+.publish-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 16px;
+  align-items: start;
+}
+
+.publish-main {
+  display: grid;
+  gap: 16px;
+}
+
+.publish-aside {
+  position: sticky;
+  top: 96px;
+}
+
+.publish-field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.publish-field:last-child {
+  margin-bottom: 0;
+}
+
+.publish-field-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.platform-card {
+  display: grid;
+  gap: 8px;
+  min-height: 180px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  padding: 14px;
+  background: var(--app-surface);
+}
+
+.platform-card p {
+  margin: 0;
+  color: var(--app-muted);
+  line-height: 1.55;
+}
+
+.video-preview-shell {
+  display: grid;
+  height: 360px;
+  place-items: center;
+  border-radius: 14px;
+  background:
+    linear-gradient(rgb(17 24 39 / 40%), rgb(17 24 39 / 74%)),
+    linear-gradient(145deg, #334155, #0f172a);
+  color: #ffffff;
+}
+
+.video-preview-shell span {
+  margin-top: -140px;
+  color: rgb(255 255 255 / 74%);
+  font-weight: 700;
+}
+
+.publish-file-actions {
+  width: 100%;
 }
 
 .platform-grid,
@@ -539,6 +769,79 @@ button.asset-card {
 
 .brand-form {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.config-page {
+  display: grid;
+  gap: 16px;
+  max-width: 920px;
+}
+
+.theme-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.theme-card {
+  display: grid;
+  gap: 8px;
+  min-height: 166px;
+  align-content: start;
+  text-align: left;
+}
+
+.theme-card.selected {
+  border-color: var(--app-primary);
+  box-shadow: inset 0 0 0 1px var(--app-primary);
+}
+
+.theme-card small {
+  color: var(--app-muted);
+  line-height: 1.5;
+}
+
+.theme-preview {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 8px;
+  height: 62px;
+  border-radius: 10px;
+  padding: 8px;
+  background: var(--app-bg);
+}
+
+.theme-preview i,
+.theme-preview b,
+.theme-preview em {
+  border-radius: 6px;
+}
+
+.theme-preview i {
+  grid-row: span 2;
+  background: var(--app-sidebar);
+}
+
+.theme-preview b {
+  background: var(--app-primary);
+}
+
+.theme-preview em {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+}
+
+.theme-card[data-swatch="warm"] .theme-preview {
+  --app-bg: #f7f8f5;
+  --app-sidebar: #1f2933;
+  --app-primary: #d97706;
+}
+
+.theme-card[data-swatch="brand"] .theme-preview {
+  --app-bg: #f5f6f8;
+  --app-sidebar: #111827;
+  --app-primary: #c2410c;
 }
 
 .swatches {

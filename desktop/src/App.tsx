@@ -10,6 +10,22 @@ import {
   UserSquare2,
   Video,
 } from "lucide-react";
+import {
+  Alert,
+  Button,
+  Card,
+  ConfigProvider,
+  Divider,
+  Layout,
+  Menu,
+  Progress,
+  Segmented,
+  Space,
+  Steps,
+  Tag,
+  Typography,
+} from "antd";
+import type { MenuProps } from "antd";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   assetBlobUrl,
@@ -50,6 +66,7 @@ import {
   VideoAsset,
   VoiceAsset,
 } from "./api";
+import { createAntdTheme, readStoredThemeSkin, themeSkins, type ThemeSkin } from "./theme";
 
 type View = "ip" | "assets" | "tasks" | "config" | "diagnostics";
 type AssetTab = "voices" | "portraits" | "templates" | "videos" | "brands";
@@ -97,9 +114,18 @@ const emptyAssets: AssetState = {
   brands: [],
 };
 
+const navItems: MenuProps["items"] = [
+  { key: "ip", icon: <Video size={16} />, label: "IP口播" },
+  { key: "assets", icon: <Package size={16} />, label: "素材资产" },
+  { key: "tasks", icon: <CheckCircle2 size={16} />, label: "任务中心" },
+  { key: "config", icon: <Settings size={16} />, label: "配置" },
+  { key: "diagnostics", icon: <CheckCircle2 size={16} />, label: "诊断" },
+];
+
 export function App() {
   const [view, setView] = useState<View>("ip");
   const [assetTab, setAssetTab] = useState<AssetTab>("voices");
+  const [themeSkin, setThemeSkinState] = useState<ThemeSkin>(() => readStoredThemeSkin());
   const [assets, setAssets] = useState<AssetState>(emptyAssets);
   const [session, setSession] = useState<IpBroadcastState | null>(null);
   const [activeStep, setActiveStep] = useState(1);
@@ -112,6 +138,11 @@ export function App() {
     restoreOrCreateSession().catch((err) => setError(String(err)));
     reloadAssets().catch((err) => setError(String(err)));
   }, []);
+
+  function setThemeSkin(skin: ThemeSkin) {
+    window.localStorage.setItem("pixelle_desktop_theme_skin", skin);
+    setThemeSkinState(skin);
+  }
 
   async function restoreOrCreateSession() {
     const storedSessionId = window.localStorage.getItem("pixelle_ipb_session_id");
@@ -218,42 +249,42 @@ export function App() {
   }
 
   return (
-    <main className="app-shell">
-      <header className="topbar">
-        <div>
-          <h1>老板 IP 口播智能体</h1>
-          <p>桌面版 v1：工作台生产，资产库独立维护。</p>
-        </div>
-        <nav>
-          <button className={view === "ip" ? "active" : ""} onClick={() => setView("ip")}>
-            <Video size={16} /> IP口播
-          </button>
-          <button
-            className={view === "assets" ? "active" : ""}
-            onClick={() => setView("assets")}
-          >
-            <Package size={16} /> 素材资产
-          </button>
-          <button className={view === "tasks" ? "active" : ""} onClick={() => setView("tasks")}>
-            <CheckCircle2 size={16} /> 任务中心
-          </button>
-          <button className={view === "config" ? "active" : ""} onClick={() => setView("config")}>
-            <Settings size={16} /> 配置
-          </button>
-          <button
-            className={view === "diagnostics" ? "active" : ""}
-            onClick={() => setView("diagnostics")}
-          >
-            <CheckCircle2 size={16} /> 诊断
-          </button>
-        </nav>
-      </header>
-
-      {error ? (
-        <div className="notice error">
-          <AlertCircle size={16} /> {error}
-        </div>
-      ) : null}
+    <ConfigProvider theme={createAntdTheme(themeSkin)}>
+      <Layout className="app-shell" data-theme={themeSkin}>
+        <Layout.Sider className="app-sidebar" width={224}>
+          <div className="brand-mark">
+            <div className="brand-logo">PV</div>
+            <div>
+              <strong>Pixelle Video</strong>
+              <span>老板 IP 口播</span>
+            </div>
+          </div>
+          <Menu
+            className="side-menu"
+            mode="inline"
+            selectedKeys={[view]}
+            items={navItems}
+            onClick={(item) => setView(item.key as View)}
+          />
+        </Layout.Sider>
+        <Layout>
+          <Layout.Header className="app-header">
+            <div>
+              <Typography.Title level={3}>老板 IP 口播智能体</Typography.Title>
+              <Typography.Text type="secondary">桌面版 v1：工作台生产，资产库独立维护。</Typography.Text>
+            </div>
+            <Tag color="processing">{themeSkins[themeSkin].label}</Tag>
+          </Layout.Header>
+          <Layout.Content className="app-content">
+            {error ? (
+              <Alert
+                className="global-alert"
+                type="error"
+                showIcon
+                message={error}
+                icon={<AlertCircle size={16} />}
+              />
+            ) : null}
 
       {view === "ip" && session ? (
         <section className="workspace">
@@ -313,9 +344,12 @@ export function App() {
         />
       ) : null}
       {view === "tasks" ? <TaskCenterView /> : null}
-      {view === "config" ? <ConfigView /> : null}
+      {view === "config" ? <ConfigView themeSkin={themeSkin} setThemeSkin={setThemeSkin} /> : null}
       {view === "diagnostics" ? <DiagnosticsView /> : null}
-    </main>
+          </Layout.Content>
+        </Layout>
+      </Layout>
+    </ConfigProvider>
   );
 }
 
@@ -334,43 +368,49 @@ function ProductionConsole({
   onContinue: () => void;
   onStop: () => void;
 }) {
-  const taskStatus = task ? `当前任务：${task.status} · ${task.task_id.slice(0, 8)}` : "当前无任务";
+  const taskStatus = task
+    ? `当前任务：${taskStatusLabel(task.status)} · ${task.task_id.slice(0, 8)}`
+    : "当前无任务";
   return (
-    <section className="console">
+    <Card className="console" variant="borderless">
       <div className="console-main">
-        <strong>生产主控台</strong>
-        <p>{session.next_action.description}</p>
-        <div className="progress">
-          <span style={{ width: `${completedPercent}%` }} />
-        </div>
-        <small>
-          进度：{session.completed_steps}/6
+        <Space align="center" size={10}>
+          <Typography.Title level={4}>生产主控台</Typography.Title>
+          <Tag color={session.completed_steps >= 6 ? "success" : "processing"}>
+            {session.completed_steps}/6 已完成
+          </Tag>
+        </Space>
+        <Typography.Paragraph type="secondary">{session.next_action.description}</Typography.Paragraph>
+        <Progress percent={completedPercent} showInfo={false} />
+        <Typography.Text type="secondary">
           {session.missing_requirements.length
-            ? ` · ${session.missing_requirements.join(" · ")}`
-            : ""}
-        </small>
+            ? `缺失项：${session.missing_requirements.join(" · ")}`
+            : "关键素材已准备好。"}
+        </Typography.Text>
       </div>
       <div className="task-panel">
-        <span>{taskStatus}</span>
-        {task?.progress?.message ? <small>{task.progress.message}</small> : null}
-        {task?.error ? <small className="task-error">{task.error}</small> : null}
-        <div className="task-actions">
+        <Tag>{taskStatus}</Tag>
+        {task?.progress?.message ? (
+          <Typography.Text type="secondary">{task.progress.message}</Typography.Text>
+        ) : null}
+        {task?.error ? <Typography.Text type="danger">{task.error}</Typography.Text> : null}
+        <Space>
           {busy && task ? (
-            <button onClick={onStop}>
-              <MonitorStop size={16} /> 停止
-            </button>
+            <Button onClick={onStop} icon={<MonitorStop size={16} />}>
+              停止
+            </Button>
           ) : null}
-          <button
-            className="primary"
+          <Button
+            type="primary"
             disabled={busy || session.next_action.disabled}
             onClick={onContinue}
+            icon={busy ? <Loader2 className="spin" size={16} /> : undefined}
           >
-            {busy ? <Loader2 className="spin" size={16} /> : null}
             一键继续：{session.next_action.label}
-          </button>
-        </div>
+          </Button>
+        </Space>
       </div>
-    </section>
+    </Card>
   );
 }
 
@@ -384,23 +424,22 @@ function StepBar({
   onSelect: (step: number) => void;
 }) {
   return (
-    <section className="stepbar">
-      {stepTitles.map((title, index) => {
-        const step = index + 1;
-        const status = session.step_status[String(step)] || "pending";
-        return (
-          <button
-            key={title}
-            className={`step-pill ${activeStep === step ? "active" : ""}`}
-            onClick={() => onSelect(step)}
-          >
-            <span>{step}</span>
-            <strong>{title}</strong>
-            <em className={`badge ${status}`}>{status}</em>
-          </button>
-        );
-      })}
-    </section>
+    <Card className="stepbar-card" variant="borderless">
+      <Steps
+        type="navigation"
+        current={activeStep - 1}
+        onChange={(index) => onSelect(index + 1)}
+        items={stepTitles.map((title, index) => {
+          const step = index + 1;
+          const status = session.step_status[String(step)] || "pending";
+          return {
+            title,
+            description: stepStatusLabel(status),
+            status: stepAntdStatus(status),
+          };
+        })}
+      />
+    </Card>
   );
 }
 
@@ -425,13 +464,13 @@ function StepPanel({
 }) {
   const notice = session.notices[String(step)];
   return (
-    <section className="card step-card">
+    <Card className="step-card" variant="borderless">
       <div className="step-heading">
         <div>
-          <h2>
+          <Typography.Title level={3}>
             {step}. {stepTitles[step - 1]}
-          </h2>
-          <p>{stepHint(step)}</p>
+          </Typography.Title>
+          <Typography.Text type="secondary">{stepHint(step)}</Typography.Text>
         </div>
       </div>
       {step === 1 ? (
@@ -471,8 +510,10 @@ function StepPanel({
       {step === 6 ? (
         <PublishStep session={session} downloadFinalVideo={downloadFinalVideo} />
       ) : null}
-      {notice ? <div className={`notice ${notice.kind}`}>{notice.message}</div> : null}
-    </section>
+      {notice ? (
+        <Alert className="step-notice" type={noticeKind(notice.kind)} showIcon message={notice.message} />
+      ) : null}
+    </Card>
   );
 }
 
@@ -919,73 +960,129 @@ function PublishStep({
   );
   const script = (publishPackage.script as string) || (session.state.final_script as string) || "";
   return (
-    <div>
-      <div className="summary-box">
+    <div className="publish-workbench">
+      <Card className="publish-hero" variant="borderless">
         <div>
-          <strong>发布素材包</strong>
-          <p>视频、标题、描述、标签、封面和口播文案集中在这里。</p>
+          <Typography.Title level={4}>发布素材包已准备好</Typography.Title>
+          <Typography.Text type="secondary">
+            建议先下载最终视频，再按平台复制标题、描述和标签。
+          </Typography.Text>
         </div>
-        {session.artifacts.publish_package_json ? (
-          <button onClick={() => downloadArtifact(session.session_id, "publish_package_json")}>
-            下载 JSON
-          </button>
-        ) : null}
-      </div>
-      <div className="publish-grid">
-      <div>
-        <label>最终视频</label>
-        <p className="result-path">{(session.state.final_video_path as string) || "暂无最终视频"}</p>
-        {session.artifacts.final_video ? (
-          <button className="download" onClick={downloadFinalVideo}>
-            下载最终视频
-          </button>
-        ) : null}
-      </div>
-      <div>
-        <label>标题</label>
-        <textarea readOnly value={title} />
-        <CopyButton text={title} />
-      </div>
-      <div>
-        <label>描述</label>
-        <textarea readOnly value={description} />
-        <CopyButton text={description} />
-      </div>
-      <div>
-        <label>标签</label>
-        <input readOnly value={hashtags} />
-        <CopyButton text={hashtags} />
-      </div>
-      <div>
-        <label>口播文案</label>
-        <textarea readOnly value={script} />
-        <CopyButton text={script} />
-        {session.artifacts.script ? (
-          <button onClick={() => downloadArtifact(session.session_id, "script")}>下载文案</button>
-        ) : null}
-      </div>
-      </div>
-      <div className="platform-grid">
-        {Object.entries(platformSuggestions).map(([platform, value]) => (
-          <section key={platform} className="asset-card">
-            <strong>{platformLabel(platform)}</strong>
-            <span>{String(value.title || "")}</span>
-            <p>{String(value.description || "")}</p>
-            <CopyButton
-              text={`${String(value.title || "")}\n${String(value.description || "")}`}
+        <Space wrap>
+          {session.artifacts.final_video ? (
+            <Button type="primary" onClick={downloadFinalVideo}>
+              下载最终视频
+            </Button>
+          ) : null}
+          <CopyButton text={[title, description, hashtags].filter(Boolean).join("\n")} label="复制全部" />
+          {session.artifacts.publish_package_json ? (
+            <Button onClick={() => downloadArtifact(session.session_id, "publish_package_json")}>
+              下载 JSON
+            </Button>
+          ) : null}
+        </Space>
+      </Card>
+
+      <div className="publish-layout">
+        <div className="publish-main">
+          <Card title="通用发布信息" variant="borderless">
+            <PublishField label="标题" value={title} minRows={2} />
+            <PublishField label="描述" value={description} minRows={4} />
+            <PublishField label="标签" value={hashtags} minRows={1} singleLine />
+            <PublishField
+              label="口播文案"
+              value={script}
+              minRows={6}
+              extra={
+                session.artifacts.script ? (
+                  <Button onClick={() => downloadArtifact(session.session_id, "script")}>
+                    下载文案
+                  </Button>
+                ) : null
+              }
             />
-          </section>
-        ))}
+          </Card>
+
+          <Card title="平台建议" variant="borderless">
+            <div className="platform-grid">
+              {Object.entries(platformSuggestions).map(([platform, value]) => {
+                const platformText = `${String(value.title || "")}\n${String(value.description || "")}`;
+                return (
+                  <section key={platform} className="platform-card">
+                    <Tag color="processing">{platformLabel(platform)}</Tag>
+                    <strong>{String(value.title || "") || "暂无标题建议"}</strong>
+                    <p>{String(value.description || "") || "暂无描述建议"}</p>
+                    <CopyButton text={platformText} label="复制该平台素材" />
+                  </section>
+                );
+              })}
+              {!Object.keys(platformSuggestions).length ? (
+                <div className="empty-state">暂无平台建议。请先完成一键成片生成发布素材。</div>
+              ) : null}
+            </div>
+          </Card>
+        </div>
+
+        <aside className="publish-aside">
+          <Card title="视频与文件" variant="borderless">
+            <div className="video-preview-shell">
+              <Video size={36} />
+              <span>视频预览</span>
+            </div>
+            <Divider />
+            <Typography.Text type="secondary">最终视频路径</Typography.Text>
+            <p className="result-path">{(session.state.final_video_path as string) || "暂无最终视频"}</p>
+            <Space direction="vertical" className="publish-file-actions">
+              {session.artifacts.final_video ? (
+                <Button type="primary" block onClick={downloadFinalVideo}>
+                  下载最终视频
+                </Button>
+              ) : null}
+              {session.artifacts.publish_package_json ? (
+                <Button block onClick={() => downloadArtifact(session.session_id, "publish_package_json")}>
+                  下载发布素材 JSON
+                </Button>
+              ) : null}
+            </Space>
+          </Card>
+        </aside>
       </div>
     </div>
   );
 }
 
-function CopyButton({ text }: { text: string }) {
+function PublishField({
+  label,
+  value,
+  minRows,
+  singleLine = false,
+  extra,
+}: {
+  label: string;
+  value: string;
+  minRows: number;
+  singleLine?: boolean;
+  extra?: ReactNode;
+}) {
   return (
-    <button onClick={() => navigator.clipboard.writeText(text)} disabled={!text}>
-      复制
-    </button>
+    <section className="publish-field">
+      <div className="publish-field-title">
+        <strong>{label}</strong>
+        <Space>
+          {extra}
+          <CopyButton text={value} />
+        </Space>
+      </div>
+      {singleLine ? <input readOnly value={value} /> : <textarea readOnly value={value} rows={minRows} />}
+    </section>
+  );
+}
+
+function CopyButton({ text, label = "复制" }: { text: string; label?: string }) {
+  return (
+    <Button onClick={() => navigator.clipboard.writeText(text)} disabled={!text}>
+      {label}
+    </Button>
   );
 }
 
@@ -998,6 +1095,32 @@ function platformLabel(platform: string) {
       kuaishou: "快手",
     }[platform] || platform
   );
+}
+
+function stepStatusLabel(status: string) {
+  return (
+    {
+      pending: "未开始",
+      ready: "可执行",
+      running: "进行中",
+      done: "已完成",
+      error: "失败",
+    }[status] || status
+  );
+}
+
+function stepAntdStatus(status: string): "wait" | "process" | "finish" | "error" {
+  if (status === "done") return "finish";
+  if (status === "error") return "error";
+  if (status === "ready" || status === "running") return "process";
+  return "wait";
+}
+
+function noticeKind(kind: string): "success" | "info" | "warning" | "error" {
+  if (kind === "success") return "success";
+  if (kind === "error") return "error";
+  if (kind === "warning") return "warning";
+  return "info";
 }
 
 function BottomActionBar({
@@ -1588,7 +1711,13 @@ function AssetLibraryShell({
   );
 }
 
-function ConfigView() {
+function ConfigView({
+  themeSkin,
+  setThemeSkin,
+}: {
+  themeSkin: ThemeSkin;
+  setThemeSkin: (skin: ThemeSkin) => void;
+}) {
   const [config, setConfig] = useState<DesktopConfig | null>(null);
   const [saved, setSaved] = useState("");
 
@@ -1606,53 +1735,87 @@ function ConfigView() {
   }
 
   return (
-    <section className="card wide">
-      <h2>配置中心</h2>
-      <label>LLM Base URL</label>
-      <input
-        value={config.llm.base_url}
-        onChange={(event) =>
-          setConfig({ ...config, llm: { ...config.llm, base_url: event.target.value } })
-        }
-      />
-      <label>LLM API Key</label>
-      <input
-        placeholder={config.llm.api_key || "请输入 API Key"}
-        onChange={(event) =>
-          setConfig({ ...config, llm: { ...config.llm, api_key: event.target.value } })
-        }
-      />
-      <label>LLM Model</label>
-      <input
-        value={config.llm.model}
-        onChange={(event) =>
-          setConfig({ ...config, llm: { ...config.llm, model: event.target.value } })
-        }
-      />
-      <label>RunningHub API Key</label>
-      <input
-        placeholder={config.runninghub.api_key || "请输入 RunningHub API Key"}
-        onChange={(event) =>
-          setConfig({
-            ...config,
-            runninghub: { ...config.runninghub, api_key: event.target.value },
-          })
-        }
-      />
-      <label>RunningHub Instance Type</label>
-      <input
-        value={config.runninghub.instance_type}
-        onChange={(event) =>
-          setConfig({
-            ...config,
-            runninghub: { ...config.runninghub, instance_type: event.target.value },
-          })
-        }
-      />
-      <button className="primary" onClick={save}>
-        保存配置
-      </button>
-      {saved ? <div className="notice success">{saved}</div> : null}
+    <section className="config-page">
+      <Card title="外观设置" variant="borderless">
+        <Typography.Paragraph type="secondary">
+          皮肤只影响 App 界面，不影响品牌包、视频模板和发布素材。
+        </Typography.Paragraph>
+        <Segmented
+          block
+          value={themeSkin}
+          onChange={(value) => setThemeSkin(value as ThemeSkin)}
+          options={Object.entries(themeSkins).map(([key, skin]) => ({
+            label: skin.label,
+            value: key,
+          }))}
+        />
+        <div className="theme-card-grid">
+          {Object.entries(themeSkins).map(([key, skin]) => (
+            <button
+              key={key}
+              className={`theme-card ${themeSkin === key ? "selected" : ""}`}
+              data-swatch={key}
+              onClick={() => setThemeSkin(key as ThemeSkin)}
+            >
+              <span className="theme-preview">
+                <i />
+                <b />
+                <em />
+              </span>
+              <strong>{skin.label}</strong>
+              <small>{skin.description}</small>
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      <Card title="配置中心" variant="borderless">
+        <label>LLM Base URL</label>
+        <input
+          value={config.llm.base_url}
+          onChange={(event) =>
+            setConfig({ ...config, llm: { ...config.llm, base_url: event.target.value } })
+          }
+        />
+        <label>LLM API Key</label>
+        <input
+          placeholder={config.llm.api_key || "请输入 API Key"}
+          onChange={(event) =>
+            setConfig({ ...config, llm: { ...config.llm, api_key: event.target.value } })
+          }
+        />
+        <label>LLM Model</label>
+        <input
+          value={config.llm.model}
+          onChange={(event) =>
+            setConfig({ ...config, llm: { ...config.llm, model: event.target.value } })
+          }
+        />
+        <label>RunningHub API Key</label>
+        <input
+          placeholder={config.runninghub.api_key || "请输入 RunningHub API Key"}
+          onChange={(event) =>
+            setConfig({
+              ...config,
+              runninghub: { ...config.runninghub, api_key: event.target.value },
+            })
+          }
+        />
+        <label>RunningHub Instance Type</label>
+        <input
+          value={config.runninghub.instance_type}
+          onChange={(event) =>
+            setConfig({
+              ...config,
+              runninghub: { ...config.runninghub, instance_type: event.target.value },
+            })
+          }
+        />
+        <Button type="primary" onClick={save}>
+          保存配置
+        </Button>
+        {saved ? <Alert className="step-notice" type="success" showIcon message={saved} /> : null}
+      </Card>
     </section>
   );
 }
