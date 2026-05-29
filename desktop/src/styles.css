@@ -644,6 +644,24 @@ button.asset-card {
   object-fit: cover;
 }
 
+.asset-card.template {
+  min-height: 310px;
+}
+
+.asset-card.template img,
+.asset-card.template .template-demo {
+  aspect-ratio: 9 / 16;
+  height: auto;
+  max-height: 230px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.asset-card.template img {
+  border: 1px solid var(--app-border);
+  background: #0f172a;
+}
+
 .asset-card.portrait img,
 .asset-card.portrait video,
 .asset-card.portrait .video-thumb {
