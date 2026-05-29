@@ -559,6 +559,57 @@ textarea {
   margin-top: 14px;
 }
 
+.voice-config-panel {
+  margin-top: 12px;
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.voice-param-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.voice-param-grid.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.voice-param-grid.four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.voice-assets .asset-card {
+  min-height: 128px;
+}
+
+.voice-advanced {
+  background: #ffffff;
+}
+
+.voice-checkbox {
+  align-self: end;
+  min-height: 42px;
+  padding-bottom: 9px;
+}
+
+.section-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  color: var(--app-text);
+  font-weight: 750;
+}
+
+.section-title small {
+  color: var(--app-muted);
+  font-weight: 500;
+}
+
 .actionbar {
   position: sticky;
   bottom: 0;
@@ -597,7 +648,7 @@ textarea {
 }
 
 .asset-grid.portraits {
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
 }
 
 .asset-grid.templates {
@@ -665,7 +716,8 @@ button.asset-card {
 .asset-card.portrait img,
 .asset-card.portrait video,
 .asset-card.portrait .video-thumb {
-  height: 126px;
+  height: 176px;
+  object-fit: contain;
 }
 
 .asset-card audio {

@@ -113,6 +113,51 @@ const sourceModeLabels: Record<string, string> = {
   ip_learning: "IP学习",
 };
 
+const ttsWorkflowOptions = [
+  {
+    value: "runninghub/tts_index_custom.json",
+    label: "RunningHub Index 声音克隆（推荐）",
+    kind: "index",
+  },
+  {
+    value: "runninghub/tts_index2.json",
+    label: "RunningHub Index2 声音克隆",
+    kind: "index",
+  },
+  {
+    value: "runninghub/tts_edge.json",
+    label: "RunningHub Edge TTS",
+    kind: "edge",
+  },
+  {
+    value: "runninghub/tts_spark.json",
+    label: "RunningHub Spark TTS",
+    kind: "spark",
+  },
+] as const;
+
+const edgeVoiceOptions = [
+  { value: "zh-CN-YunjianNeural", label: "中文 · 云健（男声）" },
+  { value: "zh-CN-XiaoxiaoNeural", label: "中文 · 晓晓（女声）" },
+  { value: "zh-CN-YunxiNeural", label: "中文 · 云希（男声）" },
+  { value: "zh-CN-XiaoyiNeural", label: "中文 · 晓伊（女声）" },
+  { value: "zh-CN-YunyangNeural", label: "中文 · 云扬（男声）" },
+];
+
+const comfyEdgeVoiceOptions = [
+  { value: "[Chinese] zh-CN Yunjian", label: "中文 · Yunjian" },
+  { value: "[Chinese] zh-CN Xiaoxiao", label: "中文 · Xiaoxiao" },
+  { value: "[Chinese] zh-CN Yunxi", label: "中文 · Yunxi" },
+  { value: "[Chinese] zh-CN Xiaoyi", label: "中文 · Xiaoyi" },
+  { value: "[Chinese] zh-CN Yunyang", label: "中文 · Yunyang" },
+];
+
+const toneOptions = [
+  { value: "low", label: "低" },
+  { value: "moderate", label: "标准" },
+  { value: "high", label: "高" },
+];
+
 const emptyAssets: AssetState = {
   voices: [],
   portraits: [],
@@ -902,71 +947,91 @@ function VoiceStep({
   execute: (stepKey: string) => Promise<void>;
   busy: boolean;
 }) {
+  const inferenceMode = (session.state.tts_inference_mode as string) || "local";
+  const selectedWorkflow =
+    (session.state.tts_workflow as string) || "runninghub/tts_index_custom.json";
+  const workflowKind = ttsWorkflowKind(selectedWorkflow);
+  const showReferenceLibrary = inferenceMode === "comfyui" && workflowKind === "index";
+
+  function renderReferenceLibrary() {
+    return (
+      <div className="voice-config-panel">
+        <div className="section-title">
+          <span>参考音色库</span>
+          <small>Index 声音克隆工作流会读取这里选择的参考音频</small>
+        </div>
+        <div className="asset-grid compact voice-assets">
+          {voices.length ? (
+            voices.map((voice) => (
+              <button
+                key={voice.reference_id}
+                className={`asset-card selectable ${
+                  session.state.tts_ref_audio_path === voice.asset_path ? "selected" : ""
+                }`}
+                onClick={() =>
+                  patch({
+                    tts_ref_audio_id: voice.reference_id,
+                    tts_ref_audio_path: voice.asset_path,
+                  })
+                }
+              >
+                <Mic2 size={20} />
+                <strong>{voice.name}</strong>
+                <span>{voice.filename}</span>
+              </button>
+            ))
+          ) : (
+            <div className="empty-state">暂无参考音色。请到素材资产 &gt; 音色库维护。</div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <div className="grid2">
+      <div className="voice-param-grid">
         <div>
           <label>推理模式</label>
           <select
-            value={(session.state.tts_inference_mode as string) || "local"}
+            value={inferenceMode}
             onChange={(event) => patch({ tts_inference_mode: event.target.value })}
           >
             <option value="local">local Edge TTS</option>
             <option value="comfyui">ComfyUI / RunningHub</option>
           </select>
         </div>
-        <div>
-          <label>语速</label>
-          <input
-            type="number"
-            step="0.1"
-            defaultValue={(session.state.tts_speed as number) || 1.2}
-            onBlur={(event) => patch({ tts_speed: Number(event.target.value) })}
-          />
-        </div>
       </div>
-      <label>音色库</label>
-      <div className="asset-grid compact">
-        {voices.length ? (
-          voices.map((voice) => (
-            <button
-              key={voice.reference_id}
-              className={`asset-card selectable ${
-                session.state.tts_ref_audio_path === voice.asset_path ? "selected" : ""
-              }`}
-              onClick={() =>
-                patch({
-                  tts_ref_audio_id: voice.reference_id,
-                  tts_ref_audio_path: voice.asset_path,
-                })
-              }
-            >
-              <Mic2 size={20} />
-              <strong>{voice.name}</strong>
-              <span>{voice.filename}</span>
-            </button>
-          ))
-        ) : (
-          <div className="empty-state">暂无参考音色。请到素材资产 &gt; 音色库维护。</div>
-        )}
-      </div>
-      <div className="grid2">
-        <div>
-          <label>Edge 音色</label>
-          <input
-            defaultValue={(session.state.tts_voice as string) || "zh-CN-YunjianNeural"}
-            onBlur={(event) => patch({ tts_voice: event.target.value })}
-          />
-        </div>
-        <div>
-          <label>TTS 工作流</label>
-          <input
-            defaultValue={(session.state.tts_workflow as string) || ""}
-            onBlur={(event) => patch({ tts_workflow: event.target.value })}
-            placeholder="runninghub/tts_edge.json"
-          />
-        </div>
-      </div>
+
+      {inferenceMode === "local" ? <LocalVoiceConfig session={session} patch={patch} /> : null}
+
+      {inferenceMode === "comfyui" ? (
+        <>
+          <div className="voice-config-panel">
+            <div className="voice-param-grid">
+              <div>
+                <label>TTS 工作流</label>
+                <select
+                  value={selectedWorkflow}
+                  onChange={(event) => patch({ tts_workflow: event.target.value })}
+                >
+                  {ttsWorkflowOptions.map((workflow) => (
+                    <option key={workflow.value} value={workflow.value}>
+                      {workflow.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <p className="muted">{ttsWorkflowNotice(workflowKind)}</p>
+          </div>
+          {showReferenceLibrary ? renderReferenceLibrary() : null}
+          {workflowKind === "edge" ? <ComfyEdgeConfig session={session} patch={patch} /> : null}
+          {workflowKind === "index" ? <IndexVoiceConfig session={session} patch={patch} /> : null}
+          {workflowKind === "spark" ? <SparkVoiceConfig session={session} patch={patch} /> : null}
+        </>
+      ) : null}
+
       <div className="panel-actions">
         <button className="primary" onClick={() => execute("voice")} disabled={busy}>
           生成语音
@@ -974,6 +1039,230 @@ function VoiceStep({
       </div>
     </div>
   );
+}
+
+function LocalVoiceConfig({
+  session,
+  patch,
+}: {
+  session: IpBroadcastState;
+  patch: (values: Record<string, unknown>) => Promise<void>;
+}) {
+  return (
+    <div className="voice-config-panel">
+      <div className="voice-param-grid four">
+        <div>
+          <label>Edge 音色</label>
+          <select
+            value={(session.state.tts_voice as string) || "zh-CN-YunjianNeural"}
+            onChange={(event) => patch({ tts_voice: event.target.value })}
+          >
+            {edgeVoiceOptions.map((voice) => (
+              <option key={voice.value} value={voice.value}>
+                {voice.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <NumberField label="语速" value={session.state.tts_speed as number} fallback={1.2} step={0.1} patchKey="tts_speed" patch={patch} />
+        <NumberField label="音调" value={session.state.tts_pitch as number} fallback={0} step={1} patchKey="tts_pitch" patch={patch} />
+        <NumberField label="音量" value={session.state.tts_volume as number} fallback={0} step={1} patchKey="tts_volume" patch={patch} />
+      </div>
+    </div>
+  );
+}
+
+function ComfyEdgeConfig({
+  session,
+  patch,
+}: {
+  session: IpBroadcastState;
+  patch: (values: Record<string, unknown>) => Promise<void>;
+}) {
+  return (
+    <div className="voice-config-panel">
+      <div className="voice-param-grid three">
+        <div>
+          <label>工作流音色</label>
+          <select
+            value={(session.state.tts_workflow_voice as string) || "[Chinese] zh-CN Yunjian"}
+            onChange={(event) => patch({ tts_workflow_voice: event.target.value })}
+          >
+            {comfyEdgeVoiceOptions.map((voice) => (
+              <option key={voice.value} value={voice.value}>
+                {voice.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <NumberField label="语速" value={session.state.tts_workflow_speed as number} fallback={1} step={0.1} patchKey="tts_workflow_speed" patch={patch} />
+        <NumberField label="音调" value={session.state.tts_workflow_pitch as number} fallback={0} step={1} patchKey="tts_workflow_pitch" patch={patch} />
+      </div>
+    </div>
+  );
+}
+
+function IndexVoiceConfig({
+  session,
+  patch,
+}: {
+  session: IpBroadcastState;
+  patch: (values: Record<string, unknown>) => Promise<void>;
+}) {
+  return (
+    <details className="advanced voice-advanced" open={false}>
+      <summary>Index 高级采样参数</summary>
+      <div className="voice-param-grid four">
+        <div>
+          <label>生成模式</label>
+          <select
+            value={(session.state.tts_index_mode as string) || "Auto"}
+            onChange={(event) => patch({ tts_index_mode: event.target.value })}
+          >
+            <option value="Auto">Auto</option>
+          </select>
+        </div>
+        <div>
+          <label>采样开关</label>
+          <select
+            value={(session.state.tts_index_do_sample_mode as string) || "on"}
+            onChange={(event) => patch({ tts_index_do_sample_mode: event.target.value })}
+          >
+            <option value="on">on</option>
+            <option value="off">off</option>
+          </select>
+        </div>
+        <NumberField label="temperature" value={session.state.tts_temperature as number} fallback={0.8} step={0.05} patchKey="tts_temperature" patch={patch} />
+        <NumberField label="top_p" value={session.state.tts_top_p as number} fallback={0.9} step={0.05} patchKey="tts_top_p" patch={patch} />
+        <NumberField label="top_k" value={session.state.tts_top_k as number} fallback={30} step={1} patchKey="tts_top_k" patch={patch} />
+        <NumberField label="num_beams" value={session.state.tts_num_beams as number} fallback={3} step={1} patchKey="tts_num_beams" patch={patch} />
+        <NumberField label="repetition_penalty" value={session.state.tts_repetition_penalty as number} fallback={10} step={0.1} patchKey="tts_repetition_penalty" patch={patch} />
+        <NumberField label="length_penalty" value={session.state.tts_length_penalty as number} fallback={0} step={0.1} patchKey="tts_length_penalty" patch={patch} />
+        <NumberField label="max_mel_tokens" value={session.state.tts_max_mel_tokens as number} fallback={1815} step={10} patchKey="tts_max_mel_tokens" patch={patch} />
+        <NumberField label="max_tokens_per_sentence" value={session.state.tts_max_tokens_per_sentence as number} fallback={120} step={5} patchKey="tts_max_tokens_per_sentence" patch={patch} />
+        <NumberField label="seed" value={session.state.tts_seed as number} fallback={0} step={1} patchKey="tts_seed" patch={patch} />
+      </div>
+    </details>
+  );
+}
+
+function SparkVoiceConfig({
+  session,
+  patch,
+}: {
+  session: IpBroadcastState;
+  patch: (values: Record<string, unknown>) => Promise<void>;
+}) {
+  return (
+    <div className="voice-config-panel">
+      <div className="voice-param-grid three">
+        <div>
+          <label>音色性别</label>
+          <select
+            value={(session.state.tts_spark_gender as string) || "male"}
+            onChange={(event) => patch({ tts_spark_gender: event.target.value })}
+          >
+            <option value="male">男声</option>
+            <option value="female">女声</option>
+          </select>
+        </div>
+        <ToneSelect label="语速" value={(session.state.tts_spark_speed as string) || "moderate"} patchKey="tts_spark_speed" patch={patch} />
+        <ToneSelect label="音调" value={(session.state.tts_spark_pitch as string) || "moderate"} patchKey="tts_spark_pitch" patch={patch} />
+      </div>
+      <details className="advanced voice-advanced" open={false}>
+        <summary>Spark 高级采样参数</summary>
+        <div className="voice-param-grid four">
+          <NumberField label="temperature" value={session.state.tts_temperature as number} fallback={0.8} step={0.05} patchKey="tts_temperature" patch={patch} />
+          <NumberField label="top_p" value={session.state.tts_top_p as number} fallback={0.9} step={0.05} patchKey="tts_top_p" patch={patch} />
+          <NumberField label="top_k" value={session.state.tts_top_k as number} fallback={30} step={1} patchKey="tts_top_k" patch={patch} />
+          <NumberField label="max_new_tokens" value={session.state.tts_max_new_tokens as number} fallback={3000} step={100} patchKey="tts_max_new_tokens" patch={patch} />
+          <NumberField label="seed" value={session.state.tts_seed as number} fallback={0} step={1} patchKey="tts_seed" patch={patch} />
+          <div className="checkline voice-checkbox">
+            <input
+              type="checkbox"
+              checked={session.state.tts_do_sample !== false}
+              onChange={(event) => patch({ tts_do_sample: event.target.checked })}
+            />
+            <span>do_sample</span>
+          </div>
+        </div>
+      </details>
+    </div>
+  );
+}
+
+function ToneSelect({
+  label,
+  value,
+  patchKey,
+  patch,
+}: {
+  label: string;
+  value: string;
+  patchKey: string;
+  patch: (values: Record<string, unknown>) => Promise<void>;
+}) {
+  return (
+    <div>
+      <label>{label}</label>
+      <select value={value} onChange={(event) => patch({ [patchKey]: event.target.value })}>
+        {toneOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function NumberField({
+  label,
+  value,
+  fallback,
+  step,
+  patchKey,
+  patch,
+}: {
+  label: string;
+  value: number | undefined;
+  fallback: number;
+  step: number;
+  patchKey: string;
+  patch: (values: Record<string, unknown>) => Promise<void>;
+}) {
+  return (
+    <div>
+      <label>{label}</label>
+      <input
+        type="number"
+        step={step}
+        defaultValue={Number.isFinite(value) ? value : fallback}
+        onBlur={(event) => patch({ [patchKey]: Number(event.target.value) })}
+      />
+    </div>
+  );
+}
+
+function ttsWorkflowKind(workflow: string) {
+  const workflowName = workflow.toLowerCase();
+  if (workflowName.includes("spark")) return "spark";
+  if (workflowName.includes("index")) return "index";
+  if (workflowName.includes("edge")) return "edge";
+  return "generic";
+}
+
+function ttsWorkflowNotice(workflowKind: string) {
+  if (workflowKind === "edge") {
+    return "Edge TTS 工作流支持工作流音色、语速和音调，不读取参考音频。";
+  }
+  if (workflowKind === "spark") {
+    return "Spark TTS 工作流支持性别、语速、音调和采样参数，不读取参考音频。";
+  }
+  if (workflowKind === "index") {
+    return "Index 声音克隆工作流支持参考音频和采样参数，适合固定老板音色。";
+  }
+  return "未知工作流类型，仅传入工作流路径。";
 }
 
 function PortraitStep({

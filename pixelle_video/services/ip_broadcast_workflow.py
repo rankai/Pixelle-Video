@@ -90,7 +90,27 @@ def _default_state() -> dict[str, Any]:
         "tts_speed": 1.2,
         "tts_pitch": 0,
         "tts_volume": 0,
-        "tts_workflow": "",
+        "tts_workflow": "runninghub/tts_index_custom.json",
+        "tts_workflow_language": "zh-CN",
+        "tts_workflow_voice": "[Chinese] zh-CN Yunjian",
+        "tts_workflow_speed": 1.0,
+        "tts_workflow_pitch": 0,
+        "tts_index_mode": "Auto",
+        "tts_index_do_sample_mode": "on",
+        "tts_temperature": 0.8,
+        "tts_top_p": 0.9,
+        "tts_top_k": 30,
+        "tts_num_beams": 3,
+        "tts_repetition_penalty": 10.0,
+        "tts_length_penalty": 0.0,
+        "tts_max_mel_tokens": 1815,
+        "tts_max_tokens_per_sentence": 120,
+        "tts_seed": 0,
+        "tts_spark_gender": "male",
+        "tts_spark_speed": "moderate",
+        "tts_spark_pitch": "moderate",
+        "tts_max_new_tokens": 3000,
+        "tts_do_sample": True,
         "tts_ref_audio_id": "",
         "tts_ref_audio_path": "",
         "audio_path": "",
@@ -503,19 +523,75 @@ async def _run_voice(pixelle_video, session: IpBroadcastSession) -> None:
     kwargs = {
         "text": text,
         "inference_mode": session.state.get("tts_inference_mode", "local"),
-        "voice": session.state.get("tts_voice"),
-        "speed": session.state.get("tts_speed"),
-        "pitch": session.state.get("tts_pitch"),
-        "volume": session.state.get("tts_volume"),
         "output_path": output_path,
     }
-    if session.state.get("tts_workflow"):
-        kwargs["workflow"] = session.state["tts_workflow"]
-    if session.state.get("tts_ref_audio_path"):
-        kwargs["ref_audio"] = session.state["tts_ref_audio_path"]
+    _append_tts_params(kwargs, session.state)
     audio_path = await pixelle_video.tts(**kwargs)
     session.state["audio_path"] = audio_path
     session.artifacts["audio"] = audio_path
+
+
+def _append_tts_params(kwargs: dict[str, Any], state: dict[str, Any]) -> None:
+    if kwargs["inference_mode"] == "local":
+        kwargs["voice"] = state.get("tts_voice")
+        kwargs["speed"] = state.get("tts_speed")
+        kwargs["pitch"] = state.get("tts_pitch")
+        kwargs["volume"] = state.get("tts_volume")
+        return
+
+    workflow = str(state.get("tts_workflow") or "")
+    if workflow:
+        kwargs["workflow"] = workflow
+
+    workflow_kind = _tts_workflow_kind(workflow)
+    if workflow_kind == "edge":
+        kwargs["voice"] = state.get("tts_workflow_voice", "[Chinese] zh-CN Yunjian")
+        kwargs["speed"] = float(state.get("tts_workflow_speed", 1.0))
+        kwargs["pitch"] = int(state.get("tts_workflow_pitch", 0))
+    elif workflow_kind == "spark":
+        kwargs["gender"] = state.get("tts_spark_gender", "male")
+        kwargs["speed"] = state.get("tts_spark_speed", "moderate")
+        kwargs["pitch"] = state.get("tts_spark_pitch", "moderate")
+        kwargs["temperature"] = float(state.get("tts_temperature", 0.8))
+        kwargs["top_k"] = int(state.get("tts_top_k", 30))
+        kwargs["top_p"] = float(state.get("tts_top_p", 0.9))
+        kwargs["max_new_tokens"] = int(state.get("tts_max_new_tokens", 3000))
+        kwargs["do_sample"] = bool(state.get("tts_do_sample", True))
+        _append_tts_seed(kwargs, state)
+    elif workflow_kind == "index":
+        ref_audio = state.get("tts_ref_audio_path")
+        if ref_audio:
+            kwargs["ref_audio"] = ref_audio
+        kwargs["mode"] = state.get("tts_index_mode", "Auto")
+        kwargs["do_sample_mode"] = state.get("tts_index_do_sample_mode", "on")
+        kwargs["temperature"] = float(state.get("tts_temperature", 0.8))
+        kwargs["top_p"] = float(state.get("tts_top_p", 0.9))
+        kwargs["top_k"] = int(state.get("tts_top_k", 30))
+        kwargs["num_beams"] = int(state.get("tts_num_beams", 3))
+        kwargs["repetition_penalty"] = float(state.get("tts_repetition_penalty", 10.0))
+        kwargs["length_penalty"] = float(state.get("tts_length_penalty", 0.0))
+        kwargs["max_mel_tokens"] = int(state.get("tts_max_mel_tokens", 1815))
+        kwargs["max_tokens_per_sentence"] = int(state.get("tts_max_tokens_per_sentence", 120))
+        _append_tts_seed(kwargs, state)
+    elif state.get("tts_ref_audio_path"):
+        kwargs["ref_audio"] = state["tts_ref_audio_path"]
+
+
+def _append_tts_seed(kwargs: dict[str, Any], state: dict[str, Any]) -> None:
+    seed = int(state.get("tts_seed") or 0)
+    if seed > 0:
+        kwargs["seed"] = seed
+
+
+def _tts_workflow_kind(workflow: str) -> str:
+    workflow_name = (workflow or "").lower()
+    if "spark" in workflow_name:
+        return "spark"
+    if "index" in workflow_name:
+        return "index"
+    if "edge" in workflow_name:
+        return "edge"
+    return "generic"
 
 
 async def _run_digital_human(pixelle_video, session: IpBroadcastSession) -> None:

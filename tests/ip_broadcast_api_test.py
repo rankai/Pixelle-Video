@@ -203,6 +203,107 @@ async def test_run_source_step_learns_ip_profile_and_stores_compact_results(monk
     assert session.state["source_label"] == "IP学习"
 
 
+async def test_run_voice_step_passes_runninghub_index_workflow_params():
+    class FakePixelleVideo:
+        def __init__(self):
+            self.tts_kwargs = None
+
+        async def tts(self, **kwargs):
+            self.tts_kwargs = kwargs
+            return "/tmp/ipb-index.mp3"
+
+    store = IpBroadcastSessionStore()
+    session = store.create_session()
+    store.update_config(
+        session.session_id,
+        {
+            "final_script": "测试声音克隆文案",
+            "copywriting_confirmed": True,
+            "tts_inference_mode": "comfyui",
+            "tts_workflow": "runninghub/tts_index_custom.json",
+            "tts_ref_audio_path": "/tmp/ref.wav",
+            "tts_index_mode": "Auto",
+            "tts_index_do_sample_mode": "off",
+            "tts_temperature": 0.7,
+            "tts_top_p": 0.85,
+            "tts_top_k": 40,
+            "tts_num_beams": 4,
+            "tts_repetition_penalty": 8.5,
+            "tts_length_penalty": 0.2,
+            "tts_max_mel_tokens": 1600,
+            "tts_max_tokens_per_sentence": 90,
+            "tts_seed": 123,
+        },
+    )
+    fake = FakePixelleVideo()
+
+    result = await run_ip_broadcast_step(fake, session, "voice")
+
+    assert result is True
+    assert fake.tts_kwargs == {
+        "text": "测试声音克隆文案",
+        "inference_mode": "comfyui",
+        "output_path": fake.tts_kwargs["output_path"],
+        "workflow": "runninghub/tts_index_custom.json",
+        "ref_audio": "/tmp/ref.wav",
+        "mode": "Auto",
+        "do_sample_mode": "off",
+        "temperature": 0.7,
+        "top_p": 0.85,
+        "top_k": 40,
+        "num_beams": 4,
+        "repetition_penalty": 8.5,
+        "length_penalty": 0.2,
+        "max_mel_tokens": 1600,
+        "max_tokens_per_sentence": 90,
+        "seed": 123,
+    }
+
+
+async def test_run_voice_step_passes_runninghub_spark_workflow_params():
+    class FakePixelleVideo:
+        def __init__(self):
+            self.tts_kwargs = None
+
+        async def tts(self, **kwargs):
+            self.tts_kwargs = kwargs
+            return "/tmp/ipb-spark.mp3"
+
+    store = IpBroadcastSessionStore()
+    session = store.create_session()
+    store.update_config(
+        session.session_id,
+        {
+            "final_script": "测试 Spark 文案",
+            "copywriting_confirmed": True,
+            "tts_inference_mode": "comfyui",
+            "tts_workflow": "runninghub/tts_spark.json",
+            "tts_spark_gender": "female",
+            "tts_spark_speed": "high",
+            "tts_spark_pitch": "low",
+            "tts_temperature": 0.6,
+            "tts_top_p": 0.8,
+            "tts_top_k": 25,
+            "tts_max_new_tokens": 2400,
+            "tts_do_sample": False,
+        },
+    )
+    fake = FakePixelleVideo()
+
+    result = await run_ip_broadcast_step(fake, session, "voice")
+
+    assert result is True
+    assert fake.tts_kwargs["workflow"] == "runninghub/tts_spark.json"
+    assert fake.tts_kwargs["gender"] == "female"
+    assert fake.tts_kwargs["speed"] == "high"
+    assert fake.tts_kwargs["pitch"] == "low"
+    assert fake.tts_kwargs["temperature"] == 0.6
+    assert fake.tts_kwargs["top_p"] == 0.8
+    assert fake.tts_kwargs["top_k"] == 25
+    assert fake.tts_kwargs["max_new_tokens"] == 2400
+    assert fake.tts_kwargs["do_sample"] is False
+
+
 def test_artifact_download_rejects_unknown_artifact():
     client = _client()
     session_id = client.post("/api/ip-broadcast/sessions").json()["session_id"]
