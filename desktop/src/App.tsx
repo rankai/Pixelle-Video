@@ -1,5 +1,6 @@
 import {
   AlertCircle,
+  BarChart3,
   CheckCircle2,
   Images,
   Loader2,
@@ -27,7 +28,7 @@ import {
   Typography,
 } from "antd";
 import type { MenuProps } from "antd";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   assetBlobUrl,
   cancelTask,
@@ -69,7 +70,7 @@ import {
 } from "./api";
 import { createAntdTheme, readStoredThemeSkin, themeSkins, type ThemeSkin } from "./theme";
 
-type View = "ip" | "assets" | "tasks" | "config" | "diagnostics";
+type View = "home" | "ip" | "assets" | "tasks" | "config" | "diagnostics";
 type AssetTab = "voices" | "portraits" | "templates" | "videos" | "brands";
 
 type AssetState = {
@@ -97,11 +98,18 @@ type VisualGroup = {
   status: string;
 };
 
+type PortraitMediaType = PortraitAsset["media_type"];
+
+type AssetPreview =
+  | { kind: "audio"; title: string; src: string }
+  | { kind: "image"; title: string; src: string }
+  | { kind: "video"; title: string; src: string };
+
 const stepTitles = [
   "素材来源",
   "文案确认",
-  "声音生成",
-  "数字人视频",
+  "配音制作",
+  "数字人出镜",
   "一键成片",
   "视频发布",
 ];
@@ -111,6 +119,18 @@ const sourceModeLabels: Record<string, string> = {
   paste: "粘贴脚本",
   industry_persona: "行业+人设",
   ip_learning: "IP学习",
+};
+
+const appReleaseInfo = {
+  version: "桌面版 v1",
+  date: "2026-05-29",
+  status: "React 工作台预览版",
+  notes: [
+    "新增首页工作台、配置状态检查和 1-6 步口播生产入口。",
+    "素材资产独立维护，流程内支持快速添加音色、形象和视频素材。",
+    "补齐 RunningHub / ComfyUI 声音工作流选择与参数配置。",
+    "优化画面模板、画面规划和发布素材包的交付体验。",
+  ],
 };
 
 const ttsWorkflowOptions = [
@@ -135,6 +155,43 @@ const ttsWorkflowOptions = [
     kind: "spark",
   },
 ] as const;
+
+const digitalHumanWorkflowOptions: Array<{
+  value: string;
+  label: string;
+  supportedMediaTypes: PortraitMediaType[];
+  defaultWidth?: number;
+  defaultHeight?: number;
+}> = [
+  {
+    value: "workflows/runninghub/digital_combination.json",
+    label: "旧版数字人组合工作流",
+    supportedMediaTypes: ["image"],
+    defaultWidth: 720,
+    defaultHeight: 1280,
+  },
+  {
+    value: "workflows/runninghub/digital_talk_image_prompt.json",
+    label: "数字人口播（图片形象 + 提示词）",
+    supportedMediaTypes: ["image"],
+    defaultWidth: 720,
+    defaultHeight: 1280,
+  },
+  {
+    value: "workflows/runninghub/digital_talk_fast_720p.json",
+    label: "数字人口播快速版（图片形象 720x1280）",
+    supportedMediaTypes: ["image"],
+    defaultWidth: 720,
+    defaultHeight: 1280,
+  },
+  {
+    value: "workflows/runninghub/digital_lip_sync_video.json",
+    label: "视频改口型（视频形象 + 音频）",
+    supportedMediaTypes: ["video"],
+    defaultWidth: 480,
+    defaultHeight: 832,
+  },
+];
 
 const edgeVoiceOptions = [
   { value: "zh-CN-YunjianNeural", label: "中文 · 云健（男声）" },
@@ -168,7 +225,8 @@ const emptyAssets: AssetState = {
 };
 
 const navItems: MenuProps["items"] = [
-  { key: "ip", icon: <Video size={16} />, label: "IP口播" },
+  { key: "home", icon: <BarChart3 size={16} />, label: "首页" },
+  { key: "ip", icon: <Video size={16} />, label: "口播生产" },
   { key: "assets", icon: <Package size={16} />, label: "素材资产" },
   { key: "tasks", icon: <CheckCircle2 size={16} />, label: "任务中心" },
   { key: "config", icon: <Settings size={16} />, label: "配置" },
@@ -176,7 +234,7 @@ const navItems: MenuProps["items"] = [
 ];
 
 export function App() {
-  const [view, setView] = useState<View>("ip");
+  const [view, setView] = useState<View>("home");
   const [assetTab, setAssetTab] = useState<AssetTab>("voices");
   const [themeSkin, setThemeSkinState] = useState<ThemeSkin>(() => readStoredThemeSkin());
   const [assets, setAssets] = useState<AssetState>(emptyAssets);
@@ -203,7 +261,7 @@ export function App() {
       try {
         const restored = await getSession(storedSessionId);
         setSession(restored);
-        setActiveStep(restored.current_step || 1);
+        setActiveStep(1);
         return;
       } catch {
         window.localStorage.removeItem("pixelle_ipb_session_id");
@@ -212,7 +270,7 @@ export function App() {
     const created = await createSession();
     window.localStorage.setItem("pixelle_ipb_session_id", created.session_id);
     setSession(created);
-    setActiveStep(created.current_step || 1);
+    setActiveStep(1);
   }
 
   useEffect(() => {
@@ -292,6 +350,29 @@ export function App() {
     setSession(updated);
   }
 
+  function openAssetTab(tab: AssetTab) {
+    setAssetTab(tab);
+    setView("assets");
+  }
+
+  function openView(nextView: View) {
+    if (nextView === "ip") {
+      setActiveStep(1);
+    }
+    setView(nextView);
+  }
+
+  async function startNewIpSession() {
+    setBusy(false);
+    setTask(null);
+    setError("");
+    const created = await createSession();
+    window.localStorage.setItem("pixelle_ipb_session_id", created.session_id);
+    setSession(created);
+    setActiveStep(1);
+    setView("ip");
+  }
+
   async function downloadFinalVideo() {
     if (!session) return;
     try {
@@ -317,7 +398,7 @@ export function App() {
             mode="inline"
             selectedKeys={[view]}
             items={navItems}
-            onClick={(item) => setView(item.key as View)}
+            onClick={(item) => openView(item.key as View)}
           />
         </Layout.Sider>
         <Layout>
@@ -365,6 +446,8 @@ export function App() {
               execute={execute}
               busy={busy}
               openStoryboard={() => setStoryboardOpen(true)}
+              openAssetTab={openAssetTab}
+              reloadAssets={reloadAssets}
               downloadFinalVideo={downloadFinalVideo}
             />
           </section>
@@ -382,10 +465,22 @@ export function App() {
               session={session}
               videos={assets.videos}
               patch={patch}
+              reloadAssets={reloadAssets}
+              openAssetTab={openAssetTab}
               onClose={() => setStoryboardOpen(false)}
             />
           ) : null}
         </section>
+      ) : null}
+
+      {view === "home" ? (
+        <HomeView
+          assets={assets}
+          onStart={() => startNewIpSession().catch((err) => setError(String(err)))}
+          onAssets={() => setView("assets")}
+          onConfig={() => setView("config")}
+          onTasks={() => setView("tasks")}
+        />
       ) : null}
 
       {view === "assets" ? (
@@ -404,6 +499,301 @@ export function App() {
       </Layout>
     </ConfigProvider>
   );
+}
+
+function HomeView({
+  assets,
+  onStart,
+  onAssets,
+  onConfig,
+  onTasks,
+}: {
+  assets: AssetState;
+  onStart: () => void;
+  onAssets: () => void;
+  onConfig: () => void;
+  onTasks: () => void;
+}) {
+  const [config, setConfig] = useState<DesktopConfig | null>(null);
+  const [tasks, setTasks] = useState<TaskInfo[]>([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    Promise.all([getDesktopConfig(), listTasks("", 100)])
+      .then(([nextConfig, nextTasks]) => {
+        setConfig(nextConfig);
+        setTasks(nextTasks);
+      })
+      .catch((err) => setError(String(err)));
+  }, []);
+
+  const llmReady = hasConfiguredKey(config?.llm.api_key);
+  const runninghubReady = hasConfiguredKey(config?.runninghub.api_key);
+  const ready = llmReady && runninghubReady;
+  const assetCount =
+    assets.voices.length + assets.portraits.length + assets.templates.length + assets.videos.length;
+  const taskStats = buildTaskStats(tasks);
+  const latestTask = tasks[0];
+  const recentTasks = tasks.slice(0, 4);
+  const readinessItems = [
+    { label: "账号配置", ready: llmReady, action: "去配置", onClick: onConfig },
+    { label: "云端生成能力", ready: runninghubReady, action: "去配置", onClick: onConfig },
+    { label: "声音素材", ready: assets.voices.length > 0, action: "去维护", onClick: onAssets },
+    { label: "数字人形象", ready: assets.portraits.length > 0, action: "去维护", onClick: onAssets },
+    { label: "画面模板", ready: assets.templates.length > 0, action: "去维护", onClick: onAssets },
+    { label: "系统连接", ready: !error, action: "诊断", onClick: onConfig },
+  ];
+
+  return (
+    <section className="home-page">
+      <Card className="home-workbench-hero" variant="borderless">
+        <div className="home-workbench-copy">
+          <span className="home-hero-eyebrow">老板口播 · 门店短视频 · 本地生活</span>
+          <Typography.Title>
+            老板 IP
+            <br />
+            <span>口播平台</span>
+          </Typography.Title>
+          <Typography.Paragraph>
+            给老板、门店和本地生活团队用的口播生产台。打开首页先看系统是否准备好，再继续任务或新建一条可发布的视频。
+          </Typography.Paragraph>
+        </div>
+        <SystemStatusPanel items={readinessItems} ready={ready} onConfig={onConfig} />
+      </Card>
+
+      <div className="home-metrics">
+        <MetricCard label="全部任务" value={taskStats.total} />
+        <MetricCard label="成功任务" value={taskStats.completed} tone="success" />
+        <MetricCard label="失败任务" value={taskStats.failed} tone="danger" />
+        <MetricCard label="素材资产" value={assetCount} />
+        <MetricCard label="音色" value={assets.voices.length} />
+        <MetricCard label="数字人形象" value={assets.portraits.length} />
+        <MetricCard label="视频素材" value={assets.videos.length} />
+        <MetricCard label="画面模板" value={assets.templates.length} />
+      </div>
+
+      <div className="home-workbench-grid">
+        <div className="home-left-stack">
+          <QuickAccessCard ready={ready} onAssets={onAssets} onConfig={onConfig} />
+        </div>
+        <div className="home-right-stack">
+          <CurrentTaskCard
+            task={latestTask}
+            ready={ready}
+            onStart={onStart}
+            onConfig={onConfig}
+            onTasks={onTasks}
+          />
+          <RecentTasksCard tasks={recentTasks} onTasks={onTasks} />
+        </div>
+      </div>
+
+      <HomeReleaseInfo />
+    </section>
+  );
+}
+
+function SystemStatusPanel({
+  items,
+  ready,
+  onConfig,
+}: {
+  items: Array<{ label: string; ready: boolean; action: string; onClick: () => void }>;
+  ready: boolean;
+  onConfig: () => void;
+}) {
+  const missing = items.filter((item) => !item.ready);
+  return (
+    <div className="home-system-status" aria-label="系统状态">
+      <div className="system-status-head">
+        <span>系统状态</span>
+        <Tag color={ready ? "success" : "warning"}>{ready ? "可以生成" : `${missing.length} 项待处理`}</Tag>
+      </div>
+      <div className="system-status-list">
+        {items.slice(0, 4).map((item) => (
+          <div key={item.label} className="system-status-item">
+            <span className={item.ready ? "ready-dot success" : "ready-dot warning"} />
+            <strong>{item.label}</strong>
+            <em>{item.ready ? "已完成" : "待设置"}</em>
+          </div>
+        ))}
+      </div>
+      {!ready ? (
+        <Button type="primary" onClick={onConfig}>
+          补齐配置
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
+function QuickAccessCard({
+  ready,
+  onAssets,
+  onConfig,
+}: {
+  ready: boolean;
+  onAssets: () => void;
+  onConfig: () => void;
+}) {
+  return (
+    <Card className="home-work-card quick-access-card" variant="borderless">
+      <div className="work-card-title compact">
+        <strong>常用准备</strong>
+        <Tag color={ready ? "success" : "warning"}>{ready ? "基础完成" : "建议先检查"}</Tag>
+      </div>
+      <p>管理声音、数字人形象、画面模板和系统配置。素材准备好后，生成视频会更顺。</p>
+      <div className="quick-access-actions">
+        <button onClick={onAssets}>
+          <Package size={20} />
+          <strong>管理声音/形象/模板</strong>
+          <span>维护后可直接在流程中选择</span>
+        </button>
+        <button onClick={onConfig}>
+          <Settings size={20} />
+          <strong>系统配置</strong>
+          <span>检查 API Key、输出目录和外观设置</span>
+        </button>
+      </div>
+    </Card>
+  );
+}
+
+function CurrentTaskCard({
+  task,
+  ready,
+  onStart,
+  onConfig,
+  onTasks,
+}: {
+  task?: TaskInfo;
+  ready: boolean;
+  onStart: () => void;
+  onConfig: () => void;
+  onTasks: () => void;
+}) {
+  return (
+    <Card className="home-work-card current-task-card" variant="borderless">
+      <div className="work-card-title">
+        <div>
+          <Tag color="processing">当前任务</Tag>
+          <strong>{task ? task.display_name || task.flow_name || "未命名口播任务" : "暂无进行中的任务"}</strong>
+        </div>
+        {task ? <Tag color={taskStatusColor(task.status)}>{taskStatusLabel(task.status)}</Tag> : null}
+      </div>
+      {task ? (
+        <>
+          <p>{task.progress?.message || task.step_key || "可进入任务中心查看详情。"}</p>
+          <Progress
+            percent={Math.round(task.progress?.percentage || (task.status === "completed" ? 100 : 0))}
+            status={task.status === "failed" ? "exception" : undefined}
+          />
+          {task.error ? <Alert type="error" showIcon message={task.error} /> : null}
+        </>
+      ) : (
+        <p>还没有任务。可以从素材链接、粘贴文案、行业人设或 IP 学习开始创建第一条口播视频。</p>
+      )}
+      <Space wrap>
+        <Button type="primary" onClick={ready ? onStart : onConfig}>
+          {task ? "继续生产" : ready ? "新建口播视频" : "先完成配置"}
+        </Button>
+        <Button onClick={onTasks}>查看任务中心</Button>
+      </Space>
+    </Card>
+  );
+}
+
+function RecentTasksCard({
+  tasks,
+  onTasks,
+}: {
+  tasks: TaskInfo[];
+  onTasks: () => void;
+}) {
+  return (
+    <Card className="home-work-card recent-task-card" variant="borderless">
+      <div className="work-card-title compact">
+        <strong>最近项目</strong>
+        <Button size="small" onClick={onTasks}>全部任务</Button>
+      </div>
+      {tasks.length ? (
+        <div className="recent-task-list">
+          {tasks.map((task) => (
+            <div key={task.task_id} className="recent-task-row">
+              <div>
+                <strong>{task.display_name || task.flow_name || "口播任务"}</strong>
+                <span>{task.progress?.message || task.step_key || task.task_id}</span>
+              </div>
+              <Tag color={taskStatusColor(task.status)}>{taskStatusLabel(task.status)}</Tag>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="empty-state compact-empty">暂无最近项目。</div>
+      )}
+    </Card>
+  );
+}
+
+function HomeReleaseInfo() {
+  return (
+    <section className="home-release-strip" aria-label="当前版本和更新说明">
+      <div>
+        <span>当前版本</span>
+        <strong>{appReleaseInfo.version}</strong>
+        <em>{appReleaseInfo.status} · {appReleaseInfo.date}</em>
+      </div>
+      <details>
+        <summary>更新说明</summary>
+        <ul>
+          {appReleaseInfo.notes.map((note) => (
+            <li key={note}>{note}</li>
+          ))}
+        </ul>
+      </details>
+    </section>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  tone = "neutral",
+}: {
+  label: string;
+  value: number;
+  tone?: "neutral" | "success" | "danger";
+}) {
+  return (
+    <Card className={`metric-card ${tone}`} variant="borderless">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </Card>
+  );
+}
+
+function hasConfiguredKey(value?: string) {
+  const key = (value || "").trim();
+  return Boolean(key && key !== "请输入 API Key" && !key.toLowerCase().includes("your-api-key"));
+}
+
+function buildTaskStats(tasks: TaskInfo[]) {
+  return {
+    total: tasks.length,
+    completed: tasks.filter((task) => task.status === "completed").length,
+    failed: tasks.filter((task) => task.status === "failed").length,
+  };
+}
+
+function taskStatusColor(status: TaskInfo["status"]) {
+  const colors: Record<TaskInfo["status"], string> = {
+    pending: "default",
+    running: "processing",
+    completed: "success",
+    failed: "error",
+    cancelled: "default",
+  };
+  return colors[status] || "default";
 }
 
 function ProductionConsole({
@@ -504,6 +894,8 @@ function StepPanel({
   execute,
   busy,
   openStoryboard,
+  openAssetTab,
+  reloadAssets,
   downloadFinalVideo,
 }: {
   step: number;
@@ -513,6 +905,8 @@ function StepPanel({
   execute: (stepKey: string) => Promise<void>;
   busy: boolean;
   openStoryboard: () => void;
+  openAssetTab: (tab: AssetTab) => void;
+  reloadAssets: () => Promise<void>;
   downloadFinalVideo: () => Promise<void>;
 }) {
   const notice = session.notices[String(step)];
@@ -538,7 +932,15 @@ function StepPanel({
       ) : null}
       {step === 2 ? <CopywritingStep session={session} patch={patch} execute={execute} busy={busy} /> : null}
       {step === 3 ? (
-        <VoiceStep session={session} voices={assets.voices} patch={patch} execute={execute} busy={busy} />
+        <VoiceStep
+          session={session}
+          voices={assets.voices}
+          patch={patch}
+          execute={execute}
+          busy={busy}
+          reloadAssets={reloadAssets}
+          openAssetTab={openAssetTab}
+        />
       ) : null}
       {step === 4 ? (
         <PortraitStep
@@ -547,6 +949,8 @@ function StepPanel({
           patch={patch}
           execute={execute}
           busy={busy}
+          reloadAssets={reloadAssets}
+          openAssetTab={openAssetTab}
         />
       ) : null}
       {step === 5 ? (
@@ -558,6 +962,7 @@ function StepPanel({
           execute={execute}
           busy={busy}
           openStoryboard={openStoryboard}
+          openAssetTab={openAssetTab}
         />
       ) : null}
       {step === 6 ? (
@@ -940,50 +1345,87 @@ function VoiceStep({
   patch,
   execute,
   busy,
+  reloadAssets,
+  openAssetTab,
 }: {
   session: IpBroadcastState;
   voices: VoiceAsset[];
   patch: (values: Record<string, unknown>) => Promise<void>;
   execute: (stepKey: string) => Promise<void>;
   busy: boolean;
+  reloadAssets: () => Promise<void>;
+  openAssetTab: (tab: AssetTab) => void;
 }) {
   const inferenceMode = (session.state.tts_inference_mode as string) || "local";
   const selectedWorkflow =
     (session.state.tts_workflow as string) || "runninghub/tts_index_custom.json";
   const workflowKind = ttsWorkflowKind(selectedWorkflow);
   const showReferenceLibrary = inferenceMode === "comfyui" && workflowKind === "index";
+  const [addVoiceOpen, setAddVoiceOpen] = useState(false);
+  const [preview, setPreview] = useState<AssetPreview | null>(null);
+
+  async function selectVoice(voice: VoiceAsset) {
+    await patch({
+      tts_ref_audio_id: voice.reference_id,
+      tts_ref_audio_path: voice.asset_path,
+    });
+  }
 
   function renderReferenceLibrary() {
     return (
       <div className="voice-config-panel">
         <div className="section-title">
           <span>参考音色库</span>
-          <small>Index 声音克隆工作流会读取这里选择的参考音频</small>
+          <Space size={8} wrap>
+            <small>Index 声音克隆工作流会读取这里选择的参考音频</small>
+            <Button size="small" onClick={() => openAssetTab("voices")}>
+              管理音色库
+            </Button>
+          </Space>
         </div>
         <div className="asset-grid compact voice-assets">
-          {voices.length ? (
-            voices.map((voice) => (
-              <button
-                key={voice.reference_id}
-                className={`asset-card selectable ${
-                  session.state.tts_ref_audio_path === voice.asset_path ? "selected" : ""
-                }`}
-                onClick={() =>
-                  patch({
-                    tts_ref_audio_id: voice.reference_id,
-                    tts_ref_audio_path: voice.asset_path,
-                  })
-                }
-              >
-                <Mic2 size={20} />
-                <strong>{voice.name}</strong>
-                <span>{voice.filename}</span>
-              </button>
-            ))
-          ) : (
-            <div className="empty-state">暂无参考音色。请到素材资产 &gt; 音色库维护。</div>
-          )}
+          {voices.map((voice) => (
+            <section
+              key={voice.reference_id}
+              className={`asset-card selectable ${
+                session.state.tts_ref_audio_path === voice.asset_path ? "selected" : ""
+              }`}
+              onClick={() => selectVoice(voice)}
+            >
+              <Mic2 size={20} />
+              <strong>{voice.name}</strong>
+              <span>{voice.filename}</span>
+              <div className="asset-card-actions">
+                <button
+                  type="button"
+                  className="asset-action preview"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setPreview({ kind: "audio", title: voice.name, src: voice.file_url });
+                  }}
+                  disabled={!voice.file_url}
+                >
+                  试听
+                </button>
+              </div>
+            </section>
+          ))}
+          <AddAssetCard
+            title="添加音色"
+            description={voices.length ? "上传或录制，保存后自动选中" : "暂无音色，点击添加"}
+            onClick={() => setAddVoiceOpen(true)}
+          />
         </div>
+        <VoiceAssetModal
+          open={addVoiceOpen}
+          onClose={() => setAddVoiceOpen(false)}
+          onUploaded={async (voice) => {
+            await selectVoice(voice);
+            await reloadAssets();
+            setAddVoiceOpen(false);
+          }}
+        />
+        <AssetPreviewModal preview={preview} onClose={() => setPreview(null)} />
       </div>
     );
   }
@@ -1034,7 +1476,7 @@ function VoiceStep({
 
       <div className="panel-actions">
         <button className="primary" onClick={() => execute("voice")} disabled={busy}>
-          生成语音
+          生成配音
         </button>
       </div>
     </div>
@@ -1265,71 +1707,198 @@ function ttsWorkflowNotice(workflowKind: string) {
   return "未知工作流类型，仅传入工作流路径。";
 }
 
+function getDigitalHumanWorkflow(value: string) {
+  return (
+    digitalHumanWorkflowOptions.find((workflow) => workflow.value === value) ||
+    digitalHumanWorkflowOptions[0]
+  );
+}
+
 function PortraitStep({
   session,
   portraits,
   patch,
   execute,
   busy,
+  reloadAssets,
+  openAssetTab,
 }: {
   session: IpBroadcastState;
   portraits: PortraitAsset[];
   patch: (values: Record<string, unknown>) => Promise<void>;
   execute: (stepKey: string) => Promise<void>;
   busy: boolean;
+  reloadAssets: () => Promise<void>;
+  openAssetTab: (tab: AssetTab) => void;
 }) {
+  const [addPortraitOpen, setAddPortraitOpen] = useState(false);
+  const [preview, setPreview] = useState<AssetPreview | null>(null);
+  const currentWorkflow = (session.state.digital_human_workflow as string) || "";
+  const workflowConfig = getDigitalHumanWorkflow(currentWorkflow);
+  const compatiblePortraits = portraits.filter((portrait) =>
+    workflowConfig.supportedMediaTypes.includes(portrait.media_type),
+  );
+  const accept = workflowConfig.supportedMediaTypes.includes("image")
+    ? workflowConfig.supportedMediaTypes.includes("video")
+      ? "image/*,video/*"
+      : "image/*"
+    : "video/*";
+  const selectedPortrait = portraits.find(
+    (portrait) => portrait.portrait_id === session.state.portrait_id,
+  );
+
+  useEffect(() => {
+    const updates: Record<string, unknown> = {};
+    if (currentWorkflow !== workflowConfig.value) {
+      updates.digital_human_workflow = workflowConfig.value;
+      if (!session.state.digital_human_width) {
+        updates.digital_human_width = workflowConfig.defaultWidth;
+      }
+      if (!session.state.digital_human_height) {
+        updates.digital_human_height = workflowConfig.defaultHeight;
+      }
+    }
+    if (
+      selectedPortrait &&
+      !workflowConfig.supportedMediaTypes.includes(selectedPortrait.media_type)
+    ) {
+      updates.portrait_id = "";
+      updates.portrait_path = "";
+      updates.portrait_media_type = "";
+    }
+    if (Object.keys(updates).length) {
+      void patch(updates);
+    }
+  }, [
+    currentWorkflow,
+    selectedPortrait?.portrait_id,
+    selectedPortrait?.media_type,
+    session.state.digital_human_width,
+    session.state.digital_human_height,
+    workflowConfig.defaultHeight,
+    workflowConfig.defaultWidth,
+    workflowConfig.value,
+  ]);
+
+  async function selectPortrait(portrait: PortraitAsset) {
+    await patch({
+      portrait_id: portrait.portrait_id,
+      portrait_path: portrait.asset_path,
+      portrait_media_type: portrait.media_type,
+    });
+  }
+
   return (
     <div>
-      <label>形象库</label>
-      <div className="asset-grid portraits">
-        {portraits.length ? (
-          portraits.map((portrait) => (
-            <button
-              key={portrait.portrait_id}
-              className={`asset-card portrait selectable ${
-                session.state.portrait_id === portrait.portrait_id ? "selected" : ""
-              }`}
-              onClick={() =>
-                patch({
-                  portrait_id: portrait.portrait_id,
-                  portrait_path: portrait.asset_path,
-                  portrait_media_type: portrait.media_type,
-                })
-              }
-            >
-              {portrait.media_type === "image" ? (
-                <AssetImage src={portrait.file_url} alt={portrait.name} />
-              ) : (
-                <div className="video-thumb">VIDEO</div>
-              )}
-              <strong>{portrait.name}</strong>
-              <span>{portrait.media_type === "video" ? "视频形象" : "图片形象"}</span>
-            </button>
-          ))
-        ) : (
-          <div className="empty-state">暂无数字人形象。请到素材资产 &gt; 形象库维护。</div>
-        )}
+      <div className="section-title inline-section-title">
+        <span>形象库</span>
+        <Button size="small" onClick={() => openAssetTab("portraits")}>
+          管理形象库
+        </Button>
       </div>
+      <div className="asset-grid portraits">
+        {compatiblePortraits.map((portrait) => (
+          <section
+            key={portrait.portrait_id}
+            className={`asset-card portrait selectable ${
+              session.state.portrait_id === portrait.portrait_id ? "selected" : ""
+            }`}
+            onClick={() => selectPortrait(portrait)}
+          >
+            {portrait.media_type === "image" ? (
+              <AssetImage src={portrait.file_url} alt={portrait.name} />
+            ) : (
+              <div className="video-thumb">VIDEO</div>
+            )}
+            <strong>{portrait.name}</strong>
+            <span>{portrait.media_type === "video" ? "视频形象" : "图片形象"}</span>
+            <div className="asset-card-actions">
+              <button
+                type="button"
+                className="asset-action preview"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setPreview({
+                    kind: portrait.media_type,
+                    title: portrait.name,
+                    src: portrait.file_url,
+                  });
+                }}
+                disabled={!portrait.file_url}
+              >
+                预览
+              </button>
+            </div>
+          </section>
+        ))}
+        {!compatiblePortraits.length ? (
+          <div className="empty-state">
+            当前工作流只支持
+            {workflowConfig.supportedMediaTypes.includes("video") ? "视频形象" : "图片形象"}。
+          </div>
+        ) : null}
+        <AddAssetCard
+          title="添加形象"
+          description={
+            workflowConfig.supportedMediaTypes.includes("video")
+              ? "上传视频形象，保存后自动选中"
+              : "上传图片形象，保存后自动选中"
+          }
+          onClick={() => setAddPortraitOpen(true)}
+          className="portrait"
+        />
+      </div>
+      <SimpleAssetModal
+        open={addPortraitOpen}
+        title="添加数字人形象"
+        description={
+          workflowConfig.supportedMediaTypes.includes("video")
+            ? "当前工作流仅支持视频形象。"
+            : "当前工作流仅支持图片形象。"
+        }
+        assetNameLabel="形象名称"
+        fileLabel={workflowConfig.supportedMediaTypes.includes("video") ? "视频形象" : "图片形象"}
+        accept={accept}
+        upload={uploadPortraitAsset}
+        onClose={() => setAddPortraitOpen(false)}
+        onUploaded={async (portrait) => {
+          await selectPortrait(portrait);
+          await reloadAssets();
+          setAddPortraitOpen(false);
+        }}
+      />
+      <AssetPreviewModal preview={preview} onClose={() => setPreview(null)} />
       <div className="grid2">
         <div>
           <label>数字人工作流</label>
           <select
-            value={(session.state.digital_human_workflow as string) || ""}
-            onChange={(event) => patch({ digital_human_workflow: event.target.value })}
+            value={workflowConfig.value}
+            onChange={(event) => {
+              const nextWorkflow = getDigitalHumanWorkflow(event.target.value);
+              const currentPortrait = portraits.find(
+                (portrait) => portrait.portrait_id === session.state.portrait_id,
+              );
+              patch({
+                digital_human_workflow: nextWorkflow.value,
+                digital_human_width: nextWorkflow.defaultWidth,
+                digital_human_height: nextWorkflow.defaultHeight,
+                ...(currentPortrait &&
+                !nextWorkflow.supportedMediaTypes.includes(currentPortrait.media_type)
+                  ? { portrait_id: "", portrait_path: "", portrait_media_type: "" }
+                  : {}),
+              });
+            }}
           >
-            <option value="workflows/runninghub/digital_combination.json">
-              旧版数字人组合工作流
-            </option>
-            <option value="workflows/runninghub/digital_human_ai_app.json">
-              AI 应用数字人口播
-            </option>
-            <option value="workflows/runninghub/digital_human_fast_ai_app.json">
-              AI 应用快速版
-            </option>
-            <option value="workflows/runninghub/digital_human_lipsync_ai_app.json">
-              视频改口型
-            </option>
+            {digitalHumanWorkflowOptions.map((workflow) => (
+              <option key={workflow.value} value={workflow.value}>
+                {workflow.label}
+              </option>
+            ))}
           </select>
+          <p className="muted">
+            当前只显示
+            {workflowConfig.supportedMediaTypes.includes("video") ? "视频形象" : "图片形象"}。
+          </p>
         </div>
         <div>
           <label>宽高</label>
@@ -1355,7 +1924,7 @@ function PortraitStep({
       />
       <div className="panel-actions">
         <button className="primary" onClick={() => execute("digital_human")} disabled={busy}>
-          生成数字人视频
+          生成出镜视频
         </button>
       </div>
     </div>
@@ -1370,6 +1939,7 @@ function PostproductionStep({
   execute,
   busy,
   openStoryboard,
+  openAssetTab,
 }: {
   session: IpBroadcastState;
   templates: IpTemplateAsset[];
@@ -1378,6 +1948,7 @@ function PostproductionStep({
   execute: (stepKey: string) => Promise<void>;
   busy: boolean;
   openStoryboard: () => void;
+  openAssetTab: (tab: AssetTab) => void;
 }) {
   const groups = readGroups(session.state.visual_groups);
   const segments = splitSegments((session.state.final_script as string) || "");
@@ -1458,6 +2029,9 @@ function PostproductionStep({
 
       <div className="summary-box subtle">
         <span>视频素材库：{videos.length} 个素材可用于画面规划。</span>
+        <Button size="small" onClick={() => openAssetTab("videos")}>
+          管理视频素材库
+        </Button>
       </div>
 
       <div className="panel-actions">
@@ -1699,11 +2273,15 @@ function StoryboardModal({
   session,
   videos,
   patch,
+  reloadAssets,
+  openAssetTab,
   onClose,
 }: {
   session: IpBroadcastState;
   videos: VideoAsset[];
   patch: (values: Record<string, unknown>) => Promise<void>;
+  reloadAssets: () => Promise<void>;
+  openAssetTab: (tab: AssetTab) => void;
   onClose: () => void;
 }) {
   const segments = splitSegments((session.state.final_script as string) || "");
@@ -1793,6 +2371,8 @@ function StoryboardModal({
                   key={group.group_id}
                   group={group}
                   videos={videos}
+                  reloadAssets={reloadAssets}
+                  openAssetTab={openAssetTab}
                   update={(updated) =>
                     setGroups((current) =>
                       current.map((item) => (item.group_id === group.group_id ? updated : item)),
@@ -1822,14 +2402,22 @@ function StoryboardModal({
 function GroupEditor({
   group,
   videos,
+  reloadAssets,
+  openAssetTab,
   update,
   remove,
 }: {
   group: VisualGroup;
   videos: VideoAsset[];
+  reloadAssets: () => Promise<void>;
+  openAssetTab: (tab: AssetTab) => void;
   update: (group: VisualGroup) => void;
   remove: () => void;
 }) {
+  const [addVideoOpen, setAddVideoOpen] = useState(false);
+  const [videoPickerOpen, setVideoPickerOpen] = useState(false);
+  const selectedVideo = videos.find((item) => item.asset_id === group.video_asset_id);
+
   return (
     <section className="group-card">
       <div className="card-title">
@@ -1849,25 +2437,70 @@ function GroupEditor({
       </select>
       {group.visual_type === "uploaded_video" ? (
         <>
-          <label>视频素材</label>
-          <select
-            value={group.video_asset_id}
-            onChange={(event) => {
-              const video = videos.find((item) => item.asset_id === event.target.value);
+          <div className="section-title inline-section-title">
+            <span>视频素材</span>
+            <Space size={8}>
+              <Button size="small" onClick={() => setVideoPickerOpen(true)}>
+                选择视频素材
+              </Button>
+              <Button size="small" type="primary" onClick={() => setAddVideoOpen(true)}>
+                + 添加
+              </Button>
+              <Button size="small" onClick={() => openAssetTab("videos")}>
+                管理视频素材库
+              </Button>
+            </Space>
+          </div>
+          <div className="selected-video-summary">
+            {selectedVideo ? (
+              <>
+                {selectedVideo.thumbnail_exists ? (
+                  <AssetImage src={selectedVideo.thumbnail_url} alt={selectedVideo.name} />
+                ) : (
+                  <div className="video-thumb">VIDEO</div>
+                )}
+                <div>
+                  <strong>{selectedVideo.name}</strong>
+                  <span>{selectedVideo.duration ? `${selectedVideo.duration}s` : selectedVideo.filename}</span>
+                </div>
+              </>
+            ) : (
+              <span>未选择视频素材。点击“选择视频素材”从素材库中选择。</span>
+            )}
+          </div>
+          <VideoAssetPickerModal
+            open={videoPickerOpen}
+            videos={videos}
+            selectedId={group.video_asset_id}
+            onClose={() => setVideoPickerOpen(false)}
+            onSelect={(video) => {
               update({
                 ...group,
-                video_asset_id: event.target.value,
-                uploaded_video_path: video?.asset_path || "",
+                video_asset_id: video.asset_id,
+                uploaded_video_path: video.asset_path,
               });
+              setVideoPickerOpen(false);
             }}
-          >
-            <option value="">请选择视频素材</option>
-            {videos.map((video) => (
-              <option key={video.asset_id} value={video.asset_id}>
-                {video.name}
-              </option>
-            ))}
-          </select>
+          />
+          <SimpleAssetModal
+            open={addVideoOpen}
+            title="添加视频素材"
+            description="上传后保存到视频素材库，并自动用于当前覆盖组。"
+            assetNameLabel="视频素材名称"
+            fileLabel="覆盖视频"
+            accept="video/*"
+            upload={uploadVideoAsset}
+            onClose={() => setAddVideoOpen(false)}
+            onUploaded={async (video) => {
+              update({
+                ...group,
+                video_asset_id: video.asset_id,
+                uploaded_video_path: video.asset_path,
+              });
+              await reloadAssets();
+              setAddVideoOpen(false);
+            }}
+          />
         </>
       ) : null}
       {group.visual_type === "ai_video" ? (
@@ -1880,6 +2513,408 @@ function GroupEditor({
           />
         </>
       ) : null}
+    </section>
+  );
+}
+
+function VideoAssetPickerModal({
+  open,
+  videos,
+  selectedId,
+  onClose,
+  onSelect,
+}: {
+  open: boolean;
+  videos: VideoAsset[];
+  selectedId: string;
+  onClose: () => void;
+  onSelect: (video: VideoAsset) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const filteredVideos = videos.filter((video) => {
+    const keyword = query.trim().toLowerCase();
+    if (!keyword) return true;
+    return `${video.name} ${video.filename}`.toLowerCase().includes(keyword);
+  });
+
+  if (!open) return null;
+
+  return (
+    <div className="modal-backdrop asset-modal-backdrop">
+      <section className="modal video-picker-modal">
+        <div className="modal-title">
+          <div>
+            <h2>选择视频素材</h2>
+            <p>按名称或文件名搜索，选择后用于当前覆盖组。</p>
+          </div>
+          <button onClick={onClose}>关闭</button>
+        </div>
+        <input
+          className="video-picker-search"
+          placeholder="搜索视频名称或文件名"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
+        <div className="video-picker-grid">
+          {filteredVideos.map((video) => (
+            <button
+              key={video.asset_id}
+              className={`video-picker-card ${selectedId === video.asset_id ? "selected" : ""}`}
+              onClick={() => onSelect(video)}
+            >
+              {video.thumbnail_exists ? (
+                <AssetImage src={video.thumbnail_url} alt={video.name} />
+              ) : (
+                <div className="video-thumb">VIDEO</div>
+              )}
+              <strong>{video.name}</strong>
+              <span>{video.duration ? `${video.duration}s` : video.filename}</span>
+            </button>
+          ))}
+          {!filteredVideos.length ? <div className="empty-state">没有匹配的视频素材。</div> : null}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function AssetPreviewModal({
+  preview,
+  onClose,
+}: {
+  preview: AssetPreview | null;
+  onClose: () => void;
+}) {
+  if (!preview) return null;
+
+  return (
+    <div className="modal-backdrop asset-modal-backdrop">
+      <section className="modal asset-preview-modal">
+        <div className="modal-title">
+          <div>
+            <h2>{preview.title}</h2>
+            <p>{preview.kind === "audio" ? "音色试听" : "素材预览"}</p>
+          </div>
+          <button onClick={onClose}>关闭</button>
+        </div>
+        <div className={`asset-preview-body ${preview.kind}`}>
+          {preview.kind === "audio" ? <ProtectedMedia kind="audio" src={preview.src} /> : null}
+          {preview.kind === "image" ? <AssetImage src={preview.src} alt={preview.title} /> : null}
+          {preview.kind === "video" ? <ProtectedMedia kind="video" src={preview.src} /> : null}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function AddAssetCard({
+  title,
+  description,
+  onClick,
+  className = "",
+}: {
+  title: string;
+  description: string;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <button className={`asset-card add-asset-card ${className}`} onClick={onClick}>
+      <span className="add-asset-icon">+</span>
+      <strong>{title}</strong>
+      <span>{description}</span>
+    </button>
+  );
+}
+
+function SimpleAssetModal<TAsset>({
+  open,
+  title,
+  description,
+  assetNameLabel,
+  fileLabel,
+  accept,
+  upload,
+  onClose,
+  onUploaded,
+}: {
+  open: boolean;
+  title: string;
+  description: string;
+  assetNameLabel: string;
+  fileLabel: string;
+  accept: string;
+  upload: (name: string, file: File) => Promise<TAsset>;
+  onClose: () => void;
+  onUploaded: (asset: TAsset) => Promise<void>;
+}) {
+  const [name, setName] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  async function submit() {
+    if (!file) return;
+    setMessage("");
+    setError("");
+    try {
+      const asset = await upload(name || file.name, file);
+      await onUploaded(asset);
+      setName("");
+      setFile(null);
+      setMessage("已保存到素材库并选中。");
+    } catch (err) {
+      setError(String(err));
+    }
+  }
+
+  if (!open) return null;
+
+  return (
+    <div className="modal-backdrop asset-modal-backdrop">
+      <section className="modal asset-modal">
+        <div className="modal-title">
+          <div>
+            <h2>{title}</h2>
+            <p>{description}</p>
+          </div>
+          <button onClick={onClose}>关闭</button>
+        </div>
+        <div className="asset-modal-grid">
+          <div>
+            <label>{assetNameLabel}</label>
+            <input
+              placeholder="可选，默认使用文件名"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            />
+          </div>
+          <div>
+            <label>{fileLabel}</label>
+            <FilePickerField
+              accept={accept}
+              file={file}
+              onChange={setFile}
+            />
+          </div>
+        </div>
+        <AssetModalHint>{assetModalHintText(title)}</AssetModalHint>
+        <div className="asset-modal-success-note">
+          保存成功后：关闭弹窗 → 刷新素材 → 自动选中。
+        </div>
+        {message ? <div className="notice success">{message}</div> : null}
+        {error ? <div className="notice error">{error}</div> : null}
+        <div className="modal-actions">
+          <button onClick={onClose}>取消</button>
+          <button className="primary" disabled={!file} onClick={submit}>
+            保存并使用
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function VoiceAssetModal({
+  open,
+  onClose,
+  onUploaded,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onUploaded: (voice: VoiceAsset) => Promise<void>;
+}) {
+  const [mode, setMode] = useState<"upload" | "record">("upload");
+  const [name, setName] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  async function submitUpload() {
+    if (!file) return;
+    setMessage("");
+    setError("");
+    try {
+      const voice = await uploadVoiceAsset(name || file.name, file);
+      await onUploaded(voice);
+      setName("");
+      setFile(null);
+      setMessage("已保存到音色库并选中。");
+    } catch (err) {
+      setError(String(err));
+    }
+  }
+
+  if (!open) return null;
+
+  return (
+    <div className="modal-backdrop asset-modal-backdrop">
+      <section className="modal asset-modal">
+        <div className="modal-title">
+          <div>
+            <h2>添加参考音色</h2>
+            <p>上传或录制后保存到音色库，并自动选中。</p>
+          </div>
+          <button onClick={onClose}>关闭</button>
+        </div>
+        <div className="asset-modal-tabs">
+          <button className={mode === "upload" ? "active" : ""} onClick={() => setMode("upload")}>
+            从文件添加
+          </button>
+          <button className={mode === "record" ? "active" : ""} onClick={() => setMode("record")}>
+            直接录一段
+          </button>
+        </div>
+        {mode === "upload" ? (
+          <>
+            <div className="asset-modal-grid">
+              <div>
+                <label>素材名称</label>
+                <input
+                  placeholder="可选，默认使用文件名"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                />
+              </div>
+              <div>
+                <label>参考音频</label>
+                <FilePickerField
+                  accept="audio/*"
+                  file={file}
+                  onChange={setFile}
+                />
+              </div>
+            </div>
+            <AssetModalHint>也可以切到「直接录一段」现场采集参考音。</AssetModalHint>
+            <div className="asset-modal-success-note">
+              保存成功后：关闭弹窗 → 刷新素材 → 自动选中。
+            </div>
+            <div className="modal-actions">
+              <button onClick={onClose}>取消</button>
+              <button className="primary" disabled={!file} onClick={submitUpload}>
+                保存并使用
+              </button>
+            </div>
+          </>
+        ) : (
+          <VoiceRecorder onRecorded={onUploaded} />
+        )}
+        {message ? <div className="notice success">{message}</div> : null}
+        {error ? <div className="notice error">{error}</div> : null}
+      </section>
+    </div>
+  );
+}
+
+function FilePickerField({
+  accept,
+  file,
+  onChange,
+}: {
+  accept: string;
+  file: File | null;
+  onChange: (file: File | null) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  return (
+    <div className="file-picker-field">
+      <button type="button" onClick={() => inputRef.current?.click()}>
+        选择文件
+      </button>
+      <span>{file?.name || "未选择任何文件"}</span>
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        onChange={(event) => onChange(event.target.files?.[0] || null)}
+      />
+    </div>
+  );
+}
+
+function AssetModalHint({ children }: { children: ReactNode }) {
+  return (
+    <div className="asset-modal-hint">
+      <span className="asset-modal-dot" />
+      <p>{children}</p>
+    </div>
+  );
+}
+
+function assetModalHintText(title: string) {
+  if (title.includes("形象")) {
+    return "建议上传正面、光线稳定、脸部清晰的图片或闭口视频。";
+  }
+  if (title.includes("视频")) {
+    return "上传后会保存到视频素材库，并自动填入当前覆盖组。";
+  }
+  return "保存后会进入素材库，并自动选中当前素材。";
+}
+
+function VoiceRecorder({ onRecorded }: { onRecorded: (voice: VoiceAsset) => Promise<void> }) {
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<BlobPart[]>([]);
+  const [recording, setRecording] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  async function startRecording() {
+    setMessage("");
+    setError("");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      chunksRef.current = [];
+      const recorder = new MediaRecorder(stream);
+      recorderRef.current = recorder;
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) chunksRef.current.push(event.data);
+      };
+      recorder.onstop = async () => {
+        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
+        const file = new File([blob], `recorded_voice_${Date.now()}.webm`, {
+          type: blob.type || "audio/webm",
+        });
+        try {
+          const voice = await uploadVoiceAsset(file.name, file);
+          await onRecorded(voice);
+          setMessage("录音已保存到音色库并选中。");
+        } catch (err) {
+          setError(String(err));
+        } finally {
+          streamRef.current?.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+          recorderRef.current = null;
+          chunksRef.current = [];
+          setRecording(false);
+        }
+      };
+      recorder.start();
+      setRecording(true);
+    } catch (err) {
+      setError(String(err));
+      setRecording(false);
+    }
+  }
+
+  function stopRecording() {
+    recorderRef.current?.stop();
+  }
+
+  return (
+    <section className="asset-record-panel">
+      <span className="asset-modal-dot recording" />
+      <strong>直接录制参考音</strong>
+      <small>录完会保存到音色库并自动选中。</small>
+      <Space wrap>
+        <Button type={recording ? "default" : "primary"} onClick={recording ? stopRecording : startRecording}>
+          {recording ? "停止并保存" : "开始录音"}
+        </Button>
+        {recording ? <Tag color="processing">录音中</Tag> : null}
+      </Space>
+      {message ? <div className="notice success">{message}</div> : null}
+      {error ? <div className="notice error">{error}</div> : null}
     </section>
   );
 }
@@ -1925,26 +2960,45 @@ function AssetsView({
 }
 
 function VoiceLibrary({ items, reload }: { items: VoiceAsset[]; reload: () => Promise<void> }) {
+  const [preview, setPreview] = useState<AssetPreview | null>(null);
   return (
-    <AssetLibraryShell
-      title="音色库"
-      accept="audio/*"
-      upload={uploadVoiceAsset}
-      onUploaded={reload}
-      cards={
-        <div className="asset-grid">
-          {items.map((item) => (
-            <section key={item.reference_id} className="asset-card">
-              <Mic2 size={24} />
-              <strong>{item.name}</strong>
-              <span>{item.filename}</span>
-              <ProtectedMedia kind="audio" src={item.file_url} />
-              <button onClick={() => deleteVoiceAsset(item.reference_id).then(reload)}>删除</button>
-            </section>
-          ))}
-        </div>
-      }
-    />
+    <>
+      <AssetLibraryShell
+        title="音色库"
+        accept="audio/*"
+        upload={uploadVoiceAsset}
+        onUploaded={reload}
+        cards={
+          <div className="asset-grid">
+            {items.map((item) => (
+              <section key={item.reference_id} className="asset-card">
+                <Mic2 size={24} />
+                <strong>{item.name}</strong>
+                <span>{item.filename}</span>
+                <div className="asset-card-actions">
+                  <button
+                    type="button"
+                    className="asset-action preview"
+                    onClick={() => setPreview({ kind: "audio", title: item.name, src: item.file_url })}
+                    disabled={!item.file_url}
+                  >
+                    试听
+                  </button>
+                  <button
+                    type="button"
+                    className="asset-action danger"
+                    onClick={() => deleteVoiceAsset(item.reference_id).then(reload)}
+                  >
+                    删除
+                  </button>
+                </div>
+              </section>
+            ))}
+          </div>
+        }
+      />
+      <AssetPreviewModal preview={preview} onClose={() => setPreview(null)} />
+    </>
   );
 }
 
@@ -1955,29 +3009,55 @@ function PortraitLibrary({
   items: PortraitAsset[];
   reload: () => Promise<void>;
 }) {
+  const [preview, setPreview] = useState<AssetPreview | null>(null);
   return (
-    <AssetLibraryShell
-      title="形象库"
-      accept="image/*,video/*"
-      upload={uploadPortraitAsset}
-      onUploaded={reload}
-      cards={
-        <div className="asset-grid portraits">
-          {items.map((item) => (
-            <section key={item.portrait_id} className="asset-card portrait">
-              {item.media_type === "image" ? (
-                <AssetImage src={item.file_url} alt={item.name} />
-              ) : (
-                <ProtectedMedia kind="video" src={item.file_url} />
-              )}
-              <strong>{item.name}</strong>
-              <span>{item.media_type === "video" ? "视频形象" : "图片形象"}</span>
-              <button onClick={() => deletePortraitAsset(item.portrait_id).then(reload)}>删除</button>
-            </section>
-          ))}
-        </div>
-      }
-    />
+    <>
+      <AssetLibraryShell
+        title="形象库"
+        accept="image/*,video/*"
+        upload={uploadPortraitAsset}
+        onUploaded={reload}
+        cards={
+          <div className="asset-grid portraits">
+            {items.map((item) => (
+              <section key={item.portrait_id} className="asset-card portrait">
+                {item.media_type === "image" ? (
+                  <AssetImage src={item.file_url} alt={item.name} />
+                ) : (
+                  <ProtectedMedia kind="video" src={item.file_url} />
+                )}
+                <strong>{item.name}</strong>
+                <span>{item.media_type === "video" ? "视频形象" : "图片形象"}</span>
+                <div className="asset-card-actions">
+                  <button
+                    type="button"
+                    className="asset-action preview"
+                    onClick={() =>
+                      setPreview({
+                        kind: item.media_type,
+                        title: item.name,
+                        src: item.file_url,
+                      })
+                    }
+                    disabled={!item.file_url}
+                  >
+                    预览
+                  </button>
+                  <button
+                    type="button"
+                    className="asset-action danger"
+                    onClick={() => deletePortraitAsset(item.portrait_id).then(reload)}
+                  >
+                    删除
+                  </button>
+                </div>
+              </section>
+            ))}
+          </div>
+        }
+      />
+      <AssetPreviewModal preview={preview} onClose={() => setPreview(null)} />
+    </>
   );
 }
 
@@ -2017,7 +3097,15 @@ function VideoLibrary({ items, reload }: { items: VideoAsset[]; reload: () => Pr
               )}
               <strong>{item.name}</strong>
               <span>{item.duration ? `${item.duration}s` : item.filename}</span>
-              <button onClick={() => deleteVideoAsset(item.asset_id).then(reload)}>删除</button>
+              <div className="asset-card-actions">
+                <button
+                  type="button"
+                  className="asset-action danger"
+                  onClick={() => deleteVideoAsset(item.asset_id).then(reload)}
+                >
+                  删除
+                </button>
+              </div>
             </section>
           ))}
         </div>
@@ -2177,8 +3265,8 @@ function taskStepLabel(stepKey: string) {
     {
       source: "素材来源",
       copywriting: "文案确认",
-      voice: "声音生成",
-      digital_human: "数字人视频",
+      voice: "配音制作",
+      digital_human: "数字人出镜",
       postproduction: "一键成片",
       publish: "视频发布",
     }[stepKey] || stepKey || "-"
@@ -2227,8 +3315,8 @@ function AssetLibraryShell({
     <section className="card wide">
       <h2>{title}</h2>
       <div className="upload-row">
-        <input placeholder="素材名称" value={name} onChange={(event) => setName(event.target.value)} />
-        <input type="file" accept={accept} onChange={(event) => setFile(event.target.files?.[0] || null)} />
+        <input placeholder="素材名称，可选" value={name} onChange={(event) => setName(event.target.value)} />
+        <FilePickerField accept={accept} file={file} onChange={setFile} />
         <button className="primary" disabled={!file} onClick={submit}>
           保存素材
         </button>
@@ -2414,8 +3502,8 @@ function stepHint(step: number) {
   return [
     "先准备素材文本，快速生成可编辑文案。",
     "确认最终口播稿，回车分段会用于画面规划。",
-    "从音色库选择参考音色，或使用默认 Edge TTS。",
-    "从形象库选择数字人形象，再生成口播视频。",
+    "从音色库选择参考音色，或使用默认 Edge TTS 制作配音。",
+    "按工作流选择兼容形象，再生成数字人出镜视频。",
     "选择画面模板，打开画面规划，最后一键合成。",
     "下载视频，复制标题、描述和标签。",
   ][step - 1];

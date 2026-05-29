@@ -117,6 +117,7 @@ export type TaskInfo = {
   artifact_keys?: string[];
   duration_ms?: number | null;
   retry_payload?: Record<string, unknown> | null;
+  created_at?: string;
   status: "pending" | "running" | "completed" | "failed" | "cancelled";
   progress?: {
     current: number;
