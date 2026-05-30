@@ -378,7 +378,7 @@ async def test_run_voice_step_passes_runninghub_index_workflow_params():
         "num_beams": 4,
         "repetition_penalty": 8.5,
         "length_penalty": 0.2,
-        "max_mel_tokens": 1600,
+        "max_mel_tokens": 1500,
         "max_tokens_per_sentence": 90,
         "seed": 123,
     }

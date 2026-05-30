@@ -139,6 +139,28 @@ async def test_tts_runninghub_mapping_builds_node_info_and_uploads_reference_aud
     ]
 
 
+def test_runninghub_tts_failure_message_uses_failed_reason_not_success_msg():
+    service = TTSService({"comfyui": {"tts": {}}})
+
+    message = service._format_runninghub_tts_failure(
+        "task-1",
+        {"status": "FAILED", "msg": "success"},
+        {
+            "errorMessage": "工作流运行失败",
+            "failedReason": {
+                "node_name": "IndexTTSNode",
+                "node_id": "6",
+                "exception_message": "Value 1815 bigger than max of 1500",
+            },
+        },
+    )
+
+    assert message == (
+        "RunningHub TTS task task-1 failed: 工作流运行失败；"
+        "IndexTTSNode(node 6): Value 1815 bigger than max of 1500"
+    )
+
+
 def test_ip_broadcast_ai_app_workflow_declares_webapp_and_node_mapping():
     workflow = json.loads(Path("workflows/runninghub/digital_talk_image_prompt.json").read_text())
 

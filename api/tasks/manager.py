@@ -25,6 +25,7 @@ from loguru import logger
 
 from api.config import api_config
 from api.tasks.models import Task, TaskProgress, TaskStatus, TaskType
+from api.tasks.persistence import TaskPersistence
 
 
 class TaskManager:
@@ -38,11 +39,14 @@ class TaskManager:
     - Auto cleanup of old tasks
     """
     
-    def __init__(self):
+    def __init__(self, persistence: Optional[TaskPersistence] = None):
         self._tasks: Dict[str, Task] = {}
         self._task_futures: Dict[str, asyncio.Task] = {}
         self._cleanup_task: Optional[asyncio.Task] = None
         self._running = False
+        self._persistence = persistence
+        if self._persistence:
+            self._load_persisted_tasks()
     
     async def start(self):
         """Start task manager and cleanup scheduler"""
@@ -112,6 +116,7 @@ class TaskManager:
         )
         
         self._tasks[task_id] = task
+        self._persist_task(task)
         logger.info(f"Created task {task_id} ({task_type})")
         return task
     
@@ -141,6 +146,7 @@ class TaskManager:
             try:
                 task.status = TaskStatus.RUNNING
                 task.started_at = datetime.now()
+                self._persist_task(task)
                 logger.info(f"Task {task_id} started")
                 
                 # Execute the actual work
@@ -151,6 +157,7 @@ class TaskManager:
                 task.result = result
                 task.completed_at = datetime.now()
                 task.duration_ms = _duration_ms(task.started_at, task.completed_at)
+                self._persist_task(task)
                 logger.info(f"Task {task_id} completed")
                 
             except Exception as e:
@@ -158,6 +165,7 @@ class TaskManager:
                 task.error = str(e)
                 task.completed_at = datetime.now()
                 task.duration_ms = _duration_ms(task.started_at, task.completed_at)
+                self._persist_task(task)
                 logger.error(f"Task {task_id} failed: {e}")
         
         # Start execution
@@ -220,6 +228,7 @@ class TaskManager:
             percentage=percentage,
             message=message
         )
+        self._persist_task(task)
     
     def cancel_task(self, task_id: str) -> bool:
         """
@@ -248,6 +257,7 @@ class TaskManager:
         task.status = TaskStatus.CANCELLED
         task.completed_at = datetime.now()
         task.duration_ms = _duration_ms(task.started_at, task.completed_at)
+        self._persist_task(task)
         logger.info(f"Cancelled task {task_id}")
         return True
     
@@ -276,13 +286,24 @@ class TaskManager:
             del self._tasks[task_id]
             if task_id in self._task_futures:
                 del self._task_futures[task_id]
+        if self._persistence:
+            self._persistence.delete_tasks(tasks_to_remove)
         
         if tasks_to_remove:
             logger.info(f"Cleaned up {len(tasks_to_remove)} old tasks")
 
+    def _load_persisted_tasks(self):
+        self._persistence.mark_interrupted_tasks_failed()
+        for task in self._persistence.load_tasks():
+            self._tasks[task.task_id] = task
+
+    def _persist_task(self, task: Task):
+        if self._persistence:
+            self._persistence.save_task(task)
+
 
 # Global task manager instance
-task_manager = TaskManager()
+task_manager = TaskManager(TaskPersistence())
 
 
 def _duration_ms(started_at: Optional[datetime], completed_at: Optional[datetime]) -> int | None:

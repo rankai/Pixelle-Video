@@ -283,6 +283,7 @@ export function App() {
   const [activeStep, setActiveStep] = useState(1);
   const [task, setTask] = useState<TaskInfo | null>(null);
   const [busy, setBusy] = useState(false);
+  const [configSaving, setConfigSaving] = useState(false);
   const [appError, setAppError] = useState("");
   const [appRecovering, setAppRecovering] = useState(false);
   const [workflowError, setWorkflowError] = useState("");
@@ -381,7 +382,7 @@ export function App() {
   }
 
   async function execute(stepKey: string) {
-    if (!session) return;
+    if (!session || configSaving) return;
     setBusy(true);
     setWorkflowError("");
     setTask(null);
@@ -407,8 +408,19 @@ export function App() {
 
   async function patch(values: Record<string, unknown>) {
     if (!session) return;
-    const updated = await updateSessionConfig(session.session_id, values);
-    setSession(updated);
+    const currentSessionId = session.session_id;
+    setConfigSaving(true);
+    setSession((current) =>
+      current && current.session_id === currentSessionId
+        ? { ...current, state: { ...current.state, ...values } }
+        : current,
+    );
+    try {
+      const updated = await updateSessionConfig(currentSessionId, values);
+      setSession(updated);
+    } finally {
+      setConfigSaving(false);
+    }
   }
 
   function openAssetTab(tab: AssetTab) {
@@ -496,7 +508,7 @@ export function App() {
                 <ProductionConsole
                   session={session}
                   task={task}
-                  busy={busy}
+                  busy={busy || configSaving}
                   completedPercent={completedPercent}
                   onContinue={() => execute(session.next_action.key)}
                 />
@@ -504,7 +516,7 @@ export function App() {
                 <WorkflowRunStatus
                   session={session}
                   task={task}
-                  busy={busy}
+                  busy={busy || configSaving}
                   error={workflowError}
                   activeStep={activeStep}
                   onStop={stopCurrentTask}
@@ -523,7 +535,7 @@ export function App() {
                     assets={assets}
                     patch={patch}
                     execute={execute}
-                    busy={busy}
+                    busy={busy || configSaving}
                     openStoryboard={() => setStoryboardOpen(true)}
                     openAssetTab={openAssetTab}
                     reloadAssets={reloadAssets}
@@ -533,7 +545,7 @@ export function App() {
 
                 <BottomActionBar
                   activeStep={activeStep}
-                  busy={busy}
+                  busy={busy || configSaving}
                   setActiveStep={setActiveStep}
                   execute={execute}
                 />
@@ -1811,7 +1823,7 @@ function IndexVoiceConfig({
         <NumberField label="num_beams" value={session.state.tts_num_beams as number} fallback={3} step={1} patchKey="tts_num_beams" patch={patch} />
         <NumberField label="repetition_penalty" value={session.state.tts_repetition_penalty as number} fallback={10} step={0.1} patchKey="tts_repetition_penalty" patch={patch} />
         <NumberField label="length_penalty" value={session.state.tts_length_penalty as number} fallback={0} step={0.1} patchKey="tts_length_penalty" patch={patch} />
-        <NumberField label="max_mel_tokens" value={session.state.tts_max_mel_tokens as number} fallback={1815} step={10} patchKey="tts_max_mel_tokens" patch={patch} />
+        <NumberField label="max_mel_tokens" value={session.state.tts_max_mel_tokens as number} fallback={1500} step={10} patchKey="tts_max_mel_tokens" patch={patch} />
         <NumberField label="max_tokens_per_sentence" value={session.state.tts_max_tokens_per_sentence as number} fallback={120} step={5} patchKey="tts_max_tokens_per_sentence" patch={patch} />
         <NumberField label="seed" value={session.state.tts_seed as number} fallback={0} step={1} patchKey="tts_seed" patch={patch} />
       </div>
@@ -2395,6 +2407,7 @@ function PublishStep({
   );
   const script = (publishPackage.script as string) || (session.state.final_script as string) || "";
   const publishReady = Boolean(session.artifacts.final_video || session.state.final_video_path);
+  const coverReady = Boolean(session.artifacts.cover || session.state.cover_path);
   const preferredPlatforms = readStringArray(
     publishPackage.preferred_platforms || session.state.business_publish_platforms,
   );
@@ -2494,6 +2507,18 @@ function PublishStep({
               artifactKey="final_video"
               enabled={publishReady}
             />
+            {coverReady ? (
+              <>
+                <Divider />
+                <Typography.Text type="secondary">封面预览</Typography.Text>
+                <ArtifactMediaPreview
+                  sessionId={session.session_id}
+                  artifactKey="cover"
+                  kind="image"
+                  enabled={coverReady}
+                />
+              </>
+            ) : null}
             <Divider />
             <Typography.Text type="secondary">最终视频路径</Typography.Text>
             <p className="result-path">{(session.state.final_video_path as string) || "暂无最终视频"}</p>
@@ -3964,7 +3989,7 @@ function ArtifactMediaPreview({
 }: {
   sessionId: string;
   artifactKey: string;
-  kind: "audio" | "video";
+  kind: "audio" | "video" | "image";
   enabled: boolean;
 }) {
   const [resolved, setResolved] = useState("");
@@ -3993,6 +4018,7 @@ function ArtifactMediaPreview({
   if (!enabled) return null;
   if (error) return <span className="generated-preview-error">预览加载失败，可重新生成后再试。</span>;
   if (!resolved) return <span className="generated-preview-loading">正在加载预览...</span>;
+  if (kind === "image") return <img className="artifact-image-preview" src={resolved} alt="生成封面预览" />;
   return kind === "audio" ? <audio controls src={resolved} /> : <video controls src={resolved} />;
 }
 

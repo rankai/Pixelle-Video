@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 from pixelle_video.services.ip_broadcast_templates import (
@@ -6,6 +7,28 @@ from pixelle_video.services.ip_broadcast_templates import (
     list_ip_broadcast_templates,
 )
 from web.ip_broadcast.modules import m5_postproduction
+
+CANVAS_HEIGHT = 1920
+COVER_TITLE_TOP_MIN = 220
+COVER_TITLE_BOTTOM_MAX = 760
+COVER_SUBTITLE_BOTTOM_MIN = 320
+VIDEO_SUBTITLE_MARGIN_MIN = 200
+
+
+def _css_px(html: str, selector: str, property_name: str) -> int:
+    match = re.search(rf"\.{selector}\s*\{{(?P<body>.*?)\}}", html, re.S)
+    assert match, f"Missing .{selector} CSS block"
+    prop = re.search(rf"{property_name}:\s*(?P<value>\d+)px", match.group("body"))
+    assert prop, f"Missing {property_name} in .{selector}"
+    return int(prop.group("value"))
+
+
+def _force_style_value(force_style: str, key: str) -> int:
+    for part in force_style.split(","):
+        name, _, value = part.partition("=")
+        if name == key:
+            return int(value)
+    raise AssertionError(f"Missing {key} in force style: {force_style}")
 
 
 def test_ip_broadcast_template_registry_contains_three_templates():
@@ -41,9 +64,9 @@ def test_build_ass_force_style_uses_selected_template_subtitle_style():
 
     force_style = build_ass_force_style(template)
 
-    assert "Fontsize=46" in force_style
+    assert "Fontsize=36" in force_style
     assert "Alignment=2" in force_style
-    assert "Outline=4" in force_style
+    assert "Outline=3" in force_style
 
 
 def test_boss_clean_template_keeps_title_and_subtitles_in_safe_zones():
@@ -51,18 +74,22 @@ def test_boss_clean_template_keeps_title_and_subtitles_in_safe_zones():
     cover_html = Path(template.cover_template_path).read_text()
     force_style = build_ass_force_style(template)
 
-    assert "top: 220px" in cover_html
-    assert "font-size: 62px" in cover_html
-    assert "max-height: 360px" in cover_html
-    assert "Fontsize=40" in force_style
-    assert "MarginV=210" in force_style
+    title_top = _css_px(cover_html, "title", "top")
+    title_height = _css_px(cover_html, "title", "max-height")
+    subtitle_bottom = _css_px(cover_html, "subtitle", "bottom")
+    assert COVER_TITLE_TOP_MIN <= title_top
+    assert title_top + title_height <= COVER_TITLE_BOTTOM_MAX
+    assert subtitle_bottom >= COVER_SUBTITLE_BOTTOM_MIN
+    assert "font-size: 52px" in cover_html
+    assert "Fontsize=34" in force_style
+    assert _force_style_value(force_style, "MarginV") >= VIDEO_SUBTITLE_MARGIN_MIN
 
 
-def test_all_templates_keep_video_subtitles_below_cover_title_zone():
+def test_all_templates_keep_video_subtitles_inside_platform_safe_area():
     expected = {
-        "boss_clean": ("Fontsize=40", "MarginV=210"),
-        "boss_authority": ("Fontsize=46", "MarginV=220"),
-        "boss_premium": ("Fontsize=42", "MarginV=210"),
+        "boss_clean": ("Fontsize=34", "MarginV=210"),
+        "boss_authority": ("Fontsize=36", "MarginV=220"),
+        "boss_premium": ("Fontsize=34", "MarginV=210"),
     }
 
     for template_id, (font_size, margin_v) in expected.items():
@@ -71,6 +98,24 @@ def test_all_templates_keep_video_subtitles_below_cover_title_zone():
         assert font_size in force_style
         assert margin_v in force_style
         assert "Alignment=2" in force_style
+
+
+def test_all_cover_templates_keep_main_text_inside_safe_area():
+    for template in list_ip_broadcast_templates():
+        html = Path(template.cover_template_path).read_text()
+        if template.template_id == "boss_premium":
+            panel_bottom = _css_px(html, "panel", "bottom")
+            panel_height = _css_px(html, "panel", "max-height")
+            panel_top = CANVAS_HEIGHT - panel_bottom - panel_height
+            assert 1080 <= panel_top <= 1220
+            assert panel_bottom >= COVER_SUBTITLE_BOTTOM_MIN
+        else:
+            title_top = _css_px(html, "title", "top")
+            title_height = _css_px(html, "title", "max-height")
+            subtitle_bottom = _css_px(html, "subtitle", "bottom")
+            assert COVER_TITLE_TOP_MIN <= title_top
+            assert title_top + title_height <= COVER_TITLE_BOTTOM_MAX
+            assert subtitle_bottom >= COVER_SUBTITLE_BOTTOM_MIN
 
 
 def test_template_card_text_uses_fixed_title_and_description_heights():

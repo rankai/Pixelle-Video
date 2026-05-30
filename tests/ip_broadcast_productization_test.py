@@ -9,10 +9,14 @@ from fastapi.testclient import TestClient
 from api.routers.ip_broadcast import _step_progress_message
 from api.tasks import TaskType
 from api.tasks.manager import TaskManager
+from api.tasks.models import TaskStatus
+from api.tasks.persistence import TaskPersistence
+from pixelle_video.services import ip_broadcast_workflow as workflow
 from pixelle_video.services.ip_broadcast_composer import (
     build_segment_timeline,
     build_video_overlay_command,
 )
+from pixelle_video.services.ip_broadcast_errors import classify_ip_broadcast_error
 from pixelle_video.services.ip_broadcast_video_plan import (
     apply_video_plan_to_visual_groups,
     generate_video_plan,
@@ -102,9 +106,22 @@ async def test_step_error_notice_uses_business_message_and_technical_detail():
 
     notice = session.notices[3]
     assert notice["kind"] == "error"
-    assert notice["message"] == "RunningHub Key 无效或无权限，请到配置中心检查。"
+    assert notice["message"] == "云端算力服务授权无效或无权限，请到配置中心检查。"
     assert notice["technical_message"] == "HTTP 401: unauthorized"
     assert notice["category"] == "auth"
+
+
+def test_business_error_messages_hide_technical_provider_names():
+    for error in [
+        RuntimeError("HTTP 403 forbidden"),
+        RuntimeError("timeout while waiting RunningHub task"),
+    ]:
+        business_error = classify_ip_broadcast_error(error)
+
+        assert "RunningHub" not in business_error.user_message
+        assert "ComfyUI" not in business_error.user_message
+        assert "RunningHub" not in business_error.next_action
+        assert "ComfyUI" not in business_error.next_action
 
 
 def test_ip_broadcast_presets_api_returns_business_defaults(monkeypatch, tmp_path):
@@ -182,6 +199,76 @@ def test_video_plan_application_creates_existing_visual_groups():
 
 
 @pytest.mark.asyncio
+async def test_postproduction_uses_selected_template_for_subtitles_and_cover(
+    monkeypatch,
+    tmp_path,
+):
+    audio = tmp_path / "voice.mp3"
+    base_video = tmp_path / "digital.mp4"
+    audio.write_bytes(b"audio")
+    base_video.write_bytes(b"video")
+    seen: dict[str, str] = {}
+
+    def fake_merge_audio_into_video(video_path, audio_path, output_path):
+        seen["merged_video"] = video_path
+        seen["merged_audio"] = audio_path
+        Path(output_path).write_bytes(b"merged")
+        return output_path
+
+    def fake_generate_srt(script, audio_path, output_path):
+        seen["srt_script"] = script
+        seen["srt_audio"] = audio_path
+        Path(output_path).write_text("1\n00:00:00,000 --> 00:00:01,000\n字幕", encoding="utf-8")
+
+    def fake_embed_subtitles(input_path, srt_path, output_path, force_style=None):
+        seen["force_style"] = force_style or ""
+        Path(output_path).write_bytes(b"final")
+
+    def fake_extract_first_frame(video_path, output_path):
+        seen["cover_source"] = video_path
+        Path(output_path).write_bytes(b"frame")
+        return output_path
+
+    async def fake_render_cover(template_id, title, subtitle="", background="", output_path=None, extra=None):
+        seen["cover_template_id"] = template_id
+        seen["cover_title"] = title
+        seen["cover_subtitle"] = subtitle
+        seen["cover_background"] = background
+        assert output_path
+        Path(output_path).write_bytes(b"cover")
+        return output_path
+
+    monkeypatch.setattr(workflow, "merge_audio_into_video", fake_merge_audio_into_video)
+    monkeypatch.setattr(workflow, "generate_srt", fake_generate_srt)
+    monkeypatch.setattr(workflow, "embed_subtitles", fake_embed_subtitles)
+    monkeypatch.setattr(workflow, "extract_first_frame", fake_extract_first_frame)
+    monkeypatch.setattr(workflow, "render_ip_broadcast_cover", fake_render_cover)
+
+    session = IpBroadcastSession(session_id="s1")
+    session.update_config(
+        {
+            "final_script": "第一段老板口播。\n第二段门店介绍。",
+            "copywriting_confirmed": True,
+            "audio_path": str(audio),
+            "digital_human_video_path": str(base_video),
+            "template_id": "boss_premium",
+            "title": "老板口播标题",
+            "description": "老板口播描述",
+        }
+    )
+
+    assert await run_ip_broadcast_step(None, session, "postproduction") is True
+
+    assert "PrimaryColour=&H00F7E7B2" in seen["force_style"]
+    assert seen["cover_template_id"] == "boss_premium"
+    assert seen["cover_title"] == "老板口播标题"
+    assert seen["cover_subtitle"] == "老板口播描述"
+    assert session.state["cover_path"]
+    assert session.artifacts["cover"] == session.state["cover_path"]
+    assert session.state["publish_package"]["cover_path"] == session.state["cover_path"]
+
+
+@pytest.mark.asyncio
 async def test_copywriting_generates_video_plan_from_business_goal():
     class FakePixelleVideo:
         async def llm(self, prompt, response_type=None):
@@ -255,10 +342,51 @@ def test_task_manager_keeps_product_task_metadata():
     assert task.retry_payload == {"kind": "ip_step"}
 
 
+def test_task_manager_persists_tasks_to_local_sqlite(tmp_path):
+    db_path = tmp_path / "desktop_tasks.sqlite"
+    manager = TaskManager(TaskPersistence(db_path))
+
+    task = manager.create_task(
+        TaskType.IP_BROADCAST_STEP,
+        display_name="生成语音",
+        flow_name="IP口播",
+        step_key="voice",
+        session_id="s1",
+        artifact_keys=["audio"],
+        retry_payload={"kind": "ip_step"},
+    )
+    manager.update_progress(task.task_id, 1, 3, "正在生成配音。")
+
+    reloaded = TaskManager(TaskPersistence(db_path))
+    tasks = reloaded.list_tasks()
+
+    assert len(tasks) == 1
+    assert tasks[0].task_id == task.task_id
+    assert tasks[0].display_name == "生成语音"
+    assert tasks[0].progress.message == "正在生成配音。"
+
+
+def test_task_manager_marks_running_tasks_interrupted_after_restart(tmp_path):
+    db_path = tmp_path / "desktop_tasks.sqlite"
+    manager = TaskManager(TaskPersistence(db_path))
+    task = manager.create_task(TaskType.IP_BROADCAST_STEP, display_name="生成数字人视频")
+    task.status = TaskStatus.RUNNING
+    manager._persist_task(task)
+
+    reloaded = TaskManager(TaskPersistence(db_path))
+    tasks = reloaded.list_tasks()
+
+    assert tasks[0].status == TaskStatus.FAILED
+    assert tasks[0].error == "服务重启，任务已中断，请重新执行。"
+
+
 def test_ip_step_progress_message_is_business_readable():
     assert _step_progress_message("digital_human") == (
-        "正在生成数字人视频，远程任务通常需要 1-5 分钟，可在 RunningHub 后台查看进度。"
+        "正在使用云端算力生成数字人视频，通常需要 1-5 分钟。"
     )
+    for step_key in ["source", "copywriting", "voice", "digital_human", "postproduction", "publish"]:
+        assert "RunningHub" not in _step_progress_message(step_key)
+        assert "ComfyUI" not in _step_progress_message(step_key)
 
 
 def test_composer_builds_segment_timeline_by_character_ratio():
@@ -283,6 +411,7 @@ def test_composer_overlay_command_replaces_video_in_time_range():
         output_path="/tmp/out.mp4",
         start_time=2.0,
         end_time=5.5,
+        output_duration=52.0,
         width=720,
         height=1280,
     )
@@ -293,3 +422,4 @@ def test_composer_overlay_command_replaces_video_in_time_range():
     assert "enable='between(t,2,5.5)'" in filter_complex
     assert "overlay=0:0" in filter_complex
     assert "0:a?" in cmd
+    assert cmd[cmd.index("-t") + 1] == "52"

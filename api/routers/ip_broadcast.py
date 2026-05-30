@@ -169,7 +169,7 @@ def _step_progress_message(step_key: str) -> str:
         "source": "正在整理素材文本。",
         "copywriting": "正在改写口播文案，通常需要几十秒。",
         "voice": "正在生成配音。",
-        "digital_human": "正在生成数字人视频，远程任务通常需要 1-5 分钟，可在 RunningHub 后台查看进度。",
+        "digital_human": "正在使用云端算力生成数字人视频，通常需要 1-5 分钟。",
         "postproduction": "正在合成最终视频。",
         "publish": "正在准备发布素材包。",
     }.get(step_key, "正在执行任务。")

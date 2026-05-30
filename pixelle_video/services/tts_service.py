@@ -438,7 +438,7 @@ class TTSService(ComfyBaseService):
             if not task_id:
                 raise RuntimeError(f"RunningHub TTS did not return taskId: {task_data}")
 
-            result_data = await self._wait_for_runninghub_tts_result(client, task_id)
+            result_data = await self._wait_for_runninghub_tts_result(client, task_id, api_key)
             audio_url = self._extract_audio_url(result_data)
             if not audio_url:
                 raise RuntimeError(f"RunningHub TTS returned no audio output: {result_data}")
@@ -479,6 +479,7 @@ class TTSService(ComfyBaseService):
         self,
         client: Any,
         task_id: str,
+        api_key: str,
         max_wait_time: int = 600,
     ) -> list[dict[str, Any]]:
         start_time = asyncio.get_event_loop().time()
@@ -490,10 +491,61 @@ class TTSService(ComfyBaseService):
             if task_status == "SUCCESS":
                 return await client.query_task_result(task_id)
             if task_status == "FAILED":
-                raise RuntimeError(
-                    status_info.get("msg") or f"RunningHub TTS task {task_id} failed"
-                )
+                task_info = await self._query_runninghub_openapi_task(client, task_id, api_key)
+                raise RuntimeError(self._format_runninghub_tts_failure(task_id, status_info, task_info))
             await asyncio.sleep(2)
+
+    async def _query_runninghub_openapi_task(
+        self,
+        client: Any,
+        task_id: str,
+        api_key: str,
+    ) -> dict[str, Any]:
+        try:
+            session = await client._get_session()
+            async with session.post(
+                f"{client.base_url}/openapi/v2/query",
+                json={"taskId": task_id},
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {api_key}",
+                },
+            ) as response:
+                if response.status != 200:
+                    return {}
+                result = await response.json()
+                return result if isinstance(result, dict) else {}
+        except Exception as e:
+            logger.warning(f"Failed to query RunningHub TTS task detail {task_id}: {e}")
+            return {}
+
+    def _format_runninghub_tts_failure(
+        self,
+        task_id: str,
+        status_info: dict[str, Any],
+        task_info: dict[str, Any],
+    ) -> str:
+        error_message = str(task_info.get("errorMessage") or "").strip()
+        failed_reason = task_info.get("failedReason") if isinstance(task_info, dict) else {}
+        failed_reason = failed_reason if isinstance(failed_reason, dict) else {}
+        exception_message = str(failed_reason.get("exception_message") or "").strip()
+        node_name = str(failed_reason.get("node_name") or "").strip()
+        node_id = str(failed_reason.get("node_id") or "").strip()
+
+        detail_parts = []
+        if error_message:
+            detail_parts.append(error_message)
+        if exception_message:
+            node_label = f"{node_name}(node {node_id})" if node_name and node_id else node_name
+            detail_parts.append(f"{node_label}: {exception_message}" if node_label else exception_message)
+
+        if detail_parts:
+            return f"RunningHub TTS task {task_id} failed: {'；'.join(detail_parts)}"
+
+        status_msg = str(status_info.get("msg") or "").strip()
+        if status_msg and status_msg.lower() != "success":
+            return f"RunningHub TTS task {task_id} failed: {status_msg}"
+        return f"RunningHub TTS task {task_id} failed"
 
     def _extract_audio_url(self, result_data: Any) -> str:
         for item in result_data or []:

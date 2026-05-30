@@ -17,23 +17,23 @@ def classify_ip_broadcast_error(error: Exception) -> BusinessError:
     lower = technical.lower()
     if "401" in lower or "unauthorized" in lower:
         return BusinessError(
-            user_message="RunningHub Key 无效或无权限，请到配置中心检查。",
+            user_message="云端算力服务授权无效或无权限，请到配置中心检查。",
             technical_message=technical,
             category="auth",
             retryable=False,
-            next_action="打开配置中心，确认 RunningHub API Key 和工作流权限。",
+            next_action="打开配置中心，确认云端算力 Key 和当前功能权限。",
         )
     if "403" in lower or "forbidden" in lower:
         return BusinessError(
-            user_message="当前账号没有该工作流权限，请检查 RunningHub 权限。",
+            user_message="当前账号没有该云端生成功能权限，请检查配置中心权限。",
             technical_message=technical,
             category="auth",
             retryable=False,
-            next_action="确认工作流已发布，并且当前 API Key 有调用权限。",
+            next_action="确认当前功能已开通，并且云端算力 Key 有调用权限。",
         )
     if "timeout" in lower or "timed out" in lower:
         return BusinessError(
-            user_message="远程生成超时，可以稍后重试或检查 RunningHub 后台任务状态。",
+            user_message="云端生成超时，可以稍后重试。",
             technical_message=technical,
             category="timeout",
             retryable=True,

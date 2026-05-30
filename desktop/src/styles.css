@@ -1259,6 +1259,15 @@ textarea {
   background: #000000;
 }
 
+.artifact-image-preview {
+  display: block;
+  width: min(100%, 260px);
+  margin-top: 10px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  background: #0f172a;
+}
+
 .generated-preview-loading,
 .generated-preview-error {
   color: var(--app-muted);

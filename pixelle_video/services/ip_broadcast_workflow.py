@@ -27,6 +27,7 @@ from pixelle_video.services.ip_broadcast_errors import classify_ip_broadcast_err
 from pixelle_video.services.ip_broadcast_templates import (
     build_ass_force_style,
     get_ip_broadcast_template,
+    render_ip_broadcast_cover,
 )
 from pixelle_video.services.ip_broadcast_video_plan import generate_video_plan
 from pixelle_video.services.ip_learning import (
@@ -37,6 +38,7 @@ from pixelle_video.services.ip_learning import (
 from pixelle_video.services.script_extractor import VideoScriptExtractor
 from pixelle_video.services.subtitle_service import (
     embed_subtitles,
+    extract_first_frame,
     generate_srt,
     merge_audio_into_video,
     remove_silence,
@@ -49,6 +51,8 @@ STEP_VOICE = "voice"
 STEP_DIGITAL_HUMAN = "digital_human"
 STEP_POSTPRODUCTION = "postproduction"
 STEP_PUBLISH = "publish"
+
+INDEX_TTS_MAX_MEL_TOKENS_LIMIT = 1500
 
 STEP_KEYS = {
     STEP_SOURCE: 1,
@@ -110,7 +114,7 @@ def _default_state() -> dict[str, Any]:
         "tts_num_beams": 3,
         "tts_repetition_penalty": 10.0,
         "tts_length_penalty": 0.0,
-        "tts_max_mel_tokens": 1815,
+        "tts_max_mel_tokens": INDEX_TTS_MAX_MEL_TOKENS_LIMIT,
         "tts_max_tokens_per_sentence": 120,
         "tts_seed": 0,
         "tts_spark_gender": "male",
@@ -674,7 +678,10 @@ def _append_tts_params(kwargs: dict[str, Any], state: dict[str, Any]) -> None:
         kwargs["num_beams"] = int(state.get("tts_num_beams", 3))
         kwargs["repetition_penalty"] = float(state.get("tts_repetition_penalty", 10.0))
         kwargs["length_penalty"] = float(state.get("tts_length_penalty", 0.0))
-        kwargs["max_mel_tokens"] = int(state.get("tts_max_mel_tokens", 1815))
+        kwargs["max_mel_tokens"] = min(
+            int(state.get("tts_max_mel_tokens", INDEX_TTS_MAX_MEL_TOKENS_LIMIT)),
+            INDEX_TTS_MAX_MEL_TOKENS_LIMIT,
+        )
         kwargs["max_tokens_per_sentence"] = int(state.get("tts_max_tokens_per_sentence", 120))
         _append_tts_seed(kwargs, state)
     elif state.get("tts_ref_audio_path"):
@@ -736,6 +743,7 @@ async def _run_postproduction(pixelle_video, session: IpBroadcastSession) -> Non
         working_audio = remove_silence(audio_path, get_temp_path(f"ipb_clean_{uid}.mp3"))
 
     final = get_output_path(f"ipb_{uid}_final.mp4")
+    cover_source = dh_video
     if session.state.get("overlay_enabled") and session.state.get("visual_groups"):
         compose_ip_broadcast_video(
             base_video=dh_video,
@@ -749,12 +757,14 @@ async def _run_postproduction(pixelle_video, session: IpBroadcastSession) -> Non
             width=int(session.state.get("digital_human_width") or 720),
             height=int(session.state.get("digital_human_height") or 1280),
         )
+        cover_source = final
     else:
         merged = merge_audio_into_video(
             dh_video,
             working_audio,
             get_temp_path(f"ipb_merged_{uid}.mp4"),
         )
+        cover_source = merged
         if session.state.get("subtitle_enabled", True) and session.state.get("final_script"):
             srt = get_temp_path(f"ipb_{uid}.srt")
             generate_srt(session.state["final_script"], working_audio, srt)
@@ -765,7 +775,31 @@ async def _run_postproduction(pixelle_video, session: IpBroadcastSession) -> Non
 
     session.state["final_video_path"] = final
     session.artifacts["final_video"] = final
+    await _ensure_template_cover(session, cover_source, uid)
     await _run_publish(session)
+
+
+async def _ensure_template_cover(
+    session: IpBroadcastSession,
+    cover_source: str,
+    uid: str,
+) -> None:
+    if session.state.get("cover_path") and Path(str(session.state["cover_path"])).exists():
+        session.artifacts["cover"] = str(session.state["cover_path"])
+        return
+    if not cover_source or not Path(cover_source).exists():
+        return
+    first_frame = get_temp_path(f"ipb_cover_bg_{uid}.png")
+    extract_first_frame(cover_source, first_frame)
+    cover_path = get_temp_path(f"ipb_cover_{uid}.png")
+    session.state["cover_path"] = await render_ip_broadcast_cover(
+        template_id=str(session.state.get("template_id") or ""),
+        title=_build_cover_title(session),
+        subtitle=str(session.state.get("description") or "")[:80],
+        background=first_frame,
+        output_path=cover_path,
+    )
+    session.artifacts["cover"] = session.state["cover_path"]
 
 
 async def _run_publish(session: IpBroadcastSession) -> None:
