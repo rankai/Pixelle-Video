@@ -108,6 +108,12 @@ export type BrandKit = {
   coupon_phrase: string;
 };
 
+export type BgmAsset = {
+  name: string;
+  path: string;
+  source: string;
+};
+
 export type TaskInfo = {
   task_id: string;
   display_name?: string;
@@ -153,15 +159,28 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   if (desktopToken) {
     headers.set("X-Pixelle-Desktop-Token", desktopToken);
   }
-  const response = await fetch(`${apiBaseUrl}${path}`, {
-    ...init,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${apiBaseUrl}${path}`, {
+      ...init,
+      headers,
+    });
+  } catch (err) {
+    throw new Error(formatNetworkError(err, apiBaseUrl));
+  }
   if (!response.ok) {
     const detail = await response.text();
     throw new Error(detail || `HTTP ${response.status}`);
   }
   return response.json() as Promise<T>;
+}
+
+function formatNetworkError(err: unknown, apiBaseUrl: string) {
+  const message = err instanceof Error ? err.message : String(err);
+  if (message.includes("Failed to fetch") || message.includes("NetworkError")) {
+    return `后端服务未连接，请确认 API 服务已启动：${apiBaseUrl}`;
+  }
+  return message;
 }
 
 export function createSession() {
@@ -285,6 +304,10 @@ export function listBrandKits() {
   return apiFetch<{ items: BrandKit[] }>("/api/assets/brand-kits");
 }
 
+export function listBgm() {
+  return apiFetch<{ success: boolean; message: string; bgm_files: BgmAsset[] }>("/api/resources/bgm");
+}
+
 export function createBrandKit(values: Partial<BrandKit>) {
   return apiFetch<BrandKit>("/api/assets/brand-kits", {
     method: "POST",
@@ -317,6 +340,22 @@ export async function assetBlobUrl(path: string) {
     headers.set("X-Pixelle-Desktop-Token", desktopToken);
   }
   const response = await fetch(`${apiBaseUrl}${path}`, { headers });
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+  return URL.createObjectURL(await response.blob());
+}
+
+export async function artifactBlobUrl(sessionId: string, artifactKey: string) {
+  const { apiBaseUrl, desktopToken } = await getRuntime();
+  const headers = new Headers();
+  if (desktopToken) {
+    headers.set("X-Pixelle-Desktop-Token", desktopToken);
+  }
+  const response = await fetch(
+    `${apiBaseUrl}/api/ip-broadcast/sessions/${sessionId}/artifacts/${artifactKey}`,
+    { headers },
+  );
   if (!response.ok) {
     throw new Error(await response.text());
   }

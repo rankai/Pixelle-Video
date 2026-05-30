@@ -14,9 +14,12 @@
 TTS (Text-to-Speech) Service - Supports both local and ComfyUI inference
 """
 
+import asyncio
+import json
+import os
 import uuid
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from loguru import logger
 
@@ -285,6 +288,16 @@ class TTSService(ComfyBaseService):
         workflow_params.update(params)
         
         logger.debug(f"Workflow parameters: {workflow_params}")
+
+        explicit_mapping = self._load_runninghub_node_mappings(workflow_info)
+        if explicit_mapping:
+            return await self._call_runninghub_mapped_workflow(
+                workflow_info=workflow_info,
+                workflow_params=workflow_params,
+                runninghub_api_key=runninghub_api_key,
+                output_path=output_path,
+                node_mappings=explicit_mapping,
+            )
         
         # 3. Execute workflow using shared ComfyKit instance from core
         try:
@@ -366,3 +379,144 @@ class TTSService(ComfyBaseService):
         except Exception as e:
             logger.error(f"TTS generation error: {e}")
             raise
+
+    def _load_runninghub_node_mappings(self, workflow_info: dict[str, Any]) -> dict[str, Any]:
+        if workflow_info.get("source") != "runninghub" or not workflow_info.get("workflow_id"):
+            return {}
+        try:
+            with open(workflow_info["path"], "r", encoding="utf-8") as f:
+                content = json.load(f)
+        except Exception as e:
+            logger.warning(f"Failed to read TTS workflow mapping {workflow_info.get('path')}: {e}")
+            return {}
+        mappings = content.get("runninghub_node_mappings")
+        return mappings if isinstance(mappings, dict) else {}
+
+    async def _call_runninghub_mapped_workflow(
+        self,
+        workflow_info: dict[str, Any],
+        workflow_params: dict[str, Any],
+        runninghub_api_key: Optional[str],
+        output_path: Optional[str],
+        node_mappings: dict[str, Any],
+    ) -> str:
+        from comfykit.comfyui.runninghub_client import RunningHubClient
+
+        api_key = (
+            runninghub_api_key
+            or self.global_config.get("runninghub_api_key")
+            or os.getenv("RUNNINGHUB_API_KEY")
+        )
+        if not api_key:
+            raise RuntimeError("RunningHub API key is required for mapped TTS workflow")
+
+        instance_type = (
+            self.global_config.get("runninghub_instance_type")
+            or os.getenv("RUNNINGHUB_INSTANCE_TYPE")
+            or None
+        )
+        client = RunningHubClient(
+            api_key=api_key,
+            base_url=None,
+            instance_type=instance_type,
+        )
+        try:
+            node_info_list = await self._build_runninghub_node_info_list(
+                client=client,
+                workflow_params=workflow_params,
+                node_mappings=node_mappings,
+            )
+            logger.info(
+                "Executing mapped RunningHub TTS workflow: "
+                f"{workflow_info['workflow_id']} with {len(node_info_list)} params"
+            )
+            task_data = await client.create_task(
+                workflow_id=str(workflow_info["workflow_id"]),
+                node_info_list=node_info_list,
+            )
+            task_id = task_data.get("taskId")
+            if not task_id:
+                raise RuntimeError(f"RunningHub TTS did not return taskId: {task_data}")
+
+            result_data = await self._wait_for_runninghub_tts_result(client, task_id)
+            audio_url = self._extract_audio_url(result_data)
+            if not audio_url:
+                raise RuntimeError(f"RunningHub TTS returned no audio output: {result_data}")
+            if output_path:
+                await self._download_audio_output(audio_url, output_path)
+                return output_path
+            return audio_url
+        finally:
+            await client.close()
+
+    async def _build_runninghub_node_info_list(
+        self,
+        client: Any,
+        workflow_params: dict[str, Any],
+        node_mappings: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        node_info_list: list[dict[str, Any]] = []
+        for param_name, value in workflow_params.items():
+            if value is None:
+                continue
+            mapping = node_mappings.get(param_name)
+            if not isinstance(mapping, dict):
+                continue
+            field_value = value
+            if mapping.get("upload"):
+                field_value = await client.upload_file(str(value))
+            node_info_list.append(
+                {
+                    "nodeId": str(mapping["node_id"]),
+                    "fieldName": str(mapping["field_name"]),
+                    "fieldValue": field_value,
+                    "description": str(mapping.get("description") or param_name),
+                }
+            )
+        return node_info_list
+
+    async def _wait_for_runninghub_tts_result(
+        self,
+        client: Any,
+        task_id: str,
+        max_wait_time: int = 600,
+    ) -> list[dict[str, Any]]:
+        start_time = asyncio.get_event_loop().time()
+        while True:
+            if asyncio.get_event_loop().time() - start_time > max_wait_time:
+                raise RuntimeError(f"RunningHub TTS task {task_id} timeout")
+            status_info = await client.query_task_status(task_id)
+            task_status = status_info.get("status")
+            if task_status == "SUCCESS":
+                return await client.query_task_result(task_id)
+            if task_status == "FAILED":
+                raise RuntimeError(
+                    status_info.get("msg") or f"RunningHub TTS task {task_id} failed"
+                )
+            await asyncio.sleep(2)
+
+    def _extract_audio_url(self, result_data: Any) -> str:
+        for item in result_data or []:
+            if not isinstance(item, dict):
+                continue
+            file_url = item.get("fileUrl") or item.get("url")
+            if not file_url:
+                continue
+            file_type = str(item.get("fileType") or item.get("outputType") or "").lower()
+            if file_type in {"mp3", "wav", "flac", "m4a", "aac"} or "audio" in file_type:
+                return str(file_url)
+            if str(file_url).lower().split("?")[0].endswith((".mp3", ".wav", ".flac", ".m4a", ".aac")):
+                return str(file_url)
+        return ""
+
+    async def _download_audio_output(self, audio_url: str, output_path: str) -> None:
+        import httpx
+
+        output_dir = os.path.dirname(output_path)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+        async with httpx.AsyncClient(timeout=120) as client:
+            response = await client.get(audio_url)
+            response.raise_for_status()
+            with open(output_path, "wb") as f:
+                f.write(response.content)

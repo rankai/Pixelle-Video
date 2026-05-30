@@ -95,6 +95,8 @@ async def get_artifact(session_id: str, artifact_key: str):
     session = _get_session_or_404(session_id)
     artifact_path = session.artifacts.get(artifact_key)
     if not artifact_path:
+        artifact_path = _artifact_path_from_state(session, artifact_key)
+    if not artifact_path:
         raise HTTPException(status_code=404, detail=f"Artifact not found: {artifact_key}")
     path = Path(artifact_path).resolve()
     if not path.exists() or not path.is_file():
@@ -103,6 +105,19 @@ async def get_artifact(session_id: str, artifact_key: str):
         logger.warning(f"Blocked IP broadcast artifact path: {path}")
         raise HTTPException(status_code=403, detail="Artifact path is not allowed")
     return FileResponse(str(path), filename=path.name)
+
+
+def _artifact_path_from_state(session: IpBroadcastSession, artifact_key: str) -> str:
+    fallback_keys = {
+        "final_video": "final_video_path",
+        "digital_human_video": "digital_human_video_path",
+        "audio": "audio_path",
+        "cover": "cover_path",
+    }
+    state_key = fallback_keys.get(artifact_key)
+    if not state_key:
+        return ""
+    return str(session.state.get(state_key) or "")
 
 
 def _get_session_or_404(session_id: str) -> IpBroadcastSession:
@@ -116,6 +131,7 @@ def _is_allowed_artifact_path(path: Path) -> bool:
     allowed_roots = [
         Path.cwd() / "output",
         Path.cwd() / "data",
+        Path.cwd() / "temp",
         Path("/tmp"),
         Path("/private/tmp"),
     ]

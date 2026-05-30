@@ -39,7 +39,7 @@ _DOUYIN_HEADERS = {
 }
 
 _DOUYIN_ID_RE = re.compile(
-    r"(?:douyin\.com/video/|douyin\.com/share/video/)(\d{15,20})"
+    r"(?:douyin\.com/video/|douyin\.com/share/video/|[?&](?:modal_id|vid|aweme_id|item_id)=)(\d{15,20})"
 )
 
 

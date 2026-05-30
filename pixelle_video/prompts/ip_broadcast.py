@@ -20,6 +20,11 @@ def build_ip_brain_generation_prompt(
     industry_persona: str,
     selling_points: str,
     other_reqs: str,
+    business_goal: str = "",
+    script_structure: list[str] | None = None,
+    target_word_count: int | None = None,
+    style_prompt: str = "",
+    intent_note: str = "",
 ) -> str:
     """根据用户填写的表单变量，注入到统一提示词模板，直接生成IP口播文案。"""
 
@@ -27,20 +32,27 @@ def build_ip_brain_generation_prompt(
     persona_line = f"\n- 行业与人设：{industry_persona.strip()}" if industry_persona.strip() else ""
     selling_line = f"\n- 卖点与价格：{selling_points.strip()}" if selling_points.strip() else ""
     reqs_line = f"\n- 其他要求：{other_reqs.strip()}" if other_reqs.strip() else ""
+    goal_line = f"\n- 本条视频目标：{business_goal.strip()}" if business_goal.strip() else ""
+    intent_line = f"\n- 想特别强调的内容：{intent_note.strip()}" if intent_note.strip() else ""
+    style_line = f"\n- 写作风格：{style_prompt.strip()}" if style_prompt.strip() else ""
+    structure_line = _format_script_structure(script_structure)
+    word_count = target_word_count or 200
 
     return f"""你是一位专业的短视频口播文案策划，擅长为不同领域的博主打造有辨识度的IP文案。
 
-请根据以下配置，直接生成一篇完整的口播文案，字数200-500字，语言自然流畅，适合真人出镜朗读。
+请根据以下配置，直接生成一篇完整的口播文案，目标字数约{word_count}字，语言自然流畅，适合真人出镜朗读。
 
 【配置信息】
 - 视频类型：{video_type}
-- 文案风格：{copy_type}{persona_line}{selling_line}{reqs_line}
+- 文案风格：{copy_type}{goal_line}{persona_line}{selling_line}{intent_line}{style_line}{reqs_line}{structure_line}
 
 【文案要求】
 - 开头要有强钩子，吸引用户停留
 - 中间围绕卖点或人设价值展开，逻辑清晰
 - 结尾有明确的行动号召（点赞/关注/私信/购买等）
 - 语气要符合所选文案风格
+- 如配置了推荐结构，按该结构展开，但不要添加小标题、编号或分段标题
+- 按自然语义分成3-5个短段落，每段单独换行，方便后续画面规划
 - 直接输出文案正文，不要有前缀说明或标题"""
 
 
@@ -84,14 +96,27 @@ def build_script_from_topic_prompt(topic: str, viral_style_hint: str) -> str:
 
 # ── 改写文案（模块2使用） ────────────────────────────────────────────────────
 
-def build_rewrite_prompt(source_text: str, style_prompt: str, word_count: int) -> str:
+def build_rewrite_prompt(
+    source_text: str,
+    style_prompt: str,
+    word_count: int,
+    business_goal: str = "",
+    script_structure: list[str] | None = None,
+    intent_note: str = "",
+) -> str:
+    goal_section = f"\n本条视频目标：{business_goal.strip()}\n" if business_goal.strip() else "\n"
+    intent_section = (
+        f"想特别强调的内容：{intent_note.strip()}\n" if intent_note.strip() else ""
+    )
+    structure_section = _format_script_structure(script_structure)
     return f"""你是一位专业的短视频文案改写专家。请按照要求改写以下文案。
 
 原始文案：
 {source_text}
 
+{goal_section}{intent_section}
 改写要求：
-{style_prompt}
+{style_prompt}{structure_section}
 
 目标字数：约{word_count}字
 
@@ -99,7 +124,19 @@ def build_rewrite_prompt(source_text: str, style_prompt: str, word_count: int) -
 - 保留核心信息和卖点
 - 语言通顺自然，适合口播
 - 控制在目标字数范围内
+- 如配置了推荐结构，按该结构优化内容顺序，但不要添加小标题、编号或分段标题
+- 按自然语义分成3-5个短段落，每段单独换行，方便后续画面规划
+- 如果原始文案已经分段，改写后必须保留相近的段落数量和换行结构
 - 直接输出改写后的文案，不要有前缀说明"""
+
+
+def _format_script_structure(script_structure: list[str] | None) -> str:
+    if not script_structure:
+        return ""
+    structure = " → ".join(item.strip() for item in script_structure if item and item.strip())
+    if not structure:
+        return ""
+    return f"\n- 推荐结构：{structure}"
 
 
 # ── 社交媒体元数据（模块6使用） ──────────────────────────────────────────────

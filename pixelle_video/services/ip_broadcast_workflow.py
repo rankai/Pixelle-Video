@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import uuid
 from dataclasses import dataclass, field
@@ -27,6 +28,7 @@ from pixelle_video.services.ip_broadcast_templates import (
     build_ass_force_style,
     get_ip_broadcast_template,
 )
+from pixelle_video.services.ip_broadcast_video_plan import generate_video_plan
 from pixelle_video.services.ip_learning import (
     extract_many_video_scripts,
     fetch_latest_video_urls_from_profile,
@@ -63,6 +65,11 @@ def _default_state() -> dict[str, Any]:
         "source_mode": "video_extract",
         "video_input": "",
         "business_preset_id": "",
+        "business_goal_name": "",
+        "business_script_structure": [],
+        "business_visual_strategy": "",
+        "business_publish_platforms": [],
+        "business_intent_note": "",
         "brand_kit_id": "",
         "source_text": "",
         "source_label": "",
@@ -126,6 +133,9 @@ def _default_state() -> dict[str, Any]:
         "template_id": "boss_clean",
         "story_segments": [],
         "visual_groups": [],
+        "video_plan": {},
+        "video_plan_status": "empty",
+        "video_plan_applied": False,
         "overlay_enabled": False,
         "subtitle_enabled": True,
         "bgm_path": "",
@@ -420,6 +430,13 @@ async def _run_industry_persona_source(pixelle_video, session: IpBroadcastSessio
                 industry_persona=industry_persona,
                 selling_points=selling_points,
                 other_reqs=merged_reqs,
+                business_goal=str(session.state.get("business_goal_name") or ""),
+                script_structure=_read_string_list(
+                    session.state.get("business_script_structure")
+                ),
+                target_word_count=int(session.state.get("word_count") or 200),
+                style_prompt=str(session.state.get("style_prompt") or ""),
+                intent_note=str(session.state.get("business_intent_note") or ""),
             )
         )
     ).strip()
@@ -502,6 +519,18 @@ def _build_script_extractor() -> VideoScriptExtractor:
     )
 
 
+def _update_video_plan(session: IpBroadcastSession) -> None:
+    plan = generate_video_plan(
+        business_goal=str(session.state.get("business_goal_name") or ""),
+        script=str(session.state.get("final_script") or ""),
+        visual_strategy=str(session.state.get("business_visual_strategy") or ""),
+        intent_note=str(session.state.get("business_intent_note") or ""),
+    )
+    session.state["video_plan"] = plan
+    session.state["video_plan_status"] = plan.get("status", "empty")
+    session.state["video_plan_applied"] = False
+
+
 async def _run_copywriting(pixelle_video, session: IpBroadcastSession) -> None:
     source = str(
         session.state.get("final_script") or session.state.get("source_text") or ""
@@ -510,9 +539,84 @@ async def _run_copywriting(pixelle_video, session: IpBroadcastSession) -> None:
         raise ValueError("请先生成或填写口播文案")
     style = session.state.get("style_prompt", "口语化、亲切自然、有感染力")
     word_count = int(session.state.get("word_count") or 200)
-    output = await pixelle_video.llm(prompt=build_rewrite_prompt(source, style, word_count))
-    session.state["final_script"] = output
+    output = await pixelle_video.llm(
+        prompt=build_rewrite_prompt(
+            source,
+            style,
+            word_count,
+            business_goal=str(session.state.get("business_goal_name") or ""),
+            script_structure=_read_string_list(session.state.get("business_script_structure")),
+            intent_note=str(session.state.get("business_intent_note") or ""),
+        )
+    )
+    session.state["final_script"] = _normalize_script_paragraphs(
+        str(output),
+        _read_string_list(session.state.get("business_script_structure")),
+        source,
+    )
     session.state["copywriting_confirmed"] = True
+    _update_video_plan(session)
+
+
+def _normalize_script_paragraphs(
+    text: str,
+    structure: list[str] | None = None,
+    source_text: str = "",
+) -> str:
+    compact = "\n".join(line.strip() for line in str(text).splitlines() if line.strip())
+    if "\n" in compact:
+        return compact
+
+    target_count = _target_paragraph_count(source_text, structure, compact)
+    if target_count <= 1:
+        return compact
+
+    sentences = [item.strip() for item in re.split(r"(?<=[。！？!?；;，,])", compact) if item.strip()]
+    if len(sentences) < target_count:
+        return _split_text_by_length(compact, target_count)
+
+    target_count = min(target_count, len(sentences))
+    groups: list[list[str]] = [[] for _ in range(target_count)]
+    for index, sentence in enumerate(sentences):
+        group_index = min(index * target_count // len(sentences), target_count - 1)
+        groups[group_index].append(sentence)
+
+    return "\n".join("".join(group).strip() for group in groups if group)
+
+
+def _target_paragraph_count(
+    source_text: str,
+    structure: list[str] | None,
+    output_text: str,
+) -> int:
+    source_lines = [line.strip() for line in str(source_text).splitlines() if line.strip()]
+    if len(source_lines) >= 2:
+        return min(max(len(source_lines), 2), 5)
+    if structure:
+        return min(max(len(structure), 2), 5)
+    if len(output_text) > 90:
+        return 3
+    return 1
+
+
+def _split_text_by_length(text: str, target_count: int) -> str:
+    if target_count <= 1:
+        return text
+    chunk_size = max(1, len(text) // target_count)
+    chunks: list[str] = []
+    start = 0
+    for index in range(target_count):
+        if index == target_count - 1:
+            chunks.append(text[start:].strip())
+            break
+        end = min(len(text), start + chunk_size)
+        while end < len(text) and text[end] not in "，,。！？!?；;":
+            end += 1
+        if end < len(text):
+            end += 1
+        chunks.append(text[start:end].strip())
+        start = end
+    return "\n".join(chunk for chunk in chunks if chunk)
 
 
 async def _run_voice(pixelle_video, session: IpBroadcastSession) -> None:
@@ -671,7 +775,9 @@ async def _run_publish(session: IpBroadcastSession) -> None:
     if not session.state.get("description"):
         session.state["description"] = script[:180]
     if not session.state.get("hashtags"):
-        session.state["hashtags"] = ["老板口播", "IP口播"]
+        session.state["hashtags"] = _build_default_hashtags(
+            str(session.state.get("business_goal_name") or "")
+        )
     if session.state.get("final_video_path"):
         session.artifacts["final_video"] = session.state["final_video_path"]
     if session.state.get("cover_path"):
@@ -681,19 +787,26 @@ async def _run_publish(session: IpBroadcastSession) -> None:
 
 def _write_publish_package(session: IpBroadcastSession) -> None:
     script = str(session.state.get("final_script", "")).strip()
-    hashtags = session.state.get("hashtags") or ["老板口播", "IP口播"]
+    preferred_platforms = _read_string_list(session.state.get("business_publish_platforms"))
+    hashtags = session.state.get("hashtags") or _build_default_hashtags(
+        str(session.state.get("business_goal_name") or "")
+    )
     package = {
         "video_path": session.state.get("final_video_path", ""),
         "cover_path": session.state.get("cover_path", ""),
         "title": session.state.get("title", ""),
         "description": session.state.get("description", ""),
+        "cover_title": _build_cover_title(session),
+        "comment_cta": _build_comment_cta(str(session.state.get("business_goal_name") or "")),
         "hashtags": hashtags,
+        "preferred_platforms": preferred_platforms,
         "script": script,
         "script_summary": script[:80],
         "platform_suggestions": _build_platform_suggestions(
             session.state.get("title", ""),
             session.state.get("description", ""),
             hashtags,
+            preferred_platforms=preferred_platforms,
         ),
     }
     session.state["publish_package"] = package
@@ -716,9 +829,10 @@ def _build_platform_suggestions(
     title: str,
     description: str,
     hashtags: list[str],
+    preferred_platforms: list[str] | None = None,
 ) -> dict[str, dict[str, Any]]:
     tag_text = " ".join(f"#{tag}" for tag in hashtags)
-    return {
+    suggestions = {
         "douyin": {
             "title": title[:55],
             "description": f"{description}\n{tag_text}".strip(),
@@ -740,6 +854,52 @@ def _build_platform_suggestions(
             "hashtags": hashtags,
         },
     }
+    ordered_keys = [
+        key for key in (preferred_platforms or []) if key in suggestions
+    ] + [key for key in suggestions if key not in (preferred_platforms or [])]
+    return {key: suggestions[key] for key in ordered_keys}
+
+
+def _build_default_hashtags(business_goal: str) -> list[str]:
+    hashtags = ["老板口播", "IP口播"]
+    goal_tags = {
+        "团购转化": ["团购套餐", "到店优惠"],
+        "门店探店": ["本地生活", "探店推荐"],
+        "新品推荐": ["新品推荐", "门店新品"],
+        "老板人设": ["老板口播", "经营经验"],
+        "客户案例": ["客户案例", "真实反馈"],
+    }
+    for tag in goal_tags.get(business_goal, []):
+        if tag not in hashtags:
+            hashtags.append(tag)
+    return hashtags
+
+
+def _build_cover_title(session: IpBroadcastSession) -> str:
+    explicit = str(session.state.get("cover_title") or "").strip()
+    if explicit:
+        return explicit
+    return str(session.state.get("title") or "").strip() or _shorten_title(
+        str(session.state.get("final_script") or "")
+    )
+
+
+def _build_comment_cta(business_goal: str) -> str:
+    if business_goal == "团购转化":
+        return "想了解套餐详情，评论区打“套餐”。"
+    if business_goal == "门店探店":
+        return "想知道门店地址，评论区打“位置”。"
+    if business_goal == "新品推荐":
+        return "想了解新品详情，评论区打“新品”。"
+    if business_goal == "客户案例":
+        return "想看更多真实案例，评论区打“案例”。"
+    return "想了解更多，评论区留言。"
+
+
+def _read_string_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [str(item) for item in value if str(item).strip()]
 
 
 def _validate_portrait_media_type(workflow: str | None, media_type: str) -> None:

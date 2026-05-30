@@ -1,7 +1,9 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from api.routers.ip_broadcast import router
+from api.routers.ip_broadcast import _session_store, router
 from pixelle_video.models.ip_broadcast import HotTopicsResult
 from pixelle_video.services.ip_broadcast_workflow import (
     IpBroadcastSessionStore,
@@ -139,6 +141,128 @@ async def test_run_source_step_generates_script_from_industry_persona():
     assert session.state["final_script"] == "行业人设生成文案"
     assert session.state["source_label"] == "行业+人设"
     assert session.step_status[2] == "ready"
+
+
+async def test_industry_persona_prompt_uses_business_goal_structure():
+    class FakePixelleVideo:
+        def __init__(self):
+            self.prompt = ""
+
+        async def llm(self, prompt, response_type=None):
+            self.prompt = prompt
+            assert response_type is None
+            return "团购转化生成文案"
+
+    store = IpBroadcastSessionStore()
+    session = store.create_session()
+    store.update_config(
+        session.session_id,
+        {
+            "source_mode": "industry_persona",
+            "industry_persona": "重庆火锅店老板",
+            "selling_points": "双人牛油火锅套餐 99 元",
+            "business_goal_name": "团购转化",
+            "business_script_structure": ["优惠钩子", "套餐内容", "适合人群", "下单引导"],
+            "business_intent_note": "99元双人火锅套餐，下班两个人来吃很划算",
+            "word_count": 150,
+            "style_prompt": "强转化、节奏快、信息清楚",
+        },
+    )
+    fake = FakePixelleVideo()
+
+    result = await run_ip_broadcast_step(fake, session, "source")
+
+    assert result is True
+    assert "团购转化" in fake.prompt
+    assert "优惠钩子 → 套餐内容 → 适合人群 → 下单引导" in fake.prompt
+    assert "约150字" in fake.prompt
+    assert "强转化、节奏快、信息清楚" in fake.prompt
+    assert "99元双人火锅套餐，下班两个人来吃很划算" in fake.prompt
+    assert "不要添加小标题" in fake.prompt
+
+
+async def test_copywriting_prompt_uses_business_goal_structure():
+    class FakePixelleVideo:
+        def __init__(self):
+            self.prompt = ""
+
+        async def llm(self, prompt, response_type=None):
+            self.prompt = prompt
+            assert response_type is None
+            return "改写后的门店探店口播"
+
+    store = IpBroadcastSessionStore()
+    session = store.create_session()
+    store.update_config(
+        session.session_id,
+        {
+            "final_script": "这是一段原始探店口播。",
+            "business_goal_name": "门店探店",
+            "business_script_structure": ["场景引入", "核心卖点", "体验细节", "到店引导"],
+            "business_intent_note": "重点讲下班后两个人到店吃很方便",
+            "style_prompt": "像朋友推荐门店",
+            "word_count": 180,
+        },
+    )
+    fake = FakePixelleVideo()
+
+    result = await run_ip_broadcast_step(fake, session, "copywriting")
+
+    assert result is True
+    assert "门店探店" in fake.prompt
+    assert "场景引入 → 核心卖点 → 体验细节 → 到店引导" in fake.prompt
+    assert "重点讲下班后两个人到店吃很方便" in fake.prompt
+    assert "不要添加小标题" in fake.prompt
+    assert session.state["copywriting_confirmed"] is True
+
+
+async def test_copywriting_normalizes_long_output_into_paragraphs():
+    class FakePixelleVideo:
+        async def llm(self, prompt, response_type=None):
+            assert response_type is None
+            return (
+                "你是不是也觉得下班后吃顿热乎火锅很麻烦。我们店把双人牛油套餐做到了99元。"
+                "锅底每天现炒，黄牛肉当天鲜切。两个人来不用纠结点什么，按这个套餐就够吃。"
+                "到店报口令还能送一份小吃，附近上班的朋友今天就可以来试试。"
+            )
+
+    store = IpBroadcastSessionStore()
+    session = store.create_session()
+    store.update_config(
+        session.session_id,
+        {
+            "final_script": "火锅店双人套餐文案。",
+            "business_script_structure": ["痛点开场", "套餐卖点", "到店引导"],
+        },
+    )
+
+    result = await run_ip_broadcast_step(FakePixelleVideo(), session, "copywriting")
+
+    assert result is True
+    assert session.state["final_script"].count("\n") >= 2
+    assert len([line for line in session.state["final_script"].splitlines() if line.strip()]) >= 3
+
+
+async def test_copywriting_keeps_paragraphs_when_model_returns_short_single_block():
+    class FakePixelleVideo:
+        async def llm(self, prompt, response_type=None):
+            assert response_type is None
+            return "很多老板做短视频最大的问题是只讲产品不讲场景，顾客听完不知道为什么现在要来店里，正确做法是先讲痛点再讲套餐最后给到店理由"
+
+    store = IpBroadcastSessionStore()
+    session = store.create_session()
+    store.update_config(
+        session.session_id,
+        {
+            "final_script": "第一段原文。\n第二段原文。\n第三段原文。",
+            "business_script_structure": ["痛点", "方案", "到店理由"],
+        },
+    )
+
+    result = await run_ip_broadcast_step(FakePixelleVideo(), session, "copywriting")
+
+    assert result is True
+    assert len([line for line in session.state["final_script"].splitlines() if line.strip()]) == 3
 
 
 async def test_run_source_step_learns_ip_profile_and_stores_compact_results(monkeypatch):
@@ -311,3 +435,37 @@ def test_artifact_download_rejects_unknown_artifact():
     response = client.get(f"/api/ip-broadcast/sessions/{session_id}/artifacts/not-found")
 
     assert response.status_code == 404
+
+
+def test_artifact_download_falls_back_to_final_video_state(tmp_path):
+    client = _client()
+    session_id = client.post("/api/ip-broadcast/sessions").json()["session_id"]
+    video_path = Path.cwd() / "output" / f"{session_id}_fallback_final.mp4"
+    video_path.parent.mkdir(exist_ok=True)
+    video_path.write_bytes(b"video")
+    try:
+        _session_store.update_config(session_id, {"final_video_path": str(video_path)})
+
+        response = client.get(f"/api/ip-broadcast/sessions/{session_id}/artifacts/final_video")
+
+        assert response.status_code == 200
+        assert response.content == b"video"
+    finally:
+        video_path.unlink(missing_ok=True)
+
+
+def test_artifact_download_allows_project_temp_preview_files(tmp_path):
+    client = _client()
+    session_id = client.post("/api/ip-broadcast/sessions").json()["session_id"]
+    audio_path = Path.cwd() / "temp" / f"{session_id}_preview.mp3"
+    audio_path.parent.mkdir(exist_ok=True)
+    audio_path.write_bytes(b"audio")
+    try:
+        _session_store.update_config(session_id, {"audio_path": str(audio_path)})
+
+        response = client.get(f"/api/ip-broadcast/sessions/{session_id}/artifacts/audio")
+
+        assert response.status_code == 200
+        assert response.content == b"audio"
+    finally:
+        audio_path.unlink(missing_ok=True)

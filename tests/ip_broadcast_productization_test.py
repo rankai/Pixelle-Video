@@ -13,6 +13,10 @@ from pixelle_video.services.ip_broadcast_composer import (
     build_segment_timeline,
     build_video_overlay_command,
 )
+from pixelle_video.services.ip_broadcast_video_plan import (
+    apply_video_plan_to_visual_groups,
+    generate_video_plan,
+)
 from pixelle_video.services.ip_broadcast_workflow import (
     IpBroadcastSession,
     run_ip_broadcast_step,
@@ -58,6 +62,34 @@ async def test_publish_step_creates_productized_publish_package(monkeypatch, tmp
 
 
 @pytest.mark.asyncio
+async def test_publish_step_uses_business_goal_platforms_and_tags(monkeypatch, tmp_path):
+    monkeypatch.setenv("PIXELLE_VIDEO_ROOT", str(tmp_path))
+    final_video = tmp_path / "final.mp4"
+    final_video.write_bytes(b"video")
+    session = IpBroadcastSession(session_id="s1")
+    session.update_config(
+        {
+            "final_script": "双人牛油火锅套餐 99 元，适合下班聚餐。",
+            "copywriting_confirmed": True,
+            "final_video_path": str(final_video),
+            "title": "火锅双人套餐限时优惠",
+            "description": "附近上班族下班就能吃的火锅套餐。",
+            "business_goal_name": "团购转化",
+            "business_publish_platforms": ["douyin", "kuaishou"],
+        }
+    )
+
+    assert await run_ip_broadcast_step(None, session, "publish") is True
+
+    package = session.state["publish_package"]
+    assert package["hashtags"] == ["老板口播", "IP口播", "团购套餐", "到店优惠"]
+    assert list(package["platform_suggestions"].keys())[:2] == ["douyin", "kuaishou"]
+    assert package["preferred_platforms"] == ["douyin", "kuaishou"]
+    assert package["cover_title"] == "火锅双人套餐限时优惠"
+    assert package["comment_cta"] == "想了解套餐详情，评论区打“套餐”。"
+
+
+@pytest.mark.asyncio
 async def test_step_error_notice_uses_business_message_and_technical_detail():
     class FailingTTS:
         async def tts(self, **_kwargs):
@@ -85,6 +117,91 @@ def test_ip_broadcast_presets_api_returns_business_defaults(monkeypatch, tmp_pat
     assert [item["preset_id"] for item in items[:2]] == ["boss_persona", "store_visit"]
     assert items[1]["recommended_word_count"] > 0
     assert items[1]["default_template_id"]
+
+
+def test_group_buying_video_plan_recommends_business_readable_visuals():
+    script = "今天双人牛油火锅套餐只要99元。\n套餐里有鲜切牛肉和现炸酥肉。\n下班聚餐到店就能吃。"
+
+    plan = generate_video_plan(
+        business_goal="团购转化",
+        script=script,
+        visual_strategy="套餐内容段用门店或产品视频覆盖。",
+    )
+
+    assert plan["status"] == "ready"
+    assert plan["summary"] == "老板出镜 1 段 · 插入门店视频 2 段"
+    assert plan["segments"][0]["visual_type"] == "digital_human"
+    assert plan["segments"][1]["visual_type"] == "uploaded_video"
+    assert plan["segments"][1]["asset_keywords"] == ["菜品", "套餐", "产品"]
+    assert "菜品/套餐视频" in plan["segments"][1]["label"]
+
+
+def test_video_plan_application_creates_existing_visual_groups():
+    plan = {
+        "segments": [
+            {"segment_id": "1", "visual_type": "digital_human"},
+            {
+                "segment_id": "2",
+                "visual_type": "uploaded_video",
+                "prompt": "菜品和套餐特写",
+                "asset_keywords": ["菜品", "套餐"],
+            },
+            {
+                "segment_id": "3",
+                "visual_type": "uploaded_video",
+                "prompt": "门店环境和聚餐画面",
+                "asset_keywords": ["门店", "环境"],
+            },
+        ]
+    }
+
+    groups = apply_video_plan_to_visual_groups(plan)
+
+    assert groups == [
+        {
+            "group_id": "plan_group_2",
+            "segment_ids": ["2"],
+            "visual_type": "uploaded_video",
+            "prompt": "菜品和套餐特写",
+            "uploaded_video_path": "",
+            "video_asset_id": "",
+            "status": "recommended",
+            "asset_keywords": ["菜品", "套餐"],
+        },
+        {
+            "group_id": "plan_group_3",
+            "segment_ids": ["3"],
+            "visual_type": "uploaded_video",
+            "prompt": "门店环境和聚餐画面",
+            "uploaded_video_path": "",
+            "video_asset_id": "",
+            "status": "recommended",
+            "asset_keywords": ["门店", "环境"],
+        },
+    ]
+
+
+@pytest.mark.asyncio
+async def test_copywriting_generates_video_plan_from_business_goal():
+    class FakePixelleVideo:
+        async def llm(self, prompt, response_type=None):
+            assert response_type is None
+            return "今天双人牛油火锅套餐只要99元。\n套餐里有鲜切牛肉和现炸酥肉。\n下班聚餐到店就能吃。"
+
+    session = IpBroadcastSession(session_id="s1")
+    session.update_config(
+        {
+            "final_script": "火锅套餐文案",
+            "business_goal_name": "团购转化",
+            "business_visual_strategy": "套餐内容段用门店或产品视频覆盖。",
+        }
+    )
+
+    assert await run_ip_broadcast_step(FakePixelleVideo(), session, "copywriting") is True
+
+    assert session.state["video_plan_status"] == "ready"
+    assert session.state["video_plan"]["summary"] == "老板出镜 1 段 · 插入门店视频 2 段"
+    assert session.state["video_plan_applied"] is False
 
 
 def test_brand_kit_create_list_update_and_delete(monkeypatch, tmp_path):

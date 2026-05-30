@@ -1,4 +1,57 @@
 {
   "source": "runninghub",
-  "workflow_id": "1961317560035819522"
+  "workflow_id": "1961317560035819522",
+  "runninghub_node_mappings": {
+    "text": {
+      "node_id": "7",
+      "field_name": "text",
+      "description": "text"
+    },
+    "ref_audio": {
+      "node_id": "4",
+      "field_name": "audio",
+      "description": "ref_audio",
+      "upload": true
+    },
+    "temperature": {
+      "node_id": "6",
+      "field_name": "temperature",
+      "description": "temperature"
+    },
+    "top_p": {
+      "node_id": "6",
+      "field_name": "top_p",
+      "description": "top_p"
+    },
+    "top_k": {
+      "node_id": "6",
+      "field_name": "top_k",
+      "description": "top_k"
+    },
+    "num_beams": {
+      "node_id": "6",
+      "field_name": "num_beams",
+      "description": "num_beams"
+    },
+    "repetition_penalty": {
+      "node_id": "6",
+      "field_name": "repetition_penalty",
+      "description": "repetition_penalty"
+    },
+    "length_penalty": {
+      "node_id": "6",
+      "field_name": "length_penalty",
+      "description": "length_penalty"
+    },
+    "max_mel_tokens": {
+      "node_id": "6",
+      "field_name": "max_mel_tokens",
+      "description": "max_mel_tokens"
+    },
+    "seed": {
+      "node_id": "6",
+      "field_name": "seed",
+      "description": "seed"
+    }
+  }
 }

@@ -30,6 +30,7 @@ import {
 import type { MenuProps } from "antd";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
+  artifactBlobUrl,
   assetBlobUrl,
   cancelTask,
   createBrandKit,
@@ -43,6 +44,7 @@ import {
   getDiagnostics,
   getSession,
   getTask,
+  listBgm,
   listBrandKits,
   listIpPresetAssets,
   listIpTemplateAssets,
@@ -65,6 +67,7 @@ import {
   uploadPortraitAsset,
   uploadVideoAsset,
   uploadVoiceAsset,
+  BgmAsset,
   VideoAsset,
   VoiceAsset,
 } from "./api";
@@ -80,6 +83,7 @@ type AssetState = {
   presets: IpPresetAsset[];
   videos: VideoAsset[];
   brands: BrandKit[];
+  bgm: BgmAsset[];
 };
 
 type StorySegment = {
@@ -98,6 +102,25 @@ type VisualGroup = {
   status: string;
 };
 
+type VideoPlanSegment = {
+  segment_id: string;
+  index: number;
+  text: string;
+  visual_type: "digital_human" | "ai_video" | "uploaded_video";
+  label: string;
+  asset_keywords: string[];
+  prompt: string;
+  reason: string;
+};
+
+type VideoPlan = {
+  goal: string;
+  status: string;
+  summary: string;
+  visual_strategy: string;
+  segments: VideoPlanSegment[];
+};
+
 type PortraitMediaType = PortraitAsset["media_type"];
 
 type AssetPreview =
@@ -106,7 +129,7 @@ type AssetPreview =
   | { kind: "video"; title: string; src: string };
 
 const stepTitles = [
-  "素材来源",
+  "目标与素材",
   "文案确认",
   "配音制作",
   "数字人出镜",
@@ -128,7 +151,7 @@ const appReleaseInfo = {
   notes: [
     "新增首页工作台、配置状态检查和 1-6 步口播生产入口。",
     "素材资产独立维护，流程内支持快速添加音色、形象和视频素材。",
-    "补齐 RunningHub / ComfyUI 声音工作流选择与参数配置。",
+    "补齐云端声音生成方式和参数配置。",
     "优化画面模板、画面规划和发布素材包的交付体验。",
   ],
 };
@@ -136,23 +159,31 @@ const appReleaseInfo = {
 const ttsWorkflowOptions = [
   {
     value: "runninghub/tts_index_custom.json",
-    label: "RunningHub Index 声音克隆（推荐）",
+    label: "老板声音克隆（推荐）",
     kind: "index",
+    supportsReference: true,
+    supportsAdvanced: true,
   },
   {
     value: "runninghub/tts_index2.json",
-    label: "RunningHub Index2 声音克隆",
+    label: "老板声音克隆 2",
     kind: "index",
+    supportsReference: true,
+    supportsAdvanced: false,
   },
   {
     value: "runninghub/tts_edge.json",
-    label: "RunningHub Edge TTS",
+    label: "云端默认配音",
     kind: "edge",
+    supportsReference: false,
+    supportsAdvanced: true,
   },
   {
     value: "runninghub/tts_spark.json",
-    label: "RunningHub Spark TTS",
+    label: "情绪配音",
     kind: "spark",
+    supportsReference: false,
+    supportsAdvanced: true,
   },
 ] as const;
 
@@ -165,28 +196,28 @@ const digitalHumanWorkflowOptions: Array<{
 }> = [
   {
     value: "workflows/runninghub/digital_combination.json",
-    label: "旧版数字人组合工作流",
+    label: "图片数字人出镜",
     supportedMediaTypes: ["image"],
     defaultWidth: 720,
     defaultHeight: 1280,
   },
   {
     value: "workflows/runninghub/digital_talk_image_prompt.json",
-    label: "数字人口播（图片形象 + 提示词）",
+    label: "图片数字人出镜（带动作描述）",
     supportedMediaTypes: ["image"],
     defaultWidth: 720,
     defaultHeight: 1280,
   },
   {
     value: "workflows/runninghub/digital_talk_fast_720p.json",
-    label: "数字人口播快速版（图片形象 720x1280）",
+    label: "图片数字人快速出镜",
     supportedMediaTypes: ["image"],
     defaultWidth: 720,
     defaultHeight: 1280,
   },
   {
     value: "workflows/runninghub/digital_lip_sync_video.json",
-    label: "视频改口型（视频形象 + 音频）",
+    label: "视频改口型（上传真人视频重配口型）",
     supportedMediaTypes: ["video"],
     defaultWidth: 480,
     defaultHeight: 832,
@@ -222,6 +253,7 @@ const emptyAssets: AssetState = {
   presets: [],
   videos: [],
   brands: [],
+  bgm: [],
 };
 
 const navItems: MenuProps["items"] = [
@@ -233,6 +265,15 @@ const navItems: MenuProps["items"] = [
   { key: "diagnostics", icon: <CheckCircle2 size={16} />, label: "诊断" },
 ];
 
+function autoAdvanceStepAfter(stepKey?: string) {
+  return (
+    {
+      source: 2,
+      postproduction: 6,
+    }[stepKey || ""] || 0
+  );
+}
+
 export function App() {
   const [view, setView] = useState<View>("home");
   const [assetTab, setAssetTab] = useState<AssetTab>("voices");
@@ -242,12 +283,13 @@ export function App() {
   const [activeStep, setActiveStep] = useState(1);
   const [task, setTask] = useState<TaskInfo | null>(null);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  const [appError, setAppError] = useState("");
+  const [appRecovering, setAppRecovering] = useState(false);
+  const [workflowError, setWorkflowError] = useState("");
   const [storyboardOpen, setStoryboardOpen] = useState(false);
 
   useEffect(() => {
-    restoreOrCreateSession().catch((err) => setError(String(err)));
-    reloadAssets().catch((err) => setError(String(err)));
+    recoverAppState().catch((err) => setAppError(formatUiError(err)));
   }, []);
 
   function setThemeSkin(skin: ThemeSkin) {
@@ -273,6 +315,20 @@ export function App() {
     setActiveStep(1);
   }
 
+  async function recoverAppState() {
+    setAppRecovering(true);
+    try {
+      await restoreOrCreateSession();
+      await reloadAssets();
+      setAppError("");
+    } catch (err) {
+      setAppError(formatUiError(err));
+      throw err;
+    } finally {
+      setAppRecovering(false);
+    }
+  }
+
   useEffect(() => {
     if (!task || !session) return;
     if (!["pending", "running"].includes(task.status)) return;
@@ -284,12 +340,15 @@ export function App() {
           setBusy(false);
           const fresh = await getSession(session.session_id);
           setSession(fresh);
-          setActiveStep(fresh.current_step || activeStep);
-          if (latestTask.status === "failed") setError(latestTask.error || "任务执行失败");
+          if (latestTask.status === "completed") {
+            const nextStep = autoAdvanceStepAfter(latestTask.step_key || task.step_key);
+            if (nextStep) setActiveStep(nextStep);
+          }
+          if (latestTask.status === "failed") setWorkflowError(latestTask.error || "任务执行失败");
         }
       } catch (err) {
         setBusy(false);
-        setError(String(err));
+        setWorkflowError(formatUiError(err));
       }
     }, 1500);
     return () => window.clearInterval(timer);
@@ -301,13 +360,14 @@ export function App() {
   }, [session]);
 
   async function reloadAssets() {
-    const [voices, portraits, templates, presets, videos, brands] = await Promise.all([
+    const [voices, portraits, templates, presets, videos, brands, bgm] = await Promise.all([
       listVoiceAssets(),
       listPortraitAssets(),
       listIpTemplateAssets(),
       listIpPresetAssets(),
       listVideoAssets(),
       listBrandKits(),
+      listBgm(),
     ]);
     setAssets({
       voices: voices.items,
@@ -316,20 +376,21 @@ export function App() {
       presets: presets.items,
       videos: videos.items,
       brands: brands.items,
+      bgm: bgm.bgm_files,
     });
   }
 
   async function execute(stepKey: string) {
     if (!session) return;
     setBusy(true);
-    setError("");
+    setWorkflowError("");
     setTask(null);
     try {
       const result = await runStep(session.session_id, stepKey);
-      setTask({ task_id: result.task_id, status: "pending" });
+      setTask({ task_id: result.task_id, status: "pending", step_key: stepKey });
     } catch (err) {
       setBusy(false);
-      setError(String(err));
+      setWorkflowError(formatUiError(err));
     }
   }
 
@@ -340,7 +401,7 @@ export function App() {
       setBusy(false);
       setTask({ ...task, status: "cancelled" });
     } catch (err) {
-      setError(String(err));
+      setWorkflowError(formatUiError(err));
     }
   }
 
@@ -365,7 +426,7 @@ export function App() {
   async function startNewIpSession() {
     setBusy(false);
     setTask(null);
-    setError("");
+    setWorkflowError("");
     const created = await createSession();
     window.localStorage.setItem("pixelle_ipb_session_id", created.session_id);
     setSession(created);
@@ -378,7 +439,7 @@ export function App() {
     try {
       await downloadArtifact(session.session_id, "final_video");
     } catch (err) {
-      setError(String(err));
+      setWorkflowError(formatUiError(err));
     }
   }
 
@@ -410,73 +471,90 @@ export function App() {
             <Tag color="processing">{themeSkins[themeSkin].label}</Tag>
           </Layout.Header>
           <Layout.Content className="app-content">
-            {error ? (
+            {appError ? (
               <Alert
                 className="global-alert"
                 type="error"
                 showIcon
-                message={error}
+                message={appError}
+                action={
+                  <Space>
+                    <Button size="small" loading={appRecovering} onClick={() => recoverAppState().catch(() => {})}>
+                      重试连接
+                    </Button>
+                    <Button size="small" type="text" onClick={() => setAppError("")}>
+                      关闭
+                    </Button>
+                  </Space>
+                }
                 icon={<AlertCircle size={16} />}
               />
             ) : null}
 
-      {view === "ip" && session ? (
-        <section className="workspace">
-          <ProductionConsole
-            session={session}
-            task={task}
-            busy={busy}
-            completedPercent={completedPercent}
-            onContinue={() => execute(session.next_action.key)}
-            onStop={stopCurrentTask}
-          />
+            {view === "ip" && session ? (
+              <section className="workspace">
+                <ProductionConsole
+                  session={session}
+                  task={task}
+                  busy={busy}
+                  completedPercent={completedPercent}
+                  onContinue={() => execute(session.next_action.key)}
+                />
 
-          <StepBar
-            session={session}
-            activeStep={activeStep}
-            onSelect={(step) => setActiveStep(step)}
-          />
+                <WorkflowRunStatus
+                  session={session}
+                  task={task}
+                  busy={busy}
+                  error={workflowError}
+                  activeStep={activeStep}
+                  onStop={stopCurrentTask}
+                />
 
-          <section className="step-workspace">
-            <StepPanel
-              step={activeStep}
-              session={session}
-              assets={assets}
-              patch={patch}
-              execute={execute}
-              busy={busy}
-              openStoryboard={() => setStoryboardOpen(true)}
-              openAssetTab={openAssetTab}
-              reloadAssets={reloadAssets}
-              downloadFinalVideo={downloadFinalVideo}
-            />
-          </section>
+                <StepBar
+                  session={session}
+                  activeStep={activeStep}
+                  onSelect={(step) => setActiveStep(step)}
+                />
 
-          <BottomActionBar
-            session={session}
-            activeStep={activeStep}
-            busy={busy}
-            setActiveStep={setActiveStep}
-            execute={execute}
-          />
+                <section className="step-workspace">
+                  <StepPanel
+                    step={activeStep}
+                    session={session}
+                    assets={assets}
+                    patch={patch}
+                    execute={execute}
+                    busy={busy}
+                    openStoryboard={() => setStoryboardOpen(true)}
+                    openAssetTab={openAssetTab}
+                    reloadAssets={reloadAssets}
+                    downloadFinalVideo={downloadFinalVideo}
+                  />
+                </section>
 
-          {storyboardOpen ? (
-            <StoryboardModal
-              session={session}
-              videos={assets.videos}
-              patch={patch}
-              reloadAssets={reloadAssets}
-              openAssetTab={openAssetTab}
-              onClose={() => setStoryboardOpen(false)}
-            />
-          ) : null}
-        </section>
-      ) : null}
+                <BottomActionBar
+                  activeStep={activeStep}
+                  busy={busy}
+                  setActiveStep={setActiveStep}
+                  execute={execute}
+                />
+
+                {storyboardOpen ? (
+                  <StoryboardModal
+                    session={session}
+                    videos={assets.videos}
+                    patch={patch}
+                    reloadAssets={reloadAssets}
+                    openAssetTab={openAssetTab}
+                    onClose={() => setStoryboardOpen(false)}
+                  />
+                ) : null}
+              </section>
+            ) : null}
 
       {view === "home" ? (
         <HomeView
           assets={assets}
-          onStart={() => startNewIpSession().catch((err) => setError(String(err)))}
+          onStart={() => startNewIpSession().catch((err) => setAppError(formatUiError(err)))}
           onAssets={() => setView("assets")}
           onConfig={() => setView("config")}
           onTasks={() => setView("tasks")}
@@ -785,6 +863,11 @@ function buildTaskStats(tasks: TaskInfo[]) {
   };
 }
 
+function formatUiError(err: unknown) {
+  const message = err instanceof Error ? err.message : String(err);
+  return message.replace(/^Error:\s*/, "");
+}
+
 function taskStatusColor(status: TaskInfo["status"]) {
   const colors: Record<TaskInfo["status"], string> = {
     pending: "default",
@@ -802,14 +885,12 @@ function ProductionConsole({
   busy,
   completedPercent,
   onContinue,
-  onStop,
 }: {
   session: IpBroadcastState;
   task: TaskInfo | null;
   busy: boolean;
   completedPercent: number;
   onContinue: () => void;
-  onStop: () => void;
 }) {
   const taskStatus = task
     ? `当前任务：${taskStatusLabel(task.status)} · ${task.task_id.slice(0, 8)}`
@@ -824,6 +905,9 @@ function ProductionConsole({
           </Tag>
         </Space>
         <Typography.Paragraph type="secondary">{session.next_action.description}</Typography.Paragraph>
+        <Typography.Text className="console-hint" type="secondary">
+          自动生产会从当前可执行步骤继续；缺素材时会停下并提示你补齐。
+        </Typography.Text>
         <Progress percent={completedPercent} showInfo={false} />
         <Typography.Text type="secondary">
           {session.missing_requirements.length
@@ -833,27 +917,86 @@ function ProductionConsole({
       </div>
       <div className="task-panel">
         <Tag>{taskStatus}</Tag>
-        {task?.progress?.message ? (
-          <Typography.Text type="secondary">{task.progress.message}</Typography.Text>
-        ) : null}
-        {task?.error ? <Typography.Text type="danger">{task.error}</Typography.Text> : null}
         <Space>
-          {busy && task ? (
-            <Button onClick={onStop} icon={<MonitorStop size={16} />}>
-              停止
-            </Button>
-          ) : null}
           <Button
             type="primary"
             disabled={busy || session.next_action.disabled}
             onClick={onContinue}
-            icon={busy ? <Loader2 className="spin" size={16} /> : undefined}
           >
-            一键继续：{session.next_action.label}
+            自动继续生产
           </Button>
+          <Typography.Text type="secondary">下一步：{session.next_action.label}</Typography.Text>
         </Space>
       </div>
     </Card>
+  );
+}
+
+function WorkflowRunStatus({
+  session,
+  task,
+  busy,
+  error,
+  activeStep,
+  onStop,
+}: {
+  session: IpBroadcastState;
+  task: TaskInfo | null;
+  busy: boolean;
+  error: string;
+  activeStep: number;
+  onStop: () => void;
+}) {
+  const activeNotice = session.notices[String(activeStep)];
+  const noticeError = activeNotice?.kind === "error" ? activeNotice.message : "";
+  const taskError = task?.status === "failed" ? task.error || "任务执行失败" : "";
+  const errorMessage = taskError || error || noticeError;
+  const isRunning = busy || task?.status === "pending" || task?.status === "running";
+  const isCancelled = task?.status === "cancelled";
+
+  if (!isRunning && !errorMessage && !isCancelled) return null;
+
+  const stepLabel = taskStepLabel(task?.step_key || session.next_action.key);
+  const progress = Math.round(task?.progress?.percentage || (isRunning ? 8 : 0));
+
+  if (errorMessage) {
+    return (
+      <section className="workflow-status error">
+        <AlertCircle size={18} />
+        <div>
+          <strong>{stepLabel}执行失败</strong>
+          <span>{errorMessage}</span>
+        </div>
+      </section>
+    );
+  }
+
+  if (isCancelled) {
+    return (
+      <section className="workflow-status warning">
+        <MonitorStop size={18} />
+        <div>
+          <strong>任务已停止</strong>
+          <span>已停止当前生产任务，已有素材不会被清空。</span>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="workflow-status running">
+      <Loader2 className="spin" size={20} />
+      <div>
+        <strong>正在执行：{stepLabel}</strong>
+        <span>{task?.progress?.message || "任务已提交，正在等待执行结果..."}</span>
+        <Progress percent={progress} showInfo={false} />
+      </div>
+      {task ? (
+        <Button onClick={onStop} icon={<MonitorStop size={16} />}>
+          停止
+        </Button>
+      ) : null}
+    </section>
   );
 }
 
@@ -958,6 +1101,7 @@ function StepPanel({
           session={session}
           templates={assets.templates}
           videos={assets.videos}
+          bgm={assets.bgm}
           patch={patch}
           execute={execute}
           busy={busy}
@@ -968,10 +1112,20 @@ function StepPanel({
       {step === 6 ? (
         <PublishStep session={session} downloadFinalVideo={downloadFinalVideo} />
       ) : null}
-      {notice ? (
+      {notice && notice.kind !== "error" ? (
         <Alert className="step-notice" type={noticeKind(notice.kind)} showIcon message={notice.message} />
       ) : null}
     </Card>
+  );
+}
+
+function InlineStepStatus({ busy }: { busy: boolean }) {
+  if (!busy) return null;
+  return (
+    <span className="inline-run-status">
+      <Loader2 className="spin" size={14} />
+      正在执行，请稍候...
+    </span>
   );
 }
 
@@ -1005,11 +1159,21 @@ function SourceStep({
   async function applyPreset(presetId: string) {
     const preset = presets.find((item) => item.preset_id === presetId);
     if (!preset) {
-      await patch({ business_preset_id: "" });
+      await patch({
+        business_preset_id: "",
+        business_goal_name: "",
+        business_script_structure: [],
+        business_visual_strategy: "",
+        business_publish_platforms: [],
+      });
       return;
     }
     await patch({
       business_preset_id: preset.preset_id,
+      business_goal_name: preset.display_name,
+      business_script_structure: preset.script_structure,
+      business_visual_strategy: preset.recommended_visual_strategy,
+      business_publish_platforms: preset.publish_platform_hints,
       word_count: preset.recommended_word_count,
       style_prompt: preset.default_style_prompt,
       template_id: preset.default_template_id,
@@ -1024,45 +1188,53 @@ function SourceStep({
   };
   return (
     <div>
-      <div className="grid2">
-        <div>
-          <label>业务预设</label>
-          <select
-            value={(session.state.business_preset_id as string) || ""}
-            onChange={(event) => applyPreset(event.target.value)}
-          >
-            <option value="">不使用预设</option>
-            {presets.map((preset) => (
-              <option key={preset.preset_id} value={preset.preset_id}>
-                {preset.display_name}
-              </option>
-            ))}
-          </select>
-          {selectedPreset ? (
-            <small className="muted">{selectedPreset.recommended_visual_strategy}</small>
-          ) : null}
+      <section className="business-goal-section">
+        <div className="section-titleline">
+          <div>
+            <label>本条视频目标</label>
+            <p className="muted">先选这条视频要完成的业务目标，系统会影响文案结构、画面建议和发布平台。</p>
+          </div>
+          <Tag color={selectedPreset ? "processing" : "default"}>
+            {selectedPreset ? "已应用目标" : "自由创作"}
+          </Tag>
         </div>
-        <div>
-          <label>品牌包</label>
-          <select
-            value={(session.state.brand_kit_id as string) || ""}
-            onChange={(event) => {
-              const brand = brands.find((item) => item.brand_id === event.target.value);
-              patch({
-                brand_kit_id: event.target.value,
-                bgm_path: brand?.default_bgm_path || session.state.bgm_path || "",
-              });
-            }}
+        <div className="business-goal-grid">
+          <button
+            className={`business-goal-card ${!selectedPreset ? "selected" : ""}`}
+            onClick={() => applyPreset("")}
           >
-            <option value="">不使用品牌包</option>
-            {brands.map((brand) => (
-              <option key={brand.brand_id} value={brand.brand_id}>
-                {brand.brand_name}
-              </option>
-            ))}
-          </select>
-          {selectedBrand ? <small className="muted">{selectedBrand.coupon_phrase}</small> : null}
+            <strong>自由创作</strong>
+            <span>不套业务结构，保留你手动设置的风格、字数和模板。</span>
+            <small>适合临时想法、测试素材或已有完整脚本。</small>
+          </button>
+          {presets.map((preset) => (
+            <button
+              key={preset.preset_id}
+              className={`business-goal-card ${
+                session.state.business_preset_id === preset.preset_id ? "selected" : ""
+              }`}
+              onClick={() => applyPreset(preset.preset_id)}
+              title={`${preset.description}\n推荐结构：${preset.script_structure.join(" → ")}\n画面策略：${
+                preset.recommended_visual_strategy
+              }`}
+            >
+              <strong>{humanGoalLabel(preset)}</strong>
+              <span>{preset.description}</span>
+              <small>{preset.script_structure.join(" → ")}</small>
+            </button>
+          ))}
         </div>
+        {selectedPreset ? (
+          <div className="goal-impact-note">
+            <span>本目标会影响：文案结构、画面建议、发布平台。</span>
+            <span>推荐画面：{selectedPreset.recommended_visual_strategy}</span>
+          </div>
+        ) : null}
+      </section>
+
+      <div className="section-title source-title">
+        <span>素材来源</span>
+        <small>有视频就提取文案，已有稿子就粘贴，想从门店定位生成就选行业+人设。</small>
       </div>
       <Tabs
         className="source-tabs"
@@ -1197,6 +1369,16 @@ function SourceStep({
                   }
                   placeholder="例如：到店报口令打九折"
                 />
+                <label>想特别强调的内容（可选）</label>
+                <textarea
+                  className="small-textarea"
+                  defaultValue={(session.state.business_intent_note as string) || ""}
+                  onBlur={(event) =>
+                    patch({ source_mode: "industry_persona", business_intent_note: event.target.value })
+                  }
+                  placeholder="例如：99元双人火锅套餐，下班两个人来吃很划算。"
+                />
+                <small className="muted">不填也能生成，补一句会让文案更具体。</small>
               </div>
             ),
           },
@@ -1285,9 +1467,36 @@ function SourceStep({
           },
         ]}
       />
+      <details className="advanced source-advanced">
+        <summary>高级设置</summary>
+        <div className="grid2">
+          <div>
+            <label>品牌包</label>
+            <select
+              value={(session.state.brand_kit_id as string) || ""}
+              onChange={(event) => {
+                const brand = brands.find((item) => item.brand_id === event.target.value);
+                patch({
+                  brand_kit_id: event.target.value,
+                  bgm_path: brand?.default_bgm_path || session.state.bgm_path || "",
+                });
+              }}
+            >
+              <option value="">不使用品牌包</option>
+              {brands.map((brand) => (
+                <option key={brand.brand_id} value={brand.brand_id}>
+                  {brand.brand_name}
+                </option>
+              ))}
+            </select>
+            {selectedBrand ? <small className="muted">{selectedBrand.coupon_phrase}</small> : null}
+          </div>
+        </div>
+      </details>
       <div className="panel-actions">
+        <InlineStepStatus busy={busy} />
         <Button type="primary" onClick={() => execute("source")} disabled={busy}>
-          {sourceActions[sourceMode] || "生成口播文案"}
+          {busy ? "执行中..." : sourceActions[sourceMode] || "生成口播文案"}
         </Button>
       </div>
     </div>
@@ -1309,6 +1518,7 @@ function CopywritingStep({
     <div>
       <label>最终口播文案</label>
       <textarea
+        key={(session.state.final_script as string) || "empty-script"}
         className="script-editor"
         defaultValue={(session.state.final_script as string) || ""}
         onBlur={(event) => patch({ final_script: event.target.value })}
@@ -1331,8 +1541,9 @@ function CopywritingStep({
         </div>
       </div>
       <div className="panel-actions">
+        <InlineStepStatus busy={busy} />
         <button className="primary" onClick={() => execute("copywriting")} disabled={busy}>
-          AI 改写/优化文案
+          {busy ? "正在改写..." : "AI 改写/优化文案"}
         </button>
       </div>
     </div>
@@ -1359,8 +1570,10 @@ function VoiceStep({
   const inferenceMode = (session.state.tts_inference_mode as string) || "local";
   const selectedWorkflow =
     (session.state.tts_workflow as string) || "runninghub/tts_index_custom.json";
-  const workflowKind = ttsWorkflowKind(selectedWorkflow);
-  const showReferenceLibrary = inferenceMode === "comfyui" && workflowKind === "index";
+  const selectedWorkflowConfig = getTtsWorkflow(selectedWorkflow);
+  const workflowKind = selectedWorkflowConfig.kind;
+  const showReferenceLibrary =
+    inferenceMode === "comfyui" && selectedWorkflowConfig.supportsReference;
   const [addVoiceOpen, setAddVoiceOpen] = useState(false);
   const [preview, setPreview] = useState<AssetPreview | null>(null);
 
@@ -1377,7 +1590,7 @@ function VoiceStep({
         <div className="section-title">
           <span>参考音色库</span>
           <Space size={8} wrap>
-            <small>Index 声音克隆工作流会读取这里选择的参考音频</small>
+            <small>云端声音克隆会读取这里选择的老板参考音频</small>
             <Button size="small" onClick={() => openAssetTab("voices")}>
               管理音色库
             </Button>
@@ -1434,13 +1647,13 @@ function VoiceStep({
     <div>
       <div className="voice-param-grid">
         <div>
-          <label>推理模式</label>
+          <label>配音方式</label>
           <select
             value={inferenceMode}
             onChange={(event) => patch({ tts_inference_mode: event.target.value })}
           >
-            <option value="local">local Edge TTS</option>
-            <option value="comfyui">ComfyUI / RunningHub</option>
+            <option value="local">系统默认配音</option>
+            <option value="comfyui">云端声音克隆</option>
           </select>
         </div>
       </div>
@@ -1452,7 +1665,7 @@ function VoiceStep({
           <div className="voice-config-panel">
             <div className="voice-param-grid">
               <div>
-                <label>TTS 工作流</label>
+                <label>声音生成方式</label>
                 <select
                   value={selectedWorkflow}
                   onChange={(event) => patch({ tts_workflow: event.target.value })}
@@ -1469,14 +1682,32 @@ function VoiceStep({
           </div>
           {showReferenceLibrary ? renderReferenceLibrary() : null}
           {workflowKind === "edge" ? <ComfyEdgeConfig session={session} patch={patch} /> : null}
-          {workflowKind === "index" ? <IndexVoiceConfig session={session} patch={patch} /> : null}
+          {workflowKind === "index" && selectedWorkflowConfig.supportsAdvanced ? (
+            <IndexVoiceConfig session={session} patch={patch} />
+          ) : null}
           {workflowKind === "spark" ? <SparkVoiceConfig session={session} patch={patch} /> : null}
         </>
       ) : null}
 
+      {session.state.audio_path ? (
+        <div className="generated-preview-card">
+          <div>
+            <strong>已生成配音</strong>
+            <small>请试听确认音色、语速和情绪，没有问题再继续下一步。</small>
+          </div>
+          <ArtifactMediaPreview
+            sessionId={session.session_id}
+            artifactKey="audio"
+            kind="audio"
+            enabled={Boolean(session.state.audio_path)}
+          />
+        </div>
+      ) : null}
+
       <div className="panel-actions">
+        <InlineStepStatus busy={busy} />
         <button className="primary" onClick={() => execute("voice")} disabled={busy}>
-          生成配音
+          {busy ? "正在生成..." : "生成配音"}
         </button>
       </div>
     </div>
@@ -1525,7 +1756,7 @@ function ComfyEdgeConfig({
     <div className="voice-config-panel">
       <div className="voice-param-grid three">
         <div>
-          <label>工作流音色</label>
+          <label>云端音色</label>
           <select
             value={(session.state.tts_workflow_voice as string) || "[Chinese] zh-CN Yunjian"}
             onChange={(event) => patch({ tts_workflow_voice: event.target.value })}
@@ -1687,24 +1918,27 @@ function NumberField({
 }
 
 function ttsWorkflowKind(workflow: string) {
-  const workflowName = workflow.toLowerCase();
-  if (workflowName.includes("spark")) return "spark";
-  if (workflowName.includes("index")) return "index";
-  if (workflowName.includes("edge")) return "edge";
-  return "generic";
+  return getTtsWorkflow(workflow).kind;
+}
+
+function getTtsWorkflow(workflow: string) {
+  return (
+    ttsWorkflowOptions.find((item) => item.value === workflow) ||
+    ttsWorkflowOptions[0]
+  );
 }
 
 function ttsWorkflowNotice(workflowKind: string) {
   if (workflowKind === "edge") {
-    return "Edge TTS 工作流支持工作流音色、语速和音调，不读取参考音频。";
+    return "使用云端默认配音，可调整音色、语速和音调，不读取参考音频。";
   }
   if (workflowKind === "spark") {
-    return "Spark TTS 工作流支持性别、语速、音调和采样参数，不读取参考音频。";
+    return "适合需要情绪或更强表现力的配音，可调整性别、语速和采样参数。";
   }
   if (workflowKind === "index") {
-    return "Index 声音克隆工作流支持参考音频和采样参数，适合固定老板音色。";
+    return "适合固定使用老板本人音色，需要先选择一段参考音频。";
   }
-  return "未知工作流类型，仅传入工作流路径。";
+  return "当前声音生成方式会使用默认参数。";
 }
 
 function getDigitalHumanWorkflow(value: string) {
@@ -1833,7 +2067,7 @@ function PortraitStep({
         ))}
         {!compatiblePortraits.length ? (
           <div className="empty-state">
-            当前工作流只支持
+            当前出镜方式只支持
             {workflowConfig.supportedMediaTypes.includes("video") ? "视频形象" : "图片形象"}。
           </div>
         ) : null}
@@ -1853,8 +2087,8 @@ function PortraitStep({
         title="添加数字人形象"
         description={
           workflowConfig.supportedMediaTypes.includes("video")
-            ? "当前工作流仅支持视频形象。"
-            : "当前工作流仅支持图片形象。"
+            ? "当前出镜方式仅支持视频形象。"
+            : "当前出镜方式仅支持图片形象。"
         }
         assetNameLabel="形象名称"
         fileLabel={workflowConfig.supportedMediaTypes.includes("video") ? "视频形象" : "图片形象"}
@@ -1870,7 +2104,7 @@ function PortraitStep({
       <AssetPreviewModal preview={preview} onClose={() => setPreview(null)} />
       <div className="grid2">
         <div>
-          <label>数字人工作流</label>
+          <label>出镜生成方式</label>
           <select
             value={workflowConfig.value}
             onChange={(event) => {
@@ -1900,14 +2134,27 @@ function PortraitStep({
             {workflowConfig.supportedMediaTypes.includes("video") ? "视频形象" : "图片形象"}。
           </p>
         </div>
-        <div>
-          <label>宽高</label>
-          <div className="inline-inputs">
+      </div>
+      <label>出镜动作描述</label>
+      <textarea
+        className="small-textarea"
+        defaultValue={(session.state.digital_human_prompt as string) || ""}
+        placeholder="例如：正视镜头，自然说话，头部稳定，口型清晰。"
+        onBlur={(event) => patch({ digital_human_prompt: event.target.value })}
+      />
+      <details className="advanced">
+        <summary>高级出镜参数</summary>
+        <div className="voice-param-grid">
+          <div>
+            <label>视频宽度</label>
             <input
               type="number"
               defaultValue={(session.state.digital_human_width as number) || 720}
               onBlur={(event) => patch({ digital_human_width: Number(event.target.value) })}
             />
+          </div>
+          <div>
+            <label>视频高度</label>
             <input
               type="number"
               defaultValue={(session.state.digital_human_height as number) || 1280}
@@ -1915,16 +2162,25 @@ function PortraitStep({
             />
           </div>
         </div>
-      </div>
-      <label>口播动作提示词</label>
-      <textarea
-        className="small-textarea"
-        defaultValue={(session.state.digital_human_prompt as string) || ""}
-        onBlur={(event) => patch({ digital_human_prompt: event.target.value })}
-      />
+      </details>
+      {session.state.digital_human_video_path ? (
+        <div className="generated-preview-card">
+          <div>
+            <strong>已生成出镜视频</strong>
+            <small>请预览口型、形象和画面是否正常，没有问题再进入一键成片。</small>
+          </div>
+          <ArtifactMediaPreview
+            sessionId={session.session_id}
+            artifactKey="digital_human_video"
+            kind="video"
+            enabled={Boolean(session.state.digital_human_video_path)}
+          />
+        </div>
+      ) : null}
       <div className="panel-actions">
+        <InlineStepStatus busy={busy} />
         <button className="primary" onClick={() => execute("digital_human")} disabled={busy}>
-          生成出镜视频
+          {busy ? "正在生成..." : "生成出镜视频"}
         </button>
       </div>
     </div>
@@ -1935,6 +2191,7 @@ function PostproductionStep({
   session,
   templates,
   videos,
+  bgm,
   patch,
   execute,
   busy,
@@ -1944,6 +2201,7 @@ function PostproductionStep({
   session: IpBroadcastState;
   templates: IpTemplateAsset[];
   videos: VideoAsset[];
+  bgm: BgmAsset[];
   patch: (values: Record<string, unknown>) => Promise<void>;
   execute: (stepKey: string) => Promise<void>;
   busy: boolean;
@@ -1952,6 +2210,18 @@ function PostproductionStep({
 }) {
   const groups = readGroups(session.state.visual_groups);
   const segments = splitSegments((session.state.final_script as string) || "");
+  const videoPlan = readVideoPlan(session.state.video_plan);
+  const planGroups = buildGroupsFromVideoPlan(videoPlan, videos);
+  const planApplied = Boolean(session.state.video_plan_applied);
+  const visualStrategy = String(session.state.business_visual_strategy || "");
+  async function applyRecommendedPlan() {
+    await patch({
+      story_segments: segments,
+      visual_groups: planGroups,
+      overlay_enabled: planGroups.length > 0,
+      video_plan_applied: true,
+    });
+  }
   return (
     <div>
       <label>画面模板</label>
@@ -1972,20 +2242,58 @@ function PostproductionStep({
         ))}
       </div>
 
-      <div className="summary-box">
-        <div>
-          <strong>画面规划</strong>
-          <p>
-            {groups.length
-              ? `已配置 ${groups.length} 个覆盖组，覆盖 ${groups.reduce(
-                  (sum, group) => sum + group.segment_ids.length,
-                  0,
-                )} 段文案。`
-              : `当前 ${segments.length} 段文案，未配置覆盖组，默认全程数字人。`}
-          </p>
-          <small>可选择视频素材、AI 视频 prompt，保存后由第 5 步读取规划。</small>
-        </div>
-        <button onClick={openStoryboard}>打开画面规划</button>
+      <div className="video-plan-card">
+        <header className="video-plan-header">
+          <div>
+            <strong>画面规划</strong>
+            <p>
+              {videoPlan?.status === "ready"
+                ? `系统建议：${humanVideoPlanSummary(videoPlan)}`
+                : visualStrategy || "确认文案后，系统会根据本条视频目标生成推荐画面规划。"}
+            </p>
+          </div>
+          <Tag color={planApplied ? "success" : videoPlan?.status === "ready" ? "processing" : "default"}>
+            {planApplied ? "已使用推荐方案" : videoPlan?.status === "ready" ? "可一键使用" : "等待文案"}
+          </Tag>
+        </header>
+
+        {videoPlan?.segments?.length ? (
+          <div className="video-plan-list">
+            {videoPlan.segments.map((segment) => (
+              <div key={segment.segment_id} className="video-plan-item">
+                <span>{segment.index}</span>
+                <div>
+                  <strong>{humanVideoPlanStep(segment)}</strong>
+                  <em>{videoPlanMaterialHint(segment, videos)}</em>
+                </div>
+                <i className={`visual-type-pill ${segment.visual_type}`}>
+                  {visualTypeLabel(segment.visual_type)}
+                </i>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        <footer className="video-plan-footer">
+          <div>
+            <strong>
+              {groups.length
+                ? `已配置 ${groups.length} 个覆盖组`
+                : `当前 ${segments.length} 段文案，默认全程数字人`}
+            </strong>
+            <small>
+              {groups.length
+                ? `覆盖 ${groups.reduce((sum, group) => sum + group.segment_ids.length, 0)} 段文案。`
+                : visualStrategy || "可打开画面规划，按段选择视频素材覆盖数字人画面。"}
+            </small>
+          </div>
+          <Space wrap>
+            <Button disabled={!videoPlan || !planGroups.length || planApplied} onClick={applyRecommendedPlan}>
+              按方案生成
+            </Button>
+            <Button onClick={openStoryboard}>{videoPlan ? "手动调整" : "打开画面规划"}</Button>
+          </Space>
+        </footer>
       </div>
 
       <details className="advanced" open={false}>
@@ -2008,12 +2316,19 @@ function PostproductionStep({
             去静音
           </label>
           <div>
-            <label>BGM 路径</label>
-            <input
-              defaultValue={(session.state.bgm_path as string) || ""}
-              onBlur={(event) => patch({ bgm_path: event.target.value })}
-              placeholder="可选"
-            />
+            <label>BGM</label>
+            <select
+              value={(session.state.bgm_path as string) || ""}
+              onChange={(event) => patch({ bgm_path: event.target.value })}
+            >
+              <option value="">不使用 BGM</option>
+              {bgm.map((item) => (
+                <option key={`${item.source}-${item.path}`} value={item.path}>
+                  {item.name}
+                  {item.source === "custom" ? " · 自定义" : ""}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label>BGM 音量</label>
@@ -2034,9 +2349,25 @@ function PostproductionStep({
         </Button>
       </div>
 
+      {session.state.final_video_path ? (
+        <div className="generated-preview-card">
+          <div>
+            <strong>已生成最终视频</strong>
+            <small>成片完成后会自动进入第 6 步，也可以在这里快速预览。</small>
+          </div>
+          <ArtifactMediaPreview
+            sessionId={session.session_id}
+            artifactKey="final_video"
+            kind="video"
+            enabled={Boolean(session.state.final_video_path)}
+          />
+        </div>
+      ) : null}
+
       <div className="panel-actions">
+        <InlineStepStatus busy={busy} />
         <button className="primary" onClick={() => execute("postproduction")} disabled={busy}>
-          一键成片
+          {busy ? "正在成片..." : "一键成片"}
         </button>
       </div>
     </div>
@@ -2055,28 +2386,60 @@ function PublishStep({
     (publishPackage.platform_suggestions as Record<string, Record<string, unknown>>) ||
     ((session.state.platform_suggestions as Record<string, Record<string, unknown>>) ?? {});
   const title = (publishPackage.title as string) || (session.state.title as string) || "";
+  const coverTitle = (publishPackage.cover_title as string) || title;
   const description =
     (publishPackage.description as string) || (session.state.description as string) || "";
+  const commentCta = (publishPackage.comment_cta as string) || "";
   const hashtags = ((publishPackage.hashtags as string[]) || (session.state.hashtags as string[]) || []).join(
     " ",
   );
   const script = (publishPackage.script as string) || (session.state.final_script as string) || "";
+  const publishReady = Boolean(session.artifacts.final_video || session.state.final_video_path);
+  const preferredPlatforms = readStringArray(
+    publishPackage.preferred_platforms || session.state.business_publish_platforms,
+  );
+  const platformEntries = Object.entries(platformSuggestions);
+  const preferredPlatformEntries = preferredPlatforms.length
+    ? platformEntries.filter(([platform]) => preferredPlatforms.includes(platform))
+    : platformEntries;
+  const otherPlatformEntries = preferredPlatforms.length
+    ? platformEntries.filter(([platform]) => !preferredPlatforms.includes(platform))
+    : [];
+  const renderPlatformCard = ([platform, value]: [string, Record<string, unknown>]) => {
+    const platformText = `${String(value.title || "")}\n${String(value.description || "")}`;
+    return (
+      <section key={platform} className="platform-card">
+        <Tag color="processing">{platformLabel(platform)}</Tag>
+        <strong>{String(value.title || "") || "暂无标题建议"}</strong>
+        <p>{String(value.description || "") || "暂无描述建议"}</p>
+        <CopyButton text={platformText} label="复制该平台素材" disabled={!publishReady} />
+      </section>
+    );
+  };
   return (
     <div className="publish-workbench">
-      <Card className="publish-hero" variant="borderless">
+      <Card className={`publish-hero ${publishReady ? "" : "pending"}`} variant="borderless">
         <div>
-          <Typography.Title level={4}>发布素材包已准备好</Typography.Title>
+          <Typography.Title level={4}>
+            {publishReady ? "发布素材包已准备好" : "还不能发布"}
+          </Typography.Title>
           <Typography.Text type="secondary">
-            建议先下载最终视频，再按平台复制标题、描述和标签。
+            {publishReady
+              ? "建议先下载最终视频，再按平台复制标题、描述和标签。"
+              : "请先完成第 5 步一键成片，系统会生成最终视频和发布素材。"}
           </Typography.Text>
         </div>
         <Space wrap>
-          {session.artifacts.final_video ? (
+          {publishReady ? (
             <Button type="primary" onClick={downloadFinalVideo}>
               下载最终视频
             </Button>
           ) : null}
-          <CopyButton text={[title, description, hashtags].filter(Boolean).join("\n")} label="复制全部" />
+          <CopyButton
+            text={[coverTitle, title, description, commentCta, hashtags].filter(Boolean).join("\n")}
+            label="复制全部"
+            disabled={!publishReady}
+          />
           {session.artifacts.publish_package_json ? (
             <Button onClick={() => downloadArtifact(session.session_id, "publish_package_json")}>
               下载 JSON
@@ -2087,14 +2450,17 @@ function PublishStep({
 
       <div className="publish-layout">
         <div className="publish-main">
-          <Card title="通用发布信息" variant="borderless">
-            <PublishField label="标题" value={title} minRows={2} />
-            <PublishField label="描述" value={description} minRows={4} />
-            <PublishField label="标签" value={hashtags} minRows={1} singleLine />
+          <Card title="发布素材包" variant="borderless">
+            <PublishField label="封面大字" value={coverTitle} minRows={1} singleLine disabled={!publishReady} />
+            <PublishField label="标题" value={title} minRows={2} disabled={!publishReady} />
+            <PublishField label="描述" value={description} minRows={4} disabled={!publishReady} />
+            <PublishField label="评论区引导" value={commentCta} minRows={1} singleLine disabled={!publishReady} />
+            <PublishField label="标签" value={hashtags} minRows={1} singleLine disabled={!publishReady} />
             <PublishField
               label="口播文案"
               value={script}
               minRows={6}
+              disabled={!publishReady}
               extra={
                 session.artifacts.script ? (
                   <Button onClick={() => downloadArtifact(session.session_id, "script")}>
@@ -2107,35 +2473,32 @@ function PublishStep({
 
           <Card title="平台建议" variant="borderless">
             <div className="platform-grid">
-              {Object.entries(platformSuggestions).map(([platform, value]) => {
-                const platformText = `${String(value.title || "")}\n${String(value.description || "")}`;
-                return (
-                  <section key={platform} className="platform-card">
-                    <Tag color="processing">{platformLabel(platform)}</Tag>
-                    <strong>{String(value.title || "") || "暂无标题建议"}</strong>
-                    <p>{String(value.description || "") || "暂无描述建议"}</p>
-                    <CopyButton text={platformText} label="复制该平台素材" />
-                  </section>
-                );
-              })}
+              {preferredPlatformEntries.map(renderPlatformCard)}
               {!Object.keys(platformSuggestions).length ? (
                 <div className="empty-state">暂无平台建议。请先完成一键成片生成发布素材。</div>
               ) : null}
             </div>
+            {otherPlatformEntries.length ? (
+              <details className="platform-more">
+                <summary>更多平台建议</summary>
+                <div className="platform-grid">{otherPlatformEntries.map(renderPlatformCard)}</div>
+              </details>
+            ) : null}
           </Card>
         </div>
 
         <aside className="publish-aside">
           <Card title="视频与文件" variant="borderless">
-            <div className="video-preview-shell">
-              <Video size={36} />
-              <span>视频预览</span>
-            </div>
+            <ArtifactVideoPreview
+              sessionId={session.session_id}
+              artifactKey="final_video"
+              enabled={publishReady}
+            />
             <Divider />
             <Typography.Text type="secondary">最终视频路径</Typography.Text>
             <p className="result-path">{(session.state.final_video_path as string) || "暂无最终视频"}</p>
             <Space direction="vertical" className="publish-file-actions">
-              {session.artifacts.final_video ? (
+              {publishReady ? (
                 <Button type="primary" block onClick={downloadFinalVideo}>
                   下载最终视频
                 </Button>
@@ -2159,12 +2522,14 @@ function PublishField({
   minRows,
   singleLine = false,
   extra,
+  disabled = false,
 }: {
   label: string;
   value: string;
   minRows: number;
   singleLine?: boolean;
   extra?: ReactNode;
+  disabled?: boolean;
 }) {
   return (
     <section className="publish-field">
@@ -2172,7 +2537,7 @@ function PublishField({
         <strong>{label}</strong>
         <Space>
           {extra}
-          <CopyButton text={value} />
+          <CopyButton text={value} disabled={disabled} />
         </Space>
       </div>
       {singleLine ? <input readOnly value={value} /> : <textarea readOnly value={value} rows={minRows} />}
@@ -2180,9 +2545,17 @@ function PublishField({
   );
 }
 
-function CopyButton({ text, label = "复制" }: { text: string; label?: string }) {
+function CopyButton({
+  text,
+  label = "复制",
+  disabled = false,
+}: {
+  text: string;
+  label?: string;
+  disabled?: boolean;
+}) {
   return (
-    <Button onClick={() => navigator.clipboard.writeText(text)} disabled={!text}>
+    <Button onClick={() => navigator.clipboard.writeText(text)} disabled={disabled || !text}>
       {label}
     </Button>
   );
@@ -2196,6 +2569,56 @@ function platformLabel(platform: string) {
       shipinhao: "视频号",
       kuaishou: "快手",
     }[platform] || platform
+  );
+}
+
+function humanGoalLabel(preset: IpPresetAsset) {
+  return (
+    {
+      group_buying: "推一个团购套餐",
+      store_visit: "拍一条门店种草",
+      new_product: "介绍一个新品",
+      boss_persona: "老板出镜讲经验",
+      customer_case: "讲一个客户案例",
+    }[preset.preset_id] || preset.display_name
+  );
+}
+
+function humanVideoPlanSummary(plan: VideoPlan) {
+  const uploadedCount = plan.segments.filter((segment) => segment.visual_type === "uploaded_video").length;
+  if (!uploadedCount) return "老板全程出镜，先保证视频能快速发布";
+  return "老板开头讲清楚重点，中间插入门店/产品画面，结尾回到老板提醒行动";
+}
+
+function humanVideoPlanStep(segment: VideoPlanSegment) {
+  if (segment.visual_type === "uploaded_video") {
+    if (segment.asset_keywords.some((keyword) => ["菜品", "套餐", "产品", "新品"].includes(keyword))) {
+      return "中间插入套餐/菜品画面";
+    }
+    if (segment.asset_keywords.some((keyword) => ["门店", "环境", "门头"].includes(keyword))) {
+      return "中间插入门店环境画面";
+    }
+    return "中间插入门店实拍画面";
+  }
+  if (segment.index === 1) return "开头老板出镜讲重点";
+  return "老板出镜继续讲";
+}
+
+function videoPlanMaterialHint(segment: VideoPlanSegment, videos: VideoAsset[]) {
+  if (segment.visual_type !== "uploaded_video") return "默认数字人";
+  const matched = findMatchingVideoAsset(segment.asset_keywords, videos);
+  if (matched) return `已找到：${matched.name}`;
+  const label = segment.asset_keywords.slice(0, 2).join("/") || "门店";
+  return `建议补一段${label}视频，素材名称写清楚即可`;
+}
+
+function visualTypeLabel(visualType: VisualGroup["visual_type"] | VideoPlanSegment["visual_type"]) {
+  return (
+    {
+      digital_human: "数字人",
+      uploaded_video: "素材覆盖",
+      ai_video: "AI 视频",
+    }[visualType] || "数字人"
   );
 }
 
@@ -2226,13 +2649,11 @@ function noticeKind(kind: string): "success" | "info" | "warning" | "error" {
 }
 
 function BottomActionBar({
-  session,
   activeStep,
   busy,
   setActiveStep,
   execute,
 }: {
-  session: IpBroadcastState;
   activeStep: number;
   busy: boolean;
   setActiveStep: (step: number) => void;
@@ -2256,15 +2677,9 @@ function BottomActionBar({
       </button>
       {currentKey ? (
         <button className="primary" disabled={busy} onClick={() => execute(currentKey)}>
-          执行当前步骤
+          只执行本步骤
         </button>
       ) : null}
-      <button
-        disabled={busy || session.next_action.disabled}
-        onClick={() => execute(session.next_action.key)}
-      >
-        一键继续：{session.next_action.label}
-      </button>
     </section>
   );
 }
@@ -2287,6 +2702,7 @@ function StoryboardModal({
   const segments = splitSegments((session.state.final_script as string) || "");
   const [selected, setSelected] = useState<string[]>([]);
   const [groups, setGroups] = useState<VisualGroup[]>(readGroups(session.state.visual_groups));
+  const coveredSegmentCount = groups.reduce((sum, group) => sum + group.segment_ids.length, 0);
   const selectedIndexes = selected
     .map((segmentId) => segments.find((segment) => segment.segment_id === segmentId)?.index ?? 0)
     .sort((a, b) => a - b);
@@ -2319,6 +2735,10 @@ function StoryboardModal({
     setSelected([]);
   }
 
+  function groupForSegment(segmentId: string) {
+    return groups.find((group) => group.segment_ids.includes(segmentId));
+  }
+
   async function save() {
     await patch({
       story_segments: segments,
@@ -2334,37 +2754,72 @@ function StoryboardModal({
         <div className="modal-title">
           <div>
             <h2>画面规划</h2>
-            <p>勾选连续段落成组，为每组选择覆盖视频或 AI 视频提示词。</p>
+            <p>按视频播放顺序管理画面覆盖。左侧勾选连续段落，右侧设置覆盖方式。</p>
           </div>
           <button onClick={onClose}>关闭</button>
         </div>
+        <div className="storyboard-summary-bar">
+          <span>共 {segments.length} 段文案</span>
+          <span>{groups.length ? `${groups.length} 个覆盖组` : "未创建覆盖组"}</span>
+          <span>{coveredSegmentCount ? `已覆盖 ${coveredSegmentCount} 段` : "默认全程数字人"}</span>
+        </div>
         <div className="storyboard-layout">
-          <div className="storyboard-segments">
-            <h3>文案段落</h3>
+          <div className="storyboard-timeline-panel">
+            <div className="storyboard-panel-title">
+              <strong>视频顺序</strong>
+              <small>黄色表示会用视频素材或 AI 视频覆盖数字人画面。</small>
+            </div>
             {segments.length ? (
-              segments.map((segment) => (
-                <label key={segment.segment_id} className="segment-row">
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(segment.segment_id)}
-                    onChange={() => toggleSegment(segment.segment_id)}
-                  />
-                  <span>{segment.index}</span>
-                  <em>{segment.text}</em>
-                </label>
-              ))
+              <div className="storyboard-timeline">
+                {segments.map((segment) => {
+                  const group = groupForSegment(segment.segment_id);
+                  const selectedSegment = selected.includes(segment.segment_id);
+                  const visualType = group?.visual_type || "digital_human";
+                  return (
+                    <label
+                      key={segment.segment_id}
+                      className={`storyboard-timeline-item ${selectedSegment ? "selected" : ""}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedSegment}
+                        onChange={() => toggleSegment(segment.segment_id)}
+                      />
+                      <span className="timeline-index">{segment.index}</span>
+                      <div>
+                        <header>
+                          <strong>第 {segment.index} 段</strong>
+                          <i className={`visual-type-pill ${visualType}`}>{visualTypeLabel(visualType)}</i>
+                        </header>
+                        <p>{segment.text}</p>
+                        <small>
+                          {group
+                            ? `属于覆盖组：段落 ${group.segment_ids.join(", ")}`
+                            : "未覆盖，使用数字人画面。"}
+                        </small>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
             ) : (
               <div className="empty-state">暂无可拆分文案。请先在第 2 步填写最终口播文案。</div>
             )}
-            <button disabled={!canCreate} onClick={createGroup}>
-              勾选段落成组
-            </button>
+            <div className="storyboard-create-row">
+              <button disabled={!canCreate} onClick={createGroup}>
+                勾选段落成组
+              </button>
+              <small>{selected.length ? `已选 ${selected.length} 段` : "先勾选需要覆盖的连续段落"}</small>
+            </div>
             {selected.length && !canCreate ? (
               <small className="task-error">v1 只支持连续段落成组。</small>
             ) : null}
           </div>
           <div className="storyboard-groups">
-            <h3>覆盖组</h3>
+            <div className="storyboard-panel-title">
+              <strong>覆盖组设置</strong>
+              <small>每组可以保持数字人、选择视频素材，或填写 AI 视频提示词。</small>
+            </div>
             {groups.length ? (
               groups.map((group) => (
                 <GroupEditor
@@ -2485,8 +2940,9 @@ function GroupEditor({
           <SimpleAssetModal
             open={addVideoOpen}
             title="添加视频素材"
-            description="上传后保存到视频素材库，并自动用于当前覆盖组。"
+            description="起个你自己看得懂的名字，系统会根据名称帮你推荐到合适的视频里。"
             assetNameLabel="视频素材名称"
+            namePlaceholder="例如：双人火锅套餐、门店环境、锅底翻滚、顾客用餐"
             fileLabel="覆盖视频"
             accept="video/*"
             upload={uploadVideoAsset}
@@ -2545,7 +3001,7 @@ function VideoAssetPickerModal({
         <div className="modal-title">
           <div>
             <h2>选择视频素材</h2>
-            <p>按名称或文件名搜索，选择后用于当前覆盖组。</p>
+            <p>按名称或文件名搜索。建议素材命名清楚，例如“锅底翻滚”“门店环境”。</p>
           </div>
           <button onClick={onClose}>关闭</button>
         </div>
@@ -2632,6 +3088,7 @@ function SimpleAssetModal<TAsset>({
   title,
   description,
   assetNameLabel,
+  namePlaceholder = "可选，默认使用文件名",
   fileLabel,
   accept,
   upload,
@@ -2642,6 +3099,7 @@ function SimpleAssetModal<TAsset>({
   title: string;
   description: string;
   assetNameLabel: string;
+  namePlaceholder?: string;
   fileLabel: string;
   accept: string;
   upload: (name: string, file: File) => Promise<TAsset>;
@@ -2684,7 +3142,7 @@ function SimpleAssetModal<TAsset>({
           <div>
             <label>{assetNameLabel}</label>
             <input
-              placeholder="可选，默认使用文件名"
+              placeholder={namePlaceholder}
               value={name}
               onChange={(event) => setName(event.target.value)}
             />
@@ -2846,7 +3304,7 @@ function assetModalHintText(title: string) {
     return "建议上传正面、光线稳定、脸部清晰的图片或闭口视频。";
   }
   if (title.includes("视频")) {
-    return "上传后会保存到视频素材库，并自动填入当前覆盖组。";
+    return "建议用老板自己看得懂的名字，例如“双人火锅套餐”“门店环境”。系统只按名称做轻量推荐，不做复杂分类。";
   }
   return "保存后会进入素材库，并自动选中当前素材。";
 }
@@ -3498,14 +3956,109 @@ function ProtectedMedia({ src, kind }: { src: string; kind: "audio" | "video" })
   return <video controls src={resolved} />;
 }
 
+function ArtifactMediaPreview({
+  sessionId,
+  artifactKey,
+  kind,
+  enabled,
+}: {
+  sessionId: string;
+  artifactKey: string;
+  kind: "audio" | "video";
+  enabled: boolean;
+}) {
+  const [resolved, setResolved] = useState("");
+  const [error, setError] = useState("");
+  useEffect(() => {
+    if (!enabled) {
+      setResolved("");
+      setError("");
+      return;
+    }
+    let current = "";
+    artifactBlobUrl(sessionId, artifactKey)
+      .then((url) => {
+        current = url;
+        setResolved(url);
+        setError("");
+      })
+      .catch((err) => {
+        setError(formatUiError(err));
+      });
+    return () => {
+      if (current) URL.revokeObjectURL(current);
+    };
+  }, [artifactKey, enabled, sessionId]);
+
+  if (!enabled) return null;
+  if (error) return <span className="generated-preview-error">预览加载失败，可重新生成后再试。</span>;
+  if (!resolved) return <span className="generated-preview-loading">正在加载预览...</span>;
+  return kind === "audio" ? <audio controls src={resolved} /> : <video controls src={resolved} />;
+}
+
+function ArtifactVideoPreview({
+  sessionId,
+  artifactKey,
+  enabled,
+}: {
+  sessionId: string;
+  artifactKey: string;
+  enabled: boolean;
+}) {
+  const [resolved, setResolved] = useState("");
+  const [error, setError] = useState("");
+  useEffect(() => {
+    if (!enabled) {
+      setResolved("");
+      setError("");
+      return;
+    }
+    let current = "";
+    artifactBlobUrl(sessionId, artifactKey)
+      .then((url) => {
+        current = url;
+        setResolved(url);
+        setError("");
+      })
+      .catch((err) => {
+        setError(formatUiError(err));
+      });
+    return () => {
+      if (current) URL.revokeObjectURL(current);
+    };
+  }, [artifactKey, enabled, sessionId]);
+
+  if (!enabled) {
+    return (
+      <div className="video-preview-shell placeholder">
+        <Video size={36} />
+        <span>等待成片</span>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="video-preview-shell placeholder">
+        <AlertCircle size={28} />
+        <span>视频预览加载失败，可直接下载检查</span>
+      </div>
+    );
+  }
+  return (
+    <div className="artifact-video-preview">
+      {resolved ? <video controls src={resolved} /> : <span>正在加载视频预览...</span>}
+    </div>
+  );
+}
+
 function stepHint(step: number) {
   return [
-    "先准备素材文本，快速生成可编辑文案。",
+    "任选一种素材来源开始，生成可编辑文案。",
     "确认最终口播稿，回车分段会用于画面规划。",
-    "从音色库选择参考音色，或使用默认 Edge TTS 制作配音。",
-    "按工作流选择兼容形象，再生成数字人出镜视频。",
-    "选择画面模板，打开画面规划，最后一键合成。",
-    "下载视频，复制标题、描述和标签。",
+    "选择系统默认配音，或用老板参考音频做声音克隆。",
+    "按出镜生成方式选择兼容形象，再生成出镜视频。",
+    "选择画面模板，需要插入门店/菜品视频时再打开画面规划。",
+    "完成一键成片后，下载视频并复制发布素材。",
   ][step - 1];
 }
 
@@ -3526,4 +4079,62 @@ function readGroups(value: unknown): VisualGroup[] {
   return value.filter((item): item is VisualGroup => {
     return Boolean(item && typeof item === "object" && "group_id" in item);
   });
+}
+
+function readVideoPlan(value: unknown): VideoPlan | null {
+  if (!value || typeof value !== "object") return null;
+  const plan = value as Partial<VideoPlan>;
+  if (!Array.isArray(plan.segments) || !plan.segments.length) return null;
+  return {
+    goal: String(plan.goal || ""),
+    status: String(plan.status || "empty"),
+    summary: String(plan.summary || ""),
+    visual_strategy: String(plan.visual_strategy || ""),
+    segments: plan.segments.map((segment, index) => {
+      const item = segment as Partial<VideoPlanSegment>;
+      return {
+        segment_id: String(item.segment_id || index + 1),
+        index: Number(item.index || index + 1),
+        text: String(item.text || ""),
+        visual_type: (item.visual_type || "digital_human") as VideoPlanSegment["visual_type"],
+        label: String(item.label || "老板出镜"),
+        asset_keywords: readStringArray(item.asset_keywords),
+        prompt: String(item.prompt || ""),
+        reason: String(item.reason || ""),
+      };
+    }),
+  };
+}
+
+function buildGroupsFromVideoPlan(plan: VideoPlan | null, videos: VideoAsset[]): VisualGroup[] {
+  if (!plan) return [];
+  return plan.segments
+    .filter((segment) => segment.visual_type === "uploaded_video")
+    .map((segment) => {
+      const matched = findMatchingVideoAsset(segment.asset_keywords, videos);
+      return {
+        group_id: `plan_group_${segment.segment_id}`,
+        segment_ids: [segment.segment_id],
+        visual_type: "uploaded_video",
+        prompt: segment.prompt,
+        uploaded_video_path: matched?.asset_path || "",
+        video_asset_id: matched?.asset_id || "",
+        status: "recommended",
+      };
+    });
+}
+
+function findMatchingVideoAsset(keywords: string[], videos: VideoAsset[]) {
+  if (!keywords.length) return null;
+  return (
+    videos.find((video) => {
+      const text = `${video.name} ${video.filename}`.toLowerCase();
+      return keywords.some((keyword) => text.includes(keyword.toLowerCase()));
+    }) || null
+  );
+}
+
+function readStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((item) => String(item)).filter(Boolean);
 }

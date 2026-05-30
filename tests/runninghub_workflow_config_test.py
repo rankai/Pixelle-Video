@@ -1,14 +1,142 @@
 import json
 from pathlib import Path
 
+from pixelle_video.services.tts_service import TTSService
+
 
 def test_tts_index_custom_uses_runninghub_workflow_wrapper():
     workflow = json.loads(Path("workflows/runninghub/tts_index_custom.json").read_text())
 
-    assert workflow == {
-        "source": "runninghub",
-        "workflow_id": "1961317560035819522",
+    assert workflow["source"] == "runninghub"
+    assert workflow["workflow_id"] == "1961317560035819522"
+    mappings = workflow["runninghub_node_mappings"]
+    assert mappings["text"] == {
+        "node_id": "7",
+        "field_name": "text",
+        "description": "text",
     }
+    assert mappings["ref_audio"] == {
+        "node_id": "4",
+        "field_name": "audio",
+        "description": "ref_audio",
+        "upload": True,
+    }
+    assert mappings["temperature"] == {
+        "node_id": "6",
+        "field_name": "temperature",
+        "description": "temperature",
+    }
+    assert "mode" not in mappings
+    assert "do_sample_mode" not in mappings
+    assert "max_tokens_per_sentence" not in mappings
+
+
+def test_tts_edge_declares_supported_runninghub_node_mapping():
+    workflow = json.loads(Path("workflows/runninghub/tts_edge.json").read_text())
+
+    assert workflow["source"] == "runninghub"
+    assert workflow["workflow_id"] == "1983513964837543938"
+    mappings = workflow["runninghub_node_mappings"]
+    assert mappings["text"] == {
+        "node_id": "3",
+        "field_name": "value",
+        "description": "text",
+    }
+    assert mappings["voice"] == {
+        "node_id": "1",
+        "field_name": "voice",
+        "description": "voice",
+    }
+    assert mappings["speed"] == {
+        "node_id": "8",
+        "field_name": "value",
+        "description": "speed",
+    }
+    assert mappings["pitch"] == {
+        "node_id": "1",
+        "field_name": "pitch",
+        "description": "pitch",
+    }
+
+
+def test_tts_spark_declares_supported_runninghub_node_mapping():
+    workflow = json.loads(Path("workflows/runninghub/tts_spark.json").read_text())
+
+    assert workflow["source"] == "runninghub"
+    assert workflow["workflow_id"] == "1983921902282539009"
+    mappings = workflow["runninghub_node_mappings"]
+    for param_name in [
+        "text",
+        "gender",
+        "pitch",
+        "speed",
+        "temperature",
+        "top_k",
+        "top_p",
+        "max_new_tokens",
+        "do_sample",
+        "seed",
+    ]:
+        assert mappings[param_name] == {
+            "node_id": "6" if param_name != "text" else "7",
+            "field_name": "value" if param_name == "text" else param_name,
+            "description": param_name,
+        }
+
+
+async def test_tts_runninghub_mapping_builds_node_info_and_uploads_reference_audio():
+    class FakeClient:
+        async def upload_file(self, path):
+            assert path == "/tmp/ref.wav"
+            return "uploaded-ref.wav"
+
+    service = TTSService({"comfyui": {"tts": {}}})
+
+    node_info = await service._build_runninghub_node_info_list(
+        client=FakeClient(),
+        workflow_params={
+            "text": "完整口播文案",
+            "ref_audio": "/tmp/ref.wav",
+            "mode": "Auto",
+            "temperature": 0.7,
+            "ignored": "value",
+        },
+        node_mappings={
+            "text": {"node_id": "7", "field_name": "text", "description": "text"},
+            "ref_audio": {
+                "node_id": "4",
+                "field_name": "audio",
+                "description": "ref_audio",
+                "upload": True,
+            },
+            "temperature": {
+                "node_id": "6",
+                "field_name": "temperature",
+                "description": "temperature",
+            },
+        },
+    )
+
+    assert node_info == [
+        {
+            "nodeId": "7",
+            "fieldName": "text",
+            "fieldValue": "完整口播文案",
+            "description": "text",
+        },
+        {
+            "nodeId": "4",
+            "fieldName": "audio",
+            "fieldValue": "uploaded-ref.wav",
+            "description": "ref_audio",
+        },
+        {
+            "nodeId": "6",
+            "fieldName": "temperature",
+            "fieldValue": 0.7,
+            "description": "temperature",
+        },
+    ]
 
 
 def test_ip_broadcast_ai_app_workflow_declares_webapp_and_node_mapping():
