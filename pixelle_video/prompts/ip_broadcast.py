@@ -37,20 +37,21 @@ def build_ip_brain_generation_prompt(
     style_line = f"\n- 写作风格：{style_prompt.strip()}" if style_prompt.strip() else ""
     structure_line = _format_script_structure(script_structure)
     word_count = target_word_count or 200
+    legacy_type_lines = ""
+    if not business_goal.strip():
+        legacy_type_lines = f"\n- 视频类型：{video_type}\n- 文案风格：{copy_type}"
 
     return f"""你是一位专业的短视频口播文案策划，擅长为不同领域的博主打造有辨识度的IP文案。
 
 请根据以下配置，直接生成一篇完整的口播文案，目标字数约{word_count}字，语言自然流畅，适合真人出镜朗读。
 
-【配置信息】
-- 视频类型：{video_type}
-- 文案风格：{copy_type}{goal_line}{persona_line}{selling_line}{intent_line}{style_line}{reqs_line}{structure_line}
+【配置信息】{legacy_type_lines}{goal_line}{persona_line}{selling_line}{intent_line}{style_line}{reqs_line}{structure_line}
 
 【文案要求】
 - 开头要有强钩子，吸引用户停留
 - 中间围绕卖点或人设价值展开，逻辑清晰
 - 结尾有明确的行动号召（点赞/关注/私信/购买等）
-- 语气要符合所选文案风格
+- 语气要符合本条视频目标和写作风格
 - 如配置了推荐结构，按该结构展开，但不要添加小标题、编号或分段标题
 - 按自然语义分成3-5个短段落，每段单独换行，方便后续画面规划
 - 直接输出文案正文，不要有前缀说明或标题"""

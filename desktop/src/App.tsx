@@ -540,15 +540,9 @@ export function App() {
                     openAssetTab={openAssetTab}
                     reloadAssets={reloadAssets}
                     downloadFinalVideo={downloadFinalVideo}
+                    goToStep={setActiveStep}
                   />
                 </section>
-
-                <BottomActionBar
-                  activeStep={activeStep}
-                  busy={busy || configSaving}
-                  setActiveStep={setActiveStep}
-                  execute={execute}
-                />
 
                 {storyboardOpen ? (
                   <StoryboardModal
@@ -1052,6 +1046,7 @@ function StepPanel({
   openAssetTab,
   reloadAssets,
   downloadFinalVideo,
+  goToStep,
 }: {
   step: number;
   session: IpBroadcastState;
@@ -1063,6 +1058,7 @@ function StepPanel({
   openAssetTab: (tab: AssetTab) => void;
   reloadAssets: () => Promise<void>;
   downloadFinalVideo: () => Promise<void>;
+  goToStep: (step: number) => void;
 }) {
   const notice = session.notices[String(step)];
   return (
@@ -1083,9 +1079,20 @@ function StepPanel({
           patch={patch}
           execute={execute}
           busy={busy}
+          goToStep={goToStep}
+          step={step}
         />
       ) : null}
-      {step === 2 ? <CopywritingStep session={session} patch={patch} execute={execute} busy={busy} /> : null}
+      {step === 2 ? (
+        <CopywritingStep
+          session={session}
+          patch={patch}
+          execute={execute}
+          busy={busy}
+          goToStep={goToStep}
+          step={step}
+        />
+      ) : null}
       {step === 3 ? (
         <VoiceStep
           session={session}
@@ -1095,6 +1102,8 @@ function StepPanel({
           busy={busy}
           reloadAssets={reloadAssets}
           openAssetTab={openAssetTab}
+          goToStep={goToStep}
+          step={step}
         />
       ) : null}
       {step === 4 ? (
@@ -1106,6 +1115,8 @@ function StepPanel({
           busy={busy}
           reloadAssets={reloadAssets}
           openAssetTab={openAssetTab}
+          goToStep={goToStep}
+          step={step}
         />
       ) : null}
       {step === 5 ? (
@@ -1119,6 +1130,8 @@ function StepPanel({
           busy={busy}
           openStoryboard={openStoryboard}
           openAssetTab={openAssetTab}
+          goToStep={goToStep}
+          step={step}
         />
       ) : null}
       {step === 6 ? (
@@ -1148,6 +1161,8 @@ function SourceStep({
   patch,
   execute,
   busy,
+  goToStep,
+  step,
 }: {
   session: IpBroadcastState;
   presets: IpPresetAsset[];
@@ -1155,6 +1170,8 @@ function SourceStep({
   patch: (values: Record<string, unknown>) => Promise<void>;
   execute: (stepKey: string) => Promise<void>;
   busy: boolean;
+  goToStep: (step: number) => void;
+  step: number;
 }) {
   const selectedPreset = presets.find((item) => item.preset_id === session.state.business_preset_id);
   const selectedBrand = brands.find((item) => item.brand_id === session.state.brand_kit_id);
@@ -1304,54 +1321,28 @@ function SourceStep({
             children: (
               <div className="source-panel">
                 <Typography.Paragraph type="secondary">
-                  没有现成素材时，用行业、人设和卖点直接生成第一版口播文案。
+                  没有现成素材时，补充门店、人设和卖点，系统会按上方“本条视频目标”生成第一版口播文案。
                 </Typography.Paragraph>
-                <div className="grid2">
-                  <div>
-                    <label>视频类型</label>
-                    <select
-                      value={(session.state.video_type as string) || "口播文案"}
-                      onChange={(event) =>
-                        patch({ source_mode: "industry_persona", video_type: event.target.value })
-                      }
-                    >
-                      {["口播文案", "种草带货", "干货教程", "故事分享", "情绪表达", "品牌推广"].map(
-                        (item) => (
-                          <option key={item} value={item}>
-                            {item}
-                          </option>
-                        ),
-                      )}
-                    </select>
-                  </div>
-                  <div>
-                    <label>文案类型</label>
-                    <select
-                      value={(session.state.copy_type as string) || "人设型"}
-                      onChange={(event) =>
-                        patch({ source_mode: "industry_persona", copy_type: event.target.value })
-                      }
-                    >
-                      {["人设型", "干货型", "情绪共鸣型", "痛点解决型", "促销转化型"].map((item) => (
-                        <option key={item} value={item}>
-                          {item}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="source-goal-hint">
+                  <strong>当前目标：{selectedPreset ? humanGoalLabel(selectedPreset) : "自由创作"}</strong>
+                  <span>
+                    {selectedPreset
+                      ? `将优先按“${selectedPreset.script_structure.join(" → ")}”组织文案。`
+                      : "未选择业务目标时，系统会按通用口播结构生成。"}
+                  </span>
                 </div>
-                <label>行业与人设</label>
+                <label>行业/门店类型与人设身份</label>
                 <textarea
                   className="small-textarea"
                   defaultValue={(session.state.industry_persona as string) || ""}
                   onBlur={(event) =>
                     patch({ source_mode: "industry_persona", industry_persona: event.target.value })
                   }
-                  placeholder="例如：火锅店老板，十年重庆火锅经验，熟悉牛油锅底和本地客群"
+                  placeholder="例如：重庆火锅店老板，开店十年，熟悉牛油锅底和本地客群"
                 />
                 <div className="grid2">
                   <div>
-                    <label>核心卖点</label>
+                    <label>产品/服务/活动与核心卖点</label>
                     <textarea
                       className="small-textarea"
                       defaultValue={(session.state.selling_points as string) || ""}
@@ -1362,7 +1353,7 @@ function SourceStep({
                     />
                   </div>
                   <div>
-                    <label>目标客户</label>
+                    <label>适合什么客户</label>
                     <textarea
                       className="small-textarea"
                       defaultValue={(session.state.target_customer as string) || ""}
@@ -1373,7 +1364,7 @@ function SourceStep({
                     />
                   </div>
                 </div>
-                <label>活动/转化口令</label>
+                <label>优惠/预约/到店提示</label>
                 <input
                   defaultValue={(session.state.conversion_phrase as string) || ""}
                   onBlur={(event) =>
@@ -1381,7 +1372,7 @@ function SourceStep({
                   }
                   placeholder="例如：到店报口令打九折"
                 />
-                <label>想特别强调的内容（可选）</label>
+                <label>补充信息（可选）</label>
                 <textarea
                   className="small-textarea"
                   defaultValue={(session.state.business_intent_note as string) || ""}
@@ -1390,7 +1381,9 @@ function SourceStep({
                   }
                   placeholder="例如：99元双人火锅套餐，下班两个人来吃很划算。"
                 />
-                <small className="muted">不填也能生成，补一句会让文案更具体。</small>
+                <small className="muted">
+                  不需要再选择视频类型或文案类型，业务目标已经决定文案结构。补充越具体，文案越贴近门店。
+                </small>
               </div>
             ),
           },
@@ -1506,10 +1499,24 @@ function SourceStep({
         </div>
       </details>
       <div className="panel-actions">
-        <InlineStepStatus busy={busy} />
-        <Button type="primary" onClick={() => execute("source")} disabled={busy}>
-          {busy ? "执行中..." : sourceActions[sourceMode] || "生成口播文案"}
-        </Button>
+        <StepNavButtons step={step} goToStep={goToStep} />
+        <div className="panel-primary-actions">
+          <InlineStepStatus busy={busy} />
+          {session.state.final_script ? (
+            <>
+            <Button type="primary" onClick={() => goToStep(2)} disabled={busy}>
+              使用当前文案继续
+            </Button>
+            <Button onClick={() => execute("source")} disabled={busy}>
+              重新生成
+            </Button>
+            </>
+          ) : (
+            <Button type="primary" onClick={() => execute("source")} disabled={busy}>
+              {busy ? "执行中..." : sourceActions[sourceMode] || "生成口播文案"}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1520,11 +1527,15 @@ function CopywritingStep({
   patch,
   execute,
   busy,
+  goToStep,
+  step,
 }: {
   session: IpBroadcastState;
   patch: (values: Record<string, unknown>) => Promise<void>;
   execute: (stepKey: string) => Promise<void>;
   busy: boolean;
+  goToStep: (step: number) => void;
+  step: number;
 }) {
   return (
     <div>
@@ -1553,10 +1564,24 @@ function CopywritingStep({
         </div>
       </div>
       <div className="panel-actions">
-        <InlineStepStatus busy={busy} />
-        <button className="primary" onClick={() => execute("copywriting")} disabled={busy}>
-          {busy ? "正在改写..." : "AI 改写/优化文案"}
-        </button>
+        <StepNavButtons step={step} goToStep={goToStep} />
+        <div className="panel-primary-actions">
+          <InlineStepStatus busy={busy} />
+          {session.state.copywriting_confirmed ? (
+            <>
+            <button className="primary" onClick={() => goToStep(3)} disabled={busy}>
+              确认文案并继续
+            </button>
+            <button className="secondary-action" onClick={() => execute("copywriting")} disabled={busy}>
+              重新改写
+            </button>
+            </>
+          ) : (
+            <button className="primary" onClick={() => execute("copywriting")} disabled={busy}>
+              {busy ? "正在改写..." : "AI 改写/优化文案"}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1570,6 +1595,8 @@ function VoiceStep({
   busy,
   reloadAssets,
   openAssetTab,
+  goToStep,
+  step,
 }: {
   session: IpBroadcastState;
   voices: VoiceAsset[];
@@ -1578,6 +1605,8 @@ function VoiceStep({
   busy: boolean;
   reloadAssets: () => Promise<void>;
   openAssetTab: (tab: AssetTab) => void;
+  goToStep: (step: number) => void;
+  step: number;
 }) {
   const inferenceMode = (session.state.tts_inference_mode as string) || "local";
   const selectedWorkflow =
@@ -1717,10 +1746,24 @@ function VoiceStep({
       ) : null}
 
       <div className="panel-actions">
-        <InlineStepStatus busy={busy} />
-        <button className="primary" onClick={() => execute("voice")} disabled={busy}>
-          {busy ? "正在生成..." : "生成配音"}
-        </button>
+        <StepNavButtons step={step} goToStep={goToStep} />
+        <div className="panel-primary-actions">
+          <InlineStepStatus busy={busy} />
+          {session.state.audio_path ? (
+            <>
+            <button className="primary" onClick={() => goToStep(4)} disabled={busy}>
+              使用当前配音继续
+            </button>
+            <button className="secondary-action" onClick={() => execute("voice")} disabled={busy}>
+              重新生成
+            </button>
+            </>
+          ) : (
+            <button className="primary" onClick={() => execute("voice")} disabled={busy}>
+              {busy ? "正在生成..." : "生成配音"}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1968,6 +2011,8 @@ function PortraitStep({
   busy,
   reloadAssets,
   openAssetTab,
+  goToStep,
+  step,
 }: {
   session: IpBroadcastState;
   portraits: PortraitAsset[];
@@ -1976,6 +2021,8 @@ function PortraitStep({
   busy: boolean;
   reloadAssets: () => Promise<void>;
   openAssetTab: (tab: AssetTab) => void;
+  goToStep: (step: number) => void;
+  step: number;
 }) {
   const [addPortraitOpen, setAddPortraitOpen] = useState(false);
   const [preview, setPreview] = useState<AssetPreview | null>(null);
@@ -2190,10 +2237,24 @@ function PortraitStep({
         </div>
       ) : null}
       <div className="panel-actions">
-        <InlineStepStatus busy={busy} />
-        <button className="primary" onClick={() => execute("digital_human")} disabled={busy}>
-          {busy ? "正在生成..." : "生成出镜视频"}
-        </button>
+        <StepNavButtons step={step} goToStep={goToStep} />
+        <div className="panel-primary-actions">
+          <InlineStepStatus busy={busy} />
+          {session.state.digital_human_video_path ? (
+            <>
+            <button className="primary" onClick={() => goToStep(5)} disabled={busy}>
+              使用当前出镜视频继续
+            </button>
+            <button className="secondary-action" onClick={() => execute("digital_human")} disabled={busy}>
+              重新生成
+            </button>
+            </>
+          ) : (
+            <button className="primary" onClick={() => execute("digital_human")} disabled={busy}>
+              {busy ? "正在生成..." : "生成出镜视频"}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -2209,6 +2270,8 @@ function PostproductionStep({
   busy,
   openStoryboard,
   openAssetTab,
+  goToStep,
+  step,
 }: {
   session: IpBroadcastState;
   templates: IpTemplateAsset[];
@@ -2219,6 +2282,8 @@ function PostproductionStep({
   busy: boolean;
   openStoryboard: () => void;
   openAssetTab: (tab: AssetTab) => void;
+  goToStep: (step: number) => void;
+  step: number;
 }) {
   const groups = readGroups(session.state.visual_groups);
   const segments = splitSegments((session.state.final_script as string) || "");
@@ -2377,10 +2442,24 @@ function PostproductionStep({
       ) : null}
 
       <div className="panel-actions">
-        <InlineStepStatus busy={busy} />
-        <button className="primary" onClick={() => execute("postproduction")} disabled={busy}>
-          {busy ? "正在成片..." : "一键成片"}
-        </button>
+        <StepNavButtons step={step} goToStep={goToStep} />
+        <div className="panel-primary-actions">
+          <InlineStepStatus busy={busy} />
+          {session.state.final_video_path ? (
+            <>
+            <button className="primary" onClick={() => goToStep(6)} disabled={busy}>
+              查看发布素材
+            </button>
+            <button className="secondary-action" onClick={() => execute("postproduction")} disabled={busy}>
+              重新成片
+            </button>
+            </>
+          ) : (
+            <button className="primary" onClick={() => execute("postproduction")} disabled={busy}>
+              {busy ? "正在成片..." : "一键成片"}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -2673,39 +2752,16 @@ function noticeKind(kind: string): "success" | "info" | "warning" | "error" {
   return "info";
 }
 
-function BottomActionBar({
-  activeStep,
-  busy,
-  setActiveStep,
-  execute,
-}: {
-  activeStep: number;
-  busy: boolean;
-  setActiveStep: (step: number) => void;
-  execute: (stepKey: string) => Promise<void>;
-}) {
-  const currentKey = Object.entries({
-    source: 1,
-    copywriting: 2,
-    voice: 3,
-    digital_human: 4,
-    postproduction: 5,
-    publish: 6,
-  }).find(([, step]) => step === activeStep)?.[0];
+function StepNavButtons({ step, goToStep }: { step: number; goToStep: (step: number) => void }) {
   return (
-    <section className="actionbar">
-      <button disabled={activeStep <= 1} onClick={() => setActiveStep(activeStep - 1)}>
+    <div className="step-nav-actions">
+      <button disabled={step <= 1} onClick={() => goToStep(step - 1)}>
         上一步
       </button>
-      <button disabled={activeStep >= 6} onClick={() => setActiveStep(activeStep + 1)}>
+      <button disabled={step >= 6} onClick={() => goToStep(step + 1)}>
         下一步
       </button>
-      {currentKey ? (
-        <button className="primary" disabled={busy} onClick={() => execute(currentKey)}>
-          只执行本步骤
-        </button>
-      ) : null}
-    </section>
+    </div>
   );
 }
 

@@ -143,11 +143,19 @@ export async function getRuntime(): Promise<RuntimeInfo> {
     runtime = await invoke<RuntimeInfo>("desktop_runtime");
   } catch {
     runtime = {
-      apiBaseUrl: "http://127.0.0.1:8000",
+      apiBaseUrl: browserApiBaseUrl(),
       desktopToken: "",
     };
   }
   return runtime;
+}
+
+function browserApiBaseUrl() {
+  const configured = import.meta.env.VITE_API_BASE_URL as string | undefined;
+  if (configured !== undefined) return configured.replace(/\/$/, "");
+  return window.location.port === "5173" || window.location.port === "1420"
+    ? "http://127.0.0.1:8000"
+    : "";
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -178,7 +186,8 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
 function formatNetworkError(err: unknown, apiBaseUrl: string) {
   const message = err instanceof Error ? err.message : String(err);
   if (message.includes("Failed to fetch") || message.includes("NetworkError")) {
-    return `后端服务未连接，请确认 API 服务已启动：${apiBaseUrl}`;
+    const target = apiBaseUrl || `${window.location.origin}/api`;
+    return `后端服务未连接，请确认 API 服务已启动：${target}`;
   }
   return message;
 }

@@ -1,0 +1,17 @@
+[Unit]
+Description=Pixelle-Video ACR Webhook Receiver
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/pixelle-video
+EnvironmentFile=-/opt/pixelle-video/.env
+ExecStart=/usr/bin/env uv run python scripts/acr-webhook-server.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

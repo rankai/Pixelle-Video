@@ -178,6 +178,40 @@ async def test_industry_persona_prompt_uses_business_goal_structure():
     assert "约150字" in fake.prompt
     assert "强转化、节奏快、信息清楚" in fake.prompt
     assert "99元双人火锅套餐，下班两个人来吃很划算" in fake.prompt
+
+
+async def test_industry_persona_prompt_does_not_duplicate_legacy_type_when_goal_is_set():
+    class FakePixelleVideo:
+        def __init__(self):
+            self.prompt = ""
+
+        async def llm(self, prompt, response_type=None):
+            self.prompt = prompt
+            assert response_type is None
+            return "门店探店生成文案"
+
+    store = IpBroadcastSessionStore()
+    session = store.create_session()
+    store.update_config(
+        session.session_id,
+        {
+            "source_mode": "industry_persona",
+            "industry_persona": "火锅店老板",
+            "selling_points": "牛油锅底、鲜切牛肉",
+            "video_type": "种草带货",
+            "copy_type": "促销转化型",
+            "business_goal_name": "门店探店",
+            "business_script_structure": ["场景引入", "核心卖点", "体验细节", "到店引导"],
+        },
+    )
+    fake = FakePixelleVideo()
+
+    result = await run_ip_broadcast_step(fake, session, "source")
+
+    assert result is True
+    assert "本条视频目标：门店探店" in fake.prompt
+    assert "视频类型：种草带货" not in fake.prompt
+    assert "文案风格：促销转化型" not in fake.prompt
     assert "不要添加小标题" in fake.prompt
 
 

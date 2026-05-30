@@ -85,6 +85,13 @@ button:not(.ant-btn).primary {
   color: #ffffff;
 }
 
+button:not(.ant-btn).secondary-action,
+.ant-btn.secondary-action {
+  border-color: #d8e0ec;
+  background: #f8fafc;
+  color: #536173;
+}
+
 .app-shell {
   min-height: 100vh;
   background: var(--app-bg);
@@ -901,7 +908,8 @@ textarea {
 
 .task-actions,
 .panel-actions,
-.actionbar,
+.panel-primary-actions,
+.step-nav-actions,
 .tabs {
   display: flex;
   gap: 8px;
@@ -909,7 +917,8 @@ textarea {
 
 .task-actions button,
 .panel-actions button,
-.actionbar button,
+.panel-primary-actions button,
+.step-nav-actions button,
 .tabs button {
   display: inline-flex;
   align-items: center;
@@ -1143,6 +1152,26 @@ textarea {
   padding-top: 4px;
 }
 
+.source-goal-hint {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--app-surface-soft);
+  color: var(--app-text);
+}
+
+.source-goal-hint strong {
+  font-size: 13px;
+}
+
+.source-goal-hint span {
+  color: var(--app-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .source-title {
   margin-top: 16px;
 }
@@ -1215,8 +1244,24 @@ textarea {
 
 .panel-actions {
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin-top: 14px;
+}
+
+.panel-primary-actions {
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.step-nav-actions {
+  align-items: center;
+}
+
+.step-nav-actions button {
+  border-color: transparent;
+  background: #f5f7fb;
+  color: #667085;
 }
 
 .inline-run-status {
@@ -1327,19 +1372,6 @@ textarea {
 .section-title small {
   color: var(--app-muted);
   font-weight: 500;
-}
-
-.actionbar {
-  position: sticky;
-  bottom: 0;
-  z-index: 5;
-  justify-content: flex-end;
-  border: 1px solid #dde3ee;
-  border-radius: 10px;
-  padding: 12px;
-  background: rgb(255 255 255 / 94%);
-  box-shadow: 0 -8px 24px rgb(16 24 40 / 6%);
-  backdrop-filter: blur(8px);
 }
 
 .tabs button.active {

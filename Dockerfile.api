@@ -1,0 +1,62 @@
+# Pixelle-Video FastAPI production image.
+
+FROM python:3.11-slim
+
+ARG USE_CN_MIRROR=false
+ARG IMAGE_TAG=latest
+ARG GIT_COMMIT=unknown
+ARG BUILD_TIME=unknown
+
+LABEL org.opencontainers.image.title="pixelle-video-api" \
+      org.opencontainers.image.version="${IMAGE_TAG}" \
+      org.opencontainers.image.revision="${GIT_COMMIT}" \
+      org.opencontainers.image.created="${BUILD_TIME}"
+
+WORKDIR /app
+
+RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
+      sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources && \
+      sed -i 's|security.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources; \
+    fi
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      curl \
+      ffmpeg \
+      fonts-noto-cjk \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
+      pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple/ uv; \
+    else \
+      curl -LsSf https://astral.sh/uv/install.sh | sh; \
+    fi
+
+ENV PATH="/root/.local/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+COPY pyproject.toml uv.lock README.md ./
+COPY pixelle_video ./pixelle_video
+
+RUN export UV_HTTP_TIMEOUT=300 && \
+    uv venv && \
+    if [ "$USE_CN_MIRROR" = "true" ]; then \
+      uv pip install -e . -i https://pypi.tuna.tsinghua.edu.cn/simple; \
+    else \
+      uv pip install -e .; \
+    fi && \
+    uv run playwright install --with-deps chromium
+
+COPY api ./api
+COPY bgm ./bgm
+COPY templates ./templates
+COPY workflows ./workflows
+COPY resources ./resources
+COPY docs/images ./docs/images
+COPY docs/FAQ*.md ./docs/
+
+RUN mkdir -p /app/data /app/output /app/temp
+
+EXPOSE 8000
+
+CMD [".venv/bin/python", "api/app.py", "--host", "0.0.0.0", "--port", "8000"]
