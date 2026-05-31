@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from api.routers.ip_broadcast import _session_store, router
 from pixelle_video.models.ip_broadcast import HotTopicsResult
+from pixelle_video.prompts.ip_broadcast import build_rewrite_prompt
 from pixelle_video.services.ip_broadcast_workflow import (
     IpBroadcastSessionStore,
     run_ip_broadcast_step,
@@ -48,6 +49,24 @@ def test_update_session_config_moves_ready_state_to_copywriting_step():
     assert payload["next_action"]["key"] == "copywriting"
     assert payload["step_status"]["1"] == "done"
     assert payload["step_status"]["2"] == "ready"
+
+
+def test_rewrite_prompt_requires_local_business_owner_voice_and_segments():
+    prompt = build_rewrite_prompt(
+        source_text="原文",
+        style_prompt="自然口播",
+        word_count=220,
+        business_goal="团购转化",
+        script_structure=["优惠钩子", "套餐内容", "适合人群", "下单引导"],
+        intent_note="99元双人火锅套餐",
+    )
+
+    assert "本地生活" in prompt
+    assert "老板" in prompt
+    assert "3-6" in prompt
+    assert "不要添加小标题" in prompt
+    assert "不要夸大" in prompt
+    assert "行动指引" in prompt
 
 
 async def test_run_source_step_uses_pasted_text_without_streamlit():
