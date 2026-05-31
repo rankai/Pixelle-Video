@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from api.routers import publish as publish_router_module
+from api.tasks import task_manager
 from pixelle_video.services.publish.browser_runtime import (
     DEFAULT_BROWSER_RUNTIME,
     SUPPORTED_BROWSER_RUNTIMES,
@@ -161,3 +162,51 @@ def test_prepare_douyin_publish_endpoint_returns_publish_result(monkeypatch):
 
     assert response.status_code == 200
     assert response.json()["status"] == "draft_ready"
+    task = task_manager.get_task(response.json()["task_id"])
+    assert task is not None
+    assert task.display_name == "抖音发布助手"
+    assert task.flow_name == "短视频发布"
+    assert task.status == "completed"
+
+
+def test_prepare_douyin_publish_rejects_untrusted_local_paths(monkeypatch):
+    class FakePublisher:
+        async def prepare_draft(self, package: PublishPackage):
+            raise AssertionError("publisher must not run for unsafe paths")
+
+    monkeypatch.setattr(publish_router_module, "get_douyin_publisher", lambda: FakePublisher())
+
+    response = _publish_client().post(
+        "/api/publish/douyin/prepare",
+        json={
+            "session_id": "s1",
+            "platform": "douyin",
+            "video_path": "/etc/passwd",
+            "title": "火锅套餐",
+        },
+    )
+
+    assert response.status_code == 403
+    assert "不允许发布该文件路径" in response.json()["detail"]
+
+
+def test_prepare_douyin_publish_maps_technical_errors_to_user_message(monkeypatch):
+    class FakePublisher:
+        async def prepare_draft(self, package: PublishPackage):
+            raise RuntimeError("Timeout 30000ms exceeded while waiting for locator input[type='file']")
+
+    monkeypatch.setattr(publish_router_module, "get_douyin_publisher", lambda: FakePublisher())
+
+    response = _publish_client().post(
+        "/api/publish/douyin/prepare",
+        json={
+            "session_id": "s1",
+            "platform": "douyin",
+            "video_path": "/tmp/final.mp4",
+            "title": "火锅套餐",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "failed"
+    assert response.json()["message"] == "发布页面响应超时，请确认网络正常并重新打开发布助手。"

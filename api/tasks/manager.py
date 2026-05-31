@@ -229,6 +229,35 @@ class TaskManager:
             message=message
         )
         self._persist_task(task)
+
+    def complete_task(self, task_id: str, result: Optional[dict] = None) -> Optional[Task]:
+        """Mark a task completed synchronously."""
+        task = self._tasks.get(task_id)
+        if not task:
+            return None
+        if not task.started_at:
+            task.started_at = datetime.now()
+        task.status = TaskStatus.COMPLETED
+        task.result = result
+        task.completed_at = datetime.now()
+        task.duration_ms = _duration_ms(task.started_at, task.completed_at)
+        self._persist_task(task)
+        return task
+
+    def fail_task(self, task_id: str, error: str, result: Optional[dict] = None) -> Optional[Task]:
+        """Mark a task failed synchronously."""
+        task = self._tasks.get(task_id)
+        if not task:
+            return None
+        if not task.started_at:
+            task.started_at = datetime.now()
+        task.status = TaskStatus.FAILED
+        task.error = error
+        task.result = result
+        task.completed_at = datetime.now()
+        task.duration_ms = _duration_ms(task.started_at, task.completed_at)
+        self._persist_task(task)
+        return task
     
     def cancel_task(self, task_id: str) -> bool:
         """

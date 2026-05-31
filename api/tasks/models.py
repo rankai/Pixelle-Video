@@ -36,6 +36,7 @@ class TaskType(str, Enum):
 
     VIDEO_GENERATION = "video_generation"
     IP_BROADCAST_STEP = "ip_broadcast_step"
+    PUBLISH_ASSISTANT = "publish_assistant"
 
 
 class TaskProgress(BaseModel):

@@ -2277,6 +2277,10 @@ button.asset-card {
   max-width: 920px;
 }
 
+.config-security-note {
+  margin-bottom: 16px;
+}
+
 .theme-card-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

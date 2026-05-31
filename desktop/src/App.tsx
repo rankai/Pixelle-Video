@@ -2607,6 +2607,15 @@ function PublishStep({
           message={publishResult.message || publishStatusLabel(publishResult.status)}
         />
       ) : null}
+      {publishReady ? (
+        <Alert
+          className="step-notice"
+          type="info"
+          showIcon
+          message="发布助手会打开独立浏览器窗口，使用本机登录态填写抖音草稿；最终发布仍需要你在抖音页面确认。"
+          description="登录数据只保存在本机 data/publish_browser/ 目录，不会随发布素材上传。"
+        />
+      ) : null}
 
       <div className="publish-layout">
         <div className="publish-main">
@@ -4056,6 +4065,13 @@ function ConfigView({
       </Card>
 
       <Card title="配置中心" variant="borderless">
+        <Alert
+          className="config-security-note"
+          type="info"
+          showIcon
+          message="发布助手登录态保存在本机"
+          description="抖音等平台的浏览器登录数据会保存在 data/publish_browser/，用于下次免登录。该目录已加入忽略规则，不应提交到代码仓库。"
+        />
         <label>LLM Base URL</label>
         <input
           value={config.llm.base_url}
