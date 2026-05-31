@@ -2134,6 +2134,34 @@ button.asset-card {
   top: 96px;
 }
 
+.publish-delivery-checklist {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.publish-delivery-checklist > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+.publish-delivery-checklist > div.ready {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.publish-delivery-checklist > div.missing {
+  color: var(--app-muted);
+  background: #f8fafc;
+}
+
 .publish-field {
   display: grid;
   gap: 8px;

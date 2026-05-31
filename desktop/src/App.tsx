@@ -2489,6 +2489,24 @@ function PublishStep({
   const script = (publishPackage.script as string) || (session.state.final_script as string) || "";
   const publishReady = Boolean(session.artifacts.final_video || session.state.final_video_path);
   const coverReady = Boolean(session.artifacts.cover || session.state.cover_path);
+  const fullPackageText = [
+    coverTitle ? `封面大字：${coverTitle}` : "",
+    title ? `标题：${title}` : "",
+    description ? `描述：${description}` : "",
+    commentCta ? `评论区引导：${commentCta}` : "",
+    hashtags ? `标签：${hashtags}` : "",
+    script ? `口播文案：\n${script}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+  const deliveryItems = [
+    { label: "视频", ready: publishReady },
+    { label: "封面", ready: coverReady },
+    { label: "标题", ready: Boolean(title) },
+    { label: "描述", ready: Boolean(description) },
+    { label: "标签", ready: Boolean(hashtags) },
+    { label: "口播文案", ready: Boolean(script) },
+  ];
   const preferredPlatforms = readStringArray(
     publishPackage.preferred_platforms || session.state.business_publish_platforms,
   );
@@ -2530,8 +2548,8 @@ function PublishStep({
             </Button>
           ) : null}
           <CopyButton
-            text={[coverTitle, title, description, commentCta, hashtags].filter(Boolean).join("\n")}
-            label="复制全部"
+            text={fullPackageText}
+            label="复制整套素材"
             disabled={!publishReady}
           />
           {session.artifacts.publish_package_json ? (
@@ -2545,15 +2563,38 @@ function PublishStep({
       <div className="publish-layout">
         <div className="publish-main">
           <Card title="发布素材包" variant="borderless">
-            <PublishField label="封面大字" value={coverTitle} minRows={1} singleLine disabled={!publishReady} />
-            <PublishField label="标题" value={title} minRows={2} disabled={!publishReady} />
-            <PublishField label="描述" value={description} minRows={4} disabled={!publishReady} />
-            <PublishField label="评论区引导" value={commentCta} minRows={1} singleLine disabled={!publishReady} />
-            <PublishField label="标签" value={hashtags} minRows={1} singleLine disabled={!publishReady} />
+            <PublishDeliveryChecklist items={deliveryItems} />
+            <PublishField
+              label="封面大字"
+              value={coverTitle}
+              minRows={1}
+              singleLine
+              copyLabel="复制封面大字"
+              disabled={!publishReady}
+            />
+            <PublishField label="标题" value={title} minRows={2} copyLabel="复制标题" disabled={!publishReady} />
+            <PublishField label="描述" value={description} minRows={4} copyLabel="复制描述" disabled={!publishReady} />
+            <PublishField
+              label="评论区引导"
+              value={commentCta}
+              minRows={1}
+              singleLine
+              copyLabel="复制引导语"
+              disabled={!publishReady}
+            />
+            <PublishField
+              label="标签"
+              value={hashtags}
+              minRows={1}
+              singleLine
+              copyLabel="复制标签"
+              disabled={!publishReady}
+            />
             <PublishField
               label="口播文案"
               value={script}
               minRows={6}
+              copyLabel="复制文案"
               disabled={!publishReady}
               extra={
                 session.artifacts.script ? (
@@ -2629,6 +2670,7 @@ function PublishField({
   singleLine = false,
   extra,
   disabled = false,
+  copyLabel = "复制",
 }: {
   label: string;
   value: string;
@@ -2636,6 +2678,7 @@ function PublishField({
   singleLine?: boolean;
   extra?: ReactNode;
   disabled?: boolean;
+  copyLabel?: string;
 }) {
   return (
     <section className="publish-field">
@@ -2643,10 +2686,23 @@ function PublishField({
         <strong>{label}</strong>
         <Space>
           {extra}
-          <CopyButton text={value} disabled={disabled} />
+          <CopyButton text={value} label={copyLabel} disabled={disabled} />
         </Space>
       </div>
       {singleLine ? <input readOnly value={value} /> : <textarea readOnly value={value} rows={minRows} />}
+    </section>
+  );
+}
+
+function PublishDeliveryChecklist({ items }: { items: Array<{ label: string; ready: boolean }> }) {
+  return (
+    <section className="publish-delivery-checklist" aria-label="发布素材交付清单">
+      {items.map((item) => (
+        <div key={item.label} className={item.ready ? "ready" : "missing"}>
+          <span>{item.label}</span>
+          <Tag color={item.ready ? "success" : "default"}>{item.ready ? "已准备" : "缺失"}</Tag>
+        </div>
+      ))}
     </section>
   );
 }
