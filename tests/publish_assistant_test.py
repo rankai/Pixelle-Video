@@ -1,3 +1,7 @@
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+from api.routers import publish as publish_router_module
 from pixelle_video.services.publish.browser_runtime import (
     DEFAULT_BROWSER_RUNTIME,
     SUPPORTED_BROWSER_RUNTIMES,
@@ -5,6 +9,12 @@ from pixelle_video.services.publish.browser_runtime import (
 )
 from pixelle_video.services.publish.models import PublishPackage, PublishStatus
 from pixelle_video.services.publish.platforms.douyin import DouyinPublisher
+
+
+def _publish_client() -> TestClient:
+    app = FastAPI()
+    app.include_router(publish_router_module.router, prefix="/api")
+    return TestClient(app)
 
 
 def test_publish_package_model_accepts_douyin_payload():
@@ -122,3 +132,32 @@ async def test_douyin_publisher_prepares_draft_with_fake_runtime():
         ("upload_cover", "/tmp/cover.png"),
         ("wait_until_draft_ready",),
     ]
+
+
+def test_prepare_douyin_publish_endpoint_returns_publish_result(monkeypatch):
+    class FakePublisher:
+        async def prepare_draft(self, package: PublishPackage):
+            assert package.platform == "douyin"
+            assert package.video_path == "/tmp/final.mp4"
+            return {
+                "status": "draft_ready",
+                "platform": "douyin",
+                "message": "草稿已准备好",
+            }
+
+    monkeypatch.setattr(publish_router_module, "get_douyin_publisher", lambda: FakePublisher())
+
+    response = _publish_client().post(
+        "/api/publish/douyin/prepare",
+        json={
+            "session_id": "s1",
+            "platform": "douyin",
+            "video_path": "/tmp/final.mp4",
+            "title": "火锅套餐",
+            "description": "下班两个人来吃",
+            "hashtags": ["火锅", "团购套餐"],
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "draft_ready"

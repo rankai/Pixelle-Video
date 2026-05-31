@@ -135,6 +135,14 @@ export type TaskInfo = {
   error?: string;
 };
 
+export type PublishResult = {
+  status: "login_required" | "uploading" | "draft_ready" | "failed" | "cancelled";
+  platform: string;
+  message: string;
+  task_id?: string;
+  draft_url?: string;
+};
+
 let runtime: RuntimeInfo | null = null;
 
 export async function getRuntime(): Promise<RuntimeInfo> {
@@ -233,6 +241,21 @@ export function cancelTask(taskId: string) {
 
 export function retryTask(taskId: string) {
   return apiFetch<TaskInfo>(`/api/tasks/${taskId}/retry`, { method: "POST" });
+}
+
+export function prepareDouyinPublish(values: {
+  session_id: string;
+  platform: "douyin";
+  video_path: string;
+  title: string;
+  description?: string;
+  hashtags?: string[];
+  cover_path?: string;
+}) {
+  return apiFetch<PublishResult>("/api/publish/douyin/prepare", {
+    method: "POST",
+    body: JSON.stringify(values),
+  });
 }
 
 export function getDesktopConfig() {

@@ -61,6 +61,7 @@ from api.routers import (
     image_router,
     ip_broadcast_router,
     llm_router,
+    publish_router,
     resources_router,
     tasks_router,
     tts_router,
@@ -146,6 +147,7 @@ app.include_router(llm_router, prefix=api_config.api_prefix)
 app.include_router(tts_router, prefix=api_config.api_prefix)
 app.include_router(image_router, prefix=api_config.api_prefix)
 app.include_router(ip_broadcast_router, prefix=api_config.api_prefix)
+app.include_router(publish_router, prefix=api_config.api_prefix)
 app.include_router(content_router, prefix=api_config.api_prefix)
 app.include_router(video_router, prefix=api_config.api_prefix)
 app.include_router(tasks_router, prefix=api_config.api_prefix)

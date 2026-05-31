@@ -52,6 +52,7 @@ import {
   listTasks,
   listVideoAssets,
   listVoiceAssets,
+  prepareDouyinPublish,
   PortraitAsset,
   BrandKit,
   DesktopConfig,
@@ -68,6 +69,7 @@ import {
   uploadVideoAsset,
   uploadVoiceAsset,
   BgmAsset,
+  PublishResult,
   VideoAsset,
   VoiceAsset,
 } from "./api";
@@ -2474,6 +2476,8 @@ function PublishStep({
   session: IpBroadcastState;
   downloadFinalVideo: () => Promise<void>;
 }) {
+  const [publishLoading, setPublishLoading] = useState(false);
+  const [publishResult, setPublishResult] = useState<PublishResult | null>(null);
   const publishPackage = (session.state.publish_package as Record<string, unknown>) || {};
   const platformSuggestions =
     (publishPackage.platform_suggestions as Record<string, Record<string, unknown>>) ||
@@ -2489,6 +2493,10 @@ function PublishStep({
   const script = (publishPackage.script as string) || (session.state.final_script as string) || "";
   const publishReady = Boolean(session.artifacts.final_video || session.state.final_video_path);
   const coverReady = Boolean(session.artifacts.cover || session.state.cover_path);
+  const videoPath = (session.state.final_video_path as string) || "";
+  const coverPath = (session.state.cover_path as string) || "";
+  const hashtagList =
+    ((publishPackage.hashtags as string[]) || (session.state.hashtags as string[]) || []).filter(Boolean);
   const fullPackageText = [
     coverTitle ? `封面大字：${coverTitle}` : "",
     title ? `标题：${title}` : "",
@@ -2528,6 +2536,31 @@ function PublishStep({
       </section>
     );
   };
+  async function prepareDouyinDraft() {
+    if (!videoPath) return;
+    setPublishLoading(true);
+    setPublishResult(null);
+    try {
+      const result = await prepareDouyinPublish({
+        session_id: session.session_id,
+        platform: "douyin",
+        video_path: videoPath,
+        title,
+        description,
+        hashtags: hashtagList,
+        cover_path: coverPath,
+      });
+      setPublishResult(result);
+    } catch (err) {
+      setPublishResult({
+        status: "failed",
+        platform: "douyin",
+        message: formatUiError(err),
+      });
+    } finally {
+      setPublishLoading(false);
+    }
+  }
   return (
     <div className="publish-workbench">
       <Card className={`publish-hero ${publishReady ? "" : "pending"}`} variant="borderless">
@@ -2547,6 +2580,13 @@ function PublishStep({
               下载最终视频
             </Button>
           ) : null}
+          <Button
+            disabled={!publishReady || !videoPath}
+            loading={publishLoading}
+            onClick={prepareDouyinDraft}
+          >
+            发布到抖音
+          </Button>
           <CopyButton
             text={fullPackageText}
             label="复制整套素材"
@@ -2559,6 +2599,14 @@ function PublishStep({
           ) : null}
         </Space>
       </Card>
+      {publishResult ? (
+        <Alert
+          className="step-notice"
+          type={publishResult.status === "failed" ? "error" : "info"}
+          showIcon
+          message={publishResult.message || publishStatusLabel(publishResult.status)}
+        />
+      ) : null}
 
       <div className="publish-layout">
         <div className="publish-main">
@@ -2731,6 +2779,18 @@ function platformLabel(platform: string) {
       shipinhao: "视频号",
       kuaishou: "快手",
     }[platform] || platform
+  );
+}
+
+function publishStatusLabel(status: PublishResult["status"]) {
+  return (
+    {
+      login_required: "请先在发布助手浏览器中登录平台账号。",
+      uploading: "正在上传视频。",
+      draft_ready: "发布草稿已准备好，请最终确认后发布。",
+      failed: "发布助手执行失败。",
+      cancelled: "发布助手已停止。",
+    }[status] || status
   );
 }
 
