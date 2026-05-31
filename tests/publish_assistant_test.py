@@ -4,6 +4,7 @@ from pixelle_video.services.publish.browser_runtime import (
     BrowserRuntime,
 )
 from pixelle_video.services.publish.models import PublishPackage, PublishStatus
+from pixelle_video.services.publish.platforms.douyin import DouyinPublisher
 
 
 def test_publish_package_model_accepts_douyin_payload():
@@ -35,3 +36,89 @@ def test_browser_runtime_keeps_cloakbrowser_optional():
     assert SUPPORTED_BROWSER_RUNTIMES == {"playwright", "cloakbrowser"}
     assert hasattr(BrowserRuntime, "launch_persistent_context")
     assert hasattr(BrowserRuntime, "close")
+
+
+async def test_douyin_publisher_returns_login_required_when_not_logged_in():
+    class FakeRuntime:
+        async def launch_persistent_context(self, platform: str):
+            assert platform == "douyin"
+            return self
+
+        async def open_creator_page(self):
+            return None
+
+        async def is_logged_in(self):
+            return False
+
+    package = PublishPackage(
+        session_id="s1",
+        platform="douyin",
+        video_path="/tmp/final.mp4",
+        title="火锅套餐",
+    )
+
+    result = await DouyinPublisher(FakeRuntime()).prepare_draft(package)
+
+    assert result.status is PublishStatus.LOGIN_REQUIRED
+    assert result.platform == "douyin"
+
+
+async def test_douyin_publisher_prepares_draft_with_fake_runtime():
+    class FakeRuntime:
+        def __init__(self):
+            self.steps = []
+
+        async def launch_persistent_context(self, platform: str):
+            self.steps.append(("launch", platform))
+            return self
+
+        async def open_creator_page(self):
+            self.steps.append(("open_creator_page",))
+
+        async def is_logged_in(self):
+            self.steps.append(("is_logged_in",))
+            return True
+
+        async def upload_video(self, video_path: str):
+            self.steps.append(("upload_video", video_path))
+
+        async def fill_title(self, title: str):
+            self.steps.append(("fill_title", title))
+
+        async def fill_description(self, description: str):
+            self.steps.append(("fill_description", description))
+
+        async def fill_hashtags(self, hashtags: list[str]):
+            self.steps.append(("fill_hashtags", hashtags))
+
+        async def upload_cover(self, cover_path: str):
+            self.steps.append(("upload_cover", cover_path))
+
+        async def wait_until_draft_ready(self):
+            self.steps.append(("wait_until_draft_ready",))
+
+    runtime = FakeRuntime()
+    package = PublishPackage(
+        session_id="s1",
+        platform="douyin",
+        video_path="/tmp/final.mp4",
+        title="火锅套餐",
+        description="下班两个人来吃",
+        hashtags=["火锅", "团购套餐"],
+        cover_path="/tmp/cover.png",
+    )
+
+    result = await DouyinPublisher(runtime).prepare_draft(package)
+
+    assert result.status is PublishStatus.DRAFT_READY
+    assert runtime.steps == [
+        ("launch", "douyin"),
+        ("open_creator_page",),
+        ("is_logged_in",),
+        ("upload_video", "/tmp/final.mp4"),
+        ("fill_title", "火锅套餐"),
+        ("fill_description", "下班两个人来吃"),
+        ("fill_hashtags", ["火锅", "团购套餐"]),
+        ("upload_cover", "/tmp/cover.png"),
+        ("wait_until_draft_ready",),
+    ]
