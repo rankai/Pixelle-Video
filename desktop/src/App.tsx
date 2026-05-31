@@ -258,7 +258,7 @@ const emptyAssets: AssetState = {
 
 const navItems: MenuProps["items"] = [
   { key: "home", icon: <BarChart3 size={16} />, label: "首页" },
-  { key: "ip", icon: <Video size={16} />, label: "口播生产" },
+  { key: "ip", icon: <Video size={16} />, label: "短视频生产" },
   { key: "assets", icon: <Package size={16} />, label: "素材资产" },
   { key: "tasks", icon: <CheckCircle2 size={16} />, label: "任务中心" },
   { key: "config", icon: <Settings size={16} />, label: "配置" },
@@ -513,15 +513,6 @@ export function App() {
                   onContinue={() => execute(session.next_action.key)}
                 />
 
-                <WorkflowRunStatus
-                  session={session}
-                  task={task}
-                  busy={busy || configSaving}
-                  error={workflowError}
-                  activeStep={activeStep}
-                  onStop={stopCurrentTask}
-                />
-
                 <StepBar
                   session={session}
                   activeStep={activeStep}
@@ -536,6 +527,9 @@ export function App() {
                     patch={patch}
                     execute={execute}
                     busy={busy || configSaving}
+                    task={task}
+                    error={workflowError}
+                    onStop={stopCurrentTask}
                     openStoryboard={() => setStoryboardOpen(true)}
                     openAssetTab={openAssetTab}
                     reloadAssets={reloadAssets}
@@ -938,74 +932,6 @@ function ProductionConsole({
   );
 }
 
-function WorkflowRunStatus({
-  session,
-  task,
-  busy,
-  error,
-  activeStep,
-  onStop,
-}: {
-  session: IpBroadcastState;
-  task: TaskInfo | null;
-  busy: boolean;
-  error: string;
-  activeStep: number;
-  onStop: () => void;
-}) {
-  const activeNotice = session.notices[String(activeStep)];
-  const noticeError = activeNotice?.kind === "error" ? activeNotice.message : "";
-  const taskError = task?.status === "failed" ? task.error || "任务执行失败" : "";
-  const errorMessage = taskError || error || noticeError;
-  const isRunning = busy || task?.status === "pending" || task?.status === "running";
-  const isCancelled = task?.status === "cancelled";
-
-  if (!isRunning && !errorMessage && !isCancelled) return null;
-
-  const stepLabel = taskStepLabel(task?.step_key || session.next_action.key);
-  const progress = Math.round(task?.progress?.percentage || (isRunning ? 8 : 0));
-
-  if (errorMessage) {
-    return (
-      <section className="workflow-status error">
-        <AlertCircle size={18} />
-        <div>
-          <strong>{stepLabel}执行失败</strong>
-          <span>{errorMessage}</span>
-        </div>
-      </section>
-    );
-  }
-
-  if (isCancelled) {
-    return (
-      <section className="workflow-status warning">
-        <MonitorStop size={18} />
-        <div>
-          <strong>任务已停止</strong>
-          <span>已停止当前生产任务，已有素材不会被清空。</span>
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="workflow-status running">
-      <Loader2 className="spin" size={20} />
-      <div>
-        <strong>正在执行：{stepLabel}</strong>
-        <span>{task?.progress?.message || "任务已提交，正在等待执行结果..."}</span>
-        <Progress percent={progress} showInfo={false} />
-      </div>
-      {task ? (
-        <Button onClick={onStop} icon={<MonitorStop size={16} />}>
-          停止
-        </Button>
-      ) : null}
-    </section>
-  );
-}
-
 function StepBar({
   session,
   activeStep,
@@ -1042,6 +968,9 @@ function StepPanel({
   patch,
   execute,
   busy,
+  task,
+  error,
+  onStop,
   openStoryboard,
   openAssetTab,
   reloadAssets,
@@ -1054,6 +983,9 @@ function StepPanel({
   patch: (values: Record<string, unknown>) => Promise<void>;
   execute: (stepKey: string) => Promise<void>;
   busy: boolean;
+  task: TaskInfo | null;
+  error: string;
+  onStop: () => void;
   openStoryboard: () => void;
   openAssetTab: (tab: AssetTab) => void;
   reloadAssets: () => Promise<void>;
@@ -1137,20 +1069,95 @@ function StepPanel({
       {step === 6 ? (
         <PublishStep session={session} downloadFinalVideo={downloadFinalVideo} />
       ) : null}
-      {notice && notice.kind !== "error" ? (
-        <Alert className="step-notice" type={noticeKind(notice.kind)} showIcon message={notice.message} />
-      ) : null}
+      <StepStatusNotice
+        step={step}
+        session={session}
+        notice={notice}
+        task={task}
+        busy={busy}
+        error={error}
+        onStop={onStop}
+      />
     </Card>
   );
 }
 
-function InlineStepStatus({ busy }: { busy: boolean }) {
-  if (!busy) return null;
+function StepStatusNotice({
+  step,
+  session,
+  notice,
+  task,
+  busy,
+  error,
+  onStop,
+}: {
+  step: number;
+  session: IpBroadcastState;
+  notice?: { kind: string; message: string };
+  task: TaskInfo | null;
+  busy: boolean;
+  error: string;
+  onStop: () => void;
+}) {
+  const taskStep = task ? stepNumberForTaskKey(task.step_key || "") : 0;
+  const taskBelongsToStep = taskStep === step;
+  const isTaskRunning = taskBelongsToStep && ["pending", "running"].includes(task?.status || "");
+  const isTaskFailed = taskBelongsToStep && task?.status === "failed";
+  const isTaskCancelled = taskBelongsToStep && task?.status === "cancelled";
+  const isLocalRunning = busy && step === stepNumberForTaskKey(session.next_action.key);
+
+  if (isTaskFailed || error) {
+    return (
+      <Alert
+        className="step-notice"
+        type="error"
+        showIcon
+        message={isTaskFailed ? task?.error || "任务执行失败" : error}
+      />
+    );
+  }
+
+  if (isTaskCancelled) {
+    return (
+      <Alert
+        className="step-notice"
+        type="warning"
+        showIcon
+        message="已停止当前生产任务，已有素材不会被清空。"
+      />
+    );
+  }
+
+  if (isTaskRunning || isLocalRunning) {
+    const progress = Math.round(task?.progress?.percentage || (isTaskRunning ? 8 : 0));
+    return (
+      <div className="step-notice step-notice-running">
+        <div className="step-notice-running-main">
+          <Loader2 className="spin" size={16} />
+          <div>
+            <strong>正在执行：{taskStepLabel(task?.step_key || session.next_action.key)}</strong>
+            <span>{task?.progress?.message || "任务已提交，正在等待执行结果..."}</span>
+          </div>
+        </div>
+        <Progress percent={progress} showInfo={false} />
+        {task ? (
+          <Button size="small" onClick={onStop} icon={<MonitorStop size={14} />}>
+            停止
+          </Button>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (!notice) return null;
+
   return (
-    <span className="inline-run-status">
-      <Loader2 className="spin" size={14} />
-      正在执行，请稍候...
-    </span>
+    <Alert
+      className="step-notice"
+      type={noticeKind(notice.kind)}
+      showIcon
+      message={notice.message}
+    />
   );
 }
 
@@ -1501,7 +1508,6 @@ function SourceStep({
       <div className="panel-actions">
         <StepNavButtons step={step} goToStep={goToStep} />
         <div className="panel-primary-actions">
-          <InlineStepStatus busy={busy} />
           {session.state.final_script ? (
             <>
             <Button type="primary" onClick={() => goToStep(2)} disabled={busy}>
@@ -1566,7 +1572,6 @@ function CopywritingStep({
       <div className="panel-actions">
         <StepNavButtons step={step} goToStep={goToStep} />
         <div className="panel-primary-actions">
-          <InlineStepStatus busy={busy} />
           {session.state.copywriting_confirmed ? (
             <>
             <button className="primary" onClick={() => goToStep(3)} disabled={busy}>
@@ -1748,7 +1753,6 @@ function VoiceStep({
       <div className="panel-actions">
         <StepNavButtons step={step} goToStep={goToStep} />
         <div className="panel-primary-actions">
-          <InlineStepStatus busy={busy} />
           {session.state.audio_path ? (
             <>
             <button className="primary" onClick={() => goToStep(4)} disabled={busy}>
@@ -2239,7 +2243,6 @@ function PortraitStep({
       <div className="panel-actions">
         <StepNavButtons step={step} goToStep={goToStep} />
         <div className="panel-primary-actions">
-          <InlineStepStatus busy={busy} />
           {session.state.digital_human_video_path ? (
             <>
             <button className="primary" onClick={() => goToStep(5)} disabled={busy}>
@@ -2444,7 +2447,6 @@ function PostproductionStep({
       <div className="panel-actions">
         <StepNavButtons step={step} goToStep={goToStep} />
         <div className="panel-primary-actions">
-          <InlineStepStatus busy={busy} />
           {session.state.final_video_path ? (
             <>
             <button className="primary" onClick={() => goToStep(6)} disabled={busy}>
@@ -2750,6 +2752,19 @@ function noticeKind(kind: string): "success" | "info" | "warning" | "error" {
   if (kind === "error") return "error";
   if (kind === "warning") return "warning";
   return "info";
+}
+
+function stepNumberForTaskKey(stepKey: string) {
+  return (
+    {
+      source: 1,
+      copywriting: 2,
+      voice: 3,
+      digital_human: 4,
+      postproduction: 5,
+      publish: 6,
+    }[stepKey] || 0
+  );
 }
 
 function StepNavButtons({ step, goToStep }: { step: number; goToStep: (step: number) => void }) {

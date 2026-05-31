@@ -929,62 +929,6 @@ textarea {
   color: #b91c1c;
 }
 
-.workflow-status {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr) max-content;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid var(--app-border);
-  border-radius: 12px;
-  padding: 12px 14px;
-  box-shadow: 0 8px 24px rgb(16 24 40 / 5%);
-}
-
-.workflow-status div {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
-.workflow-status strong {
-  color: var(--app-text);
-}
-
-.workflow-status span {
-  overflow-wrap: anywhere;
-  color: var(--app-muted);
-  font-size: 13px;
-}
-
-.workflow-status.running {
-  border-color: rgb(var(--app-primary-rgb) / 24%);
-  background: #f8fbff;
-}
-
-.workflow-status.running > svg {
-  color: var(--app-primary);
-}
-
-.workflow-status.error {
-  grid-template-columns: max-content minmax(0, 1fr);
-  border-color: #fecaca;
-  background: #fff7f7;
-}
-
-.workflow-status.error > svg {
-  color: var(--app-danger);
-}
-
-.workflow-status.warning {
-  grid-template-columns: max-content minmax(0, 1fr);
-  border-color: #fde68a;
-  background: #fffbeb;
-}
-
-.workflow-status.warning > svg {
-  color: var(--app-warning);
-}
-
 .stepbar {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -1264,13 +1208,48 @@ textarea {
   color: #667085;
 }
 
-.inline-run-status {
-  display: inline-flex;
+.step-notice {
+  margin-top: 16px;
+}
+
+.step-notice-running {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  gap: 10px 14px;
   align-items: center;
-  gap: 6px;
+  border: 1px solid rgb(var(--app-primary-rgb) / 22%);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #f8fbff;
+}
+
+.step-notice-running-main {
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+  align-items: flex-start;
+}
+
+.step-notice-running-main > svg {
+  margin-top: 2px;
+  flex: 0 0 auto;
   color: var(--app-primary);
+}
+
+.step-notice-running-main strong,
+.step-notice-running-main span {
+  display: block;
+}
+
+.step-notice-running-main span {
+  margin-top: 3px;
+  color: var(--app-muted);
   font-size: 13px;
-  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.step-notice-running .ant-progress {
+  grid-column: 1 / -1;
 }
 
 .generated-preview-card {
