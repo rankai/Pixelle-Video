@@ -1,0 +1,256 @@
+# Pixelle-Video 网页端自动部署执行手册
+
+本手册按 `geo-platform` 已验证的方式配置：GitHub 推送通知、ACR 自动构建、Docker webhook 容器接收通知、服务器执行 `scripts/deploy.sh`、飞书通知结果、宝塔反代访问。
+
+## 1. 部署链路
+
+```text
+git push dev
+  -> GitHub Actions 发送“代码已推送，ACR 构建中”飞书通知
+  -> ACR 自动构建 pixelle-video-web / pixelle-video-api
+  -> ACR webhook 请求服务器 /deploy?token=...
+  -> pixelle-webhook 等同一 tag 的 web/api 都完成
+  -> pixelle-webhook 执行 scripts/deploy.sh
+  -> docker compose pull api web
+  -> docker compose up -d
+  -> 健康检查
+  -> deploy.sh 发送部署成功/失败飞书通知
+```
+
+生产分支：`dev`。
+
+## 2. GitHub Actions
+
+文件：
+
+```text
+.github/workflows/deploy.yml
+```
+
+触发：
+
+```text
+push dev
+push v* tag
+```
+
+行为：
+
+- 构建 React Web，提前发现前端编译错误。
+- 校验 `docker-compose.prod.yml`。
+- 运行 webhook 单元测试。
+- 通过 `FEISHU_WEBHOOK_URL` secret 发送“ACR 构建中”通知。
+
+GitHub Secrets：
+
+```text
+FEISHU_WEBHOOK_URL=飞书机器人 Webhook
+```
+
+说明：GitHub Actions 不构建镜像，不部署服务器；镜像构建交给 ACR，真实部署通知由服务器 `deploy.sh` 发。
+
+## 3. ACR 配置
+
+创建两个镜像仓库：
+
+```text
+pixelle-video-web
+pixelle-video-api
+```
+
+两个仓库都绑定 GitHub 仓库的 `dev` 分支。
+
+`pixelle-video-web`：
+
+```text
+Dockerfile: Dockerfile.web
+构建上下文: /
+构建参数:
+  NODE_BASE=node:20-alpine
+  NGINX_BASE=nginx:1.27-alpine
+  VITE_API_BASE_URL=/api
+Tag 规则:
+  ${Branch}-${CommitID}
+Webhook:
+  https://你的域名/deploy?token=DEPLOY_WEBHOOK_SECRET
+```
+
+`pixelle-video-api`：
+
+```text
+Dockerfile: Dockerfile.api
+构建上下文: /
+构建参数:
+  PYTHON_BASE=python:3.11-slim
+  USE_CN_MIRROR=true
+Tag 规则:
+  ${Branch}-${CommitID}
+Webhook:
+  https://你的域名/deploy?token=DEPLOY_WEBHOOK_SECRET
+```
+
+两个仓库的 tag 规则必须一致。服务器会等同一个 tag 的 web/api 两个镜像都收到通知后才部署。
+
+## 4. 服务器目录
+
+建议目录：
+
+```bash
+/opt/pixelle-video
+```
+
+首次准备：
+
+```bash
+git clone <你的 GitHub 仓库地址> /opt/pixelle-video
+cd /opt/pixelle-video
+cp .env.example .env
+cp config.example.yaml config.yaml
+mkdir -p data output temp logs
+```
+
+`.env` 关键配置：
+
+```env
+IMAGE_TAG=latest
+REGISTRY=acr-xiaojuntech-registry.cn-beijing.cr.aliyuncs.com/xiaojuntech
+PROJECT_DIR=/opt/pixelle-video
+COMPOSE_PROJECT_NAME=pixelle-video
+
+WEB_HOST=127.0.0.1
+WEB_PORT=18080
+API_PORT=8000
+TZ=Asia/Shanghai
+VITE_API_BASE_URL=/api
+NODE_BASE=node:20-alpine
+NGINX_BASE=nginx:1.27-alpine
+PYTHON_BASE=python:3.11-slim
+
+ACR_USERNAME=你的 ACR 用户名
+ACR_PASSWORD=你的 ACR 密码
+
+FEISHU_WEBHOOK_URL=飞书机器人 Webhook
+DEPLOY_WEBHOOK_SECRET=随机长密钥
+WEBHOOK_PORT=9877
+```
+
+端口说明：
+
+- `18080` 是 Pixelle Web 宿主机端口，避开 geo-platform 已使用的 `8080`。
+- `9877` 是 Pixelle webhook 宿主机端口，避开 geo-platform 已使用的 `9876`。
+- `WEB_HOST=127.0.0.1` 表示只允许宝塔在服务器本机反代访问，不直接暴露 Docker 端口到公网。
+
+## 5. 启动服务
+
+首次在服务器上启动：
+
+```bash
+cd /opt/pixelle-video
+docker compose -f docker-compose.prod.yml up -d webhook
+```
+
+健康检查：
+
+```bash
+curl http://127.0.0.1:9877/healthz
+```
+
+首次部署某个 ACR tag：
+
+```bash
+IMAGE_TAG=dev-a1b2c3d ./scripts/deploy.sh
+```
+
+验证：
+
+```bash
+curl http://127.0.0.1:18080/health
+curl http://127.0.0.1:18080/api/tasks
+curl http://127.0.0.1:18080/api/desktop/config
+```
+
+## 6. 宝塔配置
+
+宝塔站点反代网页端：
+
+```text
+目标 URL:
+http://127.0.0.1:18080
+```
+
+宝塔反代 ACR webhook：
+
+```text
+路径:
+/deploy
+
+目标 URL:
+http://127.0.0.1:9877/deploy
+```
+
+等价 Nginx 配置：
+
+```nginx
+location / {
+  proxy_pass http://127.0.0.1:18080;
+  proxy_set_header Host $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+
+location /deploy {
+  proxy_pass http://127.0.0.1:9877/deploy;
+  proxy_set_header Host $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+```
+
+ACR webhook URL 填：
+
+```text
+https://你的域名/deploy?token=DEPLOY_WEBHOOK_SECRET
+```
+
+## 7. 日常发布
+
+```bash
+git push origin dev
+```
+
+之后自动发生：
+
+```text
+GitHub Actions 飞书通知
+ACR 构建 web/api
+ACR webhook 通知服务器
+服务器自动部署
+飞书通知部署结果
+```
+
+查看日志：
+
+```bash
+docker compose -f docker-compose.prod.yml logs -f webhook
+docker compose -f docker-compose.prod.yml logs -f web api
+tail -f logs/deploy-webhook.log
+```
+
+## 8. 回滚
+
+```bash
+./scripts/rollback.sh
+```
+
+回滚使用 `.last_good_tag` 中记录的上一个健康版本。
+
+## 验收标准
+
+- GitHub push 到 `dev` 后，飞书收到“代码已推送，ACR 构建中”通知。
+- ACR 两个仓库都能生成相同 tag。
+- ACR webhook 请求 `https://你的域名/deploy?token=...` 返回成功。
+- `pixelle-webhook` 日志显示同一 tag 收到 `2/2`。
+- `scripts/deploy.sh` 自动执行。
+- `http://127.0.0.1:18080/health` 返回 `ok`。
+- 宝塔域名能打开 React 网页端。
+- 飞书收到部署成功或失败通知。

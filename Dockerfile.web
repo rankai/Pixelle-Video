@@ -1,6 +1,9 @@
 # Pixelle-Video React web production image.
 
-FROM node:20-alpine AS builder
+ARG NODE_BASE=node:20-alpine
+ARG NGINX_BASE=nginx:1.27-alpine
+
+FROM ${NODE_BASE} AS builder
 
 ARG VITE_API_BASE_URL=/api
 ARG IMAGE_TAG=latest
@@ -15,7 +18,7 @@ RUN npm ci
 COPY desktop ./
 RUN VITE_API_BASE_URL="${VITE_API_BASE_URL}" npm run build
 
-FROM nginx:1.27-alpine
+FROM ${NGINX_BASE}
 
 ARG IMAGE_TAG=latest
 ARG GIT_COMMIT=unknown

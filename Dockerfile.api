@@ -1,6 +1,8 @@
 # Pixelle-Video FastAPI production image.
 
-FROM python:3.11-slim
+ARG PYTHON_BASE=python:3.11-slim
+
+FROM ${PYTHON_BASE}
 
 ARG USE_CN_MIRROR=false
 ARG IMAGE_TAG=latest

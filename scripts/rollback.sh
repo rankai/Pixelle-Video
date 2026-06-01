@@ -13,7 +13,7 @@ set +a
 
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
 REGISTRY="${REGISTRY:?REGISTRY is required. Copy .env.example to .env and configure REGISTRY.}"
-WEB_PORT="${WEB_PORT:-8080}"
+WEB_PORT="${WEB_PORT:-18080}"
 API_PORT="${API_PORT:-8000}"
 
 if [ ! -f .last_good_tag ]; then
