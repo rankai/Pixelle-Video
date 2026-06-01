@@ -7,10 +7,10 @@ from web.ip_broadcast.state import STATUS_ICONS, get_step_status, set_step_statu
 
 
 def render_m7_publish(pixelle_video, run_mode: str):
-    status = get_step_status(7)
+    status = get_step_status(6)
     icon = STATUS_ICONS.get(status, "○")
     with st.container(border=True):
-        st.markdown(f"**{icon} 7. 视频发布**")
+        st.markdown(f"**{icon} 6. 视频发布**")
 
     final_path = st.session_state.get("ipb_m5_final_video_path", "")
     if not final_path or not Path(final_path).exists():
@@ -104,6 +104,6 @@ def _render_meta_info():
 async def run_m7(pixelle_video) -> bool:
     final_path = st.session_state.get("ipb_m5_final_video_path", "")
     if final_path and Path(final_path).exists():
-        set_step_status(7, "done")
+        set_step_status(6, "done")
         return True
     return False

@@ -1,5 +1,26 @@
 {
   "source": "runninghub",
-  "workflow_id": "1983513964837543938"
+  "workflow_id": "1983513964837543938",
+  "runninghub_node_mappings": {
+    "text": {
+      "node_id": "3",
+      "field_name": "value",
+      "description": "text"
+    },
+    "voice": {
+      "node_id": "1",
+      "field_name": "voice",
+      "description": "voice"
+    },
+    "speed": {
+      "node_id": "8",
+      "field_name": "value",
+      "description": "speed"
+    },
+    "pitch": {
+      "node_id": "1",
+      "field_name": "pitch",
+      "description": "pitch"
+    }
+  }
 }
-

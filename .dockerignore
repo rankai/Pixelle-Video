@@ -14,6 +14,10 @@ build/
 venv/
 ENV/
 env/
+node_modules/
+desktop/node_modules/
+desktop/dist/
+desktop/src-tauri/target/
 
 # IDE
 .vscode/
@@ -30,6 +34,7 @@ env/
 # Documentation
 docs/*
 !docs/images/
+!docs/images/**
 !docs/FAQ*.md
 *.md
 !README.md
@@ -68,4 +73,3 @@ config.example.yaml
 *.bak
 restart_web.sh
 start_web.sh
-

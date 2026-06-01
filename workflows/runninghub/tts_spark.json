@@ -1,5 +1,56 @@
 {
   "source": "runninghub",
-  "workflow_id": "1983921902282539009"
+  "workflow_id": "1983921902282539009",
+  "runninghub_node_mappings": {
+    "text": {
+      "node_id": "7",
+      "field_name": "value",
+      "description": "text"
+    },
+    "gender": {
+      "node_id": "6",
+      "field_name": "gender",
+      "description": "gender"
+    },
+    "pitch": {
+      "node_id": "6",
+      "field_name": "pitch",
+      "description": "pitch"
+    },
+    "speed": {
+      "node_id": "6",
+      "field_name": "speed",
+      "description": "speed"
+    },
+    "temperature": {
+      "node_id": "6",
+      "field_name": "temperature",
+      "description": "temperature"
+    },
+    "top_k": {
+      "node_id": "6",
+      "field_name": "top_k",
+      "description": "top_k"
+    },
+    "top_p": {
+      "node_id": "6",
+      "field_name": "top_p",
+      "description": "top_p"
+    },
+    "max_new_tokens": {
+      "node_id": "6",
+      "field_name": "max_new_tokens",
+      "description": "max_new_tokens"
+    },
+    "do_sample": {
+      "node_id": "6",
+      "field_name": "do_sample",
+      "description": "do_sample"
+    },
+    "seed": {
+      "node_id": "6",
+      "field_name": "seed",
+      "description": "seed"
+    }
+  }
 }
-

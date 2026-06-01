@@ -20,9 +20,9 @@ from pathlib import Path
 import streamlit as st
 from loguru import logger
 
-from web.i18n import tr, get_language
-from web.utils.async_helpers import run_async
 from pixelle_video.config import config_manager
+from web.i18n import get_language, tr
+from web.utils.async_helpers import run_async
 
 
 def render_style_config(pixelle_video):

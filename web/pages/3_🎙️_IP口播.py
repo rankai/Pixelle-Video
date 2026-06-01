@@ -1,5 +1,7 @@
 """IP Broadcast Page - 老板IP口播智能体"""
 
+# ruff: noqa: E402
+
 import sys
 from pathlib import Path
 
@@ -10,10 +12,10 @@ if str(_project_root) not in sys.path:
 
 import streamlit as st
 
-from web.state.session import init_session_state, init_i18n, get_pixelle_video
+from web.components.faq import render_faq_sidebar
 from web.components.header import render_header
 from web.components.settings import render_advanced_settings
-from web.components.faq import render_faq_sidebar
+from web.state.session import get_pixelle_video, init_i18n, init_session_state
 
 st.set_page_config(
     page_title="IP口播 - AI-Video-Factory",

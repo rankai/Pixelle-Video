@@ -17,10 +17,12 @@ Main FastAPI app with all routers and middleware.
 
 Run this script to start the FastAPI server:
     uv run python api/app.py
-    
+
 Or with custom settings:
     uv run python api/app.py --host 0.0.0.0 --port 8080 --reload
 """
+
+# ruff: noqa: E402
 
 import sys
 from pathlib import Path
@@ -34,43 +36,54 @@ if str(_project_root) not in sys.path:
 
 import argparse
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
 from api.config import api_config
-from api.tasks import task_manager
 from api.dependencies import shutdown_pixelle_video
+from api.desktop_security import (
+    DesktopTokenMiddleware,
+    get_desktop_origin,
+    get_desktop_token,
+    is_desktop_mode,
+)
 
 # Import routers
 from api.routers import (
-    health_router,
-    llm_router,
-    tts_router,
-    image_router,
+    assets_router,
     content_router,
-    video_router,
-    tasks_router,
+    desktop_router,
     files_router,
-    resources_router,
     frame_router,
+    health_router,
+    image_router,
+    ip_broadcast_router,
+    llm_router,
+    publish_router,
+    resources_router,
+    tasks_router,
+    tts_router,
+    video_router,
 )
+from api.tasks import task_manager
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
     Application lifespan manager
-    
+
     Handles startup and shutdown events.
     """
     # Startup
     logger.info("🚀 Starting AI-Video-Factory API...")
     await task_manager.start()
     logger.info("✅ AI-Video-Factory API started successfully\n")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("🛑 Shutting down AI-Video-Factory API...")
     await task_manager.stop()
@@ -102,31 +115,39 @@ app = FastAPI(
     4. Track task progress: `GET /api/tasks/{task_id}`
     """,
     version="0.1.0",
-    docs_url=api_config.docs_url,
-    redoc_url=api_config.redoc_url,
-    openapi_url=api_config.openapi_url,
+    docs_url=None if is_desktop_mode() else api_config.docs_url,
+    redoc_url=None if is_desktop_mode() else api_config.redoc_url,
+    openapi_url=None if is_desktop_mode() else api_config.openapi_url,
     lifespan=lifespan,
 )
 
 # Add CORS middleware
 if api_config.cors_enabled:
+    cors_origins = [get_desktop_origin()] if is_desktop_mode() else api_config.cors_origins
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=api_config.cors_origins,
+        allow_origins=cors_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    logger.info(f"CORS enabled for origins: {api_config.cors_origins}")
+    logger.info(f"CORS enabled for origins: {cors_origins}")
+
+if is_desktop_mode():
+    app.add_middleware(DesktopTokenMiddleware, token=get_desktop_token())
 
 # Include routers
 # Health check (no prefix)
 app.include_router(health_router)
+app.include_router(desktop_router, prefix=api_config.api_prefix)
+app.include_router(assets_router, prefix=api_config.api_prefix)
 
 # API routers (with /api prefix)
 app.include_router(llm_router, prefix=api_config.api_prefix)
 app.include_router(tts_router, prefix=api_config.api_prefix)
 app.include_router(image_router, prefix=api_config.api_prefix)
+app.include_router(ip_broadcast_router, prefix=api_config.api_prefix)
+app.include_router(publish_router, prefix=api_config.api_prefix)
 app.include_router(content_router, prefix=api_config.api_prefix)
 app.include_router(video_router, prefix=api_config.api_prefix)
 app.include_router(tasks_router, prefix=api_config.api_prefix)
@@ -153,21 +174,21 @@ async def root():
             "files": f"{api_config.api_prefix}/files",
             "resources": f"{api_config.api_prefix}/resources",
             "frame": f"{api_config.api_prefix}/frame",
-        }
+        },
     }
 
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Start AI-Video-Factory API Server")
     parser.add_argument("--host", default="0.0.0.0", help="Host to bind to")
     parser.add_argument("--port", type=int, default=8000, help="Port to bind to")
     parser.add_argument("--reload", action="store_true", help="Enable auto-reload")
-    
+
     args = parser.parse_args()
-    
+
     # Print startup banner
     print(f"""
 ╔══════════════════════════════════════════════════════════════╗
@@ -180,7 +201,7 @@ ReDoc: http://{args.host}:{args.port}/redoc
 
 Press Ctrl+C to stop the server
 """)
-    
+
     # Start server
     uvicorn.run(
         "api.app:app",
@@ -188,4 +209,3 @@ Press Ctrl+C to stop the server
         port=args.port,
         reload=args.reload,
     )
-

@@ -84,6 +84,31 @@ def test_extract_douyin_profile_video_urls_from_vid_and_links():
     ]
 
 
+def test_extract_douyin_profile_video_urls_from_profile_vid_url():
+    text = (
+        "https://www.douyin.com/user/MS4wLjABAAAAKRL_h-C7dqOluAAHdMVZkFmrEQO-0nDpvzFmwEQf59a6-"
+        "FB6dR42ZsQKPnHlxvp3?from_tab_name=main&vid=7588210948654026025"
+    )
+
+    assert _extract_douyin_profile_video_urls_from_text(text, limit=5) == [
+        "https://www.douyin.com/video/7588210948654026025"
+    ]
+
+
+def test_extract_douyin_profile_video_urls_from_modal_and_aweme_params():
+    text = """
+    https://www.douyin.com/jingxuan/search/%E5%8F%A3%E6%92%AD?modal_id=7585777774662700346&type=general
+    https://www.douyin.com/user/MS4w?aweme_id=7585777774662700347
+    https://www.douyin.com/user/MS4w?item_id=7585777774662700348
+    """
+
+    assert _extract_douyin_profile_video_urls_from_text(text, limit=5) == [
+        "https://www.douyin.com/video/7585777774662700346",
+        "https://www.douyin.com/video/7585777774662700347",
+        "https://www.douyin.com/video/7585777774662700348",
+    ]
+
+
 def test_unsupported_url_error_detection():
     assert _is_unsupported_url_error(
         "WARNING: [generic] Falling back on generic information extractor "

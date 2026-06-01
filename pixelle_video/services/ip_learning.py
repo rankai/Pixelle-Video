@@ -33,6 +33,7 @@ _URL_PATTERN = re.compile(r"https?://[^\s，。]+")
 _DOUYIN_VIDEO_ID_PATTERN = re.compile(
     r"(?:douyin\.com/video/|douyin\.com/share/video/|/video/)(\d{15,20})"
 )
+_DOUYIN_VIDEO_ID_QUERY_KEYS = ("vid", "modal_id", "aweme_id", "item_id")
 
 
 class ProfileFetchBlocked(RuntimeError):
@@ -78,12 +79,18 @@ def _extract_douyin_profile_video_urls_from_text(text: str, limit: int = 5) -> l
 
     for url_match in _URL_PATTERN.finditer(text):
         parsed = urlparse(url_match.group(0).rstrip("，。,."))
-        for vid in parse_qs(parsed.query).get("vid", []):
-            if vid.isdigit() and 15 <= len(vid) <= 20 and vid not in seen:
-                seen.add(vid)
-                ids.append(vid)
-                if len(ids) >= limit:
-                    break
+        query = parse_qs(parsed.query)
+        for key in _DOUYIN_VIDEO_ID_QUERY_KEYS:
+            for vid in query.get(key, []):
+                if vid.isdigit() and 15 <= len(vid) <= 20 and vid not in seen:
+                    seen.add(vid)
+                    ids.append(vid)
+                    if len(ids) >= limit:
+                        break
+            if len(ids) >= limit:
+                break
+        if len(ids) >= limit:
+            break
 
     for match in _DOUYIN_VIDEO_ID_PATTERN.finditer(text):
         video_id = match.group(1)

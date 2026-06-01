@@ -78,13 +78,25 @@ def _escape_ffmpeg_filter_path(path: str) -> str:
     return f"'{path}'"
 
 
-def embed_subtitles(video_path: str, srt_path: str, output_path: str) -> str:
-    """Burn subtitles into video using FFmpeg libass filter"""
+def _build_subtitles_filter(srt_path: str, force_style: str | None = None) -> str:
     escaped = _escape_ffmpeg_filter_path(srt_path)
+    if not force_style:
+        return f"subtitles={escaped}"
+    safe_style = force_style.replace("\\", "\\\\").replace("'", "\\'")
+    return f"subtitles={escaped}:force_style='{safe_style}'"
+
+
+def embed_subtitles(
+    video_path: str,
+    srt_path: str,
+    output_path: str,
+    force_style: str | None = None,
+) -> str:
+    """Burn subtitles into video using FFmpeg libass filter"""
     cmd = [
         "ffmpeg", "-y",
         "-i", video_path,
-        "-vf", f"subtitles={escaped}",
+        "-vf", _build_subtitles_filter(srt_path, force_style),
         "-c:a", "copy",
         output_path,
     ]

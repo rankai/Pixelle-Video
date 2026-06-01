@@ -10,7 +10,17 @@ from pathlib import Path
 
 from loguru import logger
 
+from pixelle_video.services.upload_security import (
+    atomic_write_json,
+    normalize_extension,
+    safe_library_child,
+    validate_file_size,
+)
 from pixelle_video.utils.os_util import get_data_path
+
+SUPPORTED_PORTRAIT_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "mp4", "mov", "webm"}
+MAX_PORTRAIT_IMAGE_BYTES = 20 * 1024 * 1024
+MAX_PORTRAIT_VIDEO_BYTES = 1024 * 1024 * 1024
 
 
 @dataclass
@@ -56,10 +66,7 @@ class PortraitService:
             return []
 
     def _save_manifest(self, portraits: list[dict]):
-        self._manifest_path.write_text(
-            json.dumps(portraits, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
+        atomic_write_json(self._manifest_path, portraits)
 
     def list_portraits(self) -> list[PortraitInfo]:
         with self._lock:
@@ -76,16 +83,19 @@ class PortraitService:
 
     def save_portrait(self, name: str, image_bytes: bytes, ext: str) -> PortraitInfo:
         portrait_id = uuid.uuid4().hex[:12]
-        clean_ext = ext.lstrip(".").lower()
+        clean_ext = normalize_extension(ext, SUPPORTED_PORTRAIT_EXTENSIONS)
         filename = f"{portrait_id}.{clean_ext}"
         dest = self._portraits_dir / filename
+        media_type = _infer_media_type(filename)
+        max_bytes = MAX_PORTRAIT_VIDEO_BYTES if media_type == "video" else MAX_PORTRAIT_IMAGE_BYTES
+        validate_file_size(image_bytes, max_bytes, "Portrait asset")
 
         info = PortraitInfo(
             portrait_id=portrait_id,
             name=name,
             filename=filename,
             created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            media_type=_infer_media_type(filename),
+            media_type=media_type,
         )
 
         # Write image to disk first.
@@ -116,8 +126,8 @@ class PortraitService:
 
         # Delete the image file outside the lock — worst case it's an orphan
         # (safe: list_portraits filters missing files on next load).
-        image_path = self._portraits_dir / removed["filename"]
-        if image_path.exists():
+        image_path = safe_library_child(self._portraits_dir, removed.get("filename", ""))
+        if image_path and image_path.exists():
             image_path.unlink()
         logger.info(f"Portrait deleted: {portrait_id}")
         return True
@@ -127,7 +137,9 @@ class PortraitService:
             manifest = self._load_manifest()
         for item in manifest:
             if item["portrait_id"] == portrait_id:
-                path = self._portraits_dir / item["filename"]
+                path = safe_library_child(self._portraits_dir, item.get("filename", ""))
+                if not path:
+                    return None
                 return str(path) if path.exists() else None
         return None
 

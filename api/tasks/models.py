@@ -17,11 +17,13 @@ Task data models
 from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
+
 from pydantic import BaseModel, Field
 
 
 class TaskStatus(str, Enum):
     """Task status"""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -31,11 +33,15 @@ class TaskStatus(str, Enum):
 
 class TaskType(str, Enum):
     """Task type"""
+
     VIDEO_GENERATION = "video_generation"
+    IP_BROADCAST_STEP = "ip_broadcast_step"
+    PUBLISH_ASSISTANT = "publish_assistant"
 
 
 class TaskProgress(BaseModel):
     """Task progress information"""
+
     current: int = 0
     total: int = 0
     percentage: float = 0.0
@@ -44,27 +50,34 @@ class TaskProgress(BaseModel):
 
 class Task(BaseModel):
     """Task model"""
+
     task_id: str
     task_type: TaskType
     status: TaskStatus = TaskStatus.PENDING
-    
+
     # Progress tracking
     progress: Optional[TaskProgress] = None
-    
+
     # Result
     result: Optional[Any] = None
     error: Optional[str] = None
-    
+
     # Metadata
     created_at: datetime = Field(default_factory=datetime.now)
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
-    
+
     # Request parameters (for reference)
     request_params: Optional[dict] = None
-    
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
 
+    # Product-facing task metadata
+    display_name: str = ""
+    flow_name: str = ""
+    step_key: str = ""
+    session_id: str = ""
+    artifact_keys: list[str] = Field(default_factory=list)
+    duration_ms: Optional[int] = None
+    retry_payload: Optional[dict] = None
+
+    class Config:
+        json_encoders = {datetime: lambda v: v.isoformat()}

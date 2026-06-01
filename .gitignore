@@ -26,6 +26,10 @@ ENV/
 env/
 .venv/
 
+# Desktop frontend/build artifacts
+desktop/node_modules/
+desktop/src-tauri/target/
+
 # IDEs
 .vscode/
 .idea/
@@ -62,11 +66,13 @@ test_*.py
 temp/
 tmp/
 .cache/
+.superpowers/
 
 # MkDocs build output
 site/
 
 data
+data/publish_browser/
 output
 
 plans/

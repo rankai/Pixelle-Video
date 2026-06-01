@@ -18,7 +18,12 @@ from pixelle_video.services.ip_learning import (
     parse_manual_video_inputs,
 )
 from web.ip_broadcast.state import STATUS_ICONS, get_step_status, set_source_text, set_step_status
-from web.ip_broadcast.status_ui import render_step_notice, set_step_notice, show_global_loading
+from web.ip_broadcast.status_ui import (
+    hide_global_loading,
+    render_step_notice,
+    set_step_notice,
+    show_global_loading,
+)
 from web.utils.async_helpers import run_async
 from web.utils.streamlit_helpers import safe_rerun
 
@@ -30,7 +35,8 @@ _COPY_TYPES = ["人设型", "干货型", "情绪共鸣型", "痛点解决型", "
 
 def _finish_step1_task(kind: str, message: str) -> None:
     set_step_notice(1, kind, message)
-    safe_rerun()
+    if kind == "success":
+        safe_rerun()
 
 
 def render_m1_benchmark(pixelle_video, run_mode: str):
@@ -136,8 +142,9 @@ def _render_tab_brain(pixelle_video):
     )
 
     if st.button("生成口播文案", key="ipb_brain_generate_btn", use_container_width=True, type="primary"):
+        loading = None
         try:
-            show_global_loading("正在生成行业人设口播文案，请稍候...")
+            loading = show_global_loading("正在生成行业人设口播文案，请稍候...")
             with st.spinner("生成中..."):
                 result = run_async(
                     pixelle_video.llm(
@@ -157,6 +164,8 @@ def _render_tab_brain(pixelle_video):
             _finish_step1_task("error", str(e))
             st.error(str(e))
             logger.exception(e)
+        finally:
+            hide_global_loading(loading)
 
     if st.session_state.get("ipb_brain_result"):
         st.text_area(
@@ -210,8 +219,9 @@ def _learn_from_profile(pixelle_video, profile_url: str):
         st.warning("请先输入 IP 主页链接或主页分享文本")
         return
 
+    loading = None
     try:
-        show_global_loading("正在抓取该IP最近5条视频并学习，请稍候...")
+        loading = show_global_loading("正在抓取该IP最近5条视频并学习，请稍候...")
         with st.spinner("正在抓取该IP最近5条视频链接..."):
             urls = run_async(fetch_latest_video_urls_from_profile(profile_url, limit=5))
         if not urls:
@@ -230,6 +240,8 @@ def _learn_from_profile(pixelle_video, profile_url: str):
         _finish_step1_task("error", f"主页抓取失败：{e}")
         st.error(f"主页抓取失败：{e}")
         logger.exception(e)
+    finally:
+        hide_global_loading(loading)
 
 
 def _learn_from_video_inputs(pixelle_video, video_inputs: list[str], label: str):
@@ -242,8 +254,9 @@ def _learn_from_video_inputs(pixelle_video, video_inputs: list[str], label: str)
         base_url=llm_cfg["base_url"],
     )
 
+    loading = None
     try:
-        show_global_loading("正在提取视频口播并生成选题，请稍候...")
+        loading = show_global_loading("正在提取视频口播并生成选题，请稍候...")
         with st.spinner("正在逐条提取口播文案..."):
             results = run_async(extract_many_video_scripts(extractor, video_inputs, limit=5))
         _store_ip_learning_results(results)
@@ -269,6 +282,8 @@ def _learn_from_video_inputs(pixelle_video, video_inputs: list[str], label: str)
         _finish_step1_task("error", f"{label}学习失败：{e}")
         st.error(f"{label}学习失败：{e}")
         logger.exception(e)
+    finally:
+        hide_global_loading(loading)
 
 
 def _store_ip_learning_results(results: list[IPVideoScriptResult]):
@@ -314,9 +329,10 @@ def _render_ip_learning_results(pixelle_video):
         st.session_state.ipb_ip_selected_topic = selected
 
         if st.button("为此选题生成文案", key="ipb_ip_script_btn", use_container_width=True):
+            loading = None
             try:
                 viral_hint = "\n\n".join(item["script"] for item in scripts)[:1200]
-                show_global_loading("正在为选题生成口播文案，请稍候...")
+                loading = show_global_loading("正在为选题生成口播文案，请稍候...")
                 with st.spinner("生成文案..."):
                     script = run_async(
                         pixelle_video.llm(
@@ -330,6 +346,8 @@ def _render_ip_learning_results(pixelle_video):
                 _finish_step1_task("error", str(e))
                 st.error(str(e))
                 logger.exception(e)
+            finally:
+                hide_global_loading(loading)
 
     if st.session_state.get("ipb_ip_topic_script"):
         st.text_area(
@@ -365,8 +383,9 @@ def _extract_from_url(pixelle_video, url: str):
         api_key=llm_cfg["api_key"],
         base_url=llm_cfg["base_url"],
     )
+    loading = None
     try:
-        show_global_loading("正在从视频链接提取口播文案，请稍候...")
+        loading = show_global_loading("正在从视频链接提取口播文案，请稍候...")
         with st.spinner("正在从视频URL提取文案（首次可能需要1-2分钟）..."):
             script = run_async(extractor.extract(url))
         script = script.strip()
@@ -381,11 +400,14 @@ def _extract_from_url(pixelle_video, url: str):
         _finish_step1_task("error", f"提取失败：{e}")
         st.error(f"提取失败：{e}")
         logger.exception(e)
+    finally:
+        hide_global_loading(loading)
 
 
 def _clean_and_set_source(pixelle_video, raw_text: str, label: str):
+    loading = None
     try:
-        show_global_loading("正在清洗并生成口播文案，请稍候...")
+        loading = show_global_loading("正在清洗并生成口播文案，请稍候...")
         with st.spinner("正在清洗并生成口播文案..."):
             cleaned = run_async(pixelle_video.llm(prompt=build_script_extraction_prompt(raw_text)))
         st.session_state.ipb_m1_raw_script = cleaned
@@ -395,6 +417,8 @@ def _clean_and_set_source(pixelle_video, raw_text: str, label: str):
         _finish_step1_task("error", str(e))
         st.error(str(e))
         logger.exception(e)
+    finally:
+        hide_global_loading(loading)
 
 
 async def run_m1(pixelle_video) -> bool:

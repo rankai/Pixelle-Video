@@ -17,6 +17,8 @@ This is the entry point for the Streamlit multi-page application.
 Uses st.navigation to define pages and set the default page to Home.
 """
 
+# ruff: noqa: E402
+
 import sys
 from pathlib import Path
 

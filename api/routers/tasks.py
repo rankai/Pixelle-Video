@@ -17,10 +17,11 @@ Endpoints for managing async tasks (checking status, canceling, etc.)
 """
 
 from typing import List, Optional
+
 from fastapi import APIRouter, HTTPException, Query
 from loguru import logger
 
-from api.tasks import task_manager, Task, TaskStatus
+from api.tasks import Task, TaskStatus, task_manager
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -103,3 +104,26 @@ async def cancel_task(task_id: str):
         logger.error(f"Cancel task error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@router.post("/{task_id}/retry", response_model=Task)
+async def retry_task(task_id: str):
+    """Create a retry task record from a failed task.
+
+    v1.1 records retry intent and metadata. Actual IP step execution stays in
+    workflow-specific endpoints so dependencies and session state remain clear.
+    """
+    original = task_manager.get_task(task_id)
+    if not original:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    if original.status != TaskStatus.FAILED:
+        raise HTTPException(status_code=409, detail="Only failed tasks can be retried")
+    return task_manager.create_task(
+        task_type=original.task_type,
+        request_params=original.request_params,
+        display_name=f"重试：{original.display_name or original.task_type.value}",
+        flow_name=original.flow_name,
+        step_key=original.step_key,
+        session_id=original.session_id,
+        artifact_keys=original.artifact_keys,
+        retry_payload=original.retry_payload,
+    )

@@ -46,6 +46,67 @@ def test_get_next_action_reports_missing_portrait_before_video_generation(tmp_pa
     assert action.step == 4
 
 
+def test_get_next_action_moves_to_voice_when_final_script_exists():
+    session = _base_session()
+    state.set_final_script("final copy", session=session)
+
+    action = state.get_next_action(session=session)
+
+    assert action.key == "voice"
+    assert action.step == 3
+
+
+def test_get_missing_requirements_reports_current_blockers(tmp_path):
+    session = _base_session()
+
+    assert state.get_missing_requirements(session=session) == [
+        "缺文案",
+        "缺语音",
+        "缺形象",
+        "缺数字人视频",
+        "缺最终视频",
+    ]
+
+    audio_path = tmp_path / "voice.mp3"
+    audio_path.write_text("audio")
+    state.set_final_script("final copy", session=session)
+    session["ipb_m3_audio_path"] = str(audio_path)
+
+    assert state.get_missing_requirements(session=session) == [
+        "缺形象",
+        "缺数字人视频",
+        "缺最终视频",
+    ]
+
+
+def test_get_next_action_moves_to_digital_human_when_audio_and_portrait_exist(tmp_path):
+    session = _base_session()
+    state.set_final_script("final copy", session=session)
+    audio_path = tmp_path / "voice.mp3"
+    audio_path.write_text("audio")
+    session["ipb_m3_audio_path"] = str(audio_path)
+    session["ipb_m4_portrait_id"] = "portrait-1"
+
+    action = state.get_next_action(session=session)
+
+    assert action.key == "digital_human"
+    assert action.step == 4
+
+
+def test_mark_voice_generated_advances_progress_to_step_three(tmp_path):
+    session = _base_session()
+    audio_path = tmp_path / "voice.mp3"
+    audio_path.write_text("audio")
+    state.set_source_text("final copy", "视频链接", session=session)
+
+    state.mark_voice_generated(str(audio_path), session=session)
+
+    assert session["ipb_m3_audio_path"] == str(audio_path)
+    assert session["ipb_step_status"][3] == "done"
+    assert session["ipb_active_step"] == 4
+    assert state.get_completed_step_count(session=session) == 3
+
+
 def test_get_next_action_advances_to_postproduction_when_assets_exist(tmp_path):
     session = _base_session()
     final_script = "final copy"
@@ -84,3 +145,129 @@ def test_init_state_includes_ip_learning_fields():
     assert session["ipb_ip_learning_topics"] == []
     assert session["ipb_ip_selected_topic"] == ""
     assert session["ipb_ip_topic_script"] == ""
+
+
+def test_init_state_uses_six_user_visible_steps():
+    session = _base_session()
+
+    assert sorted(session["ipb_step_status"]) == [1, 2, 3, 4, 5, 6]
+
+
+def test_get_next_action_skips_social_meta_after_final_video_exists(tmp_path):
+    session = _base_session()
+    state.set_final_script("final copy", session=session)
+    audio_path = tmp_path / "voice.mp3"
+    dh_path = tmp_path / "dh.mp4"
+    final_path = tmp_path / "final.mp4"
+    for path in (audio_path, dh_path, final_path):
+        path.write_text("ok")
+    session["ipb_m3_audio_path"] = str(audio_path)
+    session["ipb_m4_portrait_id"] = "portrait-1"
+    session["ipb_m4_dh_video_path"] = str(dh_path)
+    session["ipb_m5_final_video_path"] = str(final_path)
+    session["ipb_m6_title"] = "标题"
+    session["ipb_m6_description"] = "描述"
+
+    action = state.get_next_action(session=session)
+
+    assert action.key == "publish"
+    assert action.step == 6
+
+
+def test_final_video_implies_completed_production_progress(tmp_path):
+    session = _base_session()
+    state.set_final_script("final copy", session=session)
+    audio_path = tmp_path / "voice.mp3"
+    final_path = tmp_path / "final.mp4"
+    audio_path.write_text("audio")
+    final_path.write_text("ok")
+    session["ipb_m3_audio_path"] = str(audio_path)
+    session["ipb_m4_portrait_id"] = "portrait-1"
+    session["ipb_m4_dh_video_path"] = str(tmp_path / "missing_dh.mp4")
+    session["ipb_m5_final_video_path"] = str(final_path)
+
+    assert state.get_completed_step_count(session=session) == 5
+    assert session["ipb_step_status"][4] == "done"
+    assert session["ipb_step_status"][5] == "done"
+
+
+def test_split_script_to_segments_uses_entered_paragraphs():
+    assert state.split_script_to_segments("开场\n\n案例一\n案例二") == [
+        "开场",
+        "案例一",
+        "案例二",
+    ]
+
+
+def test_sync_story_segments_from_script_creates_default_visual_groups():
+    session = _base_session()
+
+    state.sync_story_segments_from_script("第一段\n第二段", session=session)
+
+    assert [item["text"] for item in session["ipb_story_segments"]] == ["第一段", "第二段"]
+    assert [item["visual_group_id"] for item in session["ipb_story_segments"]] == [
+        "group_1",
+        "group_2",
+    ]
+    assert session["ipb_visual_groups"][0]["segment_ids"] == ["segment_1"]
+    assert session["ipb_visual_groups"][0]["visual_type"] == "digital_human"
+
+
+def test_merge_story_segments_requires_contiguous_ranges():
+    session = _base_session()
+    state.sync_story_segments_from_script("一\n二\n三\n四", session=session)
+
+    state.merge_story_segments(["segment_2", "segment_3"], session=session)
+
+    merged_groups = [
+        group for group in session["ipb_visual_groups"]
+        if group["segment_ids"] == ["segment_2", "segment_3"]
+    ]
+    assert len(merged_groups) == 1
+    assert session["ipb_story_segments"][1]["visual_group_id"] == merged_groups[0]["group_id"]
+    assert session["ipb_story_segments"][2]["visual_group_id"] == merged_groups[0]["group_id"]
+
+
+def test_create_overlay_group_marks_single_segment_as_editable_overlay_group():
+    session = _base_session()
+    state.sync_story_segments_from_script("一\n二\n三", session=session)
+
+    state.create_overlay_group(["segment_2"], session=session)
+
+    group = next(
+        item for item in session["ipb_visual_groups"]
+        if item["segment_ids"] == ["segment_2"]
+    )
+    assert group["is_overlay_group"] is True
+    assert session["ipb_story_segments"][1]["visual_group_id"] == group["group_id"]
+
+
+def test_create_overlay_group_rejects_non_contiguous_selection():
+    session = _base_session()
+    state.sync_story_segments_from_script("一\n二\n三", session=session)
+
+    try:
+        state.create_overlay_group(["segment_1", "segment_3"], session=session)
+    except ValueError as e:
+        assert "只支持连续段落" in str(e)
+    else:
+        raise AssertionError("Expected ValueError for non-contiguous overlay group")
+
+
+def test_remove_overlay_group_splits_segments_back_to_default_groups():
+    session = _base_session()
+    state.sync_story_segments_from_script("一\n二\n三", session=session)
+    state.create_overlay_group(["segment_1", "segment_2"], session=session)
+    group = next(
+        item for item in session["ipb_visual_groups"]
+        if item["segment_ids"] == ["segment_1", "segment_2"]
+    )
+
+    state.remove_overlay_group(group["group_id"], session=session)
+
+    assert [item["visual_group_id"] for item in session["ipb_story_segments"]] == [
+        "group_1",
+        "group_2",
+        "group_3",
+    ]
+    assert all(not item.get("is_overlay_group") for item in session["ipb_visual_groups"])

@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      width: 1080px;
+      height: 1920px;
+      font-family: "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      background: #111827;
+      color: white;
+      overflow: hidden;
+    }
+    .bg {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(180deg, rgba(17,24,39,.32), rgba(17,24,39,.92)), url("{{background}}");
+      background-size: cover;
+      background-position: center;
+    }
+    .tag {
+      position: absolute;
+      left: 72px;
+      top: 190px;
+      padding: 12px 20px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 26px;
+      font-weight: 800;
+    }
+    .title {
+      position: absolute;
+      left: 72px;
+      right: 72px;
+      top: 270px;
+      max-height: 430px;
+      overflow: hidden;
+      font-size: 58px;
+      line-height: 1.1;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-shadow: 0 8px 30px rgba(0,0,0,.35);
+    }
+    .subtitle {
+      position: absolute;
+      left: 72px;
+      right: 72px;
+      bottom: 340px;
+      font-size: 28px;
+      line-height: 1.36;
+      color: #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="tag">老板观点</div>
+  <div class="title">{{title}}</div>
+  <div class="subtitle">{{subtitle=一句话讲透商业认知}}</div>
+</body>
+</html>
