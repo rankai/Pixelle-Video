@@ -31,7 +31,7 @@ import {
   Typography,
 } from "antd";
 import type { MenuProps } from "antd";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   artifactBlobUrl,
   assetBlobUrl,
@@ -4049,6 +4049,9 @@ function SimpleAssetModal<TAsset>({
   upload,
   onClose,
   onUploaded,
+  submitLabel = "保存并使用",
+  successNote = "保存成功后：关闭弹窗 → 刷新素材 → 自动选中。",
+  successMessage = "已保存到素材库并选中。",
 }: {
   open: boolean;
   title: string;
@@ -4060,6 +4063,9 @@ function SimpleAssetModal<TAsset>({
   upload: (name: string, file: File) => Promise<TAsset>;
   onClose: () => void;
   onUploaded: (asset: TAsset) => Promise<void>;
+  submitLabel?: string;
+  successNote?: string;
+  successMessage?: string;
 }) {
   const [name, setName] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -4075,7 +4081,7 @@ function SimpleAssetModal<TAsset>({
       await onUploaded(asset);
       setName("");
       setFile(null);
-      setMessage("已保存到素材库并选中。");
+      setMessage(successMessage);
     } catch (err) {
       setError(String(err));
     }
@@ -4093,7 +4099,7 @@ function SimpleAssetModal<TAsset>({
           </div>
           <button onClick={onClose}>关闭</button>
         </div>
-        <div className="asset-modal-grid">
+        <div className="asset-modal-grid single-name">
           <div>
             <label>{assetNameLabel}</label>
             <input
@@ -4102,25 +4108,21 @@ function SimpleAssetModal<TAsset>({
               onChange={(event) => setName(event.target.value)}
             />
           </div>
-          <div>
-            <label>{fileLabel}</label>
-            <FilePickerField
-              accept={accept}
-              file={file}
-              onChange={setFile}
-            />
-          </div>
         </div>
-        <AssetModalHint>{assetModalHintText(title)}</AssetModalHint>
-        <div className="asset-modal-success-note">
-          保存成功后：关闭弹窗 → 刷新素材 → 自动选中。
-        </div>
+        <FileUploadPanel
+          label={fileLabel}
+          hint={assetModalHintText(title)}
+          accept={accept}
+          file={file}
+          onChange={setFile}
+        />
+        <div className="asset-modal-success-note">{successNote}</div>
         {message ? <div className="notice success">{message}</div> : null}
         {error ? <div className="notice error">{error}</div> : null}
         <div className="modal-actions">
           <button onClick={onClose}>取消</button>
           <button className="primary" disabled={!file} onClick={submit}>
-            保存并使用
+            {submitLabel}
           </button>
         </div>
       </section>
@@ -4132,10 +4134,16 @@ function VoiceAssetModal({
   open,
   onClose,
   onUploaded,
+  submitLabel = "保存并使用",
+  successNote = "保存成功后：关闭弹窗 → 刷新素材 → 自动选中。",
+  successMessage = "已保存到音色库并选中。",
 }: {
   open: boolean;
   onClose: () => void;
   onUploaded: (voice: VoiceAsset) => Promise<void>;
+  submitLabel?: string;
+  successNote?: string;
+  successMessage?: string;
 }) {
   const [mode, setMode] = useState<"upload" | "record">("upload");
   const [name, setName] = useState("");
@@ -4152,7 +4160,7 @@ function VoiceAssetModal({
       await onUploaded(voice);
       setName("");
       setFile(null);
-      setMessage("已保存到音色库并选中。");
+      setMessage(successMessage);
     } catch (err) {
       setError(String(err));
     }
@@ -4180,7 +4188,7 @@ function VoiceAssetModal({
         </div>
         {mode === "upload" ? (
           <>
-            <div className="asset-modal-grid">
+            <div className="asset-modal-grid single-name">
               <div>
                 <label>素材名称</label>
                 <input
@@ -4189,23 +4197,19 @@ function VoiceAssetModal({
                   onChange={(event) => setName(event.target.value)}
                 />
               </div>
-              <div>
-                <label>参考音频</label>
-                <FilePickerField
-                  accept="audio/*"
-                  file={file}
-                  onChange={setFile}
-                />
-              </div>
             </div>
-            <AssetModalHint>也可以切到「直接录一段」现场采集参考音。</AssetModalHint>
-            <div className="asset-modal-success-note">
-              保存成功后：关闭弹窗 → 刷新素材 → 自动选中。
-            </div>
+            <FileUploadPanel
+              label="参考音频"
+              hint="建议上传老板本人或品牌常用声音，普通话清晰、背景安静，10-30 秒更稳定。"
+              accept="audio/*"
+              file={file}
+              onChange={setFile}
+            />
+            <div className="asset-modal-success-note">{successNote}</div>
             <div className="modal-actions">
               <button onClick={onClose}>取消</button>
               <button className="primary" disabled={!file} onClick={submitUpload}>
-                保存并使用
+                {submitLabel}
               </button>
             </div>
           </>
@@ -4219,29 +4223,104 @@ function VoiceAssetModal({
   );
 }
 
-function FilePickerField({
+function FileUploadPanel({
+  label,
+  hint,
   accept,
   file,
   onChange,
 }: {
+  label: string;
+  hint: ReactNode;
   accept: string;
   file: File | null;
   onChange: (file: File | null) => void;
 }) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const isVideoUpload = accept.includes("video");
+  const isAudioUpload = accept.includes("audio");
+  const isImageUpload = accept.includes("image");
+  const uploadKind = isAudioUpload ? "audio" : isImageUpload && isVideoUpload ? "mixed" : isVideoUpload ? "video" : "image";
   return (
-    <div className="file-picker-field">
-      <button type="button" onClick={() => inputRef.current?.click()}>
-        选择文件
-      </button>
-      <span>{file?.name || "未选择任何文件"}</span>
+    <div className="asset-upload-panel">
+      <p className="asset-upload-rule">
+        {uploadRuleText(uploadKind)}
+        <span>素材规范</span>
+      </p>
+      <FileDropField
+        accept={accept}
+        label={label}
+        file={file}
+        onChange={onChange}
+        title={file ? "已选择素材" : "点击上传"}
+        description={file ? file.name : hint}
+        kind={uploadKind}
+      />
+    </div>
+  );
+}
+
+function uploadRuleText(kind: "image" | "video" | "audio" | "mixed") {
+  if (kind === "audio") {
+    return "支持 MP3/WAV/FLAC 音频，建议背景安静、说话清晰，10-30 秒更稳定。";
+  }
+  if (kind === "mixed") {
+    return "支持 JPG/PNG 图片或 MP4/MOV 视频，建议正面、光线稳定、脸部清晰。";
+  }
+  if (kind === "video") {
+    return "支持 MP4/MOV 视频，建议上传门店环境、菜品特写、服务过程或顾客体验素材。";
+  }
+  return "支持 JPG/PNG 图片，建议正面、光线稳定、脸部清晰。";
+}
+
+function FileDropField({
+  accept,
+  label,
+  file,
+  onChange,
+  title,
+  description,
+  kind,
+}: {
+  accept: string;
+  label: string;
+  file: File | null;
+  onChange: (file: File | null) => void;
+  title: string;
+  description: ReactNode;
+  kind: "image" | "video" | "audio" | "mixed";
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const inputId = useId();
+  return (
+    <label
+      className={`file-drop-field ${file ? "has-file" : ""}`}
+      htmlFor={inputId}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          inputRef.current?.click();
+        }
+      }}
+    >
+      <span className="file-drop-icon">
+        {kind === "audio" ? <Mic2 size={34} /> : kind === "video" ? <Video size={34} /> : <Images size={34} />}
+      </span>
+      <strong>{title}</strong>
+      <small>{description}</small>
       <input
+        id={inputId}
+        aria-label={label}
         ref={inputRef}
         type="file"
         accept={accept}
+        onClick={(event) => {
+          event.currentTarget.value = "";
+        }}
         onChange={(event) => onChange(event.target.files?.[0] || null)}
       />
-    </div>
+    </label>
   );
 }
 
@@ -4374,13 +4453,13 @@ function AssetsView({
 
 function VoiceLibrary({ items, reload }: { items: VoiceAsset[]; reload: () => Promise<void> }) {
   const [preview, setPreview] = useState<AssetPreview | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
   return (
     <>
       <AssetLibraryShell
         title="音色库"
-        accept="audio/*"
-        upload={uploadVoiceAsset}
-        onUploaded={reload}
+        addLabel="添加参考音色"
+        onAdd={() => setAddOpen(true)}
         cards={
           <div className="asset-grid">
             {items.map((item) => (
@@ -4410,6 +4489,17 @@ function VoiceLibrary({ items, reload }: { items: VoiceAsset[]; reload: () => Pr
           </div>
         }
       />
+      <VoiceAssetModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onUploaded={async () => {
+          await reload();
+          setAddOpen(false);
+        }}
+        submitLabel="保存到素材库"
+        successNote="保存成功后：关闭弹窗 → 刷新素材列表。"
+        successMessage="已保存到音色库。"
+      />
       <AssetPreviewModal preview={preview} onClose={() => setPreview(null)} />
     </>
   );
@@ -4423,13 +4513,13 @@ function PortraitLibrary({
   reload: () => Promise<void>;
 }) {
   const [preview, setPreview] = useState<AssetPreview | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
   return (
     <>
       <AssetLibraryShell
         title="形象库"
-        accept="image/*,video/*"
-        upload={uploadPortraitAsset}
-        onUploaded={reload}
+        addLabel="添加数字人形象"
+        onAdd={() => setAddOpen(true)}
         cards={
           <div className="asset-grid portraits">
             {items.map((item) => (
@@ -4469,6 +4559,23 @@ function PortraitLibrary({
           </div>
         }
       />
+      <SimpleAssetModal
+        open={addOpen}
+        title="添加数字人形象"
+        description="上传图片形象或闭口视频形象，保存后进入数字人库。"
+        assetNameLabel="形象名称"
+        fileLabel="图片或视频形象"
+        accept="image/*,video/*"
+        upload={uploadPortraitAsset}
+        onClose={() => setAddOpen(false)}
+        onUploaded={async () => {
+          await reload();
+          setAddOpen(false);
+        }}
+        submitLabel="保存到素材库"
+        successNote="保存成功后：关闭弹窗 → 刷新素材列表。"
+        successMessage="已保存到形象库。"
+      />
       <AssetPreviewModal preview={preview} onClose={() => setPreview(null)} />
     </>
   );
@@ -4493,37 +4600,57 @@ function TemplateLibrary({ items }: { items: IpTemplateAsset[] }) {
 }
 
 function VideoLibrary({ items, reload }: { items: VideoAsset[]; reload: () => Promise<void> }) {
+  const [addOpen, setAddOpen] = useState(false);
   return (
-    <AssetLibraryShell
-      title="视频素材库"
-      accept="video/*"
-      upload={uploadVideoAsset}
-      onUploaded={reload}
-      cards={
-        <div className="asset-grid videos">
-          {items.map((item) => (
-            <section key={item.asset_id} className="asset-card video-asset">
-              {item.thumbnail_exists ? (
-                <AssetImage src={item.thumbnail_url} alt={item.name} />
-              ) : (
-                <div className="video-thumb">VIDEO</div>
-              )}
-              <strong>{item.name}</strong>
-              <span>{item.duration ? `${item.duration}s` : item.filename}</span>
-              <div className="asset-card-actions">
-                <button
-                  type="button"
-                  className="asset-action danger"
-                  onClick={() => deleteVideoAsset(item.asset_id).then(reload)}
-                >
-                  删除
-                </button>
-              </div>
-            </section>
-          ))}
-        </div>
-      }
-    />
+    <>
+      <AssetLibraryShell
+        title="视频素材库"
+        addLabel="添加视频素材"
+        onAdd={() => setAddOpen(true)}
+        cards={
+          <div className="asset-grid videos">
+            {items.map((item) => (
+              <section key={item.asset_id} className="asset-card video-asset">
+                {item.thumbnail_exists ? (
+                  <AssetImage src={item.thumbnail_url} alt={item.name} />
+                ) : (
+                  <div className="video-thumb">VIDEO</div>
+                )}
+                <strong>{item.name}</strong>
+                <span>{item.duration ? `${item.duration}s` : item.filename}</span>
+                <div className="asset-card-actions">
+                  <button
+                    type="button"
+                    className="asset-action danger"
+                    onClick={() => deleteVideoAsset(item.asset_id).then(reload)}
+                  >
+                    删除
+                  </button>
+                </div>
+              </section>
+            ))}
+          </div>
+        }
+      />
+      <SimpleAssetModal
+        open={addOpen}
+        title="添加视频素材"
+        description="起个你自己看得懂的名字，系统会根据名称帮你推荐到合适的视频里。"
+        assetNameLabel="视频素材名称"
+        namePlaceholder="例如：双人火锅套餐、门店环境、锅底翻滚、顾客用餐"
+        fileLabel="视频素材"
+        accept="video/*"
+        upload={uploadVideoAsset}
+        onClose={() => setAddOpen(false)}
+        onUploaded={async () => {
+          await reload();
+          setAddOpen(false);
+        }}
+        submitLabel="保存到素材库"
+        successNote="保存成功后：关闭弹窗 → 刷新素材列表。"
+        successMessage="已保存到视频素材库。"
+      />
+    </>
   );
 }
 
@@ -4768,41 +4895,23 @@ function taskStatusLabel(status: TaskInfo["status"]) {
 
 function AssetLibraryShell({
   title,
-  accept,
-  upload,
-  onUploaded,
+  addLabel,
+  onAdd,
   cards,
 }: {
   title: string;
-  accept: string;
-  upload: (name: string, file: File) => Promise<unknown>;
-  onUploaded: () => Promise<void>;
+  addLabel: string;
+  onAdd: () => void;
   cards: ReactNode;
 }) {
-  const [name, setName] = useState("");
-  const [file, setFile] = useState<File | null>(null);
-  const [message, setMessage] = useState("");
-
-  async function submit() {
-    if (!file) return;
-    await upload(name || file.name, file);
-    setName("");
-    setFile(null);
-    setMessage("保存成功");
-    await onUploaded();
-  }
-
   return (
     <section className="card wide">
-      <h2>{title}</h2>
-      <div className="upload-row">
-        <input placeholder="素材名称，可选" value={name} onChange={(event) => setName(event.target.value)} />
-        <FilePickerField accept={accept} file={file} onChange={setFile} />
-        <button className="primary" disabled={!file} onClick={submit}>
-          保存素材
+      <div className="asset-library-header">
+        <h2>{title}</h2>
+        <button className="primary" type="button" onClick={onAdd}>
+          {addLabel}
         </button>
       </div>
-      {message ? <div className="notice success">{message}</div> : null}
       {cards}
     </section>
   );
