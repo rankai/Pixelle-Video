@@ -1,6 +1,6 @@
 import type { ThemeConfig } from "antd";
 
-export type ThemeSkin = "graphite" | "warm" | "brand";
+export type ThemeSkin = "fresh" | "graphite" | "warm" | "brand";
 
 export type ThemeSkinConfig = {
   label: string;
@@ -11,26 +11,33 @@ export type ThemeSkinConfig = {
 };
 
 export const themeSkins: Record<ThemeSkin, ThemeSkinConfig> = {
+  fresh: {
+    label: "清新紫创作版",
+    description: "清新柔和的创作工具风格，适合门店老板日常使用。",
+    primary: "#6D5DF6",
+    bg: "#F7F5FC",
+    sidebar: "#FFFFFF",
+  },
   graphite: {
     label: "石墨蓝专业版",
-    description: "默认专业工作台风格，适合长期生产使用。",
+    description: "更稳重的蓝色版本，适合长期生产和团队协作。",
     primary: "#2F6FED",
-    bg: "#F3F6FA",
-    sidebar: "#172033",
+    bg: "#F4F7FC",
+    sidebar: "#FFFFFF",
   },
   warm: {
     label: "运营温度版",
     description: "更温暖的门店运营风格，适合老板和门店员工。",
     primary: "#D97706",
-    bg: "#F7F8F5",
-    sidebar: "#1F2933",
+    bg: "#FFF8F1",
+    sidebar: "#FFFFFF",
   },
   brand: {
     label: "品牌表现版",
     description: "更强强调色，适合需要品牌表现的生产环境。",
     primary: "#C2410C",
-    bg: "#F5F6F8",
-    sidebar: "#111827",
+    bg: "#FFF7F3",
+    sidebar: "#FFFFFF",
   },
 };
 
@@ -65,8 +72,17 @@ export function createAntdTheme(skin: ThemeSkin): ThemeConfig {
 
 export function readStoredThemeSkin(): ThemeSkin {
   const value = window.localStorage.getItem("pixelle_desktop_theme_skin");
-  if (value === "warm" || value === "brand" || value === "graphite") {
+  const migrated = window.localStorage.getItem("pixelle_theme_fresh_migrated");
+  if (!migrated && value === "graphite") {
+    window.localStorage.setItem("pixelle_desktop_theme_skin", "fresh");
+    window.localStorage.setItem("pixelle_theme_fresh_migrated", "1");
+    return "fresh";
+  }
+  if (!migrated) {
+    window.localStorage.setItem("pixelle_theme_fresh_migrated", "1");
+  }
+  if (value === "fresh" || value === "warm" || value === "brand" || value === "graphite") {
     return value;
   }
-  return "graphite";
+  return "fresh";
 }
