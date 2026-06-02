@@ -1,7 +1,7 @@
 # Pixelle-Video legacy all-in-one Docker image.
 # This image is kept for the legacy docker-compose.yml API + Streamlit setup.
 
-ARG PYTHON_BASE=python:3.11-slim
+ARG PYTHON_BASE=registry.cn-hangzhou.aliyuncs.com/library/python:3.11-slim
 
 FROM ${PYTHON_BASE}
 

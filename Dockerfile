@@ -3,8 +3,8 @@
 # to `Dockerfile` when the Dockerfile path is not set. The legacy all-in-one
 # Python image is kept at Dockerfile.legacy.
 
-ARG NODE_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/node:20-alpine
-ARG NGINX_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/nginx:alpine
+ARG NODE_BASE=registry.cn-hangzhou.aliyuncs.com/library/node:20-alpine
+ARG NGINX_BASE=registry.cn-hangzhou.aliyuncs.com/library/nginx:alpine
 
 FROM ${NODE_BASE} AS builder
 
