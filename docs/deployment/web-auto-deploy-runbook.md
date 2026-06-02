@@ -115,6 +115,7 @@ PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/
 ```
 
 如果上述配置确认无误但 ACR 没有新构建记录，可再次向 `dev` 推送一个小提交来重新触发 GitHub push 事件。
+重新触发后，构建日志里的基础镜像地址应显示为 `acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com`。
 
 ## 4. 服务器目录
 
