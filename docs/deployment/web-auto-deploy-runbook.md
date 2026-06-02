@@ -114,6 +114,8 @@ PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/
 最新提交: 以 GitHub dev 当前 SHA 为准
 ```
 
+如果上述配置确认无误但 ACR 没有新构建记录，可再次向 `dev` 推送一个小提交来重新触发 GitHub push 事件。
+
 ## 4. 服务器目录
 
 建议目录：
