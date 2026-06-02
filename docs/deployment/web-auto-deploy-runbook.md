@@ -65,6 +65,7 @@ pixelle-video-api
 ```text
 Dockerfile: Dockerfile.web
 构建上下文: /
+构建架构: linux/amd64
 构建参数:
   NODE_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/node:20-alpine
   NGINX_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/nginx:alpine
@@ -82,6 +83,7 @@ Webhook:
 ```text
 Dockerfile: Dockerfile.api
 构建上下文: /
+构建架构: linux/amd64
 构建参数:
   PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/python:3.11-slim
   USE_CN_MIRROR=true
@@ -102,6 +104,15 @@ PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/
 如果你的基础镜像仓库 tag 不是完整版本，例如 nginx 只有 `alpine`，就把 `NGINX_BASE` 改成实际存在的 tag。
 
 两个仓库的 tag 规则必须一致。服务器会等同一个 tag 的 web/api 两个镜像都收到通知后才部署。
+
+如果 ACR 没有出现最新 tag，先检查构建规则是否绑定：
+
+```text
+代码源: rankai/Pixelle-Video
+分支: dev
+触发方式: 代码变更自动构建 / push
+最新提交: 以 GitHub dev 当前 SHA 为准
+```
 
 ## 4. 服务器目录
 

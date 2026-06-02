@@ -70,6 +70,7 @@ ${Branch}-${CommitID}
 ```text
 Dockerfile: Dockerfile.web
 构建上下文: /
+构建架构: linux/amd64
 构建参数:
   NODE_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/node:20-alpine
   NGINX_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/nginx:alpine
@@ -84,6 +85,7 @@ Webhook: https://你的域名/deploy?token=DEPLOY_WEBHOOK_SECRET
 ```text
 Dockerfile: Dockerfile.api
 构建上下文: /
+构建架构: linux/amd64
 构建参数:
   PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/python:3.11-slim
   USE_CN_MIRROR=true
@@ -99,6 +101,15 @@ PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/
 ```
 
 镜像 tag 必须按 ACR 实际已有版本填写；例如 nginx 仓库如果只有 `alpine`，就配置为 `.../nginx:alpine`。
+
+如果 ACR 没有产生最新 tag，先检查构建规则是否绑定当前仓库和分支：
+
+```text
+代码源: rankai/Pixelle-Video
+分支: dev
+触发方式: 代码变更自动构建 / push
+最新提交: 以 GitHub dev 当前 SHA 为准
+```
 
 ## Webhook 行为
 
