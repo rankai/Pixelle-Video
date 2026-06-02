@@ -1,6 +1,6 @@
 # Pixelle-Video FastAPI production image.
 
-ARG PYTHON_BASE=python:3.11-slim
+ARG PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/python:3.11-slim
 
 FROM ${PYTHON_BASE}
 

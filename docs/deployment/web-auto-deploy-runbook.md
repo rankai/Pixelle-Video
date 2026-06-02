@@ -66,8 +66,8 @@ pixelle-video-api
 Dockerfile: Dockerfile.web
 构建上下文: /
 构建参数:
-  NODE_BASE=node:20-alpine
-  NGINX_BASE=nginx:1.27-alpine
+  NODE_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/node:20-alpine
+  NGINX_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/nginx:alpine
   VITE_API_BASE_URL=/api
 Tag 规则:
   ${Branch}-${CommitID}
@@ -83,7 +83,7 @@ Webhook:
 Dockerfile: Dockerfile.api
 构建上下文: /
 构建参数:
-  PYTHON_BASE=python:3.11-slim
+  PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/python:3.11-slim
   USE_CN_MIRROR=true
 Tag 规则:
   ${Branch}-${CommitID}
@@ -95,7 +95,7 @@ Webhook:
 
 ```text
 NODE_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/node:20-alpine
-NGINX_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/nginx:1.27-alpine
+NGINX_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/nginx:alpine
 PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/python:3.11-slim
 ```
 
@@ -134,9 +134,9 @@ WEB_PORT=18080
 API_PORT=8000
 TZ=Asia/Shanghai
 VITE_API_BASE_URL=/api
-NODE_BASE=node:20-alpine
-NGINX_BASE=nginx:1.27-alpine
-PYTHON_BASE=python:3.11-slim
+NODE_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/node:20-alpine
+NGINX_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/nginx:alpine
+PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/python:3.11-slim
 
 ACR_USERNAME=你的 ACR 用户名
 ACR_PASSWORD=你的 ACR 密码
