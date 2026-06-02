@@ -72,8 +72,8 @@ Dockerfile: Dockerfile.web
 构建上下文: /
 构建架构: linux/amd64
 构建参数:
-  NODE_BASE=registry.cn-hangzhou.aliyuncs.com/library/node:20-alpine
-  NGINX_BASE=registry.cn-hangzhou.aliyuncs.com/library/nginx:alpine
+  NODE_BASE=node:20-alpine
+  NGINX_BASE=nginx:alpine
   VITE_API_BASE_URL=/api
 Webhook: https://你的域名/deploy?token=DEPLOY_WEBHOOK_SECRET
 ```
@@ -87,17 +87,17 @@ Dockerfile: Dockerfile.api
 构建上下文: /
 构建架构: linux/amd64
 构建参数:
-  PYTHON_BASE=registry.cn-hangzhou.aliyuncs.com/library/python:3.11-slim
+  PYTHON_BASE=python:3.11-slim
   USE_CN_MIRROR=true
 Webhook: https://你的域名/deploy?token=DEPLOY_WEBHOOK_SECRET
 ```
 
-如果构建机访问 Docker Hub 超时，基础镜像参数使用阿里云 ACR 内已有的基础镜像：
+ACR 构建规则里按 geo-platform 的方式使用构建参数覆盖基础镜像：
 
 ```text
-NODE_BASE=registry.cn-hangzhou.aliyuncs.com/library/node:20-alpine
-NGINX_BASE=registry.cn-hangzhou.aliyuncs.com/library/nginx:alpine
-PYTHON_BASE=registry.cn-hangzhou.aliyuncs.com/library/python:3.11-slim
+NODE_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/node:20-alpine
+NGINX_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/nginx:alpine
+PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/python:3.11-slim
 ```
 
 镜像 tag 必须按 ACR 实际已有版本填写；例如 nginx 仓库如果只有 `alpine`，就配置为 `.../nginx:alpine`。
@@ -143,9 +143,9 @@ API_PORT=8000
 TZ=Asia/Shanghai
 USE_CN_MIRROR=false
 VITE_API_BASE_URL=/api
-NODE_BASE=registry.cn-hangzhou.aliyuncs.com/library/node:20-alpine
-NGINX_BASE=registry.cn-hangzhou.aliyuncs.com/library/nginx:alpine
-PYTHON_BASE=registry.cn-hangzhou.aliyuncs.com/library/python:3.11-slim
+NODE_BASE=node:20-alpine
+NGINX_BASE=nginx:alpine
+PYTHON_BASE=python:3.11-slim
 
 ACR_USERNAME=
 ACR_PASSWORD=

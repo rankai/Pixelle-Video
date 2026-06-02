@@ -25,7 +25,7 @@ services:
       context: .
       dockerfile: Dockerfile.api
       args:
-        PYTHON_BASE: ${PYTHON_BASE:-registry.cn-hangzhou.aliyuncs.com/library/python:3.11-slim}
+        PYTHON_BASE: ${PYTHON_BASE:-python:3.11-slim}
         USE_CN_MIRROR: ${USE_CN_MIRROR:-false}
         IMAGE_TAG: ${IMAGE_TAG:-latest}
         GIT_COMMIT: ${GIT_COMMIT:-unknown}
@@ -67,8 +67,8 @@ services:
       context: .
       dockerfile: Dockerfile.web
       args:
-        NODE_BASE: ${NODE_BASE:-registry.cn-hangzhou.aliyuncs.com/library/node:20-alpine}
-        NGINX_BASE: ${NGINX_BASE:-registry.cn-hangzhou.aliyuncs.com/library/nginx:alpine}
+        NODE_BASE: ${NODE_BASE:-node:20-alpine}
+        NGINX_BASE: ${NGINX_BASE:-nginx:alpine}
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
         IMAGE_TAG: ${IMAGE_TAG:-latest}
         GIT_COMMIT: ${GIT_COMMIT:-unknown}
@@ -101,7 +101,7 @@ services:
       context: .
       dockerfile: Dockerfile.webhook
       args:
-        NODE_BASE: ${NODE_BASE:-registry.cn-hangzhou.aliyuncs.com/library/node:20-alpine}
+        NODE_BASE: ${NODE_BASE:-node:20-alpine}
     container_name: pixelle-webhook
     network_mode: host
     volumes:
