@@ -26,7 +26,7 @@ services:
       dockerfile: Dockerfile.api
       args:
         PYTHON_BASE: ${PYTHON_BASE:-python:3.11-slim}
-        USE_CN_MIRROR: ${USE_CN_MIRROR:-false}
+        USE_CN_MIRROR: ${USE_CN_MIRROR:-true}
         IMAGE_TAG: ${IMAGE_TAG:-latest}
         GIT_COMMIT: ${GIT_COMMIT:-unknown}
         BUILD_TIME: ${BUILD_TIME:-unknown}
