@@ -75,7 +75,7 @@ Webhook:
   https://你的域名/deploy?token=DEPLOY_WEBHOOK_SECRET
 ```
 
-注意：`pixelle-video-web` 不能使用根目录 `Dockerfile`。根 `Dockerfile` 是旧的一体化 Python 镜像入口，会拉取 `python:3.11-slim`，也不会构建 React 前端。如果 ACR 日志里出现 `FROM python:3.11-slim`，说明 web 仓库的 Dockerfile 路径配置错了。
+建议显式配置 `Dockerfile.web`。为了兼容 ACR 默认读取根目录 `Dockerfile` 的情况，根 `Dockerfile` 也已经改为 React Web 镜像入口。旧的一体化 Python 镜像入口保留在 `Dockerfile.legacy`。
 
 `pixelle-video-api`：
 

@@ -77,7 +77,7 @@ Dockerfile: Dockerfile.web
 Webhook: https://你的域名/deploy?token=DEPLOY_WEBHOOK_SECRET
 ```
 
-注意：web 镜像必须使用 `Dockerfile.web`。如果 ACR 日志显示正在拉取 `python:3.11-slim`，说明 web 仓库误用了根目录 `Dockerfile`，需要先改 ACR 仓库的 Dockerfile 路径。
+建议 web 镜像显式使用 `Dockerfile.web`。为了兼容 ACR 默认读取根目录 `Dockerfile` 的情况，根 `Dockerfile` 也已经改为 React Web 镜像入口。旧的一体化 Python 镜像入口保留在 `Dockerfile.legacy`。
 
 `pixelle-video-api`：
 

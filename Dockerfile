@@ -1,78 +1,38 @@
-# Pixelle-Video Docker Image
-# Based on Python 3.11 slim for smaller image size
+# Pixelle-Video React web production image.
+# The root Dockerfile intentionally builds the web image because ACR defaults
+# to `Dockerfile` when the Dockerfile path is not set. The legacy all-in-one
+# Python image is kept at Dockerfile.legacy.
 
-ARG PYTHON_BASE=python:3.11-slim
+ARG NODE_BASE=node:20-alpine
+ARG NGINX_BASE=nginx:1.27-alpine
 
-FROM ${PYTHON_BASE}
+FROM ${NODE_BASE} AS builder
 
-# Build arguments for mirror configuration
-# USE_CN_MIRROR: whether to use China mirrors (true/false)
-ARG USE_CN_MIRROR=false
+ARG VITE_API_BASE_URL=/api
+ARG IMAGE_TAG=latest
+ARG GIT_COMMIT=unknown
+ARG BUILD_TIME=unknown
 
-# Set working directory
-WORKDIR /app
+WORKDIR /app/desktop
 
-# Replace apt sources with China mirrors if needed
-# Debian 12 uses DEB822 format in /etc/apt/sources.list.d/debian.sources
-RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
-    sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources && \
-    sed -i 's|security.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources; \
-    fi
+COPY desktop/package*.json ./
+RUN npm ci
 
-# Install system dependencies
-# - curl: for health checks and downloads
-# - ffmpeg: for video/audio processing
-# - fonts-noto-cjk: for CJK character support
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    ffmpeg \
-    fonts-noto-cjk \
-    && rm -rf /var/lib/apt/lists/*
+COPY desktop ./
+RUN VITE_API_BASE_URL="${VITE_API_BASE_URL}" npm run build
 
-# Install uv package manager
-# For China: use pip to install uv from mirror (faster and more stable)
-# For International: use official installer script
-RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
-        pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple/ uv; \
-    else \
-        curl -LsSf https://astral.sh/uv/install.sh | sh; \
-    fi
-ENV PATH="/root/.local/bin:$PATH"
-RUN uv --version
+FROM ${NGINX_BASE}
 
-# Copy dependency files and source code for building
-# Note: pixelle_video is needed for hatchling to build the package
-COPY pyproject.toml uv.lock README.md ./
-COPY pixelle_video ./pixelle_video
+ARG IMAGE_TAG=latest
+ARG GIT_COMMIT=unknown
+ARG BUILD_TIME=unknown
 
-# Create virtual environment and install dependencies
-# Use -i flag to specify mirror when USE_CN_MIRROR=true
-RUN export UV_HTTP_TIMEOUT=300 && \
-    uv venv && \
-    if [ "$USE_CN_MIRROR" = "true" ]; then \
-        uv pip install -e . -i https://pypi.tuna.tsinghua.edu.cn/simple; \
-    else \
-        uv pip install -e .; \
-    fi && \
-    uv run playwright install --with-deps chromium
+LABEL org.opencontainers.image.title="pixelle-video-web" \
+      org.opencontainers.image.version="${IMAGE_TAG}" \
+      org.opencontainers.image.revision="${GIT_COMMIT}" \
+      org.opencontainers.image.created="${BUILD_TIME}"
 
-# Copy rest of application code
-COPY api ./api
-COPY web ./web
-COPY bgm ./bgm
-COPY templates ./templates
-COPY workflows ./workflows
-COPY resources ./resources
-COPY docs/images ./docs/images
-COPY docs/FAQ.md docs/FAQ_CN.md ./docs/
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/desktop/dist /usr/share/nginx/html
 
-# Create output, data and temp directories
-RUN mkdir -p /app/output /app/data /app/temp
-
-# Expose ports
-# 8000: API service
-# 8501: Web UI service
-EXPOSE 8000 8501
-
-# Default command (can be overridden in docker-compose)
-CMD ["uv", "run", "python", "api/app.py"]
+EXPOSE 8080
