@@ -1,7 +1,9 @@
 # Pixelle-Video Docker Image
 # Based on Python 3.11 slim for smaller image size
 
-FROM python:3.11-slim
+ARG PYTHON_BASE=python:3.11-slim
+
+FROM ${PYTHON_BASE}
 
 # Build arguments for mirror configuration
 # USE_CN_MIRROR: whether to use China mirrors (true/false)
@@ -21,7 +23,7 @@ RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
 # - curl: for health checks and downloads
 # - ffmpeg: for video/audio processing
 # - fonts-noto-cjk: for CJK character support
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ffmpeg \
     fonts-noto-cjk \
@@ -62,7 +64,7 @@ COPY templates ./templates
 COPY workflows ./workflows
 COPY resources ./resources
 COPY docs/images ./docs/images
-COPY docs/FAQ*.md ./docs/
+COPY docs/FAQ.md docs/FAQ_CN.md ./docs/
 
 # Create output, data and temp directories
 RUN mkdir -p /app/output /app/data /app/temp
@@ -74,4 +76,3 @@ EXPOSE 8000 8501
 
 # Default command (can be overridden in docker-compose)
 CMD ["uv", "run", "python", "api/app.py"]
-

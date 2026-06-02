@@ -77,6 +77,8 @@ Dockerfile: Dockerfile.web
 Webhook: https://你的域名/deploy?token=DEPLOY_WEBHOOK_SECRET
 ```
 
+注意：web 镜像必须使用 `Dockerfile.web`。如果 ACR 日志显示正在拉取 `python:3.11-slim`，说明 web 仓库误用了根目录 `Dockerfile`，需要先改 ACR 仓库的 Dockerfile 路径。
+
 `pixelle-video-api`：
 
 ```text
@@ -87,6 +89,16 @@ Dockerfile: Dockerfile.api
   USE_CN_MIRROR=true
 Webhook: https://你的域名/deploy?token=DEPLOY_WEBHOOK_SECRET
 ```
+
+如果构建机访问 Docker Hub 超时，基础镜像参数使用阿里云 ACR 内已有的基础镜像：
+
+```text
+NODE_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/node:20-alpine
+NGINX_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/nginx:1.27-alpine
+PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/python:3.11-slim
+```
+
+镜像 tag 必须按 ACR 实际已有版本填写；例如 nginx 仓库如果只有 `alpine`，就配置为 `.../nginx:alpine`。
 
 ## Webhook 行为
 

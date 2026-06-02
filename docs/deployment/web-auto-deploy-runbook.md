@@ -75,6 +75,8 @@ Webhook:
   https://你的域名/deploy?token=DEPLOY_WEBHOOK_SECRET
 ```
 
+注意：`pixelle-video-web` 不能使用根目录 `Dockerfile`。根 `Dockerfile` 是旧的一体化 Python 镜像入口，会拉取 `python:3.11-slim`，也不会构建 React 前端。如果 ACR 日志里出现 `FROM python:3.11-slim`，说明 web 仓库的 Dockerfile 路径配置错了。
+
 `pixelle-video-api`：
 
 ```text
@@ -88,6 +90,16 @@ Tag 规则:
 Webhook:
   https://你的域名/deploy?token=DEPLOY_WEBHOOK_SECRET
 ```
+
+如果 ACR 构建访问 Docker Hub 超时，把基础镜像参数改成已同步到阿里云 ACR 的镜像地址，例如：
+
+```text
+NODE_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/node:20-alpine
+NGINX_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/nginx:1.27-alpine
+PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/python:3.11-slim
+```
+
+如果你的基础镜像仓库 tag 不是完整版本，例如 nginx 只有 `alpine`，就把 `NGINX_BASE` 改成实际存在的 tag。
 
 两个仓库的 tag 规则必须一致。服务器会等同一个 tag 的 web/api 两个镜像都收到通知后才部署。
 

@@ -55,7 +55,7 @@ COPY templates ./templates
 COPY workflows ./workflows
 COPY resources ./resources
 COPY docs/images ./docs/images
-COPY docs/FAQ*.md ./docs/
+COPY docs/FAQ.md docs/FAQ_CN.md ./docs/
 
 RUN mkdir -p /app/data /app/output /app/temp
 
