@@ -15,7 +15,7 @@ ARG BUILD_TIME=unknown
 
 WORKDIR /app/desktop
 
-COPY desktop/package*.json ./
+COPY desktop/package.json desktop/package-lock.json ./
 RUN npm ci
 
 COPY desktop ./
