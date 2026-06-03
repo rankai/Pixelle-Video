@@ -62,7 +62,7 @@ if [ "${PIXELLE_SKIP_PULL:-false}" != "true" ]; then
   compose pull api web
 fi
 
-compose up -d --remove-orphans
+compose up -d --remove-orphans api web
 
 health_check "http://127.0.0.1:${API_PORT}/health" "api"
 health_check "http://127.0.0.1:${WEB_PORT}/health" "web"

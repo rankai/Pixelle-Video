@@ -12,6 +12,8 @@ fi
 
 cd "$(dirname "$0")/.."
 
+REQUESTED_IMAGE_TAG="${IMAGE_TAG:-}"
+
 set -a
 if [ -f .env ]; then
   # shellcheck disable=SC1091
@@ -20,6 +22,10 @@ else
   echo "==> .env not found, using environment/default values"
 fi
 set +a
+
+if [ -n "$REQUESTED_IMAGE_TAG" ]; then
+  IMAGE_TAG="$REQUESTED_IMAGE_TAG"
+fi
 
 TAG="${IMAGE_TAG:-latest}"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
@@ -88,7 +94,7 @@ else
 fi
 
 echo "==> Starting services..."
-compose up -d --remove-orphans
+compose up -d --remove-orphans api web
 
 echo "==> Waiting for API health..."
 if ! health_check "http://127.0.0.1:${API_PORT}/health" "api"; then
