@@ -1,1 +1,4 @@
+-r requirements-streamlit-data.txt
+-r requirements-streamlit-viz.txt
+-r requirements-streamlit-core.txt
 streamlit>=1.40.0
