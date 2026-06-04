@@ -1,0 +1,81 @@
+# Pixelle-Video legacy Streamlit production image.
+
+ARG PYTHON_BASE=python:3.11-slim
+
+FROM --platform=linux/amd64 ${PYTHON_BASE}
+
+ARG USE_CN_MIRROR=true
+ARG IMAGE_TAG=latest
+ARG GIT_COMMIT=unknown
+ARG BUILD_TIME=unknown
+
+LABEL org.opencontainers.image.title="pixelle-video-streamlit" \
+      org.opencontainers.image.version="${IMAGE_TAG}" \
+      org.opencontainers.image.revision="${GIT_COMMIT}" \
+      org.opencontainers.image.created="${BUILD_TIME}"
+
+WORKDIR /app
+
+RUN echo "Build architecture: $(uname -m)"
+
+RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
+      sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources && \
+      sed -i 's|security.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources; \
+    fi
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      curl \
+      ffmpeg \
+      fonts-noto-cjk \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python -m venv .venv && \
+    if [ "$USE_CN_MIRROR" = "true" ]; then \
+      .venv/bin/pip install --no-cache-dir --upgrade \
+        -i https://mirrors.aliyun.com/pypi/simple/ \
+        pip setuptools wheel; \
+    else \
+      .venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel; \
+    fi
+
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_DEFAULT_TIMEOUT=300 \
+    STREAMLIT_SERVER_HEADLESS=true \
+    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+
+COPY requirements-api.txt requirements-streamlit.txt ./
+
+RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
+      pip install --no-cache-dir -r requirements-streamlit.txt -i https://mirrors.aliyun.com/pypi/simple/; \
+    else \
+      pip install --no-cache-dir -r requirements-streamlit.txt; \
+    fi
+
+COPY pyproject.toml README.md ./
+COPY pixelle_video ./pixelle_video
+
+RUN pip install --no-cache-dir --no-build-isolation --no-deps -e .
+
+RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
+      PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright \
+        python -m playwright install --with-deps chromium; \
+    else \
+      python -m playwright install --with-deps chromium; \
+    fi
+
+COPY web ./web
+COPY api ./api
+COPY bgm ./bgm
+COPY templates ./templates
+COPY workflows ./workflows
+COPY resources ./resources
+COPY docs/images ./docs/images
+COPY docs/FAQ.md docs/FAQ_CN.md ./docs/
+
+RUN mkdir -p /app/data /app/output /app/temp
+
+EXPOSE 8501
+
+CMD ["streamlit", "run", "web/app.py", "--server.port", "8501", "--server.address", "0.0.0.0"]

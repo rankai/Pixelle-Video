@@ -8,10 +8,13 @@
 git push dev
   -> GitHub Actions 发送“代码已推送，ACR 构建中”飞书通知
   -> ACR 自动构建 pixelle-video-web / pixelle-video-api
+  -> 可选：ACR 自动构建 pixelle-video-streamlit
   -> ACR webhook 请求服务器 /deploy?token=...
   -> pixelle-webhook 等同一 tag 的 web/api 都完成
+  -> 可选：DEPLOY_STREAMLIT=true 时也等待 streamlit
   -> pixelle-webhook 执行 scripts/deploy.sh
   -> docker compose pull api web
+  -> 可选：DEPLOY_STREAMLIT=true 时同步 pull streamlit
   -> docker compose up -d
   -> 健康检查
   -> deploy.sh 发送部署成功/失败飞书通知
@@ -51,7 +54,7 @@ FEISHU_WEBHOOK_URL=飞书机器人 Webhook
 
 ## 3. ACR 配置
 
-创建两个镜像仓库：
+创建两个必需镜像仓库：
 
 ```text
 pixelle-video-web
@@ -93,6 +96,27 @@ Webhook:
   https://你的域名/deploy?token=DEPLOY_WEBHOOK_SECRET
 ```
 
+可选旧页面仓库：
+
+```text
+pixelle-video-streamlit
+```
+
+`pixelle-video-streamlit`：
+
+```text
+Dockerfile: Dockerfile.streamlit
+构建上下文: /
+构建架构: linux/amd64
+构建参数:
+  PYTHON_BASE=python:3.11-slim
+  USE_CN_MIRROR=true
+Tag 规则:
+  ${Branch}-${CommitID}
+Webhook:
+  仅 DEPLOY_STREAMLIT=true 时配置同一个 webhook
+```
+
 ACR 构建规则里按 geo-platform 的方式使用构建参数覆盖基础镜像：
 
 ```text
@@ -103,7 +127,9 @@ PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/
 
 如果你的基础镜像仓库 tag 不是完整版本，例如 nginx 只有 `alpine`，就把 `NGINX_BASE` 改成实际存在的 tag。
 
-两个仓库的 tag 规则必须一致。服务器会等同一个 tag 的 web/api 两个镜像都收到通知后才部署。
+web/api 两个仓库的 tag 规则必须一致。服务器会等同一个 tag 的 web/api 两个镜像都收到通知后才部署。
+
+如果启用旧 Streamlit 页面，streamlit 仓库也必须使用同一 tag 规则，并配置同一个 webhook。否则 webhook 会等待 5 分钟后超时强制触发部署。
 
 如果 ACR 没有出现最新 tag，先检查构建规则是否绑定：
 
@@ -146,11 +172,15 @@ COMPOSE_PROJECT_NAME=pixelle-video
 WEB_HOST=127.0.0.1
 WEB_PORT=18080
 API_PORT=8000
+STREAMLIT_HOST=127.0.0.1
+STREAMLIT_PORT=8501
 TZ=Asia/Shanghai
+USE_CN_MIRROR=true
 VITE_API_BASE_URL=/api
 NODE_BASE=node:20-alpine
 NGINX_BASE=nginx:alpine
 PYTHON_BASE=python:3.11-slim
+DEPLOY_STREAMLIT=false
 
 ACR_USERNAME=你的 ACR 用户名
 ACR_PASSWORD=你的 ACR 密码
@@ -163,6 +193,7 @@ WEBHOOK_PORT=9877
 端口说明：
 
 - `18080` 是 Pixelle Web 宿主机端口，避开 geo-platform 已使用的 `8080`。
+- `8501` 是旧 Streamlit 页面宿主机端口，仅 `DEPLOY_STREAMLIT=true` 时部署。
 - `9877` 是 Pixelle webhook 宿主机端口，避开 geo-platform 已使用的 `9876`。
 - `WEB_HOST=127.0.0.1` 表示只允许宝塔在服务器本机反代访问，不直接暴露 Docker 端口到公网。
 
@@ -193,6 +224,13 @@ IMAGE_TAG=dev-a1b2c3d ./scripts/deploy.sh
 curl http://127.0.0.1:18080/health
 curl http://127.0.0.1:18080/api/tasks
 curl http://127.0.0.1:18080/api/desktop/config
+```
+
+如果需要旧 Streamlit 页面：
+
+```bash
+DEPLOY_STREAMLIT=true IMAGE_TAG=dev-a1b2c3d ./scripts/deploy.sh
+curl http://127.0.0.1:8501/_stcore/health
 ```
 
 ## 6. 宝塔配置
@@ -229,6 +267,19 @@ location /deploy {
   proxy_set_header Host $host;
   proxy_set_header X-Real-IP $remote_addr;
   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+```
+
+可选旧 Streamlit 页面反代：
+
+```nginx
+location /streamlit/ {
+  proxy_pass http://127.0.0.1:8501/;
+  proxy_set_header Host $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header Upgrade $http_upgrade;
+  proxy_set_header Connection "upgrade";
 }
 ```
 

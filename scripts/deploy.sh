@@ -13,6 +13,8 @@ fi
 cd "$(dirname "$0")/.."
 
 REQUESTED_IMAGE_TAG="${IMAGE_TAG:-}"
+REQUESTED_DEPLOY_STREAMLIT="${DEPLOY_STREAMLIT:-}"
+REQUESTED_STREAMLIT_PORT="${STREAMLIT_PORT:-}"
 
 set -a
 if [ -f .env ]; then
@@ -26,12 +28,20 @@ set +a
 if [ -n "$REQUESTED_IMAGE_TAG" ]; then
   IMAGE_TAG="$REQUESTED_IMAGE_TAG"
 fi
+if [ -n "$REQUESTED_DEPLOY_STREAMLIT" ]; then
+  DEPLOY_STREAMLIT="$REQUESTED_DEPLOY_STREAMLIT"
+fi
+if [ -n "$REQUESTED_STREAMLIT_PORT" ]; then
+  STREAMLIT_PORT="$REQUESTED_STREAMLIT_PORT"
+fi
 
 TAG="${IMAGE_TAG:-latest}"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
 REGISTRY="${REGISTRY:?REGISTRY is required. Copy .env.example to .env and configure REGISTRY.}"
 WEB_PORT="${WEB_PORT:-18080}"
 API_PORT="${API_PORT:-8000}"
+STREAMLIT_PORT="${STREAMLIT_PORT:-8501}"
+DEPLOY_STREAMLIT="${DEPLOY_STREAMLIT:-false}"
 
 export IMAGE_TAG="$TAG"
 export GIT_COMMIT="${GIT_COMMIT:-$(git rev-parse HEAD 2>/dev/null || echo unknown)}"
@@ -80,6 +90,11 @@ trap handle_error ERR
 echo "==> Deploying Pixelle-Video tag: $TAG"
 echo "==> Registry: $REGISTRY"
 
+SERVICES=(api web)
+if [ "$DEPLOY_STREAMLIT" = "true" ]; then
+  SERVICES+=(streamlit)
+fi
+
 if [ -n "${ACR_USERNAME:-}" ] && [ -n "${ACR_PASSWORD:-}" ]; then
   REGISTRY_HOST="${REGISTRY%%/*}"
   echo "$ACR_PASSWORD" | docker login "$REGISTRY_HOST" -u "$ACR_USERNAME" --password-stdin
@@ -88,13 +103,13 @@ fi
 
 if [ "${PIXELLE_SKIP_PULL:-false}" != "true" ]; then
   echo "==> Pulling images..."
-  compose pull api web
+  compose pull "${SERVICES[@]}"
 else
   echo "==> PIXELLE_SKIP_PULL=true, skip docker pull"
 fi
 
 echo "==> Starting services..."
-compose up -d --remove-orphans api web
+compose up -d --remove-orphans "${SERVICES[@]}"
 
 echo "==> Waiting for API health..."
 if ! health_check "http://127.0.0.1:${API_PORT}/health" "api"; then
@@ -112,6 +127,17 @@ if ! health_check "http://127.0.0.1:${WEB_PORT}/health" "web"; then
   HANDLED_FAILURE=true
   feishu_notify "❌ Pixelle-Video 部署失败，已尝试回滚" "red" "**失败 Tag**: $TAG\n**Commit**: ${GIT_COMMIT:-unknown}\nWeb 健康检查失败"
   exit 1
+fi
+
+if [ "$DEPLOY_STREAMLIT" = "true" ]; then
+  echo "==> Waiting for Streamlit health..."
+  if ! health_check "http://127.0.0.1:${STREAMLIT_PORT}/_stcore/health" "streamlit"; then
+    echo "==> Streamlit health check failed"
+    ./scripts/rollback.sh || true
+    HANDLED_FAILURE=true
+    feishu_notify "❌ Pixelle-Video 部署失败，已尝试回滚" "red" "**失败 Tag**: $TAG\n**Commit**: ${GIT_COMMIT:-unknown}\nStreamlit 健康检查失败"
+    exit 1
+  fi
 fi
 
 echo "$TAG" > .last_good_tag

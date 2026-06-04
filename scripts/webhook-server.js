@@ -25,6 +25,9 @@ if (!SECRET) {
 }
 
 const EXPECTED_REPOS = ['pixelle-video-web', 'pixelle-video-api']
+if (process.env.DEPLOY_STREAMLIT === 'true') {
+  EXPECTED_REPOS.push('pixelle-video-streamlit')
+}
 const pendingByTag = new Map()
 
 function runDeploy(imageTag) {

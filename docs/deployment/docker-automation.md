@@ -16,6 +16,7 @@
 ```text
 pixelle-web      React 静态页面 + Nginx，宿主机 127.0.0.1:18080
 pixelle-api      FastAPI 后端，宿主机 127.0.0.1:8000
+pixelle-streamlit 旧 Streamlit 页面，可选启动，宿主机 127.0.0.1:8501
 pixelle-webhook  接收 ACR webhook，宿主机 0.0.0.0:9877/deploy
 ```
 
@@ -24,6 +25,7 @@ pixelle-webhook  接收 ACR webhook，宿主机 0.0.0.0:9877/deploy
 ```text
 web: 8080
 api: 8000
+streamlit: 8501
 webhook: 9877
 ```
 
@@ -32,6 +34,7 @@ webhook: 9877
 ```text
 WEB_PORT=18080
 API_PORT=8000
+STREAMLIT_PORT=8501
 WEBHOOK_PORT=9877
 ```
 
@@ -42,6 +45,7 @@ WEBHOOK_PORT=9877
 ```text
 Dockerfile.api
 Dockerfile.web
+Dockerfile.streamlit
 Dockerfile.webhook
 docker-compose.prod.yml
 scripts/deploy.sh
@@ -57,6 +61,7 @@ docs/deployment/web-auto-deploy-runbook.md
 ```text
 acr-xiaojuntech-registry.cn-beijing.cr.aliyuncs.com/xiaojuntech/pixelle-video-web:${IMAGE_TAG}
 acr-xiaojuntech-registry.cn-beijing.cr.aliyuncs.com/xiaojuntech/pixelle-video-api:${IMAGE_TAG}
+acr-xiaojuntech-registry.cn-beijing.cr.aliyuncs.com/xiaojuntech/pixelle-video-streamlit:${IMAGE_TAG}
 ```
 
 两个 ACR 仓库都监听 GitHub `dev` 分支，tag 规则一致：
@@ -92,6 +97,28 @@ Dockerfile: Dockerfile.api
 Webhook: https://你的域名/deploy?token=DEPLOY_WEBHOOK_SECRET
 ```
 
+`pixelle-video-streamlit`（可选旧页面）：
+
+```text
+Dockerfile: Dockerfile.streamlit
+构建上下文: /
+构建架构: linux/amd64
+构建参数:
+  PYTHON_BASE=python:3.11-slim
+  USE_CN_MIRROR=true
+Webhook: 仅当 DEPLOY_STREAMLIT=true 时配置同一个 webhook
+```
+
+默认生产部署不等待、不拉取、不启动 Streamlit 镜像。需要旧页面时：
+
+```env
+DEPLOY_STREAMLIT=true
+STREAMLIT_HOST=127.0.0.1
+STREAMLIT_PORT=8501
+```
+
+并在 ACR 建立 `pixelle-video-streamlit` 仓库，tag 规则与 web/api 一致。如果开启 `DEPLOY_STREAMLIT=true`，必须给 streamlit 仓库也配置同一个 webhook，否则 webhook 会等待 5 分钟后才超时触发。
+
 ACR 构建规则里按 geo-platform 的方式使用构建参数覆盖基础镜像：
 
 ```text
@@ -121,6 +148,7 @@ PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/
 - 只处理：
   - `pixelle-video-web`
   - `pixelle-video-api`
+  - `pixelle-video-streamlit`（仅 `DEPLOY_STREAMLIT=true` 时）
 - 同一 tag 收齐两个镜像后执行：
 
 ```bash
@@ -140,12 +168,15 @@ COMPOSE_PROJECT_NAME=pixelle-video
 WEB_HOST=127.0.0.1
 WEB_PORT=18080
 API_PORT=8000
+STREAMLIT_HOST=127.0.0.1
+STREAMLIT_PORT=8501
 TZ=Asia/Shanghai
 USE_CN_MIRROR=true
 VITE_API_BASE_URL=/api
 NODE_BASE=node:20-alpine
 NGINX_BASE=nginx:alpine
 PYTHON_BASE=python:3.11-slim
+DEPLOY_STREAMLIT=false
 
 ACR_USERNAME=
 ACR_PASSWORD=
@@ -161,6 +192,12 @@ WEBHOOK_PORT=9877
 
 ```text
 http://127.0.0.1:18080
+```
+
+旧 Streamlit 页面（可选）：
+
+```text
+http://127.0.0.1:8501
 ```
 
 ACR webhook：
@@ -202,6 +239,13 @@ IMAGE_TAG=dev-xxxxxxx ./scripts/deploy.sh
 ```bash
 curl http://127.0.0.1:18080/health
 curl http://127.0.0.1:18080/api/tasks
+```
+
+手动启动旧 Streamlit 页面：
+
+```bash
+DEPLOY_STREAMLIT=true IMAGE_TAG=dev-xxxxxxx ./scripts/deploy.sh
+curl http://127.0.0.1:8501/_stcore/health
 ```
 
 ## 日常发布
