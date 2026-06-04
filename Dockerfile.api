@@ -41,9 +41,10 @@ RUN python -m venv .venv && \
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PIP_DEFAULT_TIMEOUT=300
+    PIP_DEFAULT_TIMEOUT=300 \
+    PIP_RETRIES=10
 
-COPY requirements-api-server.txt requirements-api-media.txt requirements-api-ai.txt requirements-api.txt ./
+COPY requirements-api-server.txt requirements-api-media.txt requirements-api-ai.txt requirements-api-browser.txt requirements-api.txt ./
 
 RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
       pip install --no-cache-dir -r requirements-api-server.txt -i https://mirrors.aliyun.com/pypi/simple/; \
@@ -61,6 +62,12 @@ RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
       pip install --no-cache-dir -r requirements-api-ai.txt -i https://mirrors.aliyun.com/pypi/simple/; \
     else \
       pip install --no-cache-dir -r requirements-api-ai.txt; \
+    fi
+
+RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
+      pip install --no-cache-dir -r requirements-api-browser.txt -i https://mirrors.aliyun.com/pypi/simple/; \
+    else \
+      pip install --no-cache-dir -r requirements-api-browser.txt; \
     fi
 
 RUN if [ "$USE_CN_MIRROR" = "true" ]; then \

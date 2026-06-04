@@ -119,6 +119,8 @@ STREAMLIT_PORT=8501
 
 并在 ACR 建立 `pixelle-video-streamlit` 仓库，tag 规则与 web/api 一致。如果开启 `DEPLOY_STREAMLIT=true`，必须给 streamlit 仓库也配置同一个 webhook，否则 webhook 会等待 5 分钟后才超时触发。
 
+如果构建日志里出现 `manylinux...aarch64`，说明该 ACR 仓库仍在按 ARM64 构建。服务器通常是 x86/amd64 时必须把 ACR 构建规则改为 `linux/amd64`，否则下载包会变慢，镜像也可能无法在服务器运行。
+
 ACR 构建规则里按 geo-platform 的方式使用构建参数覆盖基础镜像：
 
 ```text
