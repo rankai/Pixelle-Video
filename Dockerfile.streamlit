@@ -45,18 +45,31 @@ ENV PATH="/app/.venv/bin:$PATH" \
     STREAMLIT_SERVER_HEADLESS=true \
     STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 
-COPY requirements-api.txt requirements-streamlit.txt ./
+COPY requirements-api-server.txt requirements-api-media.txt requirements-api-ai.txt requirements-api.txt requirements-streamlit.txt ./
+
+RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
+      pip install --no-cache-dir -r requirements-api-server.txt -i https://mirrors.aliyun.com/pypi/simple/; \
+    else \
+      pip install --no-cache-dir -r requirements-api-server.txt; \
+    fi
+
+RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
+      pip install --no-cache-dir -r requirements-api-media.txt -i https://mirrors.aliyun.com/pypi/simple/; \
+    else \
+      pip install --no-cache-dir -r requirements-api-media.txt; \
+    fi
+
+RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
+      pip install --no-cache-dir -r requirements-api-ai.txt -i https://mirrors.aliyun.com/pypi/simple/; \
+    else \
+      pip install --no-cache-dir -r requirements-api-ai.txt; \
+    fi
 
 RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
       pip install --no-cache-dir -r requirements-streamlit.txt -i https://mirrors.aliyun.com/pypi/simple/; \
     else \
       pip install --no-cache-dir -r requirements-streamlit.txt; \
     fi
-
-COPY pyproject.toml README.md ./
-COPY pixelle_video ./pixelle_video
-
-RUN pip install --no-cache-dir --no-build-isolation --no-deps .
 
 RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
       PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright \
@@ -67,6 +80,7 @@ RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
 
 COPY web ./web
 COPY api ./api
+COPY pixelle_video ./pixelle_video
 COPY bgm ./bgm
 COPY templates ./templates
 COPY workflows ./workflows

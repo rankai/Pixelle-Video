@@ -43,18 +43,25 @@ ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_DEFAULT_TIMEOUT=300
 
-COPY requirements-api.txt ./
+COPY requirements-api-server.txt requirements-api-media.txt requirements-api-ai.txt requirements-api.txt ./
 
 RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
-      pip install --no-cache-dir -r requirements-api.txt -i https://mirrors.aliyun.com/pypi/simple/; \
+      pip install --no-cache-dir -r requirements-api-server.txt -i https://mirrors.aliyun.com/pypi/simple/; \
     else \
-      pip install --no-cache-dir -r requirements-api.txt; \
+      pip install --no-cache-dir -r requirements-api-server.txt; \
     fi
 
-COPY pyproject.toml README.md ./
-COPY pixelle_video ./pixelle_video
+RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
+      pip install --no-cache-dir -r requirements-api-media.txt -i https://mirrors.aliyun.com/pypi/simple/; \
+    else \
+      pip install --no-cache-dir -r requirements-api-media.txt; \
+    fi
 
-RUN pip install --no-cache-dir --no-build-isolation --no-deps .
+RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
+      pip install --no-cache-dir -r requirements-api-ai.txt -i https://mirrors.aliyun.com/pypi/simple/; \
+    else \
+      pip install --no-cache-dir -r requirements-api-ai.txt; \
+    fi
 
 RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
       PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright \
@@ -64,6 +71,7 @@ RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
     fi
 
 COPY api ./api
+COPY pixelle_video ./pixelle_video
 COPY bgm ./bgm
 COPY templates ./templates
 COPY workflows ./workflows
