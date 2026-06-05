@@ -59,6 +59,27 @@ def test_ip_broadcast_template_preview_files_exist():
         assert Path(template.preview_image_path).exists()
 
 
+def test_ip_broadcast_templates_use_distinct_local_default_backgrounds():
+    templates = list_ip_broadcast_templates()
+    backgrounds = [Path(template.default_background_path) for template in templates]
+
+    assert len(set(backgrounds)) == len(templates)
+    for background in backgrounds:
+        assert background.exists()
+        assert background.suffix == ".jpg"
+
+
+def test_cover_templates_reference_local_default_backgrounds():
+    for template in list_ip_broadcast_templates():
+        html = Path(template.cover_template_path).read_text()
+        background_path = Path(template.default_background_path)
+        relative_background = f"assets/{background_path.name}"
+
+        assert f"{{{{background={relative_background}}}}}" in html
+        assert "images.unsplash.com" not in html
+        assert "images.pexels.com" not in html
+
+
 def test_build_ass_force_style_uses_selected_template_subtitle_style():
     template = get_ip_broadcast_template("boss_authority")
 
@@ -121,10 +142,10 @@ def test_all_cover_templates_keep_main_text_inside_safe_area():
 def test_boss_clean_cover_keeps_background_visible():
     html = Path(get_ip_broadcast_template("boss_clean").cover_template_path).read_text()
 
-    bg_line = next(line for line in html.splitlines() if "background-image:" in line)
-    assert "rgba(255,255,255,.78)" not in bg_line
-    assert "rgba(255,255,255,.92)" not in bg_line
-    assert "rgba(255,255,255,.22)" in bg_line
+    assert "rgba(255,255,255,.78)" not in html
+    assert "rgba(255,255,255,.92)" not in html
+    assert "rgba(12,15,18,.44)" in html
+    assert "assets/boss_clean_bg.jpg" in html
 
 
 def test_template_card_text_uses_fixed_title_and_description_heights():

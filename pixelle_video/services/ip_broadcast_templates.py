@@ -32,6 +32,7 @@ class IPBroadcastTemplate:
     full_description: str
     cover_template_path: str
     preview_image_path: str
+    default_background_path: str
     subtitle_style: SubtitleStyle
 
 
@@ -45,6 +46,7 @@ _TEMPLATES = [
         full_description="封面标题居中偏上，整体留白更克制；字幕位于画面下方，描边较轻，适合日常知识分享、品牌介绍和稳重口播。",
         cover_template_path=str(_TEMPLATE_ROOT / "boss_clean_cover.html"),
         preview_image_path=str(_TEMPLATE_ROOT / "boss_clean_preview.png"),
+        default_background_path=str(_TEMPLATE_ROOT / "assets/boss_clean_bg.jpg"),
         subtitle_style=SubtitleStyle(font_size=28, outline=2, margin_v=180),
     ),
     IPBroadcastTemplate(
@@ -54,6 +56,7 @@ _TEMPLATES = [
         full_description="封面顶部大标题强化观点；字幕字号更大、描边更重，适合金句、观点输出和强转化口播。",
         cover_template_path=str(_TEMPLATE_ROOT / "boss_authority_cover.html"),
         preview_image_path=str(_TEMPLATE_ROOT / "boss_authority_preview.png"),
+        default_background_path=str(_TEMPLATE_ROOT / "assets/boss_authority_bg.jpg"),
         subtitle_style=SubtitleStyle(font_size=30, outline=3, shadow=0, margin_v=190),
     ),
     IPBroadcastTemplate(
@@ -63,6 +66,7 @@ _TEMPLATES = [
         full_description="封面采用深色访谈质感和低调标题层级；字幕使用暖色主色，适合高客单、咨询服务和专业人设内容。",
         cover_template_path=str(_TEMPLATE_ROOT / "boss_premium_cover.html"),
         preview_image_path=str(_TEMPLATE_ROOT / "boss_premium_preview.png"),
+        default_background_path=str(_TEMPLATE_ROOT / "assets/boss_premium_bg.jpg"),
         subtitle_style=SubtitleStyle(
             font_size=28,
             primary_colour="&H00F7E7B2",
@@ -117,6 +121,7 @@ async def render_ip_broadcast_cover(
     template = get_ip_broadcast_template(template_id)
     output_path = output_path or get_temp_path(f"ipb_cover_{template.template_id}.png")
     generator = HTMLFrameGenerator(template.cover_template_path)
+    background = background or template.default_background_path
     if background and not background.startswith(("http://", "https://", "data:", "file://")):
         background_path = Path(background)
         if background_path.exists():

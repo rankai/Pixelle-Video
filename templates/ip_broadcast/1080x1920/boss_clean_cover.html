@@ -16,7 +16,9 @@
     .bg {
       position: absolute;
       inset: 0;
-      background-image: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.42)), url("{{background}}");
+      background-image:
+        linear-gradient(180deg, rgba(12,15,18,.04), rgba(12,15,18,.44)),
+        url("{{background=assets/boss_clean_bg.jpg}}");
       background-size: cover;
       background-position: center;
     }
@@ -29,11 +31,15 @@
       overflow: hidden;
       padding: 26px 30px;
       border-radius: 28px;
-      background: rgba(255,255,255,.78);
+      border-left: 10px solid #d9a441;
+      background: rgba(17,24,39,.34);
+      backdrop-filter: blur(3px);
       font-size: 44px;
       line-height: 1.18;
       font-weight: 800;
       letter-spacing: 0;
+      color: #fff;
+      text-shadow: 0 4px 18px rgba(0,0,0,.48);
     }
     .subtitle {
       position: absolute;
@@ -41,11 +47,14 @@
       right: 76px;
       bottom: 340px;
       padding: 22px 30px;
-      border-left: 10px solid #1f6feb;
-      background: rgba(255, 255, 255, .72);
+      border-left: 0;
+      border-radius: 22px;
+      background: rgba(17, 24, 39, .36);
+      backdrop-filter: blur(3px);
       font-size: 26px;
       line-height: 1.35;
-      color: #344054;
+      color: #fff;
+      text-shadow: 0 4px 16px rgba(0,0,0,.5);
     }
   </style>
 </head>

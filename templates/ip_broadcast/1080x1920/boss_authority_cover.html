@@ -16,7 +16,9 @@
     .bg {
       position: absolute;
       inset: 0;
-      background-image: linear-gradient(180deg, rgba(17,24,39,.32), rgba(17,24,39,.92)), url("{{background}}");
+      background-image:
+        linear-gradient(180deg, rgba(5,8,12,.2), rgba(5,8,12,.68)),
+        url("{{background=assets/boss_authority_bg.jpg}}");
       background-size: cover;
       background-position: center;
     }
@@ -41,7 +43,7 @@
       line-height: 1.14;
       font-weight: 900;
       letter-spacing: 0;
-      text-shadow: 0 8px 30px rgba(0,0,0,.35);
+      text-shadow: 0 4px 0 rgba(17,24,39,.72), 0 12px 34px rgba(0,0,0,.5);
     }
     .subtitle {
       position: absolute;
@@ -51,6 +53,7 @@
       font-size: 26px;
       line-height: 1.36;
       color: #e5e7eb;
+      text-shadow: 0 4px 18px rgba(0,0,0,.58);
     }
   </style>
 </head>
