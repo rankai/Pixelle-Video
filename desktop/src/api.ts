@@ -143,6 +143,13 @@ export type PublishResult = {
   draft_url?: string;
 };
 
+export type TtsPreviewResult = {
+  success: boolean;
+  message: string;
+  audio_path: string;
+  duration: number;
+};
+
 let runtime: RuntimeInfo | null = null;
 
 export async function getRuntime(): Promise<RuntimeInfo> {
@@ -278,6 +285,21 @@ export function saveDesktopConfig(config: Partial<DesktopConfig>) {
 
 export function getDiagnostics() {
   return apiFetch<Record<string, unknown>>("/api/desktop/diagnostics");
+}
+
+export function synthesizeTtsPreview(values: {
+  text: string;
+  inference_mode: "local" | "comfyui";
+  workflow?: string;
+  voice?: string;
+  speed?: number;
+  pitch?: number | string;
+  volume?: number | string;
+}) {
+  return apiFetch<TtsPreviewResult>("/api/tts/synthesize", {
+    method: "POST",
+    body: JSON.stringify(values),
+  });
 }
 
 export function listVoiceAssets() {

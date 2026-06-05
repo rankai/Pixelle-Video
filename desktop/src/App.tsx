@@ -65,6 +65,7 @@ import {
   retryTask,
   runStep,
   saveDesktopConfig,
+  synthesizeTtsPreview,
   TaskInfo,
   updateBrandKit,
   updateSessionConfig,
@@ -1664,13 +1665,23 @@ function CopywritingStep({
   step: number;
   showPanelActions?: boolean;
 }) {
+  const finalScript = (session.state.final_script as string) || "";
+  const [scriptDraft, setScriptDraft] = useState(finalScript);
+
+  useEffect(() => {
+    setScriptDraft(finalScript);
+  }, [finalScript]);
+
   return (
     <div>
-      <label>最终口播文案</label>
+      <div className="script-editor-head">
+        <label>最终口播文案</label>
+        <span className="script-word-count">{scriptCharCount(scriptDraft)} 字</span>
+      </div>
       <textarea
-        key={(session.state.final_script as string) || "empty-script"}
         className="script-editor"
-        defaultValue={(session.state.final_script as string) || ""}
+        value={scriptDraft}
+        onChange={(event) => setScriptDraft(event.target.value)}
         onBlur={(event) => patch({ final_script: event.target.value })}
       />
       <div className="grid2">
@@ -2007,12 +2018,54 @@ function SystemVoicePickerModal({
   const speed = Number.isFinite(session.state[speedKey] as number)
     ? (session.state[speedKey] as number)
     : isLocal ? 1.2 : 1;
+  const [pendingVoice, setPendingVoice] = useState(selectedVoice);
+  const [pendingSpeed, setPendingSpeed] = useState(speed);
+  const [previewAudioSrc, setPreviewAudioSrc] = useState("");
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState("");
   const filteredOptions = voiceOptions.filter((voice) => voiceMatchesCategory(voice, category));
+
+  useEffect(() => {
+    if (open) {
+      setPendingVoice(selectedVoice);
+      setPendingSpeed(speed);
+      setPreviewAudioSrc("");
+      setPreviewError("");
+    }
+  }, [open, selectedVoice, speed]);
 
   if (!open) return null;
 
-  async function selectVoice(voice: { value: string }) {
-    await patch({ [isLocal ? "tts_voice" : "tts_workflow_voice"]: voice.value });
+  async function confirmSelection() {
+    await patch({
+      [isLocal ? "tts_voice" : "tts_workflow_voice"]: pendingVoice,
+      [speedKey]: pendingSpeed,
+    });
+    onClose();
+  }
+
+  async function previewVoice() {
+    setPreviewLoading(true);
+    setPreviewError("");
+    setPreviewAudioSrc("");
+    try {
+      const result = await synthesizeTtsPreview({
+        text: voicePreviewText((session.state.final_script as string) || ""),
+        inference_mode: isLocal ? "local" : "comfyui",
+        workflow: isLocal ? undefined : ((session.state.tts_workflow as string) || "runninghub/tts_edge.json"),
+        voice: pendingVoice,
+        speed: pendingSpeed,
+        pitch: isLocal
+          ? Number(session.state.tts_pitch ?? 0)
+          : Number(session.state.tts_workflow_pitch ?? 0),
+        volume: isLocal ? Number(session.state.tts_volume ?? 0) : undefined,
+      });
+      setPreviewAudioSrc(`/api/files/${result.audio_path}`);
+    } catch (err) {
+      setPreviewError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setPreviewLoading(false);
+    }
   }
 
   return (
@@ -2040,8 +2093,8 @@ function SystemVoicePickerModal({
           {filteredOptions.map((voice, index) => (
             <button
               key={voice.value}
-              className={`voice-picker-card ${selectedVoice === voice.value ? "selected" : ""}`}
-              onClick={() => selectVoice(voice)}
+              className={`voice-picker-card ${pendingVoice === voice.value ? "selected" : ""}`}
+              onClick={() => setPendingVoice(voice.value)}
             >
               <span className="voice-avatar">{index === 0 && category === "热门" ? "荐" : voiceInitial(voice.label)}</span>
               <strong>{voiceDisplayName(voice.label, index)}</strong>
@@ -2050,18 +2103,42 @@ function SystemVoicePickerModal({
           ))}
         </div>
         <div className="voice-picker-speedbar">
-          <RangeField
-            label="语速"
-            value={speed}
-            fallback={speed}
-            min={0.5}
-            max={2}
-            step={0.05}
-            patchKey={speedKey}
-            patch={patch}
-            format={(item) => `${item.toFixed(2)}x`}
-            hint="1.0x 为正常速度"
-          />
+          <div className="range-field">
+            <div className="range-field-head">
+              <span>语速</span>
+              <strong>{pendingSpeed.toFixed(2)}x</strong>
+            </div>
+            <input
+              type="range"
+              min={0.5}
+              max={2}
+              step={0.05}
+              value={pendingSpeed}
+              onChange={(event) => setPendingSpeed(Number(event.target.value))}
+            />
+            <div className="range-field-foot">
+              <span>0.50x</span>
+              <em>1.0x 为正常速度</em>
+              <span>2.00x</span>
+            </div>
+          </div>
+          {previewAudioSrc || previewError ? (
+            <div className={`voice-picker-preview ${previewError ? "error" : ""}`}>
+              {previewAudioSrc ? <ProtectedMedia kind="audio" src={previewAudioSrc} /> : null}
+              {previewError ? <span>{previewError}</span> : null}
+            </div>
+          ) : null}
+          <div className="voice-picker-actions">
+            <button type="button" onClick={onClose}>
+              取消
+            </button>
+            <button type="button" className="secondary-action" onClick={previewVoice} disabled={previewLoading}>
+              {previewLoading ? "试听生成中..." : "试听音色"}
+            </button>
+            <button type="button" className="primary" onClick={confirmSelection}>
+              确认使用
+            </button>
+          </div>
         </div>
       </section>
     </div>
@@ -2414,6 +2491,15 @@ function ttsWorkflowNotice(workflowKind: string) {
 
 function voiceOptionLabel(options: Array<{ value: string; label: string }>, value: string) {
   return options.find((option) => option.value === value)?.label || "系统推荐";
+}
+
+function voicePreviewText(script: string) {
+  const clean = script.replace(/\s+/g, " ").trim();
+  return clean.slice(0, 80) || "你好，欢迎来到本店，今天给大家介绍一个实用建议。";
+}
+
+function scriptCharCount(value: string) {
+  return value.replace(/\s/g, "").length;
 }
 
 function voiceMatchesCategory(voice: { label: string; value: string }, category: string) {
@@ -4200,7 +4286,7 @@ function VoiceAssetModal({
             </div>
             <FileUploadPanel
               label="参考音频"
-              hint="建议上传老板本人或品牌常用声音，普通话清晰、背景安静，10-30 秒更稳定。"
+              hint="建议上传 30 秒以内的老板本人或品牌常用声音，背景安静、说话清晰。"
               accept="audio/*"
               file={file}
               onChange={setFile}
@@ -4261,7 +4347,7 @@ function FileUploadPanel({
 
 function uploadRuleText(kind: "image" | "video" | "audio" | "mixed") {
   if (kind === "audio") {
-    return "支持 MP3/WAV/FLAC 音频，建议背景安静、说话清晰，10-30 秒更稳定。";
+    return "支持 MP3/WAV/FLAC 音频，建议上传 30 秒以内，背景安静、说话清晰。";
   }
   if (kind === "mixed") {
     return "支持 JPG/PNG 图片或 MP4/MOV 视频，建议正面、光线稳定、脸部清晰。";

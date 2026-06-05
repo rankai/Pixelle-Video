@@ -1130,6 +1130,23 @@ textarea {
   min-height: 230px;
 }
 
+.script-editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.script-word-count {
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .small-textarea {
   min-height: 84px;
 }
@@ -1852,10 +1869,43 @@ textarea {
 .voice-picker-speedbar {
   position: sticky;
   bottom: -18px;
+  display: grid;
+  gap: 10px;
   margin: 4px -18px -18px;
   border-top: 1px solid var(--app-border);
   padding: 14px 18px;
   background: #ffffff;
+}
+
+.voice-picker-preview {
+  display: grid;
+  gap: 6px;
+  border: 1px solid rgb(var(--app-primary-rgb) / 18%);
+  border-radius: 12px;
+  padding: 10px;
+  background: #f8fafc;
+}
+
+.voice-picker-preview.error {
+  border-color: #fecaca;
+  background: #fff7f7;
+  color: var(--app-danger);
+}
+
+.voice-picker-preview audio {
+  width: 100%;
+}
+
+.voice-picker-actions {
+  display: grid;
+  grid-template-columns: minmax(86px, max-content) minmax(120px, max-content) minmax(120px, max-content);
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.voice-picker-actions button {
+  min-height: 38px;
+  font-weight: 750;
 }
 
 .range-field {
@@ -1951,8 +2001,9 @@ textarea {
 }
 
 .asset-grid.portraits {
-  grid-template-columns: repeat(auto-fill, minmax(178px, 178px));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   align-items: stretch;
+  min-width: 0;
 }
 
 .asset-grid.templates {
@@ -1961,17 +2012,24 @@ textarea {
 
 .asset-card {
   display: grid;
+  grid-template-rows: auto auto minmax(38px, 1fr) auto;
   align-content: start;
   gap: 8px;
   width: 100%;
   min-width: 0;
   min-height: 150px;
   overflow: hidden;
+  contain: layout paint;
   border: 1px solid #dde3ee;
   border-radius: 10px;
   padding: 12px;
   background: #ffffff;
   text-align: left;
+}
+
+.asset-card > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .asset-card > svg {
@@ -2004,13 +2062,17 @@ button.asset-card {
   color: #5f6b7a;
   font-size: 13px;
   line-height: 1.45;
+  word-break: break-word;
   overflow-wrap: anywhere;
+  hyphens: auto;
 }
 
 .asset-card strong {
   min-width: 0;
   line-height: 1.35;
+  word-break: break-word;
   overflow-wrap: anywhere;
+  hyphens: auto;
 }
 
 .asset-card img,
@@ -2019,8 +2081,10 @@ button.asset-card {
 .template-demo {
   display: block;
   width: 100%;
+  min-width: 0;
   max-width: 100%;
   height: 116px;
+  justify-self: stretch;
   border-radius: 8px;
   background: #111827;
   object-fit: cover;
@@ -2069,9 +2133,10 @@ button.asset-card {
 
 .asset-card-actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   align-items: stretch;
+  width: 100%;
   min-width: 0;
   margin-top: auto;
   border-top: 1px solid #eef2f7;
@@ -2082,6 +2147,7 @@ button.asset-card {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 0;
   min-height: 34px;
   border-radius: 9px;
   padding: 7px 10px;
