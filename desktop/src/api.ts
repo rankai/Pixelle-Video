@@ -166,6 +166,13 @@ function browserApiBaseUrl() {
     : "";
 }
 
+function apiUrl(apiBaseUrl: string, path: string) {
+  if (apiBaseUrl.endsWith("/api") && path.startsWith("/api/")) {
+    return `${apiBaseUrl}${path.slice(4)}`;
+  }
+  return `${apiBaseUrl}${path}`;
+}
+
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const { apiBaseUrl, desktopToken } = await getRuntime();
   const headers = new Headers(init.headers);
@@ -177,7 +184,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   }
   let response: Response;
   try {
-    response = await fetch(`${apiBaseUrl}${path}`, {
+    response = await fetch(apiUrl(apiBaseUrl, path), {
       ...init,
       headers,
     });
@@ -362,7 +369,7 @@ export function deleteBrandKit(brandId: string) {
 
 export async function assetUrl(path: string) {
   const { apiBaseUrl } = await getRuntime();
-  return `${apiBaseUrl}${path}`;
+  return apiUrl(apiBaseUrl, path);
 }
 
 export async function assetBlobUrl(path: string) {
@@ -371,7 +378,7 @@ export async function assetBlobUrl(path: string) {
   if (desktopToken) {
     headers.set("X-Pixelle-Desktop-Token", desktopToken);
   }
-  const response = await fetch(`${apiBaseUrl}${path}`, { headers });
+  const response = await fetch(apiUrl(apiBaseUrl, path), { headers });
   if (!response.ok) {
     throw new Error(await response.text());
   }
@@ -385,7 +392,7 @@ export async function artifactBlobUrl(sessionId: string, artifactKey: string) {
     headers.set("X-Pixelle-Desktop-Token", desktopToken);
   }
   const response = await fetch(
-    `${apiBaseUrl}/api/ip-broadcast/sessions/${sessionId}/artifacts/${artifactKey}`,
+    apiUrl(apiBaseUrl, `/api/ip-broadcast/sessions/${sessionId}/artifacts/${artifactKey}`),
     { headers },
   );
   if (!response.ok) {
@@ -401,7 +408,7 @@ export async function downloadArtifact(sessionId: string, artifactKey: string) {
     headers.set("X-Pixelle-Desktop-Token", desktopToken);
   }
   const response = await fetch(
-    `${apiBaseUrl}/api/ip-broadcast/sessions/${sessionId}/artifacts/${artifactKey}`,
+    apiUrl(apiBaseUrl, `/api/ip-broadcast/sessions/${sessionId}/artifacts/${artifactKey}`),
     { headers },
   );
   if (!response.ok) {
