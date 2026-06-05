@@ -64,7 +64,7 @@ def test_build_ass_force_style_uses_selected_template_subtitle_style():
 
     force_style = build_ass_force_style(template)
 
-    assert "Fontsize=36" in force_style
+    assert "Fontsize=30" in force_style
     assert "Alignment=2" in force_style
     assert "Outline=3" in force_style
 
@@ -80,16 +80,16 @@ def test_boss_clean_template_keeps_title_and_subtitles_in_safe_zones():
     assert COVER_TITLE_TOP_MIN <= title_top
     assert title_top + title_height <= COVER_TITLE_BOTTOM_MAX
     assert subtitle_bottom >= COVER_SUBTITLE_BOTTOM_MIN
-    assert "font-size: 52px" in cover_html
-    assert "Fontsize=34" in force_style
-    assert _force_style_value(force_style, "MarginV") >= VIDEO_SUBTITLE_MARGIN_MIN
+    assert "font-size: 44px" in cover_html
+    assert "Fontsize=28" in force_style
+    assert _force_style_value(force_style, "MarginV") >= 170
 
 
 def test_all_templates_keep_video_subtitles_inside_platform_safe_area():
     expected = {
-        "boss_clean": ("Fontsize=34", "MarginV=210"),
-        "boss_authority": ("Fontsize=36", "MarginV=220"),
-        "boss_premium": ("Fontsize=34", "MarginV=210"),
+        "boss_clean": ("Fontsize=28", "MarginV=180"),
+        "boss_authority": ("Fontsize=30", "MarginV=190"),
+        "boss_premium": ("Fontsize=28", "MarginV=180"),
     }
 
     for template_id, (font_size, margin_v) in expected.items():
@@ -116,6 +116,15 @@ def test_all_cover_templates_keep_main_text_inside_safe_area():
             assert COVER_TITLE_TOP_MIN <= title_top
             assert title_top + title_height <= COVER_TITLE_BOTTOM_MAX
             assert subtitle_bottom >= COVER_SUBTITLE_BOTTOM_MIN
+
+
+def test_boss_clean_cover_keeps_background_visible():
+    html = Path(get_ip_broadcast_template("boss_clean").cover_template_path).read_text()
+
+    bg_line = next(line for line in html.splitlines() if "background-image:" in line)
+    assert "rgba(255,255,255,.78)" not in bg_line
+    assert "rgba(255,255,255,.92)" not in bg_line
+    assert "rgba(255,255,255,.22)" in bg_line
 
 
 def test_template_card_text_uses_fixed_title_and_description_heights():

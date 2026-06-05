@@ -1,5 +1,6 @@
 import pytest
 
+from pixelle_video.services import subtitle_service
 from pixelle_video.services.subtitle_service import _build_subtitles_filter
 from pixelle_video.services.video import VideoService
 from web.ip_broadcast import state
@@ -31,6 +32,25 @@ def test_subtitle_filter_accepts_template_force_style():
 
     assert filter_value.startswith("subtitles=")
     assert ":force_style='Fontsize=48,Alignment=2'" in filter_value
+
+
+def test_subtitle_generation_splits_long_chinese_sentence(monkeypatch, tmp_path):
+    monkeypatch.setattr(subtitle_service, "_probe_duration", lambda _path: 12.0)
+    srt_path = tmp_path / "long.srt"
+
+    subtitle_service.generate_srt(
+        "你真的会用滚筒洗衣机吗？99%的人不知道，4个隐藏常识。",
+        "/tmp/audio.mp3",
+        str(srt_path),
+    )
+
+    subtitle_lines = [
+        line
+        for line in srt_path.read_text(encoding="utf-8").splitlines()
+        if line and not line.isdigit() and "-->" not in line
+    ]
+    assert len(subtitle_lines) > 2
+    assert all(len(line) <= 16 for line in subtitle_lines)
 
 
 def test_estimate_overlay_timeline_uses_segment_character_ratio():

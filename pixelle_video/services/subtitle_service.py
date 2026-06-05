@@ -19,10 +19,39 @@ def _probe_duration(media_path: str) -> float:
     return float(result.stdout.strip())
 
 
-def _split_sentences(text: str) -> list[str]:
-    """Split text into sentences on Chinese/English punctuation"""
-    sentences = re.split(r"(?<=[。！？.!?])\s*", text.strip())
-    return [s.strip() for s in sentences if s.strip()]
+def _split_sentences(text: str, max_chars: int = 16) -> list[str]:
+    """Split text into short subtitle units for vertical short videos."""
+    sentence_candidates = re.split(r"(?<=[。！？.!?，,；;])\s*|\n+", text.strip())
+    sentences: list[str] = []
+    for candidate in sentence_candidates:
+        candidate = candidate.strip()
+        if not candidate:
+            continue
+        sentences.extend(_split_long_subtitle(candidate, max_chars=max_chars))
+    return sentences
+
+
+def _split_long_subtitle(text: str, max_chars: int = 16) -> list[str]:
+    if len(text) <= max_chars:
+        return [text]
+    chunks = []
+    current = text
+    while len(current) > max_chars:
+        split_at = max(
+            current.rfind("，", 0, max_chars + 1),
+            current.rfind(",", 0, max_chars + 1),
+            current.rfind("、", 0, max_chars + 1),
+            current.rfind(" ", 0, max_chars + 1),
+        )
+        if split_at < max_chars // 2:
+            split_at = max_chars
+        else:
+            split_at += 1
+        chunks.append(current[:split_at].strip())
+        current = current[split_at:].strip()
+    if current:
+        chunks.append(current)
+    return chunks
 
 
 def _format_srt_time(seconds: float) -> str:
