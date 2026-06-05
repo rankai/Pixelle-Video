@@ -326,6 +326,9 @@ class HTMLFrameGenerator:
             cls._browser = None
             cls._playwright = None
             from playwright.async_api import async_playwright
+
+            from pixelle_video.utils.chromium import playwright_chromium_launch_options
+
             cls._playwright = await async_playwright().start()
             cls._browser = await cls._playwright.chromium.launch(
                 args=[
@@ -333,7 +336,8 @@ class HTMLFrameGenerator:
                     '--disable-dev-shm-usage',
                     '--disable-gpu',
                     '--disable-extensions',
-                ]
+                ],
+                **playwright_chromium_launch_options(),
             )
             cls._browser_loop = current_loop
             logger.debug("Initialized Playwright Chromium browser")

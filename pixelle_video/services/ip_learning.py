@@ -121,7 +121,12 @@ async def _fetch_douyin_profile_video_urls(profile_url: str, limit: int = 5) -> 
     playwright = None
     try:
         playwright = await async_playwright().start()
-        browser = await playwright.chromium.launch(headless=True)
+        from pixelle_video.utils.chromium import playwright_chromium_launch_options
+
+        browser = await playwright.chromium.launch(
+            headless=True,
+            **playwright_chromium_launch_options(),
+        )
         context = await browser.new_context(
             user_agent=(
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "

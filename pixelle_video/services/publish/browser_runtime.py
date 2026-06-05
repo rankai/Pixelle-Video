@@ -3,6 +3,8 @@
 from pathlib import Path
 from typing import Any, Protocol
 
+from pixelle_video.utils.chromium import playwright_chromium_launch_options
+
 DEFAULT_BROWSER_RUNTIME = "playwright"
 SUPPORTED_BROWSER_RUNTIMES = {"playwright", "cloakbrowser"}
 DOUYIN_CREATOR_UPLOAD_URL = "https://creator.douyin.com/creator-micro/content/upload"
@@ -35,6 +37,7 @@ class PlaywrightBrowserRuntime:
             str(self.user_data_root / platform),
             headless=False,
             viewport={"width": 1440, "height": 1000},
+            **playwright_chromium_launch_options(),
         )
         return PlaywrightPublishContext(self._context, platform)
 

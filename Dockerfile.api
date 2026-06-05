@@ -24,6 +24,7 @@ RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
     fi
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+      chromium \
       curl \
       ffmpeg \
       fonts-noto-cjk \
@@ -42,7 +43,8 @@ ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_DEFAULT_TIMEOUT=300 \
-    PIP_RETRIES=10
+    PIP_RETRIES=10 \
+    PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
 
 COPY requirements-api-server.txt requirements-api-media.txt requirements-api-ai.txt requirements-api-browser.txt requirements-api.txt ./
 
@@ -68,13 +70,6 @@ RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
       pip install --no-cache-dir -r requirements-api-browser.txt -i https://mirrors.aliyun.com/pypi/simple/; \
     else \
       pip install --no-cache-dir -r requirements-api-browser.txt; \
-    fi
-
-RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
-      PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright \
-        python -m playwright install --with-deps chromium; \
-    else \
-      python -m playwright install --with-deps chromium; \
     fi
 
 COPY api ./api

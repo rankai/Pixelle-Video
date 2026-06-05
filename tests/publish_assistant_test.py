@@ -10,6 +10,7 @@ from pixelle_video.services.publish.browser_runtime import (
 )
 from pixelle_video.services.publish.models import PublishPackage, PublishStatus
 from pixelle_video.services.publish.platforms.douyin import DouyinPublisher
+from pixelle_video.utils.chromium import playwright_chromium_launch_options
 
 
 def _publish_client() -> TestClient:
@@ -47,6 +48,12 @@ def test_browser_runtime_keeps_cloakbrowser_optional():
     assert SUPPORTED_BROWSER_RUNTIMES == {"playwright", "cloakbrowser"}
     assert hasattr(BrowserRuntime, "launch_persistent_context")
     assert hasattr(BrowserRuntime, "close")
+
+
+def test_playwright_can_use_system_chromium_from_environment(monkeypatch):
+    monkeypatch.setenv("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH", "/usr/bin/chromium")
+
+    assert playwright_chromium_launch_options() == {"executable_path": "/usr/bin/chromium"}
 
 
 async def test_douyin_publisher_returns_login_required_when_not_logged_in():
