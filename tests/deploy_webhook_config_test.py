@@ -19,3 +19,9 @@ def test_webhook_server_validates_deploy_script_before_spawn():
     assert "existsSync(DEPLOY_SCRIPT)" in source
     assert "PROJECT_ROOT/PROJECT_DIR" in source
     assert "spawn('bash', [DEPLOY_SCRIPT]" in source
+
+
+def test_webhook_image_starts_server_from_image_path():
+    dockerfile = Path("Dockerfile.webhook").read_text()
+
+    assert 'CMD ["node", "/app/scripts/webhook-server.js"]' in dockerfile
