@@ -153,6 +153,7 @@ def test_prepare_douyin_publish_endpoint_returns_publish_result(monkeypatch):
                 "message": "草稿已准备好",
             }
 
+    monkeypatch.setenv("PIXELLE_DESKTOP_MODE", "true")
     monkeypatch.setattr(publish_router_module, "get_douyin_publisher", lambda: FakePublisher())
 
     response = _publish_client().post(
@@ -181,6 +182,7 @@ def test_prepare_douyin_publish_rejects_untrusted_local_paths(monkeypatch):
         async def prepare_draft(self, package: PublishPackage):
             raise AssertionError("publisher must not run for unsafe paths")
 
+    monkeypatch.setenv("PIXELLE_DESKTOP_MODE", "true")
     monkeypatch.setattr(publish_router_module, "get_douyin_publisher", lambda: FakePublisher())
 
     response = _publish_client().post(
@@ -202,6 +204,7 @@ def test_prepare_douyin_publish_maps_technical_errors_to_user_message(monkeypatc
         async def prepare_draft(self, package: PublishPackage):
             raise RuntimeError("Timeout 30000ms exceeded while waiting for locator input[type='file']")
 
+    monkeypatch.setenv("PIXELLE_DESKTOP_MODE", "true")
     monkeypatch.setattr(publish_router_module, "get_douyin_publisher", lambda: FakePublisher())
 
     response = _publish_client().post(
@@ -217,3 +220,25 @@ def test_prepare_douyin_publish_maps_technical_errors_to_user_message(monkeypatc
     assert response.status_code == 200
     assert response.json()["status"] == "failed"
     assert response.json()["message"] == "发布页面响应超时，请确认网络正常并重新打开发布助手。"
+
+
+def test_prepare_douyin_publish_is_disabled_outside_desktop_mode(monkeypatch):
+    class FakePublisher:
+        async def prepare_draft(self, package: PublishPackage):
+            raise AssertionError("publisher must not run on server")
+
+    monkeypatch.delenv("PIXELLE_DESKTOP_MODE", raising=False)
+    monkeypatch.setattr(publish_router_module, "get_douyin_publisher", lambda: FakePublisher())
+
+    response = _publish_client().post(
+        "/api/publish/douyin/prepare",
+        json={
+            "session_id": "s1",
+            "platform": "douyin",
+            "video_path": "/tmp/final.mp4",
+            "title": "火锅套餐",
+        },
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "发布助手仅支持桌面端本地运行，服务器端不执行自动发布。"

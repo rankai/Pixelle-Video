@@ -4,6 +4,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
+from api.desktop_security import is_desktop_mode
 from api.tasks import TaskType, task_manager
 from pixelle_video.services.publish.browser_runtime import PlaywrightBrowserRuntime
 from pixelle_video.services.publish.models import PublishPackage, PublishResult, PublishStatus
@@ -18,6 +19,9 @@ def get_douyin_publisher() -> DouyinPublisher:
 
 @router.post("/douyin/prepare", response_model=PublishResult)
 async def prepare_douyin_publish(package: PublishPackage):
+    if not is_desktop_mode():
+        raise HTTPException(status_code=403, detail="发布助手仅支持桌面端本地运行，服务器端不执行自动发布。")
+
     _validate_publish_file_path(package.video_path)
     if package.cover_path:
         _validate_publish_file_path(package.cover_path)
