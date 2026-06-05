@@ -1951,7 +1951,8 @@ textarea {
 }
 
 .asset-grid.portraits {
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(178px, 178px));
+  align-items: stretch;
 }
 
 .asset-grid.templates {
@@ -1962,7 +1963,10 @@ textarea {
   display: grid;
   align-content: start;
   gap: 8px;
+  width: 100%;
+  min-width: 0;
   min-height: 150px;
+  overflow: hidden;
   border: 1px solid #dde3ee;
   border-radius: 10px;
   padding: 12px;
@@ -1995,17 +1999,27 @@ button.asset-card {
 }
 
 .asset-card span {
+  min-width: 0;
   min-height: 38px;
   color: #5f6b7a;
   font-size: 13px;
   line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.asset-card strong {
+  min-width: 0;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .asset-card img,
 .asset-card video,
 .video-thumb,
 .template-demo {
+  display: block;
   width: 100%;
+  max-width: 100%;
   height: 116px;
   border-radius: 8px;
   background: #111827;
@@ -2044,8 +2058,9 @@ button.asset-card {
 .asset-card.portrait img,
 .asset-card.portrait video,
 .asset-card.portrait .video-thumb {
-  height: 176px;
+  height: 192px;
   object-fit: contain;
+  object-position: center;
 }
 
 .asset-card audio {
@@ -2057,6 +2072,7 @@ button.asset-card {
   grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
   gap: 8px;
   align-items: stretch;
+  min-width: 0;
   margin-top: auto;
   border-top: 1px solid #eef2f7;
   padding-top: 10px;
@@ -2846,7 +2862,7 @@ button.asset-card {
 }
 
 .add-asset-card.portrait {
-  min-height: 274px;
+  min-height: 312px;
 }
 
 .add-asset-card strong {
