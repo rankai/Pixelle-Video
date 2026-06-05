@@ -10,11 +10,13 @@
 
 import http from 'http'
 import { spawn } from 'child_process'
+import { existsSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const ROOT = process.env.PROJECT_ROOT || join(__dirname, '..')
+const ROOT = process.env.PROJECT_ROOT || process.cwd() || join(__dirname, '..')
+const DEPLOY_SCRIPT = join(ROOT, 'scripts/deploy.sh')
 
 const PORT = process.env.WEBHOOK_PORT || 9877
 const SECRET = process.env.DEPLOY_WEBHOOK_SECRET
@@ -32,8 +34,13 @@ const pendingByTag = new Map()
 
 function runDeploy(imageTag) {
   console.log(`[webhook] 触发部署 IMAGE_TAG=${imageTag}`)
+  if (!existsSync(DEPLOY_SCRIPT)) {
+    console.error(`[webhook] 找不到部署脚本: ${DEPLOY_SCRIPT}`)
+    console.error('[webhook] 请检查 docker-compose.prod.yml 中 PROJECT_ROOT/PROJECT_DIR 是否指向宿主机项目目录')
+    return
+  }
 
-  const child = spawn('bash', ['scripts/deploy.sh'], {
+  const child = spawn('bash', [DEPLOY_SCRIPT], {
     cwd: ROOT,
     env: { ...process.env, IMAGE_TAG: imageTag },
     detached: true,
