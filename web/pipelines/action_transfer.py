@@ -6,7 +6,6 @@ from typing import Any
 import httpx
 import streamlit as st
 from loguru import logger
-from moviepy.editor import VideoFileClip
 
 from pixelle_video.config import config_manager
 from pixelle_video.utils.os_util import create_task_output_dir
@@ -112,6 +111,8 @@ class ActionTransferPipelineUI(PipelineUI):
             
             # Get the video length (rounded down).
             if video_asset_paths:
+                from moviepy.editor import VideoFileClip
+
                 clip = VideoFileClip(video_asset_paths[0])
                 int_duration = int(clip.duration)
                 duration = min(int_duration, 30)

@@ -46,62 +46,12 @@ ENV PATH="/app/.venv/bin:$PATH" \
     STREAMLIT_SERVER_HEADLESS=true \
     STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 
-COPY requirements-api-server.txt requirements-api-media.txt requirements-api-ai.txt requirements-api-browser.txt requirements-api.txt ./
-COPY requirements-streamlit-data.txt requirements-streamlit-viz.txt requirements-streamlit-core.txt requirements-streamlit.txt ./
+COPY requirements-streamlit-data.txt requirements-streamlit-viz.txt requirements-streamlit-core.txt requirements-streamlit.txt requirements-streamlit-legacy.txt ./
 
 RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
-      pip install --no-cache-dir -r requirements-api-server.txt -i https://mirrors.aliyun.com/pypi/simple/; \
+      pip install --no-cache-dir -r requirements-streamlit-legacy.txt -i https://mirrors.aliyun.com/pypi/simple/; \
     else \
-      pip install --no-cache-dir -r requirements-api-server.txt; \
-    fi
-
-RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
-      pip install --no-cache-dir -r requirements-api-media.txt -i https://mirrors.aliyun.com/pypi/simple/; \
-    else \
-      pip install --no-cache-dir -r requirements-api-media.txt; \
-    fi
-
-RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
-      pip install --no-cache-dir -r requirements-api-ai.txt -i https://mirrors.aliyun.com/pypi/simple/; \
-    else \
-      pip install --no-cache-dir -r requirements-api-ai.txt; \
-    fi
-
-RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
-      pip install --no-cache-dir -r requirements-api-browser.txt -i https://mirrors.aliyun.com/pypi/simple/; \
-    else \
-      pip install --no-cache-dir -r requirements-api-browser.txt; \
-    fi
-
-RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
-      pip install --no-cache-dir -r requirements-streamlit-data.txt -i https://mirrors.aliyun.com/pypi/simple/; \
-    else \
-      pip install --no-cache-dir -r requirements-streamlit-data.txt; \
-    fi
-
-RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
-      pip install --no-cache-dir -r requirements-streamlit-viz.txt -i https://mirrors.aliyun.com/pypi/simple/; \
-    else \
-      pip install --no-cache-dir -r requirements-streamlit-viz.txt; \
-    fi
-
-RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
-      pip install --no-cache-dir -r requirements-streamlit-core.txt -i https://mirrors.aliyun.com/pypi/simple/; \
-    else \
-      pip install --no-cache-dir -r requirements-streamlit-core.txt; \
-    fi
-
-RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
-      pip install --no-cache-dir --no-deps "streamlit>=1.40.0" -i https://mirrors.aliyun.com/pypi/simple/; \
-    else \
-      pip install --no-cache-dir --no-deps "streamlit>=1.40.0"; \
-    fi
-
-RUN if [ "$USE_CN_MIRROR" = "true" ]; then \
-      PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright \
-        python -m playwright install --with-deps chromium; \
-    else \
-      python -m playwright install --with-deps chromium; \
+      pip install --no-cache-dir -r requirements-streamlit-legacy.txt; \
     fi
 
 COPY web ./web

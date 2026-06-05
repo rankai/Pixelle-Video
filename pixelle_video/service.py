@@ -18,9 +18,8 @@ Provides unified access to all capabilities (LLM, TTS, Image, etc.)
 
 import hashlib
 import json
-from typing import Optional
+from typing import Any, Optional
 
-from comfykit import ComfyKit
 from loguru import logger
 
 from pixelle_video.config import config_manager
@@ -93,7 +92,7 @@ class PixelleVideoCore:
         self._initialized = False
 
         # ComfyKit lazy initialization (created on first use, recreated on config change)
-        self._comfykit: Optional[ComfyKit] = None
+        self._comfykit: Optional[Any] = None
         self._comfykit_config_hash: Optional[str] = None
 
         # Core services (initialized in initialize())
@@ -153,7 +152,7 @@ class PixelleVideoCore:
         config_str = json.dumps(config, sort_keys=True)
         return hashlib.md5(config_str.encode()).hexdigest()
 
-    async def _get_or_create_comfykit(self) -> ComfyKit:
+    async def _get_or_create_comfykit(self) -> Any:
         """
         Get or create ComfyKit instance (lazy initialization with config change detection)
 
@@ -182,6 +181,8 @@ class PixelleVideoCore:
             # Create new instance with current config
             logger.info("✨ Creating ComfyKit instance...")
             logger.debug(f"ComfyKit config: {_redact_sensitive_config(current_config)}")
+            from comfykit import ComfyKit
+
             self._comfykit = ComfyKit(**current_config)
             self._comfykit_config_hash = current_hash
             logger.info("✅ ComfyKit instance created")

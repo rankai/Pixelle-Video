@@ -88,7 +88,7 @@ Dockerfile: Dockerfile.api
 构建上下文: /
 构建架构: linux/amd64
 构建参数:
-  PYTHON_BASE=python:3.11-slim
+  PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/python:3.11-slim
   USE_CN_MIRROR=true
 Tag 规则:
   ${Branch}-${CommitID}
@@ -109,7 +109,7 @@ Dockerfile: Dockerfile.streamlit
 构建上下文: /
 构建架构: linux/amd64
 构建参数:
-  PYTHON_BASE=python:3.11-slim
+  PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/python:3.11-slim
   USE_CN_MIRROR=true
 Tag 规则:
   ${Branch}-${CommitID}
@@ -130,6 +130,8 @@ PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/
 web/api 两个仓库的 tag 规则必须一致。服务器会等同一个 tag 的 web/api 两个镜像都收到通知后才部署。
 
 如果启用旧 Streamlit 页面，streamlit 仓库也必须使用同一 tag 规则，并配置同一个 webhook。否则 webhook 会等待 5 分钟后超时强制触发部署。
+
+`pixelle-video-streamlit` 是旧页面轻量入口镜像，不安装 `moviepy`、`comfykit`、`playwright` 等完整生产链路依赖。正式生产生成链路由 React Web + FastAPI API 镜像承担；旧页面用于回看、配置和临时调试。
 
 如果构建日志里出现 `manylinux...aarch64`，说明该 ACR 仓库仍在按 ARM64 构建。服务器通常是 x86/amd64 时必须把 ACR 构建规则改为 `linux/amd64`，否则下载包会变慢，镜像也可能无法在服务器运行。
 
@@ -181,7 +183,7 @@ USE_CN_MIRROR=true
 VITE_API_BASE_URL=/api
 NODE_BASE=node:20-alpine
 NGINX_BASE=nginx:alpine
-PYTHON_BASE=python:3.11-slim
+PYTHON_BASE=acr-xiaojuntech-registry-vpc.cn-beijing.cr.aliyuncs.com/xiaojuntech/python:3.11-slim
 DEPLOY_STREAMLIT=false
 
 ACR_USERNAME=你的 ACR 用户名
