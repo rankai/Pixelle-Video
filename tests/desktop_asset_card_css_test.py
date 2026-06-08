@@ -35,11 +35,11 @@ def test_portrait_asset_grid_uses_flexible_tracks():
     assert "min-width: 0;" in portrait_grid_rule
 
 
-def test_template_cards_render_portrait_previews_without_side_letterboxing():
+def test_template_cards_render_full_portrait_previews_without_cropping():
     template_image_rule = _rule(".asset-card.template img,\n.asset-card.template .template-demo")
 
     assert "aspect-ratio: 9 / 16;" in template_image_rule
-    assert "width: min(100%, 210px);" in template_image_rule
+    assert "width: 100%;" in template_image_rule
     assert "height: auto;" in template_image_rule
-    assert "object-fit: cover;" in template_image_rule
+    assert "object-fit: contain;" in template_image_rule
     assert "justify-self: center;" in template_image_rule

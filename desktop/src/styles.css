@@ -2097,11 +2097,10 @@ button.asset-card {
 .asset-card.template img,
 .asset-card.template .template-demo {
   aspect-ratio: 9 / 16;
-  width: min(100%, 210px);
+  width: 100%;
   height: auto;
-  max-height: 230px;
   justify-self: center;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
 }
 
