@@ -13,6 +13,7 @@ COVER_TITLE_TOP_MIN = 220
 COVER_TITLE_BOTTOM_MAX = 760
 COVER_SUBTITLE_BOTTOM_MIN = 320
 VIDEO_SUBTITLE_MARGIN_MIN = 200
+MAX_TEMPLATE_IMAGE_BYTES = 500 * 1024
 
 
 def _css_px(html: str, selector: str, property_name: str) -> int:
@@ -56,7 +57,19 @@ def test_ip_broadcast_template_cover_files_exist():
 
 def test_ip_broadcast_template_preview_files_exist():
     for template in list_ip_broadcast_templates():
-        assert Path(template.preview_image_path).exists()
+        preview = Path(template.preview_image_path)
+        assert preview.exists()
+        assert preview.suffix == ".jpg"
+
+
+def test_ip_broadcast_template_images_are_under_loading_budget():
+    for template in list_ip_broadcast_templates():
+        image_paths = [
+            Path(template.preview_image_path),
+            Path(template.default_background_path),
+        ]
+        for image_path in image_paths:
+            assert image_path.stat().st_size <= MAX_TEMPLATE_IMAGE_BYTES
 
 
 def test_ip_broadcast_templates_use_distinct_local_default_backgrounds():

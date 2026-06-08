@@ -29,7 +29,7 @@ def test_list_ip_broadcast_templates_returns_cards(monkeypatch, tmp_path):
 
     preview = client.get(first["preview_url"])
     assert preview.status_code == 200
-    assert preview.headers["content-type"] == "image/png"
+    assert preview.headers["content-type"] == "image/jpeg"
 
 
 def test_voice_reference_upload_list_and_delete(monkeypatch, tmp_path):

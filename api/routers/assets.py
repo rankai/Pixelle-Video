@@ -72,7 +72,7 @@ async def get_ip_broadcast_template_preview(template_id: str):
             path = Path(template.preview_image_path).resolve()
             if not path.exists() or not path.is_file():
                 raise HTTPException(status_code=404, detail="Template preview not found")
-            return FileResponse(str(path), media_type="image/png", filename=path.name)
+            return FileResponse(str(path), media_type=_image_media_type(path), filename=path.name)
     raise HTTPException(status_code=404, detail="Template not found")
 
 
@@ -198,6 +198,15 @@ def _ext(file: UploadFile) -> str:
 
 def _default_name(file: UploadFile) -> str:
     return Path(file.filename or "未命名素材").stem or "未命名素材"
+
+
+def _image_media_type(path: Path) -> str:
+    return {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+    }.get(path.suffix.lower(), "application/octet-stream")
 
 
 def _voice_to_dict(info: Any) -> dict[str, Any]:
