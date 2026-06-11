@@ -73,7 +73,11 @@ async def get_file(file_path: str):
         if full_path is None:
             full_path = f"output/{file_path}"
         
-        abs_path = Path.cwd() / full_path
+        requested_path = Path(full_path)
+        if requested_path.is_absolute() or "\\" in full_path or ".." in requested_path.parts:
+            raise HTTPException(status_code=403, detail="Access denied")
+
+        abs_path = (Path.cwd() / requested_path).resolve()
         
         if not abs_path.exists():
             raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
@@ -83,11 +87,15 @@ async def get_file(file_path: str):
         
         # Security: only allow access to specified directories
         try:
-            rel_path = abs_path.relative_to(Path.cwd())
-            rel_path_str = str(rel_path)
-            
-            # Check if path starts with any allowed prefix
-            is_allowed = any(rel_path_str.startswith(prefix.rstrip('/')) for prefix in allowed_prefixes)
+            allowed_roots = [(Path.cwd() / prefix.rstrip("/")).resolve() for prefix in allowed_prefixes]
+            is_allowed = False
+            for root in allowed_roots:
+                try:
+                    abs_path.relative_to(root)
+                    is_allowed = True
+                    break
+                except ValueError:
+                    continue
             
             if not is_allowed:
                 raise HTTPException(
@@ -126,4 +134,3 @@ async def get_file(file_path: str):
     except Exception as e:
         logger.error(f"File access error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-

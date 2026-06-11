@@ -9,6 +9,7 @@
  */
 
 import http from 'http'
+import crypto from 'crypto'
 import { spawn } from 'child_process'
 import { existsSync } from 'fs'
 import { fileURLToPath } from 'url'
@@ -20,9 +21,13 @@ const DEPLOY_SCRIPT = join(ROOT, 'scripts/deploy.sh')
 
 const PORT = process.env.WEBHOOK_PORT || 9877
 const SECRET = process.env.DEPLOY_WEBHOOK_SECRET
+const HMAC_SECRET = process.env.DEPLOY_WEBHOOK_HMAC_SECRET || ''
+const REQUIRE_HMAC = process.env.DEPLOY_WEBHOOK_REQUIRE_HMAC === 'true'
+const configuredHmacWindow = Number(process.env.DEPLOY_WEBHOOK_HMAC_WINDOW_SECONDS || 300)
+const HMAC_WINDOW_SECONDS = Number.isFinite(configuredHmacWindow) && configuredHmacWindow > 0 ? configuredHmacWindow : 300
 
-if (!SECRET) {
-  console.error('[webhook] DEPLOY_WEBHOOK_SECRET 未设置，拒绝启动')
+if (!SECRET && !HMAC_SECRET) {
+  console.error('[webhook] DEPLOY_WEBHOOK_SECRET 或 DEPLOY_WEBHOOK_HMAC_SECRET 未设置，拒绝启动')
   process.exit(1)
 }
 
@@ -85,6 +90,39 @@ function handlePush(repoName, tag) {
   }
 }
 
+function verifyHmac(req, body) {
+  if (!HMAC_SECRET) return false
+  const timestamp = req.headers['x-pixelle-timestamp']
+  const signature = req.headers['x-pixelle-signature']
+  if (typeof timestamp !== 'string' || typeof signature !== 'string') return false
+
+  const timestampSeconds = Number(timestamp)
+  if (!Number.isFinite(timestampSeconds)) return false
+  const nowSeconds = Math.floor(Date.now() / 1000)
+  if (Math.abs(nowSeconds - timestampSeconds) > HMAC_WINDOW_SECONDS) return false
+
+  const expected = crypto
+    .createHmac('sha256', HMAC_SECRET)
+    .update(`${timestamp}.${body}`)
+    .digest('hex')
+  const provided = signature.replace(/^sha256=/, '')
+  return timingSafeEqualHex(provided, expected)
+}
+
+function timingSafeEqualHex(left, right) {
+  if (!/^[0-9a-f]+$/i.test(left) || !/^[0-9a-f]+$/i.test(right)) return false
+  const leftBuffer = Buffer.from(left, 'hex')
+  const rightBuffer = Buffer.from(right, 'hex')
+  return leftBuffer.length === rightBuffer.length && crypto.timingSafeEqual(leftBuffer, rightBuffer)
+}
+
+function isAuthorized(req, url, body) {
+  const hmacOk = verifyHmac(req, body)
+  if (hmacOk) return true
+  if (REQUIRE_HMAC) return false
+  return url.searchParams.get('token') === SECRET
+}
+
 const server = http.createServer((req, res) => {
   if (req.method === 'GET' && req.url === '/healthz') {
     res.writeHead(200).end('ok')
@@ -97,18 +135,17 @@ const server = http.createServer((req, res) => {
   }
 
   const url = new URL(req.url, 'http://localhost')
-  const token = url.searchParams.get('token')
-  if (token !== SECRET) {
-    console.warn(`[webhook] 鉴权失败 token=${token}`)
-    res.writeHead(401).end('Unauthorized')
-    return
-  }
-
   let body = ''
   req.on('data', chunk => {
     body += chunk
   })
   req.on('end', () => {
+    if (!isAuthorized(req, url, body)) {
+      console.warn(`[webhook] 鉴权失败 remote=${req.socket.remoteAddress || 'unknown'}`)
+      res.writeHead(401).end('Unauthorized')
+      return
+    }
+
     res.writeHead(200, { 'Content-Type': 'application/json' }).end('{"ok":true}')
 
     let payload

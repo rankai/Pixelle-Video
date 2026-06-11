@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import shutil
+import subprocess
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -53,6 +54,43 @@ STEP_POSTPRODUCTION = "postproduction"
 STEP_PUBLISH = "publish"
 
 INDEX_TTS_MAX_MEL_TOKENS_LIMIT = 1500
+
+VOICE_DEPENDENCY_KEYS = {
+    "final_script",
+    "tts_text",
+    "tts_mode",
+    "voice_source",
+    "tts_voice",
+    "tts_speed",
+    "tts_ref_audio_path",
+    "tts_ref_text",
+    "tts_max_mel_tokens",
+    "tts_max_tokens_per_sentence",
+    "tts_max_new_tokens",
+}
+DIGITAL_HUMAN_DEPENDENCY_KEYS = {
+    "portrait_id",
+    "portrait_path",
+    "portrait_media_type",
+    "digital_human_workflow",
+    "digital_human_prompt",
+    "digital_human_duration",
+    "digital_human_width",
+    "digital_human_height",
+}
+FINAL_VIDEO_DEPENDENCY_KEYS = {
+    "template_id",
+    "story_segments",
+    "visual_groups",
+    "video_plan",
+    "video_plan_applied",
+    "overlay_enabled",
+    "subtitle_enabled",
+    "bgm_path",
+    "bgm_volume",
+    "voice_volume",
+    "remove_silence",
+}
 
 STEP_KEYS = {
     STEP_SOURCE: 1,
@@ -168,8 +206,48 @@ class IpBroadcastSession:
     artifacts: dict[str, str] = field(default_factory=dict)
 
     def update_config(self, values: dict[str, Any]) -> None:
+        changed_keys = {
+            key
+            for key, value in values.items()
+            if self.state.get(key) != value
+        }
         self.state.update(values)
+        self._invalidate_dependents(changed_keys, set(values))
         self.refresh_readiness()
+
+    def _invalidate_dependents(self, changed_keys: set[str], protected_keys: set[str]) -> None:
+        if "final_script" in changed_keys:
+            self.state["copywriting_confirmed"] = False
+        if changed_keys & VOICE_DEPENDENCY_KEYS:
+            self._clear_voice_outputs(protected_keys)
+        elif changed_keys & DIGITAL_HUMAN_DEPENDENCY_KEYS:
+            self._clear_digital_human_outputs(protected_keys)
+        elif changed_keys & FINAL_VIDEO_DEPENDENCY_KEYS:
+            self._clear_final_outputs(protected_keys)
+
+    def _clear_voice_outputs(self, protected_keys: set[str]) -> None:
+        if "audio_path" not in protected_keys:
+            self.state["audio_path"] = ""
+            self.artifacts.pop("audio", None)
+        self._clear_digital_human_outputs(protected_keys)
+
+    def _clear_digital_human_outputs(self, protected_keys: set[str]) -> None:
+        if "digital_human_video_path" not in protected_keys:
+            self.state["digital_human_video_path"] = ""
+            self.artifacts.pop("digital_human_video", None)
+        self._clear_final_outputs(protected_keys)
+
+    def _clear_final_outputs(self, protected_keys: set[str]) -> None:
+        if "final_video_path" not in protected_keys:
+            self.state["final_video_path"] = ""
+            self.artifacts.pop("final_video", None)
+        if "cover_path" not in protected_keys:
+            self.state["cover_path"] = ""
+            self.artifacts.pop("cover", None)
+        if "publish_package" not in protected_keys:
+            self.state["publish_package"] = {}
+        if "platform_suggestions" not in protected_keys:
+            self.state["platform_suggestions"] = {}
 
     def set_notice(self, step: int, kind: str, message: str) -> None:
         self.notices[step] = {"kind": kind, "message": message}
@@ -773,10 +851,66 @@ async def _run_postproduction(pixelle_video, session: IpBroadcastSession) -> Non
         else:
             shutil.copy2(merged, final)
 
+    final = _mix_bgm_if_needed(final, session, uid)
+    cover_source = final
     session.state["final_video_path"] = final
     session.artifacts["final_video"] = final
     await _ensure_template_cover(session, cover_source, uid)
     await _run_publish(session)
+
+
+def _mix_bgm_if_needed(video_path: str, session: IpBroadcastSession, uid: str) -> str:
+    bgm_path = str(session.state.get("bgm_path") or "")
+    if not bgm_path or not Path(bgm_path).exists():
+        return video_path
+    output_path = get_output_path(f"ipb_{uid}_final_bgm.mp4")
+    subprocess.run(
+        _build_bgm_mix_command(
+            video_path=video_path,
+            bgm_path=bgm_path,
+            output_path=output_path,
+            bgm_volume=float(session.state.get("bgm_volume") or 0.3),
+            voice_volume=float(session.state.get("voice_volume") or 1.0),
+        ),
+        check=True,
+        capture_output=True,
+    )
+    return output_path
+
+
+def _build_bgm_mix_command(
+    video_path: str,
+    bgm_path: str,
+    output_path: str,
+    bgm_volume: float,
+    voice_volume: float,
+) -> list[str]:
+    return [
+        "ffmpeg",
+        "-y",
+        "-i",
+        video_path,
+        "-stream_loop",
+        "-1",
+        "-i",
+        bgm_path,
+        "-filter_complex",
+        (
+            f"[0:a]volume={voice_volume}[voice];"
+            f"[1:a]volume={bgm_volume}[bgm];"
+            "[voice][bgm]amix=inputs=2:duration=first[aout]"
+        ),
+        "-map",
+        "0:v",
+        "-map",
+        "[aout]",
+        "-c:v",
+        "copy",
+        "-c:a",
+        "aac",
+        "-shortest",
+        output_path,
+    ]
 
 
 async def _ensure_template_cover(

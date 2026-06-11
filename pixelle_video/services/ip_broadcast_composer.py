@@ -102,6 +102,7 @@ def compose_ip_broadcast_video(
 ) -> str:
     audio_duration = _probe_duration(audio_path)
     uid = Path(output_path).stem
+    _validate_visual_overlay_assets(visual_groups or [])
     merged = merge_audio_into_video(base_video, audio_path, get_temp_path(f"{uid}_audio.mp4"))
     composed = _apply_visual_overlays(
         merged,
@@ -120,6 +121,18 @@ def compose_ip_broadcast_video(
     else:
         shutil.copy2(composed, output_path)
     return output_path
+
+
+def _validate_visual_overlay_assets(visual_groups: list[dict[str, Any]]) -> None:
+    missing_groups = []
+    for group in visual_groups:
+        if group.get("visual_type") != "uploaded_video":
+            continue
+        overlay_path = str(group.get("uploaded_video_path") or "")
+        if not overlay_path or not Path(overlay_path).exists():
+            missing_groups.append(str(group.get("group_id") or "未命名画面组"))
+    if missing_groups:
+        raise ValueError(f"画面规划缺少视频素材：{', '.join(missing_groups)}")
 
 
 def _apply_visual_overlays(

@@ -1,6 +1,7 @@
 import pytest
 
 from pixelle_video.services import subtitle_service
+from pixelle_video.services.ip_broadcast_composer import _validate_visual_overlay_assets
 from pixelle_video.services.subtitle_service import _build_subtitles_filter
 from pixelle_video.services.video import VideoService
 from web.ip_broadcast import state
@@ -92,6 +93,20 @@ def test_visible_overlay_groups_excludes_default_segment_groups():
     visible = _visible_overlay_groups(session["ipb_visual_groups"])
 
     assert [group["segment_ids"] for group in visible] == [["segment_2"]]
+
+
+def test_validate_visual_overlay_assets_rejects_missing_uploaded_video():
+    visual_groups = [
+        {
+            "group_id": "group_1",
+            "segment_ids": ["segment_1"],
+            "visual_type": "uploaded_video",
+            "uploaded_video_path": "",
+        }
+    ]
+
+    with pytest.raises(ValueError, match="group_1"):
+        _validate_visual_overlay_assets(visual_groups)
 
 
 def test_clear_overlay_segment_picker_uses_nonce_instead_of_mutating_widget_keys(monkeypatch):

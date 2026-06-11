@@ -3641,10 +3641,10 @@ function stepNumberForTaskKey(stepKey: string) {
     {
       source: 1,
       copywriting: 1,
-      voice: 2,
-      digital_human: 3,
-      postproduction: 4,
-      publish: 5,
+      voice: 3,
+      digital_human: 4,
+      postproduction: 5,
+      publish: 6,
     }[stepKey] || 0
   );
 }
@@ -4941,7 +4941,7 @@ function TaskCenterView() {
             </div>
             <div className="task-actions">
               {item.status === "failed" ? (
-                <button onClick={() => retryTask(item.task_id).then(() => reload())}>重试</button>
+                <button onClick={() => retryTask(item.task_id).then(() => reload())}>创建重试记录</button>
               ) : null}
               {["pending", "running"].includes(item.status) ? (
                 <button onClick={() => cancelTask(item.task_id).then(() => reload())}>停止</button>

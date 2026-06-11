@@ -21,6 +21,25 @@ def test_webhook_server_validates_deploy_script_before_spawn():
     assert "spawn('bash', [DEPLOY_SCRIPT]" in source
 
 
+def test_webhook_server_does_not_log_failed_auth_token():
+    source = Path("scripts/webhook-server.js").read_text()
+
+    assert "鉴权失败 token=" not in source
+    assert "鉴权失败" in source
+
+
+def test_webhook_server_supports_hmac_signature_auth():
+    source = Path("scripts/webhook-server.js").read_text()
+
+    assert "DEPLOY_WEBHOOK_HMAC_SECRET" in source
+    assert "DEPLOY_WEBHOOK_REQUIRE_HMAC" in source
+    assert "x-pixelle-timestamp" in source
+    assert "x-pixelle-signature" in source
+    assert ".createHmac('sha256', HMAC_SECRET)" in source
+    assert "crypto.timingSafeEqual" in source
+    assert "HMAC_WINDOW_SECONDS" in source
+
+
 def test_webhook_image_starts_server_from_image_path():
     dockerfile = Path("Dockerfile.webhook").read_text()
 

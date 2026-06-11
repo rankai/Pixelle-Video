@@ -269,6 +269,72 @@ async def test_postproduction_uses_selected_template_for_subtitles_and_cover(
 
 
 @pytest.mark.asyncio
+async def test_postproduction_mixes_selected_bgm(monkeypatch, tmp_path):
+    audio = tmp_path / "voice.mp3"
+    base_video = tmp_path / "digital.mp4"
+    bgm = tmp_path / "bgm.mp3"
+    audio.write_bytes(b"audio")
+    base_video.write_bytes(b"video")
+    bgm.write_bytes(b"music")
+    seen: dict[str, object] = {}
+
+    def fake_merge_audio_into_video(_video_path, _audio_path, output_path):
+        Path(output_path).write_bytes(b"merged")
+        return output_path
+
+    def fake_generate_srt(_script, _audio_path, output_path):
+        Path(output_path).write_text("1\n00:00:00,000 --> 00:00:01,000\n字幕", encoding="utf-8")
+
+    def fake_embed_subtitles(_input_path, _srt_path, output_path, force_style=None):
+        Path(output_path).write_bytes(b"final")
+
+    def fake_run(cmd, check=False, capture_output=False):
+        seen["cmd"] = cmd
+        seen["check"] = check
+        seen["capture_output"] = capture_output
+        Path(cmd[-1]).write_bytes(b"with bgm")
+
+    def fake_extract_first_frame(video_path, output_path):
+        seen["cover_source"] = video_path
+        Path(output_path).write_bytes(b"frame")
+        return output_path
+
+    async def fake_render_cover(template_id, title, subtitle="", background="", output_path=None, extra=None):
+        assert output_path
+        Path(output_path).write_bytes(b"cover")
+        return output_path
+
+    monkeypatch.setattr(workflow, "merge_audio_into_video", fake_merge_audio_into_video)
+    monkeypatch.setattr(workflow, "generate_srt", fake_generate_srt)
+    monkeypatch.setattr(workflow, "embed_subtitles", fake_embed_subtitles)
+    monkeypatch.setattr(workflow.subprocess, "run", fake_run)
+    monkeypatch.setattr(workflow, "extract_first_frame", fake_extract_first_frame)
+    monkeypatch.setattr(workflow, "render_ip_broadcast_cover", fake_render_cover)
+
+    session = IpBroadcastSession(session_id="s1")
+    session.update_config(
+        {
+            "final_script": "老板口播文案。",
+            "copywriting_confirmed": True,
+            "audio_path": str(audio),
+            "digital_human_video_path": str(base_video),
+            "bgm_path": str(bgm),
+            "bgm_volume": 0.25,
+            "voice_volume": 0.9,
+        }
+    )
+
+    assert await run_ip_broadcast_step(None, session, "postproduction") is True
+
+    cmd = seen["cmd"]
+    assert str(bgm) in cmd
+    assert "volume=0.25[bgm]" in cmd[cmd.index("-filter_complex") + 1]
+    assert "volume=0.9[voice]" in cmd[cmd.index("-filter_complex") + 1]
+    assert session.state["final_video_path"].endswith("_final_bgm.mp4")
+    assert seen["cover_source"] == session.state["final_video_path"]
+
+
+@pytest.mark.asyncio
 async def test_copywriting_generates_video_plan_from_business_goal():
     class FakePixelleVideo:
         async def llm(self, prompt, response_type=None):
@@ -378,6 +444,48 @@ def test_task_manager_marks_running_tasks_interrupted_after_restart(tmp_path):
 
     assert tasks[0].status == TaskStatus.FAILED
     assert tasks[0].error == "服务重启，任务已中断，请重新执行。"
+
+
+def test_session_invalidates_downstream_artifacts_when_script_changes(tmp_path):
+    audio = tmp_path / "voice.mp3"
+    dh = tmp_path / "dh.mp4"
+    final = tmp_path / "final.mp4"
+    cover = tmp_path / "cover.png"
+    for path in (audio, dh, final, cover):
+        path.write_bytes(b"ok")
+    session = IpBroadcastSession(session_id="s1")
+    session.update_config(
+        {
+            "final_script": "旧文案",
+            "copywriting_confirmed": True,
+            "audio_path": str(audio),
+            "digital_human_video_path": str(dh),
+            "final_video_path": str(final),
+            "cover_path": str(cover),
+            "publish_package": {"video_path": str(final)},
+        }
+    )
+    session.artifacts.update(
+        {
+            "audio": str(audio),
+            "digital_human_video": str(dh),
+            "final_video": str(final),
+            "cover": str(cover),
+        }
+    )
+
+    session.update_config({"final_script": "新文案"})
+
+    assert session.state["copywriting_confirmed"] is False
+    assert session.state["audio_path"] == ""
+    assert session.state["digital_human_video_path"] == ""
+    assert session.state["final_video_path"] == ""
+    assert session.state["cover_path"] == ""
+    assert session.state["publish_package"] == {}
+    assert "audio" not in session.artifacts
+    assert "digital_human_video" not in session.artifacts
+    assert "final_video" not in session.artifacts
+    assert "cover" not in session.artifacts
 
 
 def test_ip_step_progress_message_is_business_readable():

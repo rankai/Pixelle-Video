@@ -3,12 +3,14 @@
 import shutil
 from pathlib import Path
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from api.desktop_security import is_desktop_mode
 from pixelle_video.config import config_manager
 
 router = APIRouter(prefix="/desktop", tags=["Desktop"])
+REDACTED_SECRET = "***redacted***"
 
 
 class DesktopConfigPatch(BaseModel):
@@ -56,16 +58,20 @@ async def get_desktop_config():
 
 @router.patch("/config")
 async def update_desktop_config(patch: DesktopConfigPatch):
+    if not is_desktop_mode():
+        raise HTTPException(status_code=403, detail="配置写入仅支持桌面端本地运行。")
+
     updates = {}
     if patch.llm:
         updates["llm"] = {
             key: value
             for key, value in patch.llm.items()
             if key in {"base_url", "api_key", "model"}
+            and not (key == "api_key" and _is_redacted_secret(value))
         }
     if patch.runninghub:
         comfy_updates = {}
-        if "api_key" in patch.runninghub:
+        if "api_key" in patch.runninghub and not _is_redacted_secret(patch.runninghub["api_key"]):
             comfy_updates["runninghub_api_key"] = patch.runninghub["api_key"]
         if "instance_type" in patch.runninghub:
             instance_type = patch.runninghub["instance_type"] or None
@@ -79,7 +85,11 @@ async def update_desktop_config(patch: DesktopConfigPatch):
 
 
 def _redact_secret(value: str) -> str:
-    return "***redacted***" if value else ""
+    return REDACTED_SECRET if value else ""
+
+
+def _is_redacted_secret(value: object) -> bool:
+    return isinstance(value, str) and value.strip() == REDACTED_SECRET
 
 
 def _module_available(module_name: str) -> bool:
