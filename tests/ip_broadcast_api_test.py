@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -376,8 +377,216 @@ async def test_run_source_step_learns_ip_profile_and_stores_compact_results(monk
     assert result is True
     assert session.state["ip_learning_summary"] == "已提取 2 条，失败 0 条"
     assert session.state["ip_learning_topics"] == ["火锅店为什么要现炒锅底", "鲜切黄牛肉怎么选"]
-    assert session.state["final_script"] == "根据学习选题生成的完整口播文案"
+    assert session.state["ip_learning_selected_topic"] == ""
+    assert session.state["ip_learning_requires_topic_confirmation"] is True
+    assert session.state["final_script"] == ""
+    assert session.next_action()["key"] == "source"
+    assert session.next_action()["label"] == "确认学习选题"
+    assert session.step_status[1] == "ready"
+    assert session.step_status[2] == "pending"
+    assert session.notices[1]["kind"] == "info"
+    assert session.notices[1]["message"] == "已生成候选选题，请先确认一个选题再生成口播文案。"
+
+
+async def test_run_source_step_generates_script_after_ip_topic_confirmation(monkeypatch):
+    async def fake_fetch_latest(profile_url, limit=5):
+        raise AssertionError("confirmed topic should reuse extracted scripts")
+
+    async def fake_extract_many(extractor, video_inputs, limit=5):
+        raise AssertionError("confirmed topic should reuse extracted scripts")
+
+    class FakePixelleVideo:
+        async def llm(self, prompt, response_type=None):
+            assert response_type is None
+            assert "鲜切黄牛肉怎么选" in prompt
+            assert "第一条口播" in prompt
+            return "根据第二个学习选题生成的完整口播文案"
+
+    monkeypatch.setattr(
+        "pixelle_video.services.ip_broadcast_workflow.fetch_latest_video_urls_from_profile",
+        fake_fetch_latest,
+    )
+    monkeypatch.setattr(
+        "pixelle_video.services.ip_broadcast_workflow.extract_many_video_scripts",
+        fake_extract_many,
+    )
+
+    store = IpBroadcastSessionStore()
+    session = store.create_session()
+    store.update_config(
+        session.session_id,
+        {
+            "source_mode": "ip_learning",
+            "ip_learning_scripts": [{"source": "https://www.douyin.com/video/1", "script": "第一条口播"}],
+            "ip_learning_topics": ["火锅店为什么要现炒锅底", "鲜切黄牛肉怎么选"],
+            "ip_learning_selected_topic": "鲜切黄牛肉怎么选",
+            "ip_learning_requires_topic_confirmation": True,
+        },
+    )
+
+    result = await run_ip_broadcast_step(
+        pixelle_video=FakePixelleVideo(),
+        session=session,
+        step_key="source",
+    )
+
+    assert result is True
+    assert session.state["ip_learning_requires_topic_confirmation"] is False
+    assert session.state["final_script"] == "根据第二个学习选题生成的完整口播文案"
+    assert session.state["source_text"] == "根据第二个学习选题生成的完整口播文案"
     assert session.state["source_label"] == "IP学习"
+    assert session.state["copywriting_confirmed"] is False
+
+
+def _seed_ip_learning_outputs(session):
+    session.update_config(
+        {
+            "source_mode": "ip_learning",
+            "ip_profile_url": "https://www.douyin.com/user/old",
+            "ip_manual_video_links": "https://www.douyin.com/video/old",
+            "ip_learning_video_urls": ["https://www.douyin.com/video/old"],
+            "ip_learning_scripts": [{"source": "old", "script": "old script"}],
+            "ip_learning_errors": [{"source": "bad", "error": "failed"}],
+            "ip_learning_topics": ["旧选题"],
+            "ip_learning_selected_topic": "旧选题",
+            "ip_learning_summary": "已提取 1 条，失败 1 条",
+            "ip_learning_requires_topic_confirmation": True,
+            "source_text": "旧的口播文案",
+            "source_label": "IP学习",
+            "final_script": "旧的口播文案",
+            "copywriting_confirmed": True,
+            "audio_path": "/tmp/old-audio.mp3",
+            "digital_human_video_path": "/tmp/old-human.mp4",
+            "final_video_path": "/tmp/old-final.mp4",
+            "cover_path": "/tmp/old-cover.png",
+            "publish_package": {"title": "旧发布包"},
+            "platform_suggestions": {"douyin": {"title": "旧建议"}},
+        }
+    )
+
+
+def _assert_ip_learning_outputs_cleared(session, *, source_text=""):
+    assert session.state["ip_learning_video_urls"] == []
+    assert session.state["ip_learning_scripts"] == []
+    assert session.state["ip_learning_errors"] == []
+    assert session.state["ip_learning_topics"] == []
+    assert session.state["ip_learning_selected_topic"] == ""
+    assert session.state["ip_learning_summary"] == ""
+    assert session.state["ip_learning_requires_topic_confirmation"] is False
+    assert session.state["source_text"] == source_text
+    assert session.state["source_label"] == ""
+    assert session.state["final_script"] == ""
+    assert session.state["copywriting_confirmed"] is False
+    assert session.state["audio_path"] == ""
+    assert session.state["digital_human_video_path"] == ""
+    assert session.state["final_video_path"] == ""
+    assert session.state["cover_path"] == ""
+    assert session.state["publish_package"] == {}
+    assert session.state["platform_suggestions"] == {}
+
+
+def test_ip_learning_profile_url_change_clears_cache_script_and_outputs():
+    session = IpBroadcastSessionStore().create_session()
+    _seed_ip_learning_outputs(session)
+
+    session.update_config({"ip_profile_url": "https://www.douyin.com/user/new"})
+
+    _assert_ip_learning_outputs_cleared(session)
+
+
+@pytest.mark.asyncio
+async def test_run_source_step_waiting_for_ip_topic_clears_stale_script():
+    class FakePixelleVideo:
+        async def llm(self, prompt, response_type=None):
+            raise AssertionError("waiting for topic confirmation should not call LLM")
+
+    store = IpBroadcastSessionStore()
+    session = store.create_session()
+    store.update_config(
+        session.session_id,
+        {
+            "source_mode": "ip_learning",
+            "ip_learning_scripts": [{"source": "https://www.douyin.com/video/1", "script": "第一条口播"}],
+            "ip_learning_topics": ["火锅店为什么要现炒锅底", "鲜切黄牛肉怎么选"],
+            "ip_learning_selected_topic": "",
+            "ip_learning_requires_topic_confirmation": False,
+            "final_script": "旧的口播文案",
+            "source_text": "旧的口播文案",
+            "source_label": "IP学习",
+        },
+    )
+
+    result = await run_ip_broadcast_step(
+        pixelle_video=FakePixelleVideo(),
+        session=session,
+        step_key="source",
+    )
+
+    assert result is True
+    assert session.state["ip_learning_requires_topic_confirmation"] is True
+    assert session.state["final_script"] == ""
+    assert session.state["source_text"] == ""
+    assert session.state["source_label"] == ""
+    assert session.state["copywriting_confirmed"] is False
+    assert session.next_action()["key"] == "source"
+
+
+def test_ip_learning_source_mode_change_clears_cache_script_and_outputs():
+    session = IpBroadcastSessionStore().create_session()
+    _seed_ip_learning_outputs(session)
+
+    session.update_config({"source_mode": "paste"})
+
+    _assert_ip_learning_outputs_cleared(session)
+
+
+def test_ip_learning_manual_video_links_change_clears_cache_script_and_outputs():
+    session = IpBroadcastSessionStore().create_session()
+    _seed_ip_learning_outputs(session)
+
+    session.update_config({"ip_manual_video_links": "https://www.douyin.com/video/new"})
+
+    _assert_ip_learning_outputs_cleared(session)
+
+
+def test_ip_learning_source_text_fallback_change_clears_cache_script_and_outputs():
+    session = IpBroadcastSessionStore().create_session()
+    _seed_ip_learning_outputs(session)
+
+    session.update_config({"source_text": "https://www.douyin.com/user/new"})
+
+    _assert_ip_learning_outputs_cleared(
+        session,
+        source_text="https://www.douyin.com/user/new",
+    )
+    assert session.next_action()["key"] == "source"
+
+
+def test_ip_learning_unrelated_config_keeps_cached_topics():
+    session = IpBroadcastSessionStore().create_session()
+    session.update_config(
+        {
+            "source_mode": "ip_learning",
+            "ip_profile_url": "https://www.douyin.com/user/demo",
+            "ip_learning_video_urls": ["https://www.douyin.com/video/old"],
+            "ip_learning_scripts": [{"source": "old", "script": "old script"}],
+            "ip_learning_errors": [{"source": "bad", "error": "failed"}],
+            "ip_learning_topics": ["保留选题"],
+            "ip_learning_selected_topic": "保留选题",
+            "ip_learning_summary": "已提取 1 条，失败 1 条",
+            "ip_learning_requires_topic_confirmation": True,
+        }
+    )
+
+    session.update_config({"tts_speed": 1.15})
+
+    assert session.state["ip_learning_video_urls"] == ["https://www.douyin.com/video/old"]
+    assert session.state["ip_learning_scripts"] == [{"source": "old", "script": "old script"}]
+    assert session.state["ip_learning_errors"] == [{"source": "bad", "error": "failed"}]
+    assert session.state["ip_learning_topics"] == ["保留选题"]
+    assert session.state["ip_learning_selected_topic"] == "保留选题"
+    assert session.state["ip_learning_summary"] == "已提取 1 条，失败 1 条"
+    assert session.state["ip_learning_requires_topic_confirmation"] is True
 
 
 async def test_run_voice_step_passes_runninghub_index_workflow_params():

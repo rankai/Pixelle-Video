@@ -510,7 +510,7 @@ textarea {
 
 .system-status-item {
   display: grid;
-  grid-template-columns: 12px minmax(0, 1fr) max-content;
+  grid-template-columns: 12px minmax(0, 1fr) max-content max-content;
   gap: 9px;
   align-items: center;
   border: 1px solid rgb(148 163 184 / 20%);
@@ -520,8 +520,18 @@ textarea {
 }
 
 .system-status-item strong {
+  display: block;
   overflow: hidden;
   color: #0f172a;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.system-status-item small {
+  display: block;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -530,6 +540,20 @@ textarea {
   color: var(--app-muted);
   font-size: 12px;
   font-style: normal;
+}
+
+.system-status-action,
+.system-status-more {
+  border: 0;
+  background: transparent;
+  color: var(--app-primary);
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.system-status-more {
+  justify-self: start;
+  padding: 4px 0;
 }
 
 .home-hero {
@@ -3735,6 +3759,61 @@ button.asset-card {
   background: #f8fafc;
 }
 
+.topic-confirm-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.config-check-list,
+.diagnostic-check-list {
+  display: grid;
+  gap: 8px;
+}
+
+.config-check-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.config-check-actions span {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.config-check-row,
+.diagnostic-check-row {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 180px) 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.confirm-delete-modal {
+  max-width: 480px;
+}
+
+.confirm-delete-body {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.platform-capability-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
 pre {
   overflow: auto;
   border-radius: 8px;
@@ -3793,6 +3872,35 @@ pre {
   .production-preview-panel,
   .publish-aside {
     position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .diagnostic-check-row,
+  .config-check-row,
+  .system-status-item {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .system-status-action,
+  .topic-confirm-row .ant-btn,
+  .modal-actions .ant-btn {
+    width: 100%;
+  }
+
+  .platform-capability-head,
+  .publish-field-title,
+  .config-check-actions {
+    align-items: flex-start;
+  }
+
+  .publish-delivery-checklist {
+    grid-template-columns: 1fr;
+  }
+
+  .asset-preview-modal {
+    width: calc(100vw - 24px);
   }
 }
 

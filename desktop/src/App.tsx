@@ -36,6 +36,7 @@ import {
   artifactBlobUrl,
   assetBlobUrl,
   cancelTask,
+  checkDesktopConfig,
   createBrandKit,
   createSession,
   deleteBrandKit,
@@ -58,7 +59,10 @@ import {
   prepareDouyinPublish,
   PortraitAsset,
   BrandKit,
+  ConfigCheckResult,
   DesktopConfig,
+  DesktopDiagnostics,
+  DiagnosticCheck,
   IpBroadcastState,
   IpPresetAsset,
   IpTemplateAsset,
@@ -102,6 +106,15 @@ type AssetState = {
   bgm: BgmAsset[];
 };
 
+type ReadinessItem = {
+  label: string;
+  description: string;
+  ready: boolean;
+  action: string;
+  onClick: () => void;
+  recommended?: boolean;
+};
+
 type StorySegment = {
   segment_id: string;
   index: number;
@@ -143,6 +156,14 @@ type AssetPreview =
   | { kind: "audio"; title: string; src: string }
   | { kind: "image"; title: string; src: string }
   | { kind: "video"; title: string; src: string };
+
+type PendingDelete = {
+  title: string;
+  name: string;
+  description: string;
+  confirmLabel: string;
+  confirm: () => Promise<void>;
+};
 
 const stepTitles = [
   "搞定文案",
@@ -610,7 +631,9 @@ export function App() {
           assets={assets}
           onStart={() => startNewIpSession().catch((err) => setAppError(formatUiError(err)))}
           onAssets={() => setView("assets")}
+          onAssetTab={openAssetTab}
           onConfig={() => setView("config")}
+          onDiagnostics={() => setView("diagnostics")}
           onTasks={() => setView("tasks")}
         />
       ) : null}
@@ -638,13 +661,17 @@ function HomeView({
   assets,
   onStart,
   onAssets,
+  onAssetTab,
   onConfig,
+  onDiagnostics,
   onTasks,
 }: {
   assets: AssetState;
   onStart: () => void;
   onAssets: () => void;
+  onAssetTab: (tab: AssetTab) => void;
   onConfig: () => void;
+  onDiagnostics: () => void;
   onTasks: () => void;
 }) {
   const [config, setConfig] = useState<DesktopConfig | null>(null);
@@ -662,20 +689,55 @@ function HomeView({
 
   const llmReady = hasConfiguredKey(config?.llm.api_key);
   const runninghubReady = hasConfiguredKey(config?.runninghub.api_key);
-  const ready = llmReady && runninghubReady;
+  const configReady = llmReady && runninghubReady;
+  const productionReady =
+    configReady &&
+    assets.voices.length > 0 &&
+    assets.portraits.length > 0 &&
+    assets.templates.length > 0 &&
+    !error;
   const assetCount =
     assets.voices.length + assets.portraits.length + assets.templates.length + assets.videos.length;
   const taskStats = buildTaskStats(tasks);
   const latestTask = tasks[0];
   const recentTasks = tasks.slice(0, 4);
-  const readinessItems = [
-    { label: "账号配置", ready: llmReady, action: "去配置", onClick: onConfig },
-    { label: "云端生成能力", ready: runninghubReady, action: "去配置", onClick: onConfig },
-    { label: "声音素材", ready: assets.voices.length > 0, action: "去维护", onClick: onAssets },
-    { label: "数字人形象", ready: assets.portraits.length > 0, action: "去维护", onClick: onAssets },
-    { label: "画面模板", ready: assets.templates.length > 0, action: "去维护", onClick: onAssets },
-    { label: "系统连接", ready: !error, action: "诊断", onClick: onConfig },
+  const requiredReadinessItems: ReadinessItem[] = [
+    { label: "账号配置", description: "用于生成文案和发布素材", ready: llmReady, action: "去配置", onClick: onConfig },
+    { label: "云端生成能力", description: "用于生成配音和数字人", ready: runninghubReady, action: "去配置", onClick: onConfig },
+    {
+      label: "商家口播声音",
+      description: "用于生成商家口播声音",
+      ready: assets.voices.length > 0,
+      action: "去音色库",
+      onClick: () => onAssetTab("voices"),
+    },
+    {
+      label: "出镜数字人形象",
+      description: "用于数字人口播画面",
+      ready: assets.portraits.length > 0,
+      action: "去形象库",
+      onClick: () => onAssetTab("portraits"),
+    },
+    {
+      label: "视频画面模板",
+      description: "用于控制标题和字幕样式",
+      ready: assets.templates.length > 0,
+      action: "去模板库",
+      onClick: () => onAssetTab("templates"),
+    },
+    { label: "系统诊断", description: "检查本机依赖和输出目录", ready: !error, action: "查看诊断", onClick: onDiagnostics },
   ];
+  const recommendedReadinessItems: ReadinessItem[] = [
+    {
+      label: "视频素材",
+      description: "推荐补充门店环境和产品画面，不影响生成",
+      ready: assets.videos.length > 0,
+      action: "去视频素材库",
+      onClick: () => onAssetTab("videos"),
+      recommended: true,
+    },
+  ];
+  const readinessItems = [...requiredReadinessItems, ...recommendedReadinessItems];
 
   return (
     <section className="home-page">
@@ -691,7 +753,12 @@ function HomeView({
             给老板、门店和本地生活团队用的口播生产台。打开首页先看系统是否准备好，再继续任务或新建一条可发布的视频。
           </Typography.Paragraph>
         </div>
-        <SystemStatusPanel items={readinessItems} ready={ready} onConfig={onConfig} />
+        <SystemStatusPanel
+          items={readinessItems}
+          requiredItems={requiredReadinessItems}
+          ready={productionReady}
+          onConfig={onConfig}
+        />
       </Card>
 
       <div className="home-metrics">
@@ -707,12 +774,12 @@ function HomeView({
 
       <div className="home-workbench-grid">
         <div className="home-left-stack">
-          <QuickAccessCard ready={ready} onAssets={onAssets} onConfig={onConfig} />
+          <QuickAccessCard ready={productionReady} onAssets={onAssets} onConfig={onConfig} />
         </div>
         <div className="home-right-stack">
           <CurrentTaskCard
             task={latestTask}
-            ready={ready}
+            ready={productionReady}
             onStart={onStart}
             onConfig={onConfig}
             onTasks={onTasks}
@@ -728,14 +795,20 @@ function HomeView({
 
 function SystemStatusPanel({
   items,
+  requiredItems,
   ready,
   onConfig,
 }: {
-  items: Array<{ label: string; ready: boolean; action: string; onClick: () => void }>;
+  items: ReadinessItem[];
+  requiredItems: ReadinessItem[];
   ready: boolean;
   onConfig: () => void;
 }) {
-  const missing = items.filter((item) => !item.ready);
+  const missing = requiredItems.filter((item) => !item.ready);
+  const recommendedMissing = items.filter((item) => item.recommended && !item.ready);
+  const displayItems = missing.length ? [...missing, ...recommendedMissing] : items;
+  const visibleMissingItems = displayItems.slice(0, 4);
+  const primaryAction = missing[0];
   return (
     <div className="home-system-status" aria-label="系统状态">
       <div className="system-status-head">
@@ -743,17 +816,34 @@ function SystemStatusPanel({
         <Tag color={ready ? "success" : "warning"}>{ready ? "可以生成" : `${missing.length} 项待处理`}</Tag>
       </div>
       <div className="system-status-list">
-        {items.slice(0, 4).map((item) => (
+        {visibleMissingItems.map((item) => (
           <div key={item.label} className="system-status-item">
             <span className={item.ready ? "ready-dot success" : "ready-dot warning"} />
-            <strong>{item.label}</strong>
-            <em>{item.ready ? "已完成" : "待设置"}</em>
+            <div>
+              <strong>{item.label}</strong>
+              <small>{item.description}</small>
+            </div>
+            <em>{item.ready ? "已完成" : item.recommended ? "推荐补充" : "待设置"}</em>
+            {!item.ready ? (
+              <button type="button" className="system-status-action" onClick={item.onClick}>
+                {item.action}
+              </button>
+            ) : null}
           </div>
         ))}
+        {displayItems.length > visibleMissingItems.length ? (
+          <button
+            type="button"
+            className="system-status-more"
+            onClick={displayItems[visibleMissingItems.length]?.onClick || onConfig}
+          >
+            还有 {displayItems.length - visibleMissingItems.length} 项待处理
+          </button>
+        ) : null}
       </div>
       {!ready ? (
-        <Button type="primary" onClick={onConfig}>
-          补齐配置
+        <Button type="primary" onClick={primaryAction?.onClick || onConfig}>
+          {primaryAction ? `先补齐：${primaryAction.label}` : "补齐配置"}
         </Button>
       ) : null}
     </div>
@@ -1227,6 +1317,9 @@ function DraftStep({
   const ipTopics = Array.isArray(session.state.ip_learning_topics)
     ? (session.state.ip_learning_topics as string[])
     : [];
+  const ipLearningNeedsTopicConfirmation =
+    sourceMode === "ip_learning" && Boolean(session.state.ip_learning_requires_topic_confirmation);
+  const selectedIpLearningTopic = String(session.state.ip_learning_selected_topic || "");
   async function confirmScriptAndContinue() {
     await patch({ copywriting_confirmed: true });
     goToStep(2);
@@ -1259,22 +1352,24 @@ function DraftStep({
       </div>
       <div className="panel-actions sticky-step-actions">
         <StepNavButtons step={step} goToStep={goToStep} />
-        <div className="panel-primary-actions">
-          {!session.state.final_script ? (
-            <Button type="primary" onClick={() => execute("source")} disabled={busy}>
-              {busy ? "执行中..." : sourceActionLabel(sourceMode, ipTopics.length)}
-            </Button>
-          ) : (
-            <>
-              <Button onClick={() => execute("copywriting")} disabled={busy}>
-                {busy ? "正在优化..." : "AI 改写/优化文案"}
+        {!ipLearningNeedsTopicConfirmation ? (
+          <div className="panel-primary-actions">
+            {!session.state.final_script ? (
+              <Button type="primary" onClick={() => execute("source")} disabled={busy}>
+                {busy ? "执行中..." : sourceActionLabel(sourceMode, ipTopics.length)}
               </Button>
-              <Button type="primary" onClick={confirmScriptAndContinue} disabled={busy}>
-                确认文案，去配音
-              </Button>
-            </>
-          )}
-        </div>
+            ) : (
+              <>
+                <Button onClick={() => execute("copywriting")} disabled={busy}>
+                  {busy ? "正在优化..." : "AI 改写/优化文案"}
+                </Button>
+                <Button type="primary" onClick={confirmScriptAndContinue} disabled={busy}>
+                  确认文案，去配音
+                </Button>
+              </>
+            )}
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -1313,6 +1408,13 @@ function SourceStep({
   const ipErrors = Array.isArray(session.state.ip_learning_errors)
     ? (session.state.ip_learning_errors as Array<Record<string, string>>)
     : [];
+  const ipLearningNeedsTopicConfirmation =
+    sourceMode === "ip_learning" && Boolean(session.state.ip_learning_requires_topic_confirmation);
+  const selectedIpLearningTopic = String(session.state.ip_learning_selected_topic || "");
+  async function confirmIpLearningTopic() {
+    if (!selectedIpLearningTopic) return;
+    await execute("source");
+  }
   async function applyPreset(presetId: string) {
     const preset = presets.find((item) => item.preset_id === presetId);
     if (!preset) {
@@ -1576,21 +1678,41 @@ function SourceStep({
                   </div>
                 ) : null}
                 {ipTopics.length ? (
-                  <div className="topic-grid">
-                    {ipTopics.map((topic) => (
-                      <button
-                        key={topic}
-                        className={`topic-card ${
-                          session.state.ip_learning_selected_topic === topic ? "selected" : ""
-                        }`}
-                        onClick={() =>
-                          patch({ source_mode: "ip_learning", ip_learning_selected_topic: topic })
-                        }
+                  <>
+                    <Alert
+                      className="step-notice"
+                      type="info"
+                      showIcon
+                      message="已生成候选选题，请选择 1 个再生成文案。"
+                    />
+                    <div className="topic-grid">
+                      {ipTopics.map((topic) => (
+                        <button
+                          key={topic}
+                          className={`topic-card ${
+                            session.state.ip_learning_selected_topic === topic ? "selected" : ""
+                          }`}
+                          onClick={() =>
+                            patch({ source_mode: "ip_learning", ip_learning_selected_topic: topic })
+                          }
+                        >
+                          {topic}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="topic-confirm-row">
+                      <Button
+                        type="primary"
+                        onClick={confirmIpLearningTopic}
+                        disabled={busy || !selectedIpLearningTopic}
                       >
-                        {topic}
-                      </button>
-                    ))}
-                  </div>
+                        {busy ? "正在生成文案..." : selectedIpLearningTopic ? "确认选题并生成文案" : "请选择一个学习选题"}
+                      </Button>
+                      <Typography.Text type="secondary">
+                        先确认一个选题，再进入口播文案生成，避免系统自动使用第一个选题。
+                      </Typography.Text>
+                    </div>
+                  </>
                 ) : null}
               </div>
             ),
@@ -1623,7 +1745,7 @@ function SourceStep({
           </div>
         </div>
       </details>
-      {showPanelActions ? (
+      {showPanelActions && !ipLearningNeedsTopicConfirmation ? (
       <div className="panel-actions">
         <StepNavButtons step={step} goToStep={goToStep} />
         <div className="panel-primary-actions">
@@ -1637,8 +1759,18 @@ function SourceStep({
             </Button>
             </>
           ) : (
-            <Button type="primary" onClick={() => execute("source")} disabled={busy}>
-              {busy ? "执行中..." : sourceActionLabel(sourceMode, ipTopics.length)}
+            <Button
+              type="primary"
+              onClick={() => execute("source")}
+              disabled={busy || (ipLearningNeedsTopicConfirmation && !selectedIpLearningTopic)}
+            >
+              {busy
+                ? "执行中..."
+                : ipLearningNeedsTopicConfirmation
+                  ? selectedIpLearningTopic
+                    ? "确认选题并生成文案"
+                    : "请选择一个学习选题"
+                  : sourceActionLabel(sourceMode, ipTopics.length)}
             </Button>
           )}
         </div>
@@ -3212,7 +3344,7 @@ function PublishStep({
   const script = (publishPackage.script as string) || (session.state.final_script as string) || "";
   const publishReady = Boolean(session.artifacts.final_video || session.state.final_video_path);
   const coverReady = Boolean(session.artifacts.cover || session.state.cover_path);
-  const videoPath = (session.state.final_video_path as string) || "";
+  const finalVideoPath = (session.state.final_video_path as string) || "";
   const coverPath = (session.state.cover_path as string) || "";
   const hashtagList =
     ((publishPackage.hashtags as string[]) || (session.state.hashtags as string[]) || []).filter(Boolean);
@@ -3221,7 +3353,9 @@ function PublishStep({
     title ? `标题：${title}` : "",
     description ? `描述：${description}` : "",
     commentCta ? `评论区引导：${commentCta}` : "",
-    hashtags ? `标签：${hashtags}` : "",
+    hashtags ? `话题标签：${hashtags}` : "",
+    finalVideoPath ? `最终视频路径：${finalVideoPath}` : "最终视频：请先下载最终视频后上传。",
+    coverPath ? `封面路径：${coverPath}` : "封面：请先下载封面后上传。",
     script ? `口播文案：\n${script}` : "",
   ]
     .filter(Boolean)
@@ -3245,25 +3379,37 @@ function PublishStep({
     ? platformEntries.filter(([platform]) => !preferredPlatforms.includes(platform))
     : [];
   const renderPlatformCard = ([platform, value]: [string, Record<string, unknown>]) => {
-    const platformText = `${String(value.title || "")}\n${String(value.description || "")}`;
+    const platformText = buildPlatformMaterialText({
+      platform,
+      title: String(value.title || title || ""),
+      description: String(value.description || description || ""),
+      hashtags,
+      commentCta,
+      finalVideoPath,
+      coverPath,
+    });
     return (
       <section key={platform} className="platform-card">
-        <Tag color="processing">{platformLabel(platform)}</Tag>
+        <div className="platform-capability-head">
+          <Tag color="processing">{platformLabel(platform)}</Tag>
+          <Tag color={platform === "douyin" ? "success" : "default"}>{publishCapabilityLabel(platform)}</Tag>
+        </div>
         <strong>{String(value.title || "") || "暂无标题建议"}</strong>
         <p>{String(value.description || "") || "暂无描述建议"}</p>
+        <small>{publishCapabilityDescription(platform)}</small>
         <CopyButton text={platformText} label="复制该平台素材" disabled={!publishReady} />
       </section>
     );
   };
   async function prepareDouyinDraft() {
-    if (!videoPath) return;
+    if (!finalVideoPath) return;
     setPublishLoading(true);
     setPublishResult(null);
     try {
       const result = await prepareDouyinPublish({
         session_id: session.session_id,
         platform: "douyin",
-        video_path: videoPath,
+        video_path: finalVideoPath,
         title,
         description,
         hashtags: hashtagList,
@@ -3296,7 +3442,7 @@ function PublishStep({
           type="info"
           showIcon
           message="发布助手会打开独立浏览器窗口，使用本机登录态填写抖音草稿；最终发布仍需要你在抖音页面确认。"
-          description="登录数据只保存在本机 data/publish_browser/ 目录，不会随发布素材上传。"
+          description="当前发布能力：抖音草稿助手，其他平台复制素材手动发布。这不是全平台自动发布。登录数据只保存在本机 data/publish_browser/ 目录，不会随发布素材上传。"
         />
       ) : null}
 
@@ -3404,7 +3550,7 @@ function PublishStep({
               <Button
                 type="primary"
                 block
-                disabled={!publishReady || !videoPath}
+                disabled={!publishReady || !finalVideoPath}
                 loading={publishLoading}
                 onClick={prepareDouyinDraft}
               >
@@ -3491,9 +3637,19 @@ function CopyButton({
   label?: string;
   disabled?: boolean;
 }) {
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  async function copyText() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setStatus("success");
+    } catch {
+      setStatus("error");
+    }
+    window.setTimeout(() => setStatus("idle"), 1800);
+  }
   return (
-    <Button onClick={() => navigator.clipboard.writeText(text)} disabled={disabled || !text}>
-      {label}
+    <Button onClick={copyText} disabled={disabled || !text} danger={status === "error"}>
+      {status === "success" ? "已复制" : status === "error" ? "复制失败" : label}
     </Button>
   );
 }
@@ -3507,6 +3663,47 @@ function platformLabel(platform: string) {
       kuaishou: "快手",
     }[platform] || platform
   );
+}
+
+function publishCapabilityLabel(platform: string) {
+  return platform === "douyin" ? "抖音草稿助手" : "复制素材手动发布";
+}
+
+function publishCapabilityDescription(platform: string) {
+  return platform === "douyin"
+    ? "可打开本机浏览器填写抖音草稿，最终发布仍需人工确认。"
+    : "当前不是全平台自动发布，请复制标题、描述、标签和视频素材到平台后台手动发布。";
+}
+
+function buildPlatformMaterialText({
+  platform,
+  title,
+  description,
+  hashtags,
+  commentCta,
+  finalVideoPath,
+  coverPath,
+}: {
+  platform: string;
+  title: string;
+  description: string;
+  hashtags: string;
+  commentCta: string;
+  finalVideoPath: string;
+  coverPath: string;
+}) {
+  return [
+    `平台：${platformLabel(platform)}`,
+    `发布方式：${publishCapabilityLabel(platform)}`,
+    title ? `标题：${title}` : "",
+    description ? `描述：${description}` : "",
+    hashtags ? `话题标签：${hashtags}` : "",
+    commentCta ? `评论区引导：${commentCta}` : "",
+    finalVideoPath ? `最终视频路径：${finalVideoPath}` : "最终视频：请先下载最终视频后上传。",
+    coverPath ? `封面路径：${coverPath}` : "封面：请先下载封面后上传。",
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function publishStatusLabel(status: PublishResult["status"]) {
@@ -4104,6 +4301,57 @@ function AssetPreviewModal({
   );
 }
 
+function ConfirmDeleteModal({
+  pending,
+  onClose,
+}: {
+  pending: PendingDelete | null;
+  onClose: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  if (!pending) return null;
+
+  async function confirmDelete() {
+    if (!pending) return;
+    setLoading(true);
+    setDeleteError("");
+    try {
+      await pending.confirm();
+      onClose();
+    } catch (err) {
+      setDeleteError(formatUiError(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="modal-backdrop asset-modal-backdrop">
+      <section className="modal confirm-delete-modal">
+        <div className="modal-title">
+          <div>
+            <h2>{pending.title}</h2>
+            <p>删除后无法在当前素材库恢复；已生成的视频不受影响，但后续任务不能再选择这个素材。</p>
+          </div>
+          <button type="button" onClick={onClose}>关闭</button>
+        </div>
+        <div className="confirm-delete-body">
+          <strong>{pending.name}</strong>
+          <span>{pending.description}</span>
+        </div>
+        {deleteError ? <Alert type="error" showIcon message={`删除失败：${deleteError}`} /> : null}
+        <div className="modal-actions">
+          <Button onClick={onClose}>取消</Button>
+          <Button danger type="primary" loading={loading} onClick={confirmDelete}>
+            {pending.confirmLabel}
+          </Button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function AddAssetCard({
   title,
   description,
@@ -4540,6 +4788,7 @@ function AssetsView({
 function VoiceLibrary({ items, reload }: { items: VoiceAsset[]; reload: () => Promise<void> }) {
   const [preview, setPreview] = useState<AssetPreview | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   return (
     <>
       <AssetLibraryShell
@@ -4565,7 +4814,18 @@ function VoiceLibrary({ items, reload }: { items: VoiceAsset[]; reload: () => Pr
                   <button
                     type="button"
                     className="asset-action danger"
-                    onClick={() => deleteVoiceAsset(item.reference_id).then(reload)}
+                    onClick={() =>
+                      setPendingDelete({
+                        title: "确认删除音色",
+                        name: item.name,
+                        description: item.filename,
+                        confirmLabel: "确认删除音色",
+                        confirm: async () => {
+                          await deleteVoiceAsset(item.reference_id);
+                          await reload();
+                        },
+                      })
+                    }
                   >
                     删除
                   </button>
@@ -4587,6 +4847,7 @@ function VoiceLibrary({ items, reload }: { items: VoiceAsset[]; reload: () => Pr
         successMessage="已保存到音色库。"
       />
       <AssetPreviewModal preview={preview} onClose={() => setPreview(null)} />
+      <ConfirmDeleteModal pending={pendingDelete} onClose={() => setPendingDelete(null)} />
     </>
   );
 }
@@ -4600,6 +4861,7 @@ function PortraitLibrary({
 }) {
   const [preview, setPreview] = useState<AssetPreview | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   return (
     <>
       <AssetLibraryShell
@@ -4635,7 +4897,18 @@ function PortraitLibrary({
                   <button
                     type="button"
                     className="asset-action danger"
-                    onClick={() => deletePortraitAsset(item.portrait_id).then(reload)}
+                    onClick={() =>
+                      setPendingDelete({
+                        title: "确认删除形象",
+                        name: item.name,
+                        description: item.media_type === "video" ? "视频形象" : "图片形象",
+                        confirmLabel: "确认删除形象",
+                        confirm: async () => {
+                          await deletePortraitAsset(item.portrait_id);
+                          await reload();
+                        },
+                      })
+                    }
                   >
                     删除
                   </button>
@@ -4663,6 +4936,7 @@ function PortraitLibrary({
         successMessage="已保存到形象库。"
       />
       <AssetPreviewModal preview={preview} onClose={() => setPreview(null)} />
+      <ConfirmDeleteModal pending={pendingDelete} onClose={() => setPendingDelete(null)} />
     </>
   );
 }
@@ -4687,6 +4961,8 @@ function TemplateLibrary({ items }: { items: IpTemplateAsset[] }) {
 
 function VideoLibrary({ items, reload }: { items: VideoAsset[]; reload: () => Promise<void> }) {
   const [addOpen, setAddOpen] = useState(false);
+  const [preview, setPreview] = useState<AssetPreview | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   return (
     <>
       <AssetLibraryShell
@@ -4707,8 +4983,27 @@ function VideoLibrary({ items, reload }: { items: VideoAsset[]; reload: () => Pr
                 <div className="asset-card-actions">
                   <button
                     type="button"
+                    className="asset-action preview"
+                    onClick={() => setPreview({ kind: "video", title: item.name, src: item.file_url })}
+                    disabled={!item.file_url}
+                  >
+                    预览
+                  </button>
+                  <button
+                    type="button"
                     className="asset-action danger"
-                    onClick={() => deleteVideoAsset(item.asset_id).then(reload)}
+                    onClick={() =>
+                      setPendingDelete({
+                        title: "确认删除视频素材",
+                        name: item.name,
+                        description: item.filename,
+                        confirmLabel: "确认删除视频素材",
+                        confirm: async () => {
+                          await deleteVideoAsset(item.asset_id);
+                          await reload();
+                        },
+                      })
+                    }
                   >
                     删除
                   </button>
@@ -4736,11 +5031,14 @@ function VideoLibrary({ items, reload }: { items: VideoAsset[]; reload: () => Pr
         successNote="保存成功后：关闭弹窗 → 刷新素材列表。"
         successMessage="已保存到视频素材库。"
       />
+      <AssetPreviewModal preview={preview} onClose={() => setPreview(null)} />
+      <ConfirmDeleteModal pending={pendingDelete} onClose={() => setPendingDelete(null)} />
     </>
   );
 }
 
 function BrandKitLibrary({ items, reload }: { items: BrandKit[]; reload: () => Promise<void> }) {
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   const [draft, setDraft] = useState<Partial<BrandKit>>({
     brand_name: "",
     primary_color: "#6D5DF6",
@@ -4813,10 +5111,26 @@ function BrandKitLibrary({ items, reload }: { items: BrandKit[]; reload: () => P
                 updateBrandKit(item.brand_id, { default_bgm_path: event.target.value }).then(reload)
               }
             />
-            <button onClick={() => deleteBrandKit(item.brand_id).then(reload)}>删除</button>
+            <button
+              onClick={() =>
+                setPendingDelete({
+                  title: "确认删除品牌资料",
+                  name: item.brand_name,
+                  description: item.store_address || item.coupon_phrase || "暂无业务信息",
+                  confirmLabel: "确认删除品牌资料",
+                  confirm: async () => {
+                    await deleteBrandKit(item.brand_id);
+                    await reload();
+                  },
+                })
+              }
+            >
+              删除
+            </button>
           </section>
         ))}
       </div>
+      <ConfirmDeleteModal pending={pendingDelete} onClose={() => setPendingDelete(null)} />
     </section>
   );
 }
@@ -5012,6 +5326,8 @@ function ConfigView({
 }) {
   const [config, setConfig] = useState<DesktopConfig | null>(null);
   const [saved, setSaved] = useState("");
+  const [checkResult, setCheckResult] = useState<ConfigCheckResult | null>(null);
+  const [checkingConfig, setCheckingConfig] = useState(false);
 
   useEffect(() => {
     getDesktopConfig().then(setConfig).catch((err) => setSaved(String(err)));
@@ -5024,6 +5340,34 @@ function ConfigView({
     const updated = await saveDesktopConfig(config);
     setConfig(updated);
     setSaved("配置已保存。需要时请重启本地服务。");
+  }
+
+  function updateConfigDraft(nextConfig: DesktopConfig) {
+    setConfig(nextConfig);
+    setCheckResult(null);
+  }
+
+  async function runConfigCheck() {
+    if (!config) return;
+    setCheckingConfig(true);
+    setSaved("");
+    try {
+      setCheckResult(await checkDesktopConfig(config));
+    } catch (err) {
+      setCheckResult({
+        ok: false,
+        checks: [
+          {
+            id: "config_check",
+            label: "配置检查",
+            status: "missing",
+            message: formatUiError(err),
+          },
+        ],
+      });
+    } finally {
+      setCheckingConfig(false);
+    }
   }
 
   return (
@@ -5073,28 +5417,28 @@ function ConfigView({
         <input
           value={config.llm.base_url}
           onChange={(event) =>
-            setConfig({ ...config, llm: { ...config.llm, base_url: event.target.value } })
+            updateConfigDraft({ ...config, llm: { ...config.llm, base_url: event.target.value } })
           }
         />
         <label>LLM API Key</label>
         <input
           placeholder={config.llm.api_key || "请输入 API Key"}
           onChange={(event) =>
-            setConfig({ ...config, llm: { ...config.llm, api_key: event.target.value } })
+            updateConfigDraft({ ...config, llm: { ...config.llm, api_key: event.target.value } })
           }
         />
         <label>LLM Model</label>
         <input
           value={config.llm.model}
           onChange={(event) =>
-            setConfig({ ...config, llm: { ...config.llm, model: event.target.value } })
+            updateConfigDraft({ ...config, llm: { ...config.llm, model: event.target.value } })
           }
         />
         <label>RunningHub API Key</label>
         <input
           placeholder={config.runninghub.api_key || "请输入 RunningHub API Key"}
           onChange={(event) =>
-            setConfig({
+            updateConfigDraft({
               ...config,
               runninghub: { ...config.runninghub, api_key: event.target.value },
             })
@@ -5104,12 +5448,25 @@ function ConfigView({
         <input
           value={config.runninghub.instance_type}
           onChange={(event) =>
-            setConfig({
+            updateConfigDraft({
               ...config,
               runninghub: { ...config.runninghub, instance_type: event.target.value },
             })
           }
         />
+        <div className="config-check-actions">
+          <Button onClick={runConfigCheck} loading={checkingConfig}>
+            检查当前配置
+          </Button>
+          <span>配置项已填写，尚未验证服务账号是否可用。</span>
+        </div>
+        {checkResult ? (
+          <div className="config-check-list">
+            {checkResult.checks.map((item) => (
+              <CheckRow key={item.id} item={item} className="config-check-row" />
+            ))}
+          </div>
+        ) : null}
         <Button type="primary" onClick={save}>
           保存配置
         </Button>
@@ -5120,14 +5477,30 @@ function ConfigView({
 }
 
 function DiagnosticsView() {
-  const [diagnostics, setDiagnostics] = useState<Record<string, unknown> | null>(null);
+  const [diagnostics, setDiagnostics] = useState<DesktopDiagnostics | null>(null);
   useEffect(() => {
     getDiagnostics().then(setDiagnostics);
   }, []);
   return (
     <section className="card wide">
       <h2>启动自检</h2>
-      <pre>{JSON.stringify(diagnostics, null, 2)}</pre>
+      <div className="diagnostic-check-list">
+        {diagnostics?.checks.map((item) => (
+          <CheckRow key={item.id} item={item} className="diagnostic-check-row" />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CheckRow({ item, className }: { item: DiagnosticCheck; className: string }) {
+  return (
+    <section className={className}>
+      <Tag color={item.status === "ok" ? "success" : item.status === "warning" ? "warning" : "error"}>
+        {item.status === "ok" ? "正常" : item.status === "warning" ? "待验证" : "待处理"}
+      </Tag>
+      <strong>{item.label}</strong>
+      <span>{item.message}</span>
     </section>
   );
 }

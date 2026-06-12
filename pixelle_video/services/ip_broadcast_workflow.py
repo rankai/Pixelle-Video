@@ -91,6 +91,22 @@ FINAL_VIDEO_DEPENDENCY_KEYS = {
     "voice_volume",
     "remove_silence",
 }
+IP_LEARNING_INPUT_KEYS = {
+    "source_mode",
+    "ip_profile_url",
+    "ip_manual_video_links",
+    "source_text",
+}
+IP_LEARNING_CACHE_LIST_KEYS = {
+    "ip_learning_video_urls",
+    "ip_learning_scripts",
+    "ip_learning_errors",
+    "ip_learning_topics",
+}
+IP_LEARNING_CACHE_TEXT_KEYS = {
+    "ip_learning_selected_topic",
+    "ip_learning_summary",
+}
 
 STEP_KEYS = {
     STEP_SOURCE: 1,
@@ -130,6 +146,7 @@ def _default_state() -> dict[str, Any]:
         "ip_learning_topics": [],
         "ip_learning_summary": "",
         "ip_learning_selected_topic": "",
+        "ip_learning_requires_topic_confirmation": False,
         "style_prompt": "口语化、亲切自然、有感染力",
         "word_count": 200,
         "final_script": "",
@@ -216,6 +233,8 @@ class IpBroadcastSession:
         self.refresh_readiness()
 
     def _invalidate_dependents(self, changed_keys: set[str], protected_keys: set[str]) -> None:
+        if changed_keys & IP_LEARNING_INPUT_KEYS:
+            self._clear_ip_learning_outputs(protected_keys)
         if "final_script" in changed_keys:
             self.state["copywriting_confirmed"] = False
         if changed_keys & VOICE_DEPENDENCY_KEYS:
@@ -224,6 +243,24 @@ class IpBroadcastSession:
             self._clear_digital_human_outputs(protected_keys)
         elif changed_keys & FINAL_VIDEO_DEPENDENCY_KEYS:
             self._clear_final_outputs(protected_keys)
+
+    def _clear_ip_learning_outputs(self, protected_keys: set[str]) -> None:
+        for key in IP_LEARNING_CACHE_LIST_KEYS:
+            if key not in protected_keys:
+                self.state[key] = []
+        for key in IP_LEARNING_CACHE_TEXT_KEYS:
+            if key not in protected_keys:
+                self.state[key] = ""
+        if "ip_learning_requires_topic_confirmation" not in protected_keys:
+            self.state["ip_learning_requires_topic_confirmation"] = False
+        if "final_script" not in protected_keys:
+            self.state["final_script"] = ""
+        if "source_text" not in protected_keys:
+            self.state["source_text"] = ""
+        if "source_label" not in protected_keys:
+            self.state["source_label"] = ""
+        self.state["copywriting_confirmed"] = False
+        self._clear_voice_outputs(protected_keys)
 
     def _clear_voice_outputs(self, protected_keys: set[str]) -> None:
         if "audio_path" not in protected_keys:
@@ -265,16 +302,24 @@ class IpBroadcastSession:
 
     def refresh_readiness(self) -> None:
         has_script = bool(self.state.get("final_script"))
+        has_source_text = bool(self.state.get("source_text"))
+        if self.state.get("source_mode") == "ip_learning" and not has_script:
+            has_source_text = False
         has_confirmed_script = has_script and bool(self.state.get("copywriting_confirmed"))
         has_audio = _path_exists(self.state.get("audio_path", ""))
         has_digital_human = _path_exists(self.state.get("digital_human_video_path", ""))
         has_final_video = _path_exists(self.state.get("final_video_path", ""))
 
-        if self.state.get("source_text") or has_script:
+        if self.state.get("ip_learning_requires_topic_confirmation"):
+            self.step_status[1] = "ready"
+            self.step_status[2] = "pending"
+            return
+
+        if has_source_text or has_script:
             self.step_status[1] = "done"
         if has_confirmed_script:
             self.step_status[2] = "done"
-        elif has_script or (self.state.get("source_text") and self.step_status.get(2) == "pending"):
+        elif has_script or (has_source_text and self.step_status.get(2) == "pending"):
             self.step_status[2] = "ready"
         if has_confirmed_script and not has_audio and self.step_status.get(3) != "done":
             self.step_status[3] = "ready"
@@ -296,7 +341,19 @@ class IpBroadcastSession:
 
     def next_action(self) -> dict[str, Any]:
         self.refresh_readiness()
-        if not self.state.get("source_text") and not self.state.get("final_script"):
+        has_script = bool(self.state.get("final_script"))
+        has_source_text = bool(self.state.get("source_text"))
+        if self.state.get("source_mode") == "ip_learning" and not has_script:
+            has_source_text = False
+        if self.state.get("ip_learning_requires_topic_confirmation"):
+            return {
+                "key": STEP_SOURCE,
+                "step": 1,
+                "label": "确认学习选题",
+                "description": "已生成候选选题，请先确认一个选题再生成口播文案",
+                "disabled": False,
+            }
+        if not has_source_text and not has_script:
             return {
                 "key": STEP_SOURCE,
                 "step": 1,
@@ -304,7 +361,7 @@ class IpBroadcastSession:
                 "description": "先选择素材来源并生成可用文案",
                 "disabled": False,
             }
-        if not self.state.get("final_script"):
+        if not has_script:
             return {
                 "key": STEP_COPYWRITING,
                 "step": 2,
@@ -362,6 +419,8 @@ class IpBroadcastSession:
 
     def missing_requirements(self) -> list[str]:
         action = self.next_action()
+        if self.state.get("ip_learning_requires_topic_confirmation"):
+            return ["缺确认选题"]
         if action["key"] == STEP_SOURCE:
             return ["缺文案"]
         if action["key"] == STEP_VOICE:
@@ -433,6 +492,12 @@ async def run_ip_broadcast_step(
             await _run_postproduction(pixelle_video, session)
         elif step_key == STEP_PUBLISH:
             await _run_publish(session)
+        if step_key == STEP_SOURCE and session.state.get("ip_learning_requires_topic_confirmation"):
+            session.step_status[step] = "ready"
+            session.step_status[2] = "pending"
+            session.set_notice(step, "info", "已生成候选选题，请先确认一个选题再生成口播文案。")
+            session.refresh_readiness()
+            return True
         session.step_status[step] = "done"
         session.set_notice(step, "success", "步骤执行完成")
         session.refresh_readiness()
@@ -452,6 +517,10 @@ async def _run_source(pixelle_video, session: IpBroadcastSession) -> None:
         await _run_industry_persona_source(pixelle_video, session)
     elif source_mode == "ip_learning":
         await _run_ip_learning_source(pixelle_video, session)
+        if session.state.get("ip_learning_requires_topic_confirmation"):
+            session.step_status[1] = "ready"
+            session.step_status[2] = "pending"
+            return
     else:
         await _run_paste_source(pixelle_video, session)
     session.step_status[1] = "done"
@@ -530,6 +599,7 @@ async def _run_ip_learning_source(pixelle_video, session: IpBroadcastSession) ->
     if pixelle_video is None:
         raise ValueError("IP 学习需要可用的 LLM 服务")
     existing_scripts = session.state.get("ip_learning_scripts")
+    existing_topics = session.state.get("ip_learning_topics")
     selected_topic = str(session.state.get("ip_learning_selected_topic") or "").strip()
     if selected_topic and isinstance(existing_scripts, list) and existing_scripts:
         viral_hint = "\n\n".join(
@@ -538,8 +608,17 @@ async def _run_ip_learning_source(pixelle_video, session: IpBroadcastSession) ->
         script = str(
             await pixelle_video.llm(prompt=build_script_from_topic_prompt(selected_topic, viral_hint))
         ).strip()
+        session.state["ip_learning_requires_topic_confirmation"] = False
         session.state["source_text"] = script
         _set_source_script(session, script, "IP学习")
+        return
+    if isinstance(existing_scripts, list) and existing_scripts and isinstance(existing_topics, list) and existing_topics:
+        session.state["ip_learning_requires_topic_confirmation"] = True
+        session.state["final_script"] = ""
+        session.state["source_text"] = ""
+        session.state["source_label"] = ""
+        session.state["copywriting_confirmed"] = False
+        session._clear_voice_outputs(set())
         return
 
     video_inputs = parse_manual_video_inputs(str(session.state.get("ip_manual_video_links") or ""))
@@ -567,24 +646,16 @@ async def _run_ip_learning_source(pixelle_video, session: IpBroadcastSession) ->
         response_type=HotTopicsResult,
     )
     topics = topics_result.topics
-    selected_topic = str(session.state.get("ip_learning_selected_topic") or "").strip()
-    if not selected_topic and topics:
-        selected_topic = topics[0]
-    if not selected_topic:
+    if not topics:
         raise ValueError("IP 学习未生成可用选题")
 
-    viral_hint = "\n\n".join(item["script"] for item in scripts)[:1200]
-    script = str(
-        await pixelle_video.llm(prompt=build_script_from_topic_prompt(selected_topic, viral_hint))
-    ).strip()
     session.state["ip_learning_video_urls"] = urls
     session.state["ip_learning_scripts"] = scripts
     session.state["ip_learning_errors"] = errors
     session.state["ip_learning_topics"] = topics
-    session.state["ip_learning_selected_topic"] = selected_topic
     session.state["ip_learning_summary"] = f"已提取 {len(scripts)} 条，失败 {len(errors)} 条"
-    session.state["source_text"] = script
-    _set_source_script(session, script, "IP学习")
+    session.state["ip_learning_selected_topic"] = ""
+    session.state["ip_learning_requires_topic_confirmation"] = True
 
 
 def _set_source_script(session: IpBroadcastSession, script: str, label: str) -> None:

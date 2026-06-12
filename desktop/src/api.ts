@@ -150,6 +150,26 @@ export type TtsPreviewResult = {
   duration: number;
 };
 
+export type DiagnosticCheck = {
+  id: string;
+  label: string;
+  status: "ok" | "warning" | "missing";
+  message: string;
+};
+
+export type DesktopDiagnostics = {
+  ffmpeg: { available: boolean };
+  playwright: { available: boolean };
+  yt_dlp: { available: boolean };
+  config: Record<string, unknown>;
+  checks: DiagnosticCheck[];
+};
+
+export type ConfigCheckResult = {
+  ok: boolean;
+  checks: DiagnosticCheck[];
+};
+
 let runtime: RuntimeInfo | null = null;
 
 export async function getRuntime(): Promise<RuntimeInfo> {
@@ -159,7 +179,7 @@ export async function getRuntime(): Promise<RuntimeInfo> {
   } catch {
     runtime = {
       apiBaseUrl: browserApiBaseUrl(),
-      desktopToken: "",
+      desktopToken: import.meta.env.VITE_DESKTOP_TOKEN || "",
     };
   }
   return runtime;
@@ -284,7 +304,14 @@ export function saveDesktopConfig(config: Partial<DesktopConfig>) {
 }
 
 export function getDiagnostics() {
-  return apiFetch<Record<string, unknown>>("/api/desktop/diagnostics");
+  return apiFetch<DesktopDiagnostics>("/api/desktop/diagnostics");
+}
+
+export function checkDesktopConfig(config: Partial<DesktopConfig>) {
+  return apiFetch<ConfigCheckResult>("/api/desktop/config/check", {
+    method: "POST",
+    body: JSON.stringify(config),
+  });
 }
 
 export function synthesizeTtsPreview(values: {

@@ -18,6 +18,15 @@ def test_desktop_diagnostics_reports_dependency_keys():
     assert response.status_code == 200
     payload = response.json()
     assert {"ffmpeg", "playwright", "yt_dlp", "config"} <= set(payload)
+    assert {item["id"] for item in payload["checks"]} >= {
+        "ffmpeg",
+        "playwright",
+        "yt_dlp",
+        "output_dir",
+        "llm_config",
+        "runninghub_config",
+    }
+    assert {"id", "label", "status", "message"} <= set(payload["checks"][0])
 
 
 def test_desktop_config_response_redacts_api_keys():
@@ -127,3 +136,47 @@ def test_desktop_config_patch_is_disabled_outside_desktop_mode(monkeypatch):
     assert response.status_code == 403
     assert response.json()["detail"] == "配置写入仅支持桌面端本地运行。"
     assert fake.updated is False
+
+
+def test_desktop_config_check_uses_request_draft(monkeypatch):
+    monkeypatch.setenv("PIXELLE_DESKTOP_MODE", "true")
+
+    response = _client().post(
+        "/api/desktop/config/check",
+        json={
+            "llm": {
+                "base_url": "https://draft.example.com/v1",
+                "api_key": "draft-key",
+                "model": "draft-model",
+            },
+            "runninghub": {
+                "api_key": "",
+                "instance_type": "",
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is False
+    assert payload["checks"][0] == {
+        "id": "llm",
+        "label": "LLM 配置",
+        "status": "warning",
+        "message": "LLM 配置项已填写，尚未验证服务账号是否可用。生成失败时请检查 Key、模型和余额。",
+    }
+    assert payload["checks"][1]["id"] == "runninghub"
+    assert payload["checks"][1]["status"] == "missing"
+    assert "配置 > 云端生成" in payload["checks"][1]["message"]
+
+
+def test_desktop_config_check_is_disabled_outside_desktop_mode(monkeypatch):
+    monkeypatch.delenv("PIXELLE_DESKTOP_MODE", raising=False)
+
+    response = _client().post(
+        "/api/desktop/config/check",
+        json={"llm": {"api_key": "draft-key"}},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "配置检查仅支持桌面端本地运行。"
