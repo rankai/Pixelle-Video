@@ -44,7 +44,7 @@ from pixelle_video.services.subtitle_service import (
     merge_audio_into_video,
     remove_silence,
 )
-from pixelle_video.utils.os_util import get_output_path, get_temp_path
+from pixelle_video.utils.os_util import get_data_path, get_output_path, get_temp_path
 
 STEP_SOURCE = "source"
 STEP_COPYWRITING = "copywriting"
@@ -345,6 +345,14 @@ class IpBroadcastSession:
         has_source_text = bool(self.state.get("source_text"))
         if self.state.get("source_mode") == "ip_learning" and not has_script:
             has_source_text = False
+        if _path_exists(self.state.get("final_video_path", "")):
+            return {
+                "key": STEP_PUBLISH,
+                "step": 6,
+                "label": "查看并下载",
+                "description": "最终视频和发布素材已准备好",
+                "disabled": False,
+            }
         if self.state.get("ip_learning_requires_topic_confirmation"):
             return {
                 "key": STEP_SOURCE,
@@ -453,12 +461,16 @@ class IpBroadcastSession:
 
 
 class IpBroadcastSessionStore:
-    def __init__(self):
+    def __init__(self, store_path: str | Path | None = None):
         self._sessions: dict[str, IpBroadcastSession] = {}
+        self._store_path = Path(store_path) if store_path else Path(get_data_path("ip_broadcast_sessions"))
+        self._store_path.mkdir(parents=True, exist_ok=True)
+        self._load_sessions()
 
     def create_session(self) -> IpBroadcastSession:
         session = IpBroadcastSession(session_id=uuid.uuid4().hex)
         self._sessions[session.session_id] = session
+        self.save_session(session)
         return session
 
     def get_session(self, session_id: str) -> IpBroadcastSession | None:
@@ -467,7 +479,65 @@ class IpBroadcastSessionStore:
     def update_config(self, session_id: str, values: dict[str, Any]) -> IpBroadcastSession:
         session = self._sessions[session_id]
         session.update_config(values)
+        self.save_session(session)
         return session
+
+    def save_session(self, session: IpBroadcastSession) -> None:
+        self._sessions[session.session_id] = session
+        path = self._session_path(session.session_id)
+        tmp_path = path.with_suffix(".tmp")
+        tmp_path.write_text(
+            json.dumps(_session_to_payload(session), ensure_ascii=False, indent=2, default=str),
+            encoding="utf-8",
+        )
+        tmp_path.replace(path)
+
+    def _load_sessions(self) -> None:
+        for path in self._store_path.glob("*.json"):
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                session = _session_from_payload(payload)
+            except Exception as e:
+                logger.warning(f"Failed to load IP broadcast session {path}: {e}")
+                continue
+            self._sessions[session.session_id] = session
+
+    def _session_path(self, session_id: str) -> Path:
+        safe_id = re.sub(r"[^a-zA-Z0-9_-]", "", session_id)
+        return self._store_path / f"{safe_id}.json"
+
+
+def _session_to_payload(session: IpBroadcastSession) -> dict[str, Any]:
+    return {
+        "session_id": session.session_id,
+        "state": session.state,
+        "step_status": session.step_status,
+        "notices": session.notices,
+        "artifacts": session.artifacts,
+    }
+
+
+def _session_from_payload(payload: dict[str, Any]) -> IpBroadcastSession:
+    state = _default_state()
+    state.update(dict(payload.get("state") or {}))
+    return IpBroadcastSession(
+        session_id=str(payload["session_id"]),
+        state=state,
+        step_status={
+            int(key): str(value)
+            for key, value in dict(payload.get("step_status") or {}).items()
+        } or {step: "pending" for step in range(1, 7)},
+        notices={
+            int(key): dict(value)
+            for key, value in dict(payload.get("notices") or {}).items()
+            if isinstance(value, dict)
+        },
+        artifacts={
+            str(key): str(value)
+            for key, value in dict(payload.get("artifacts") or {}).items()
+            if value
+        },
+    )
 
 
 async def run_ip_broadcast_step(

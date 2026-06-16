@@ -23,6 +23,7 @@ from pixelle_video.services.ip_broadcast_video_plan import (
 )
 from pixelle_video.services.ip_broadcast_workflow import (
     IpBroadcastSession,
+    IpBroadcastSessionStore,
     run_ip_broadcast_step,
 )
 
@@ -444,6 +445,33 @@ def test_task_manager_marks_running_tasks_interrupted_after_restart(tmp_path):
 
     assert tasks[0].status == TaskStatus.FAILED
     assert tasks[0].error == "服务重启，任务已中断，请重新执行。"
+
+
+def test_ip_broadcast_session_store_persists_completed_artifacts(tmp_path):
+    final = tmp_path / "final.mp4"
+    final.write_bytes(b"video")
+    store_path = tmp_path / "ip_sessions"
+    store = IpBroadcastSessionStore(store_path=store_path)
+    session = store.create_session()
+
+    store.update_config(session.session_id, {"final_script": "老板口播文案"})
+    store.update_config(
+        session.session_id,
+        {
+            "copywriting_confirmed": True,
+            "final_video_path": str(final),
+        },
+    )
+    session.artifacts["final_video"] = str(final)
+    store.save_session(session)
+
+    restored_store = IpBroadcastSessionStore(store_path=store_path)
+    restored = restored_store.get_session(session.session_id)
+
+    assert restored is not None
+    assert restored.state["final_video_path"] == str(final)
+    assert restored.artifacts["final_video"] == str(final)
+    assert restored.next_action()["key"] == "publish"
 
 
 def test_session_invalidates_downstream_artifacts_when_script_changes(tmp_path):

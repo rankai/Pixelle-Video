@@ -63,6 +63,7 @@ async def run_step(session_id: str, step_key: str, pixelle_video: PixelleVideoDe
     async def _execute():
         task_manager.update_progress(task.task_id, 1, 3, _step_progress_message(step_key))
         ok = await run_ip_broadcast_step(pixelle_video, session, step_key)
+        _session_store.save_session(session)
         if not ok:
             step = STEP_KEYS.get(step_key)
             notice = session.notices.get(step, {})

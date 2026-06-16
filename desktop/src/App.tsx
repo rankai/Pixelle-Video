@@ -192,6 +192,9 @@ const appReleaseInfo = {
   ],
 };
 
+const IPB_SESSION_STORAGE_KEY = "pixelle_ipb_session_id";
+const IPB_TASK_STORAGE_KEY = "pixelle_ipb_task_id";
+
 const ttsWorkflowOptions = [
   {
     value: "runninghub/tts_index_custom.json",
@@ -226,6 +229,7 @@ const ttsWorkflowOptions = [
 const digitalHumanWorkflowOptions: Array<{
   value: string;
   label: string;
+  description: string;
   supportedMediaTypes: PortraitMediaType[];
   supportsPrompt: boolean;
   defaultWidth?: number;
@@ -234,6 +238,7 @@ const digitalHumanWorkflowOptions: Array<{
   {
     value: "workflows/runninghub/digital_combination.json",
     label: "标准图片出镜",
+    description: "上传老板照片生成自然口播视频；速度稳定，动作默认。",
     supportedMediaTypes: ["image"],
     supportsPrompt: false,
     defaultWidth: 720,
@@ -242,6 +247,7 @@ const digitalHumanWorkflowOptions: Array<{
   {
     value: "workflows/runninghub/digital_talk_image_prompt.json",
     label: "可控图片出镜",
+    description: "上传老板照片生成口播视频，可用动作描述控制镜头表现。",
     supportedMediaTypes: ["image"],
     supportsPrompt: true,
     defaultWidth: 720,
@@ -250,6 +256,7 @@ const digitalHumanWorkflowOptions: Array<{
   {
     value: "workflows/runninghub/digital_talk_fast_720p.json",
     label: "快速可控出镜",
+    description: "上传老板照片快速生成口播视频，适合先看效果再精修。",
     supportedMediaTypes: ["image"],
     supportsPrompt: true,
     defaultWidth: 720,
@@ -258,6 +265,7 @@ const digitalHumanWorkflowOptions: Array<{
   {
     value: "workflows/runninghub/digital_lip_sync_video.json",
     label: "真人视频改口型",
+    description: "上传老板真人视频，只替换口型和声音，保留原视频动作。",
     supportedMediaTypes: ["video"],
     supportsPrompt: false,
     defaultWidth: 480,
@@ -320,6 +328,24 @@ function autoAdvanceStepAfter(stepKey?: string) {
   );
 }
 
+function uiStepForApiStep(apiStep?: number) {
+  if (!apiStep || apiStep <= 2) return 1;
+  return Math.min(apiStep - 1, 5);
+}
+
+function uiStepForTask(stepKey: string) {
+  return (
+    {
+      source: 1,
+      copywriting: 1,
+      voice: 2,
+      digital_human: 3,
+      postproduction: 4,
+      publish: 5,
+    }[stepKey] || 0
+  );
+}
+
 export function App() {
   const [view, setView] = useState<View>("home");
   const [assetTab, setAssetTab] = useState<AssetTab>("voices");
@@ -345,21 +371,47 @@ export function App() {
   }
 
   async function restoreOrCreateSession() {
-    const storedSessionId = window.localStorage.getItem("pixelle_ipb_session_id");
+    const storedSessionId = window.localStorage.getItem(IPB_SESSION_STORAGE_KEY);
     if (storedSessionId) {
       try {
         const restored = await getSession(storedSessionId);
         setSession(restored);
-        setActiveStep(1);
+        setActiveStep(uiStepForApiStep(restored.current_step));
+        await restoreCurrentTask(restored.session_id);
         return;
       } catch {
-        window.localStorage.removeItem("pixelle_ipb_session_id");
+        window.localStorage.removeItem(IPB_SESSION_STORAGE_KEY);
+        window.localStorage.removeItem(IPB_TASK_STORAGE_KEY);
       }
     }
     const created = await createSession();
-    window.localStorage.setItem("pixelle_ipb_session_id", created.session_id);
+    window.localStorage.setItem(IPB_SESSION_STORAGE_KEY, created.session_id);
+    window.localStorage.removeItem(IPB_TASK_STORAGE_KEY);
     setSession(created);
     setActiveStep(1);
+  }
+
+  async function restoreCurrentTask(sessionId: string) {
+    const storedTaskId = window.localStorage.getItem(IPB_TASK_STORAGE_KEY);
+    if (!storedTaskId) return;
+    try {
+      const restoredTask = await getTask(storedTaskId);
+      if (restoredTask.session_id && restoredTask.session_id !== sessionId) {
+        window.localStorage.removeItem(IPB_TASK_STORAGE_KEY);
+        return;
+      }
+      setTask(restoredTask);
+      const restoredStep = uiStepForTask(restoredTask.step_key || "");
+      if (restoredStep) setActiveStep(restoredStep);
+      if (["completed", "failed", "cancelled"].includes(restoredTask.status)) {
+        window.localStorage.removeItem(IPB_TASK_STORAGE_KEY);
+        setBusy(false);
+      } else {
+        setBusy(true);
+      }
+    } catch {
+      window.localStorage.removeItem(IPB_TASK_STORAGE_KEY);
+    }
   }
 
   async function recoverAppState() {
@@ -385,6 +437,7 @@ export function App() {
         setTask(latestTask);
         if (["completed", "failed", "cancelled"].includes(latestTask.status)) {
           setBusy(false);
+          window.localStorage.removeItem(IPB_TASK_STORAGE_KEY);
           const fresh = await getSession(session.session_id);
           setSession(fresh);
           if (latestTask.status === "completed") {
@@ -439,6 +492,7 @@ export function App() {
     setTask(null);
     try {
       const result = await runStep(session.session_id, stepKey);
+      window.localStorage.setItem(IPB_TASK_STORAGE_KEY, result.task_id);
       setTask({ task_id: result.task_id, status: "pending", step_key: stepKey });
     } catch (err) {
       setBusy(false);
@@ -451,6 +505,7 @@ export function App() {
     try {
       await cancelTask(task.task_id);
       setBusy(false);
+      window.localStorage.removeItem(IPB_TASK_STORAGE_KEY);
       setTask({ ...task, status: "cancelled" });
     } catch (err) {
       setWorkflowError(formatUiError(err));
@@ -508,7 +563,8 @@ export function App() {
     setTask(null);
     setWorkflowError("");
     const created = await createSession();
-    window.localStorage.setItem("pixelle_ipb_session_id", created.session_id);
+    window.localStorage.setItem(IPB_SESSION_STORAGE_KEY, created.session_id);
+    window.localStorage.removeItem(IPB_TASK_STORAGE_KEY);
     setSession(created);
     setActiveStep(1);
     setView("ip");
@@ -1942,7 +1998,7 @@ function VoiceStep({
         <div className="panel-titleline">
           <div>
             <strong>配音设置</strong>
-            <span>选择声音来源、音色和语速，生成后在下方试听。</span>
+            <span>选择声音来源和生成方式；不同云端工作流支持的参数不同。</span>
           </div>
         </div>
         <div className="voice-param-grid">
@@ -1953,7 +2009,7 @@ function VoiceStep({
               onChange={(event) => patch({ tts_inference_mode: event.target.value })}
             >
               <option value="local">系统默认配音</option>
-              <option value="comfyui">云端声音克隆</option>
+              <option value="comfyui">云端声音生成</option>
             </select>
           </div>
         </div>
@@ -2616,7 +2672,7 @@ function ttsWorkflowNotice(workflowKind: string) {
     return "适合需要情绪或更强表现力的配音，可调整性别、语速、音调和表现强度。";
   }
   if (workflowKind === "index") {
-    return "适合固定使用老板本人音色，需要先选择一段参考音频。";
+    return "老板声音克隆会使用参考音频复刻音色，但当前工作流不支持语速调节；需要调语速时可切换云端默认配音或情绪配音。";
   }
   return "当前声音生成方式会使用默认参数。";
 }
@@ -2853,7 +2909,7 @@ function PortraitStep({
             ))}
           </select>
           <p className="muted">
-            当前只显示
+            {workflowConfig.description} 当前只显示
             {workflowConfig.supportedMediaTypes.includes("video") ? "视频形象" : "图片形象"}。
           </p>
         </div>
@@ -5243,29 +5299,60 @@ function TaskCenterView() {
       </div>
       {error ? <div className="notice error">{error}</div> : null}
       <div className="task-list">
-        {tasks.map((item) => (
-          <section key={item.task_id} className="task-row">
-            <div>
-              <strong>{item.display_name || item.task_id}</strong>
-              <span>
-                {item.flow_name || "任务"} · {taskStepLabel(item.step_key || "")} ·{" "}
-                {taskStatusLabel(item.status)}
-              </span>
-              {item.error ? <small className="task-error">{item.error}</small> : null}
-            </div>
-            <div className="task-actions">
-              {item.status === "failed" ? (
-                <button onClick={() => retryTask(item.task_id).then(() => reload())}>创建重试记录</button>
-              ) : null}
-              {["pending", "running"].includes(item.status) ? (
-                <button onClick={() => cancelTask(item.task_id).then(() => reload())}>停止</button>
-              ) : null}
-            </div>
-          </section>
-        ))}
+        {tasks.map((item) => {
+          const finalVideoArtifact = taskFinalVideoArtifact(item);
+          return (
+            <section key={item.task_id} className="task-row">
+              <div>
+                <strong>{item.display_name || item.task_id}</strong>
+                <span>
+                  {item.flow_name || "任务"} · {taskStepLabel(item.step_key || "")} ·{" "}
+                  {taskStatusLabel(item.status)}
+                </span>
+                {item.error ? <small className="task-error">{item.error}</small> : null}
+              </div>
+              <div className="task-actions">
+                {finalVideoArtifact ? (
+                  <button
+                    onClick={() =>
+                      downloadArtifact(finalVideoArtifact.sessionId, finalVideoArtifact.artifactKey).catch((err) =>
+                        setError(formatUiError(err)),
+                      )
+                    }
+                  >
+                    下载成片
+                  </button>
+                ) : null}
+                {item.status === "failed" ? (
+                  <button onClick={() => retryTask(item.task_id).then(() => reload())}>创建重试记录</button>
+                ) : null}
+                {["pending", "running"].includes(item.status) ? (
+                  <button onClick={() => cancelTask(item.task_id).then(() => reload())}>停止</button>
+                ) : null}
+              </div>
+            </section>
+          );
+        })}
       </div>
     </section>
   );
+}
+
+function taskFinalVideoArtifact(task: TaskInfo): { sessionId: string; artifactKey: "final_video" } | null {
+  if (task.status !== "completed") return null;
+  const result = isPlainRecord(task.result) ? task.result : {};
+  const artifacts = isPlainRecord(result.artifacts) ? result.artifacts : {};
+  const state = isPlainRecord(result.state) ? result.state : {};
+  const hasFinalVideo = Boolean(
+    artifacts.final_video || state.final_video_path || task.artifact_keys?.includes("final_video"),
+  );
+  const sessionId = String(task.session_id || result.session_id || "");
+  if (!hasFinalVideo || !sessionId) return null;
+  return { sessionId, artifactKey: "final_video" };
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
 function taskStepLabel(stepKey: string) {
