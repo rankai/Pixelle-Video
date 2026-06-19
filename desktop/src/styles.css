@@ -2454,6 +2454,39 @@ button.asset-card {
   gap: 12px;
 }
 
+.subtitle-style-controls {
+  display: grid;
+  gap: 8px;
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: #f8fafc;
+}
+
+.subtitle-style-control {
+  display: grid;
+  grid-template-columns: minmax(92px, max-content) minmax(0, 1fr) 56px;
+  gap: 10px;
+  align-items: center;
+}
+
+.subtitle-style-control span {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.subtitle-style-control input[type="range"] {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--app-primary);
+}
+
+.subtitle-style-control strong {
+  color: var(--app-primary);
+  font-size: 13px;
+  text-align: right;
+}
+
 .more-setting-tile {
   display: grid;
   grid-template-columns: 30px minmax(0, 1fr) max-content;

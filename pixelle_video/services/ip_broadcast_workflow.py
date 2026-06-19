@@ -972,6 +972,7 @@ async def _run_postproduction(pixelle_video, session: IpBroadcastSession) -> Non
             story_segments=session.state.get("story_segments") or [],
             visual_groups=session.state.get("visual_groups") or [],
             template_id=session.state.get("template_id"),
+            subtitle_style=session.state.get("subtitle_style"),
             subtitle_enabled=bool(session.state.get("subtitle_enabled", True)),
             width=int(session.state.get("digital_human_width") or 720),
             height=int(session.state.get("digital_human_height") or 1280),
@@ -988,7 +989,16 @@ async def _run_postproduction(pixelle_video, session: IpBroadcastSession) -> Non
             srt = get_temp_path(f"ipb_{uid}.srt")
             generate_srt(session.state["final_script"], working_audio, srt)
             template = get_ip_broadcast_template(session.state.get("template_id"))
-            embed_subtitles(merged, srt, final, force_style=build_ass_force_style(template))
+            embed_subtitles(
+                merged,
+                srt,
+                final,
+                force_style=build_ass_force_style(
+                    template,
+                    session.state.get("subtitle_style"),
+                    video_height=int(session.state.get("digital_human_height") or 1280),
+                ),
+            )
         else:
             shutil.copy2(merged, final)
 

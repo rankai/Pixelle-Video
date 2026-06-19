@@ -98,9 +98,39 @@ def test_build_ass_force_style_uses_selected_template_subtitle_style():
 
     force_style = build_ass_force_style(template)
 
-    assert "Fontsize=30" in force_style
+    assert "Fontsize=26" in force_style
+    assert "MarginV=340" in force_style
     assert "Alignment=2" in force_style
     assert "Outline=3" in force_style
+
+
+def test_build_ass_force_style_uses_template_subtitle_color():
+    template = get_ip_broadcast_template("boss_premium")
+
+    force_style = build_ass_force_style(template)
+
+    assert "PrimaryColour=&H00DFF0F4" in force_style
+    assert "PrimaryColour=&H00F7E7B2" not in force_style
+
+
+def test_build_ass_force_style_derives_video_subtitles_from_template_css():
+    template = get_ip_broadcast_template("boss_clean")
+
+    force_style = build_ass_force_style(template, video_height=1920)
+
+    assert "Fontsize=26" in force_style
+    assert "MarginV=340" in force_style
+    assert "Fontsize=28" not in force_style
+    assert "MarginV=180" not in force_style
+
+
+def test_build_ass_force_style_scales_template_css_to_output_video_height():
+    template = get_ip_broadcast_template("boss_clean")
+
+    force_style = build_ass_force_style(template, video_height=1280)
+
+    assert "Fontsize=17" in force_style
+    assert "MarginV=227" in force_style
 
 
 def test_boss_clean_template_keeps_title_and_subtitles_in_safe_zones():
@@ -115,15 +145,15 @@ def test_boss_clean_template_keeps_title_and_subtitles_in_safe_zones():
     assert title_top + title_height <= COVER_TITLE_BOTTOM_MAX
     assert subtitle_bottom >= COVER_SUBTITLE_BOTTOM_MIN
     assert "font-size: 44px" in cover_html
-    assert "Fontsize=28" in force_style
-    assert _force_style_value(force_style, "MarginV") >= 170
+    assert "Fontsize=26" in force_style
+    assert _force_style_value(force_style, "MarginV") == subtitle_bottom
 
 
 def test_all_templates_keep_video_subtitles_inside_platform_safe_area():
     expected = {
-        "boss_clean": ("Fontsize=28", "MarginV=180"),
-        "boss_authority": ("Fontsize=30", "MarginV=190"),
-        "boss_premium": ("Fontsize=28", "MarginV=180"),
+        "boss_clean": ("Fontsize=26", "MarginV=340"),
+        "boss_authority": ("Fontsize=26", "MarginV=340"),
+        "boss_premium": ("Fontsize=26", "MarginV=340"),
     }
 
     for template_id, (font_size, margin_v) in expected.items():

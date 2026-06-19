@@ -1,6 +1,7 @@
 """IP broadcast visual template registry and rendering helpers."""
 
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -90,8 +91,109 @@ def get_ip_broadcast_template(template_id: str | None) -> IPBroadcastTemplate:
     return _TEMPLATES[0]
 
 
-def build_ass_force_style(template: IPBroadcastTemplate) -> str:
-    style = template.subtitle_style
+_SUBTITLE_STYLE_LIMITS = {
+    "font_size": (16, 72),
+    "margin_v": (0, 500),
+}
+
+
+def _merge_subtitle_style(
+    style: SubtitleStyle,
+    overrides: dict[str, Any] | None = None,
+) -> SubtitleStyle:
+    if not isinstance(overrides, dict):
+        return style
+    sanitized: dict[str, int] = {}
+    for key, (minimum, maximum) in _SUBTITLE_STYLE_LIMITS.items():
+        if key not in overrides:
+            continue
+        try:
+            value = int(overrides[key])
+        except (TypeError, ValueError):
+            continue
+        sanitized[key] = max(minimum, min(maximum, value))
+    if not sanitized:
+        return style
+    return replace(style, **sanitized)
+
+
+def _css_block(html: str, selector: str) -> str:
+    match = re.search(rf"{re.escape(selector)}\s*\{{(?P<body>.*?)\}}", html, re.S)
+    return match.group("body") if match else ""
+
+
+def _css_px(block: str, property_name: str) -> int | None:
+    match = re.search(rf"{property_name}\s*:\s*(?P<value>\d+(?:\.\d+)?)px", block)
+    if not match:
+        return None
+    return round(float(match.group("value")))
+
+
+def _css_value(block: str, property_name: str) -> str:
+    match = re.search(rf"{property_name}\s*:\s*(?P<value>[^;]+)", block)
+    return match.group("value").strip() if match else ""
+
+
+def _css_color_to_ass(value: str) -> str | None:
+    value = value.strip().lower()
+    named = {
+        "white": "#ffffff",
+        "black": "#000000",
+    }
+    value = named.get(value, value)
+    if re.fullmatch(r"#[0-9a-f]{3}", value):
+        value = "#" + "".join(ch * 2 for ch in value[1:])
+    if not re.fullmatch(r"#[0-9a-f]{6}", value):
+        return None
+    red = value[1:3].upper()
+    green = value[3:5].upper()
+    blue = value[5:7].upper()
+    return f"&H00{blue}{green}{red}"
+
+
+def _canvas_height_from_html(html: str) -> int:
+    return _css_px(_css_block(html, "body"), "height") or 1920
+
+
+def _scale_template_px(value: int, template_height: int, video_height: int | None) -> int:
+    if not video_height or video_height == template_height:
+        return value
+    return max(1, round(value * video_height / template_height))
+
+
+def get_template_subtitle_style(
+    template: IPBroadcastTemplate,
+    video_height: int | None = None,
+) -> SubtitleStyle:
+    fallback = template.subtitle_style
+    html = Path(template.cover_template_path).read_text(encoding="utf-8")
+    template_height = _canvas_height_from_html(html)
+    subtitle_block = _css_block(html, ".subtitle")
+    panel_block = _css_block(html, ".panel")
+    font_size = _css_px(subtitle_block, "font-size") or fallback.font_size
+    bottom = (
+        _css_px(subtitle_block, "bottom")
+        or _css_px(panel_block, "bottom")
+        or fallback.margin_v
+    )
+    primary_colour = _css_color_to_ass(_css_value(subtitle_block, "color")) or fallback.primary_colour
+    return replace(
+        fallback,
+        font_size=_scale_template_px(font_size, template_height, video_height),
+        primary_colour=primary_colour,
+        margin_v=_scale_template_px(bottom, template_height, video_height),
+    )
+
+
+def build_ass_force_style(
+    template: IPBroadcastTemplate,
+    overrides: dict[str, Any] | None = None,
+    video_height: int | None = None,
+) -> str:
+    style = _merge_subtitle_style(
+        get_template_subtitle_style(template, video_height),
+        overrides,
+    )
     parts = {
         "FontName": style.font_name,
         "Fontsize": style.font_size,

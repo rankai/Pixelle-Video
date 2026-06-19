@@ -38,3 +38,10 @@ def test_cloud_tts_copy_does_not_imply_clone_workflow_supports_speed():
     assert '<option value="comfyui">云端声音生成</option>' in SOURCE
     assert "老板声音克隆会使用参考音频复刻音色，但当前工作流不支持语速调节" in SOURCE
     assert "选择声音来源、音色和语速" not in SOURCE
+
+
+def test_postproduction_exposes_subtitle_style_controls():
+    assert "字幕字号" in SOURCE
+    assert "字幕底部距离" in SOURCE
+    assert "subtitle_style" in SOURCE
+    assert "patchSubtitleStyle" in SOURCE

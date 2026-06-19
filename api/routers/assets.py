@@ -8,7 +8,10 @@ from fastapi.responses import FileResponse
 
 from pixelle_video.services.brand_kit_service import BrandKitService
 from pixelle_video.services.ip_broadcast_presets import list_ip_broadcast_presets
-from pixelle_video.services.ip_broadcast_templates import list_ip_broadcast_templates
+from pixelle_video.services.ip_broadcast_templates import (
+    get_template_subtitle_style,
+    list_ip_broadcast_templates,
+)
 from pixelle_video.services.portrait_service import PortraitService
 from pixelle_video.services.video_asset_service import VideoAssetService
 from pixelle_video.services.voice_reference_service import VoiceReferenceService
@@ -58,7 +61,7 @@ async def list_ip_broadcast_template_assets():
                 "preview_url": (
                     f"/api/assets/templates/ip-broadcast/{template.template_id}/preview"
                 ),
-                "subtitle_style": template.subtitle_style.__dict__,
+                "subtitle_style": get_template_subtitle_style(template, video_height=1280).__dict__,
             }
             for template in list_ip_broadcast_templates()
         ]

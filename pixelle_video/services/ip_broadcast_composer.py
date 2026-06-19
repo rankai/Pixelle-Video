@@ -96,6 +96,7 @@ def compose_ip_broadcast_video(
     story_segments: list[dict[str, Any]] | None = None,
     visual_groups: list[dict[str, Any]] | None = None,
     template_id: str | None = None,
+    subtitle_style: dict[str, Any] | None = None,
     subtitle_enabled: bool = True,
     width: int = 720,
     height: int = 1280,
@@ -117,7 +118,16 @@ def compose_ip_broadcast_video(
         srt = get_temp_path(f"{uid}.srt")
         generate_srt(script, audio_path, srt)
         template = get_ip_broadcast_template(template_id)
-        embed_subtitles(composed, srt, output_path, force_style=build_ass_force_style(template))
+        embed_subtitles(
+            composed,
+            srt,
+            output_path,
+            force_style=build_ass_force_style(
+                template,
+                subtitle_style,
+                video_height=height,
+            ),
+        )
     else:
         shutil.copy2(composed, output_path)
     return output_path

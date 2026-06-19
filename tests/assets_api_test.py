@@ -25,7 +25,8 @@ def test_list_ip_broadcast_templates_returns_cards(monkeypatch, tmp_path):
     assert first["display_name"]
     assert first["short_description"]
     assert first["preview_url"] == "/api/assets/templates/ip-broadcast/boss_clean/preview"
-    assert first["subtitle_style"]["font_size"] > 0
+    assert first["subtitle_style"]["font_size"] == 17
+    assert first["subtitle_style"]["margin_v"] == 227
 
     preview = client.get(first["preview_url"])
     assert preview.status_code == 200

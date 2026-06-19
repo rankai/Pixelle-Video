@@ -176,7 +176,15 @@ def _write_final_video(merged: str, audio: str, uid: str, progress=None) -> str:
         if progress:
             progress.progress(85, text="嵌入字幕...")
         template = get_ip_broadcast_template(st.session_state.get("ipb_m5_template_id"))
-        embed_subtitles(merged, srt, final, force_style=build_ass_force_style(template))
+        embed_subtitles(
+            merged,
+            srt,
+            final,
+            force_style=build_ass_force_style(
+                template,
+                video_height=int(st.session_state.get("ipb_m4_height", 1280) or 1280),
+            ),
+        )
     else:
         shutil.copy2(merged, final)
     return final

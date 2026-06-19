@@ -150,6 +150,11 @@ type VideoPlan = {
   segments: VideoPlanSegment[];
 };
 
+type SubtitleStyleDraft = {
+  font_size: number;
+  margin_v: number;
+};
+
 type PortraitMediaType = PortraitAsset["media_type"];
 
 type AssetPreview =
@@ -3116,7 +3121,12 @@ function PostproductionStep({
           </footer>
         </div>
 
-        <PostproductionMoreSettings session={session} bgm={bgm} patch={patch} />
+        <PostproductionMoreSettings
+          session={session}
+          selectedTemplate={selectedTemplate}
+          bgm={bgm}
+          patch={patch}
+        />
 
         <div className="summary-box subtle">
           <span>视频素材库：{videos.length} 个素材可用于画面规划。</span>
@@ -3212,10 +3222,12 @@ function PostproductionStep({
 
 function PostproductionMoreSettings({
   session,
+  selectedTemplate,
   bgm,
   patch,
 }: {
   session: IpBroadcastState;
+  selectedTemplate?: IpTemplateAsset;
   bgm: BgmAsset[];
   patch: (values: Record<string, unknown>) => Promise<void>;
 }) {
@@ -3224,6 +3236,20 @@ function PostproductionMoreSettings({
   const bgmVolume = Number.isFinite(session.state.bgm_volume as number)
     ? (session.state.bgm_volume as number)
     : 0.3;
+  const templateSubtitleStyle = readSubtitleStyle(selectedTemplate?.subtitle_style, {
+    font_size: 28,
+    margin_v: 180,
+  });
+  const subtitleStyle = readSubtitleStyle(session.state.subtitle_style, templateSubtitleStyle);
+
+  function patchSubtitleStyle(key: "font_size" | "margin_v", value: number) {
+    return patch({
+      subtitle_style: {
+        ...readRecord(session.state.subtitle_style),
+        [key]: value,
+      },
+    });
+  }
 
   return (
     <section className="more-settings-card">
@@ -3244,6 +3270,32 @@ function PostproductionMoreSettings({
         />
       </div>
       <div className="more-settings-grid">
+        <div className="subtitle-style-controls">
+          <label className="subtitle-style-control">
+            <span>字幕字号</span>
+            <input
+              type="range"
+              min={16}
+              max={72}
+              step={1}
+              value={subtitleStyle.font_size}
+              onChange={(event) => patchSubtitleStyle("font_size", Number(event.target.value))}
+            />
+            <strong>{subtitleStyle.font_size}px</strong>
+          </label>
+          <label className="subtitle-style-control">
+            <span>字幕底部距离</span>
+            <input
+              type="range"
+              min={0}
+              max={320}
+              step={5}
+              value={subtitleStyle.margin_v}
+              onChange={(event) => patchSubtitleStyle("margin_v", Number(event.target.value))}
+            />
+            <strong>{subtitleStyle.margin_v}px</strong>
+          </label>
+        </div>
         <button className="more-setting-tile clickable" onClick={() => setBgmPickerOpen(true)}>
           <span className="compact-setting-icon">♪</span>
           <div>
@@ -5764,6 +5816,21 @@ function readGroups(value: unknown): VisualGroup[] {
   return value.filter((item): item is VisualGroup => {
     return Boolean(item && typeof item === "object" && "group_id" in item);
   });
+}
+
+function readRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return value as Record<string, unknown>;
+}
+
+function readSubtitleStyle(value: unknown, fallback: SubtitleStyleDraft): SubtitleStyleDraft {
+  const record = readRecord(value);
+  const fontSize = Number(record.font_size);
+  const marginV = Number(record.margin_v);
+  return {
+    font_size: Number.isFinite(fontSize) ? fontSize : fallback.font_size,
+    margin_v: Number.isFinite(marginV) ? marginV : fallback.margin_v,
+  };
 }
 
 function readVideoPlan(value: unknown): VideoPlan | null {

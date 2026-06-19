@@ -260,13 +260,74 @@ async def test_postproduction_uses_selected_template_for_subtitles_and_cover(
 
     assert await run_ip_broadcast_step(None, session, "postproduction") is True
 
-    assert "PrimaryColour=&H00F7E7B2" in seen["force_style"]
+    assert "Fontsize=17" in seen["force_style"]
+    assert "MarginV=227" in seen["force_style"]
+    assert "PrimaryColour=&H00DFF0F4" in seen["force_style"]
     assert seen["cover_template_id"] == "boss_premium"
     assert seen["cover_title"] == "老板口播标题"
     assert seen["cover_subtitle"] == "老板口播描述"
     assert session.state["cover_path"]
     assert session.artifacts["cover"] == session.state["cover_path"]
     assert session.state["publish_package"]["cover_path"] == session.state["cover_path"]
+
+
+@pytest.mark.asyncio
+async def test_postproduction_applies_session_subtitle_style_overrides(
+    monkeypatch,
+    tmp_path,
+):
+    audio = tmp_path / "voice.mp3"
+    base_video = tmp_path / "digital.mp4"
+    audio.write_bytes(b"audio")
+    base_video.write_bytes(b"video")
+    seen: dict[str, str] = {}
+
+    def fake_merge_audio_into_video(_video_path, _audio_path, output_path):
+        Path(output_path).write_bytes(b"merged")
+        return output_path
+
+    def fake_generate_srt(_script, _audio_path, output_path):
+        Path(output_path).write_text("1\n00:00:00,000 --> 00:00:01,000\n字幕", encoding="utf-8")
+
+    def fake_embed_subtitles(_input_path, _srt_path, output_path, force_style=None):
+        seen["force_style"] = force_style or ""
+        Path(output_path).write_bytes(b"final")
+
+    async def fake_render_cover(template_id, title, subtitle="", background="", output_path=None, extra=None):
+        assert output_path
+        Path(output_path).write_bytes(b"cover")
+        return output_path
+
+    def fake_extract_first_frame(video_path, output_path):
+        Path(output_path).write_bytes(b"frame")
+        return output_path
+
+    monkeypatch.setattr(workflow, "merge_audio_into_video", fake_merge_audio_into_video)
+    monkeypatch.setattr(workflow, "generate_srt", fake_generate_srt)
+    monkeypatch.setattr(workflow, "embed_subtitles", fake_embed_subtitles)
+    monkeypatch.setattr(workflow, "render_ip_broadcast_cover", fake_render_cover)
+    monkeypatch.setattr(workflow, "extract_first_frame", fake_extract_first_frame)
+
+    session = IpBroadcastSession(session_id="s1")
+    session.update_config(
+        {
+            "final_script": "第一段老板口播。",
+            "copywriting_confirmed": True,
+            "audio_path": str(audio),
+            "digital_human_video_path": str(base_video),
+            "template_id": "boss_clean",
+            "subtitle_style": {
+                "font_size": 22,
+                "margin_v": 90,
+            },
+        }
+    )
+
+    assert await run_ip_broadcast_step(None, session, "postproduction") is True
+
+    assert "Fontsize=22" in seen["force_style"]
+    assert "MarginV=90" in seen["force_style"]
+    assert "Outline=2" in seen["force_style"]
 
 
 @pytest.mark.asyncio
