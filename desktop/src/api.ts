@@ -220,9 +220,19 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   }
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(detail || `HTTP ${response.status}`);
+    throw new Error(formatHttpError(response, detail));
   }
   return response.json() as Promise<T>;
+}
+
+function formatHttpError(response: Response, detail: string) {
+  if (response.status === 413 || detail.includes("Request Entity Too Large")) {
+    return "上传文件过大，当前服务器入口限制了请求体大小。请调大外层 Nginx 的 client_max_body_size 后重试。";
+  }
+  if (detail.trim().startsWith("<html") || detail.includes("<body")) {
+    return `服务器返回 ${response.status} 错误，请查看服务日志或反向代理配置。`;
+  }
+  return detail || `HTTP ${response.status}`;
 }
 
 function formatNetworkError(err: unknown, apiBaseUrl: string) {

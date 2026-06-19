@@ -259,6 +259,10 @@ http://127.0.0.1:9877/deploy
 等价 Nginx 配置：
 
 ```nginx
+client_max_body_size 2048m;
+proxy_read_timeout 3600s;
+proxy_send_timeout 3600s;
+
 location / {
   proxy_pass http://127.0.0.1:18080;
   proxy_set_header Host $host;
@@ -273,6 +277,10 @@ location /deploy {
   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 }
 ```
+
+上传老板真人视频、视频素材或大文件时，外层 Nginx 必须设置 `client_max_body_size`。
+容器内 Web Nginx 已允许大文件上传，但如果域名入口的宿主机 Nginx 没有同步设置，
+请求会先在外层 Nginx 返回 `413 Request Entity Too Large`，后端不会收到上传请求。
 
 可选旧 Streamlit 页面反代：
 

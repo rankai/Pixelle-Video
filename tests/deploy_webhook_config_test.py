@@ -44,3 +44,9 @@ def test_webhook_image_starts_server_from_image_path():
     dockerfile = Path("Dockerfile.webhook").read_text()
 
     assert 'CMD ["node", "/app/scripts/webhook-server.js"]' in dockerfile
+
+
+def test_external_nginx_proxy_allows_large_video_uploads():
+    runbook = Path("docs/deployment/web-auto-deploy-runbook.md").read_text()
+
+    assert "client_max_body_size 2048m;" in runbook
