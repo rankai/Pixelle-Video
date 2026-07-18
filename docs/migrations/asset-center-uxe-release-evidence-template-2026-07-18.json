@@ -1,0 +1,42 @@
+{
+  "schema_version": "asset-center-uxe-release-evidence-v1",
+  "status": "pending_external_evidence",
+  "environment": {
+    "release_device_id": "",
+    "app_version": "",
+    "commit_sha": "",
+    "viewport": "1440x900",
+    "theme": "fresh",
+    "fixed_dataset_count": 1000,
+    "fixed_dataset_sha256": "",
+    "local_service_revision": ""
+  },
+  "participants": [
+    {"participant_id": "P1", "role": "store_owner", "independent": null, "success_rate": null, "median_seconds": null, "p95_seconds": null, "recording_path": "", "task_results": []},
+    {"participant_id": "P2", "role": "store_owner", "independent": null, "success_rate": null, "median_seconds": null, "p95_seconds": null, "recording_path": "", "task_results": []},
+    {"participant_id": "P3", "role": "store_manager_or_ops", "independent": null, "success_rate": null, "median_seconds": null, "p95_seconds": null, "recording_path": "", "task_results": []},
+    {"participant_id": "P4", "role": "store_manager_or_ops", "independent": null, "success_rate": null, "median_seconds": null, "p95_seconds": null, "recording_path": "", "task_results": []},
+    {"participant_id": "P5", "role": "experienced_video_operator", "independent": null, "success_rate": null, "median_seconds": null, "p95_seconds": null, "recording_path": "", "task_results": []}
+  ],
+  "glyph_mask": {
+    "required_min_iou": 0.98,
+    "observed_min_iou": null,
+    "sample_count": 0,
+    "frame_paths": []
+  },
+  "gray_observation": {
+    "enabled_at": "",
+    "observation_window_days": 0,
+    "success_rate": null,
+    "revert_tested": false,
+    "old_v2_healthy": null,
+    "revert_evidence_path": ""
+  },
+  "review": {
+    "target_user_study_complete": false,
+    "release_device_signoff": false,
+    "default_rollout_authorized": false,
+    "reviewer": "",
+    "reviewed_at": ""
+  }
+}

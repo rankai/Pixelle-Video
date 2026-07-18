@@ -17,7 +17,7 @@ def benchmark(root: Path, count: int, page_size: int = 60) -> dict[str, int | fl
         for index in range(count):
             timestamp = f"2026-07-18T00:{index // 60:02d}:{index % 60:02d}+00:00"
             connection.execute(
-                "INSERT INTO media_assets(asset_id, media_kind, name, description, source, status, created_at, updated_at) VALUES (?, 'image', ?, '', 'imported', 'ready', ?, ?)",
+                "INSERT OR REPLACE INTO media_assets(asset_id, media_kind, name, description, source, status, created_at, updated_at) VALUES (?, 'image', ?, '', 'imported', 'ready', ?, ?)",
                 (f"perf-{index:05d}", f"性能素材 {index:05d}", timestamp, timestamp),
             )
     start = time.perf_counter()
@@ -47,4 +47,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
