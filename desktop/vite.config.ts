@@ -11,7 +11,18 @@ export default defineConfig({
   envPrefix: ["VITE_", "TAURI_"],
   build: {
     target: "es2020",
-    minify: "esbuild",
+    minify: "oxc",
     sourcemap: false,
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            { name: "react-runtime", test: /node_modules\/(react|react-dom|scheduler)\// },
+            { name: "antd-ui", test: /node_modules\/(antd|@ant-design|rc-)\// },
+            { name: "icons", test: /node_modules\/lucide-react\// },
+          ],
+        },
+      },
+    },
   },
 });

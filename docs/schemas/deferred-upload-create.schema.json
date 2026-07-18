@@ -1,0 +1,60 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "filename": {
+      "minLength": 1,
+      "title": "Filename",
+      "type": "string"
+    },
+    "declared_bytes": {
+      "minimum": 0,
+      "title": "Declared Bytes",
+      "type": "integer"
+    },
+    "target_kind": {
+      "enum": [
+        "image",
+        "video",
+        "audio"
+      ],
+      "title": "Target Kind",
+      "type": "string"
+    },
+    "name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Name"
+    },
+    "description": {
+      "default": "",
+      "title": "Description",
+      "type": "string"
+    },
+    "decision_mode": {
+      "const": "deferred",
+      "default": "deferred",
+      "title": "Decision Mode",
+      "type": "string"
+    },
+    "idempotency_key": {
+      "minLength": 1,
+      "title": "Idempotency Key",
+      "type": "string"
+    }
+  },
+  "required": [
+    "filename",
+    "declared_bytes",
+    "target_kind",
+    "idempotency_key"
+  ],
+  "title": "DeferredUploadCreateRequest",
+  "type": "object"
+}

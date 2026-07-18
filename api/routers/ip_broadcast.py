@@ -1,5 +1,6 @@
 """IP broadcast workflow endpoints for desktop and web clients."""
 
+import os
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
@@ -136,6 +137,13 @@ def _is_allowed_artifact_path(path: Path) -> bool:
         Path("/tmp"),
         Path("/private/tmp"),
     ]
+    configured_root = os.environ.get("PIXELLE_VIDEO_ROOT", "").strip()
+    if configured_root:
+        # The desktop sidecar stores its output/temp artifacts below the
+        # configured runtime root, which may itself be a system temporary
+        # directory during an isolated desktop run. Keep the allowlist
+        # scoped to that explicit root instead of allowing arbitrary paths.
+        allowed_roots.append(Path(configured_root).expanduser())
     for root in allowed_roots:
         try:
             path.relative_to(root.resolve())

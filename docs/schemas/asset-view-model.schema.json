@@ -1,0 +1,109 @@
+{
+  "$defs": {
+    "AssetViewKind": {
+      "enum": [
+        "image",
+        "video",
+        "audio",
+        "voice",
+        "digital_human",
+        "template",
+        "brand"
+      ],
+      "title": "AssetViewKind",
+      "type": "string"
+    },
+    "ResourceStatus": {
+      "enum": [
+        "processing",
+        "ready",
+        "warning",
+        "failed",
+        "archived"
+      ],
+      "title": "ResourceStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Stable fields shared by the seven typed UI projections.",
+  "properties": {
+    "resource_id": {
+      "minLength": 1,
+      "title": "Resource Id",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/AssetViewKind"
+    },
+    "name": {
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "description": {
+      "default": "",
+      "title": "Description",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ResourceStatus"
+    },
+    "cover_url": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Cover Url"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Tags",
+      "type": "array"
+    },
+    "favorite": {
+      "default": false,
+      "title": "Favorite",
+      "type": "boolean"
+    },
+    "last_used_at": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Last Used At"
+    },
+    "display": {
+      "additionalProperties": true,
+      "title": "Display",
+      "type": "object"
+    },
+    "capabilities": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Capabilities",
+      "type": "array"
+    }
+  },
+  "required": [
+    "resource_id",
+    "kind",
+    "name",
+    "status"
+  ],
+  "title": "AssetViewModelContract",
+  "type": "object"
+}

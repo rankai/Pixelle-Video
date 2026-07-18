@@ -14,9 +14,17 @@
 API Configuration
 """
 
+import os
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+
+def _env_flag(name: str, default: bool = False) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 class APIConfig(BaseModel):
@@ -38,6 +46,19 @@ class APIConfig(BaseModel):
     
     # File upload settings
     max_upload_size: int = 100 * 1024 * 1024  # 100MB
+
+    # Enterprise asset library V2. Gate C has passed; keep the explicit
+    # environment switch so operators can roll back to the legacy routes.
+    asset_center_v2_enabled: bool = Field(
+        default_factory=lambda: _env_flag("PIXELLE_ASSET_CENTER_V2", True),
+        description="V2 asset center enabled by default; set PIXELLE_ASSET_CENTER_V2=false to roll back.",
+    )
+    # UX-0 contract gate. This is intentionally independent from the V2
+    # kernel/UI switch so migrations and compatibility routes are unaffected.
+    asset_center_smb_ux_enabled: bool = Field(
+        default_factory=lambda: _env_flag("PIXELLE_ASSET_CENTER_SMB_UX", False),
+        description="SMB asset-center UX rollout; remains off until UX-E evidence review.",
+    )
     
     # API settings
     api_prefix: str = "/api"
@@ -48,4 +69,3 @@ class APIConfig(BaseModel):
 
 # Global config instance
 api_config = APIConfig()
-

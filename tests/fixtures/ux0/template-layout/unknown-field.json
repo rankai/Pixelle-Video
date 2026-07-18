@@ -1,0 +1,9 @@
+{
+  "schema_version": 2,
+  "canvas": {"width": 1080, "height": 1920},
+  "base_template_id": "boss_clean",
+  "fonts": [],
+  "cover": {},
+  "video_subtitle": {},
+  "renderer_ignores_this": true
+}

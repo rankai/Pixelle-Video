@@ -1,0 +1,20 @@
+{
+  "fixture_id": "template-layout-v2-golden-001",
+  "contract": "valid.json",
+  "sample_text": {"title": "门店今日主推", "subtitle": "到店即享优惠"},
+  "expected": {
+    "canvas": [1080, 1920],
+    "font_token": "brand_primary",
+    "font_sha256": "b5f0d1a190a7f9b43c310a8850630af12553df32c4c050543f9059732d9b4c0a",
+    "cover_title_box": [72, 160, 936, 360],
+    "cover_subtitle_box": [72, 560, 936, 180],
+    "subtitle_alignment": 2,
+    "max_coordinate_error_px": 2,
+    "layout_mask_iou_min": 0.98
+  },
+  "algorithm": {
+    "font_identity": "resolved font_id + font_sha256 + weight must match",
+    "coordinate_error": "max(abs(preview - render)) for each key x/y/width/height",
+    "layout_mask_iou": "intersection(preview, render) / union(preview, render) after alpha threshold 0.5"
+  }
+}

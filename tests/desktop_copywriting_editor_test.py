@@ -1,6 +1,6 @@
 from pathlib import Path
 
-APP_SOURCE = Path("desktop/src/App.tsx").read_text()
+APP_SOURCE = Path("desktop/src/StudioApp.tsx").read_text()
 CSS_SOURCE = Path("desktop/src/styles.css").read_text()
 
 

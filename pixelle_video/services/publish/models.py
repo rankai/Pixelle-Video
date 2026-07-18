@@ -20,7 +20,7 @@ class PublishPackage(BaseModel):
     """A complete set of assets needed to prepare a platform draft."""
 
     session_id: str
-    platform: Literal["douyin"]
+    platform: Literal["douyin", "xiaohongshu", "shipinhao", "kuaishou"]
     video_path: str
     title: str
     description: str = ""
@@ -36,3 +36,5 @@ class PublishResult(BaseModel):
     message: str = ""
     task_id: str = ""
     draft_url: str = ""
+    requires_human_confirmation: bool = True
+    filled_fields: list[str] = Field(default_factory=list)

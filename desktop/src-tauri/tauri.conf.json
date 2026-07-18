@@ -26,11 +26,11 @@
   "bundle": {
     "active": true,
     "targets": ["nsis"],
-    "resources": [
-      "../../workflows",
-      "../../templates",
-      "../../config.example.yaml"
-    ],
+    "resources": {
+      "../../workflows": "workflows",
+      "../../templates": "templates",
+      "../../config.example.yaml": "config.example.yaml"
+    },
     "externalBin": [
       "bin/pixelle-api"
     ],

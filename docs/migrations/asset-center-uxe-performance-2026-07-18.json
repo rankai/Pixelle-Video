@@ -1,0 +1,19 @@
+{
+  "schema_version": "asset-center-ux4-performance-v1",
+  "reports": [
+    {
+      "asset_count": 1000,
+      "page_size": 60,
+      "pages": 17,
+      "first_page_ms": 6.32,
+      "status": "pass"
+    },
+    {
+      "asset_count": 5000,
+      "page_size": 60,
+      "pages": 84,
+      "first_page_ms": 24.43,
+      "status": "pass"
+    }
+  ]
+}

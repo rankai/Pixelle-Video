@@ -1,0 +1,92 @@
+{
+  "$defs": {
+    "VoiceProfileStatus": {
+      "enum": [
+        "ready",
+        "processing",
+        "archived"
+      ],
+      "title": "VoiceProfileStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A domain voice that points at an immutable audio revision.",
+  "properties": {
+    "voice_id": {
+      "minLength": 1,
+      "title": "Voice Id",
+      "type": "string"
+    },
+    "name": {
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "audio_asset_id": {
+      "minLength": 1,
+      "title": "Audio Asset Id",
+      "type": "string"
+    },
+    "audio_revision_id": {
+      "minLength": 1,
+      "title": "Audio Revision Id",
+      "type": "string"
+    },
+    "legacy_reference_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Legacy Reference Id"
+    },
+    "language": {
+      "default": "",
+      "title": "Language",
+      "type": "string"
+    },
+    "style": {
+      "default": "",
+      "title": "Style",
+      "type": "string"
+    },
+    "authorization_status": {
+      "default": "unknown",
+      "enum": [
+        "unknown",
+        "authorized",
+        "restricted"
+      ],
+      "title": "Authorization Status",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/VoiceProfileStatus",
+      "default": "ready"
+    },
+    "created_at": {
+      "title": "Created At",
+      "type": "string"
+    },
+    "updated_at": {
+      "title": "Updated At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "voice_id",
+    "name",
+    "audio_asset_id",
+    "audio_revision_id",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "VoiceProfile",
+  "type": "object"
+}

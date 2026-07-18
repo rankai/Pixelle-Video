@@ -16,6 +16,7 @@ API Routers
 
 from api.routers import publish
 from api.routers.assets import router as assets_router
+from api.routers.assets_v2 import router as assets_v2_router
 from api.routers.content import router as content_router
 from api.routers.desktop import router as desktop_router
 from api.routers.files import router as files_router
@@ -34,6 +35,7 @@ __all__ = [
     "health_router",
     "desktop_router",
     "assets_router",
+    "assets_v2_router",
     "llm_router",
     "publish",
     "publish_router",

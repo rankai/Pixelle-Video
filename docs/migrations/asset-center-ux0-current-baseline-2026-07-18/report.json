@@ -1,0 +1,105 @@
+{
+  "schema_version": "asset-center-ux0-current-baseline-v1",
+  "status": "evidence_recorded",
+  "environment": {
+    "surface": "real Vite + FastAPI desktop web surface",
+    "isolated_data_root": true,
+    "viewport": "1440x1000",
+    "asset_center_v2": true,
+    "asset_center_smb_ux": false,
+    "target_user_study": false,
+    "release_device_signoff": false
+  },
+  "tasks": [
+    {
+      "status": "pass",
+      "click_count": 9,
+      "elapsed_ms": 1760,
+      "errors": [],
+      "screenshot": "ux0-01-find-image-and-storyboard.png",
+      "task": "找到已有门店图片并用于画面规划"
+    },
+    {
+      "status": "observed_error",
+      "click_count": 2,
+      "elapsed_ms": 54,
+      "errors": [
+        "Locator.set_input_files: Error: Non-multiple file input can only accept single file\nCall log:\n  - waiting for get_by_label(\"图片素材\")\n    - locator resolved to <input id=\":rv:\" type=\"file\" aria-label=\"图片素材\" accept=\"image/jpeg,image/png,image/webp\"/>\n"
+      ],
+      "screenshot": "ux0-02-batch-upload-10.png",
+      "task": "批量上传 10 张商品图片并打标签"
+    },
+    {
+      "status": "pass",
+      "click_count": 3,
+      "elapsed_ms": 316,
+      "errors": [],
+      "screenshot": "ux0-03-add-digital-human-scene.png",
+      "task": "添加带封面和演示视频的数字人并选择场景",
+      "limitations": [
+        "当前版只接受一个图片或视频形象文件，没有封面/演示视频双字段和场景选择。"
+      ]
+    },
+    {
+      "status": "pass",
+      "click_count": 2,
+      "elapsed_ms": 78,
+      "errors": [],
+      "screenshot": "ux0-04-brand-apply.png",
+      "task": "修改品牌 Logo/BGM/地址并套用",
+      "limitations": [
+        "当前版可保存地址、电话和团购口令，但没有 Logo 字段和稳定 BGM 资产选择，也没有明确生产 picker 确认。"
+      ]
+    },
+    {
+      "status": "observed_error",
+      "click_count": 1,
+      "elapsed_ms": 36,
+      "errors": [
+        "当前版模板库仅支持浏览，没有字幕/封面位置编辑或保存预览控件"
+      ],
+      "screenshot": "ux0-05-template-preview.png",
+      "task": "预览模板字幕/封面位置后用于成片"
+    },
+    {
+      "status": "pass",
+      "click_count": 4,
+      "elapsed_ms": 382,
+      "errors": [],
+      "screenshot": "ux0-06-upload-failure-recovery.png",
+      "task": "上传失败后恢复"
+    },
+    {
+      "status": "observed_error",
+      "click_count": 3,
+      "elapsed_ms": 296,
+      "errors": [
+        "当前版可归档但没有恢复入口；只验证归档成功，恢复需要兼容 API"
+      ],
+      "screenshot": "ux0-07-archive-restore.png",
+      "task": "归档后恢复资产"
+    }
+  ],
+  "recordings": [
+    "528decf4bffc5ea7e2cc16853d749d89.webm",
+    "e2b6100613d76e4577835832c90e8081.webm",
+    "f31ace0f15e1af066a8f514c3f32664e.webm"
+  ],
+  "seeded": {
+    "shop": "media-19fef34a7838435a961f283e44eea92e",
+    "logo": "media-5abd847cf9444f8a94a86e4546747dbd",
+    "archive": "media-16ab363a5e014e8486636db3a8abb8eb",
+    "video": "media-3208fd38fa4b41db83b368e1ea59de24",
+    "audio": "media-4d2039ea5ea840c1b6f950c5790493d0",
+    "archive_asset_id": "media-16ab363a5e014e8486636db3a8abb8eb",
+    "digital_human": "baseline-digital-human",
+    "video_asset_id": "media-3208fd38fa4b41db83b368e1ea59de24",
+    "template": "baseline-template"
+  },
+  "page_errors": [],
+  "notes": [
+    "This is the current-version interaction baseline requested by UX-0, recorded with synthetic isolated data.",
+    "It does not replace the UX-E five-person study or release-device sign-off.",
+    "The task durations include real desktop UI waits and are not user-study results."
+  ]
+}

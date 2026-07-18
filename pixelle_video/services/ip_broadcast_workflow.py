@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import re
 import shutil
@@ -23,12 +24,19 @@ from pixelle_video.prompts.ip_broadcast import (
     build_script_from_topic_prompt,
 )
 from pixelle_video.services.digital_human_service import _load_workflow_config
-from pixelle_video.services.ip_broadcast_composer import compose_ip_broadcast_video
+from pixelle_video.services.ip_broadcast_composer import (
+    CANVAS_HEIGHT,
+    CANVAS_WIDTH,
+    compose_ip_broadcast_video,
+    normalize_video_to_canvas,
+)
 from pixelle_video.services.ip_broadcast_errors import classify_ip_broadcast_error
 from pixelle_video.services.ip_broadcast_templates import (
     build_ass_force_style,
-    get_ip_broadcast_template,
+    get_ip_broadcast_template_for_render,
     render_ip_broadcast_cover,
+    resolve_ip_broadcast_fonts_dir,
+    wrap_template_subtitle_text,
 )
 from pixelle_video.services.ip_broadcast_video_plan import generate_video_plan
 from pixelle_video.services.ip_learning import (
@@ -40,6 +48,7 @@ from pixelle_video.services.script_extractor import VideoScriptExtractor
 from pixelle_video.services.subtitle_service import (
     embed_subtitles,
     extract_first_frame,
+    generate_ass,
     generate_srt,
     merge_audio_into_video,
     remove_silence,
@@ -61,6 +70,7 @@ VOICE_DEPENDENCY_KEYS = {
     "tts_mode",
     "voice_source",
     "tts_voice",
+    "tts_ref_audio_id",
     "tts_speed",
     "tts_ref_audio_path",
     "tts_ref_text",
@@ -72,6 +82,7 @@ DIGITAL_HUMAN_DEPENDENCY_KEYS = {
     "portrait_id",
     "portrait_path",
     "portrait_media_type",
+    "digital_human_scene_id",
     "digital_human_workflow",
     "digital_human_prompt",
     "digital_human_duration",
@@ -79,6 +90,9 @@ DIGITAL_HUMAN_DEPENDENCY_KEYS = {
     "digital_human_height",
 }
 FINAL_VIDEO_DEPENDENCY_KEYS = {
+    "brand_kit_id",
+    "brand_bgm_asset_id",
+    "bgm_asset_id",
     "template_id",
     "story_segments",
     "visual_groups",
@@ -90,6 +104,14 @@ FINAL_VIDEO_DEPENDENCY_KEYS = {
     "bgm_volume",
     "voice_volume",
     "remove_silence",
+    "subtitle_style",
+    "output_canvas_width",
+    "output_canvas_height",
+}
+COVER_ONLY_DEPENDENCY_KEYS = {
+    "title",
+    "description",
+    "cover_title",
 }
 IP_LEARNING_INPUT_KEYS = {
     "source_mode",
@@ -129,6 +151,8 @@ def _default_state() -> dict[str, Any]:
         "business_publish_platforms": [],
         "business_intent_note": "",
         "brand_kit_id": "",
+        "brand_bgm_asset_id": "",
+        "bgm_asset_id": "",
         "source_text": "",
         "source_label": "",
         "video_type": "口播文案",
@@ -183,12 +207,15 @@ def _default_state() -> dict[str, Any]:
         "portrait_id": "",
         "portrait_path": "",
         "portrait_media_type": "",
+        "digital_human_scene_id": "",
         "digital_human_workflow": "workflows/runninghub/digital_combination.json",
         "digital_human_prompt": "自然口播，正面镜头，表情稳定，唇形同步",
         "digital_human_duration": 0.0,
         "digital_human_width": 720,
         "digital_human_height": 1280,
         "digital_human_video_path": "",
+        "output_canvas_width": CANVAS_WIDTH,
+        "output_canvas_height": CANVAS_HEIGHT,
         "template_id": "boss_clean",
         "story_segments": [],
         "visual_groups": [],
@@ -243,6 +270,8 @@ class IpBroadcastSession:
             self._clear_digital_human_outputs(protected_keys)
         elif changed_keys & FINAL_VIDEO_DEPENDENCY_KEYS:
             self._clear_final_outputs(protected_keys)
+        elif changed_keys & COVER_ONLY_DEPENDENCY_KEYS:
+            self._clear_cover_outputs(protected_keys)
 
     def _clear_ip_learning_outputs(self, protected_keys: set[str]) -> None:
         for key in IP_LEARNING_CACHE_LIST_KEYS:
@@ -278,6 +307,15 @@ class IpBroadcastSession:
         if "final_video_path" not in protected_keys:
             self.state["final_video_path"] = ""
             self.artifacts.pop("final_video", None)
+        if "cover_path" not in protected_keys:
+            self.state["cover_path"] = ""
+            self.artifacts.pop("cover", None)
+        if "publish_package" not in protected_keys:
+            self.state["publish_package"] = {}
+        if "platform_suggestions" not in protected_keys:
+            self.state["platform_suggestions"] = {}
+
+    def _clear_cover_outputs(self, protected_keys: set[str]) -> None:
         if "cover_path" not in protected_keys:
             self.state["cover_path"] = ""
             self.artifacts.pop("cover", None)
@@ -456,7 +494,11 @@ class IpBroadcastSession:
         }
 
     def _has_portrait(self) -> bool:
-        portrait_path = self.state.get("portrait_path", "")
+        portrait_path = _resolve_v2_portrait_path(
+            str(self.state.get("portrait_id") or ""),
+            str(self.state.get("digital_human_scene_id") or ""),
+            str(self.state.get("portrait_path") or ""),
+        )
         return bool(portrait_path and Path(portrait_path).exists())
 
 
@@ -886,7 +928,10 @@ def _append_tts_params(kwargs: dict[str, Any], state: dict[str, Any]) -> None:
         kwargs["do_sample"] = bool(state.get("tts_do_sample", True))
         _append_tts_seed(kwargs, state)
     elif workflow_kind == "index":
-        ref_audio = state.get("tts_ref_audio_path")
+        ref_audio = _resolve_v2_audio_path(
+            str(state.get("tts_ref_audio_id") or ""),
+            str(state.get("tts_ref_audio_path") or ""),
+        )
         if ref_audio:
             kwargs["ref_audio"] = ref_audio
         kwargs["mode"] = state.get("tts_index_mode", "Auto")
@@ -903,8 +948,13 @@ def _append_tts_params(kwargs: dict[str, Any], state: dict[str, Any]) -> None:
         )
         kwargs["max_tokens_per_sentence"] = int(state.get("tts_max_tokens_per_sentence", 120))
         _append_tts_seed(kwargs, state)
-    elif state.get("tts_ref_audio_path"):
-        kwargs["ref_audio"] = state["tts_ref_audio_path"]
+    else:
+        ref_audio = _resolve_v2_audio_path(
+            str(state.get("tts_ref_audio_id") or ""),
+            str(state.get("tts_ref_audio_path") or ""),
+        )
+        if ref_audio:
+            kwargs["ref_audio"] = ref_audio
 
 
 def _append_tts_seed(kwargs: dict[str, Any], state: dict[str, Any]) -> None:
@@ -926,7 +976,11 @@ def _tts_workflow_kind(workflow: str) -> str:
 
 async def _run_digital_human(pixelle_video, session: IpBroadcastSession) -> None:
     audio_path = session.state.get("audio_path", "")
-    portrait_path = session.state.get("portrait_path", "")
+    portrait_path = _resolve_v2_portrait_path(
+        str(session.state.get("portrait_id") or ""),
+        str(session.state.get("digital_human_scene_id") or ""),
+        str(session.state.get("portrait_path") or ""),
+    )
     workflow = session.state.get("digital_human_workflow")
     if not _path_exists(audio_path):
         raise ValueError("语音文件不存在，请先生成语音")
@@ -956,16 +1010,40 @@ async def _run_postproduction(pixelle_video, session: IpBroadcastSession) -> Non
     if not _path_exists(dh_video):
         raise ValueError("数字人视频不存在，无法合成最终视频")
 
+    _record_media_usage_and_snapshots(session)
+
     uid = uuid.uuid4().hex[:8]
     working_audio = audio_path
     if session.state.get("remove_silence"):
         working_audio = remove_silence(audio_path, get_temp_path(f"ipb_clean_{uid}.mp3"))
 
     final = get_output_path(f"ipb_{uid}_final.mp4")
-    cover_source = dh_video
+    # All currently shipped templates are authored on this canvas.  Keep the
+    # state fields as descriptive metadata, but do not let an old client
+    # reintroduce the 720x1280 render coordinate system.
+    canvas_width = CANVAS_WIDTH
+    canvas_height = CANVAS_HEIGHT
+    normalized_dh = get_temp_path(f"ipb_{uid}_canvas.mp4")
+    geometry_normalized = False
+    try:
+        normalize_video_to_canvas(
+            dh_video,
+            normalized_dh,
+            width=canvas_width,
+            height=canvas_height,
+        )
+        geometry_normalized = True
+    except (OSError, TypeError, ValueError, subprocess.CalledProcessError) as exc:
+        # Keep unit/integration fakes and already-probed provider outputs
+        # usable, while real media always takes the canonical path above.
+        logger.warning("视频画布标准化失败，将使用原始视频继续：{}", exc)
+        normalized_dh = dh_video
+
+    cover_source = ""
     if session.state.get("overlay_enabled") and session.state.get("visual_groups"):
+        clean_cover_source = get_temp_path(f"ipb_{uid}_visual.mp4")
         compose_ip_broadcast_video(
-            base_video=dh_video,
+            base_video=normalized_dh,
             audio_path=working_audio,
             output_path=final,
             script=session.state.get("final_script", ""),
@@ -974,44 +1052,176 @@ async def _run_postproduction(pixelle_video, session: IpBroadcastSession) -> Non
             template_id=session.state.get("template_id"),
             subtitle_style=session.state.get("subtitle_style"),
             subtitle_enabled=bool(session.state.get("subtitle_enabled", True)),
-            width=int(session.state.get("digital_human_width") or 720),
-            height=int(session.state.get("digital_human_height") or 1280),
+            width=canvas_width,
+            height=canvas_height,
+            clean_output_path=clean_cover_source,
         )
-        cover_source = final
+        cover_source = clean_cover_source
     else:
         merged = merge_audio_into_video(
-            dh_video,
+            normalized_dh,
             working_audio,
             get_temp_path(f"ipb_merged_{uid}.mp4"),
         )
         cover_source = merged
         if session.state.get("subtitle_enabled", True) and session.state.get("final_script"):
-            srt = get_temp_path(f"ipb_{uid}.srt")
-            generate_srt(session.state["final_script"], working_audio, srt)
-            template = get_ip_broadcast_template(session.state.get("template_id"))
-            embed_subtitles(
-                merged,
-                srt,
-                final,
-                force_style=build_ass_force_style(
-                    template,
-                    session.state.get("subtitle_style"),
-                    video_height=int(session.state.get("digital_human_height") or 1280),
+            template = get_ip_broadcast_template_for_render(session.state.get("template_id"))
+            force_style = build_ass_force_style(
+                template,
+                session.state.get("subtitle_style"),
+                video_width=canvas_width,
+                video_height=canvas_height if geometry_normalized else int(
+                    session.state.get("digital_human_height") or 1280
                 ),
             )
+            render_script = wrap_template_subtitle_text(
+                session.state["final_script"],
+                template,
+                video_width=canvas_width,
+                video_height=canvas_height if geometry_normalized else int(session.state.get("digital_human_height") or 1280),
+            )
+            try:
+                ass = get_temp_path(f"ipb_{uid}.ass")
+                generate_ass(
+                    render_script,
+                    working_audio,
+                    ass,
+                    play_res_x=canvas_width,
+                    play_res_y=canvas_height,
+                    force_style=force_style,
+                )
+                _embed_subtitles_compat(
+                    merged,
+                    ass,
+                    final,
+                    force_style=force_style,
+                )
+            except (OSError, TypeError, ValueError, subprocess.CalledProcessError) as exc:
+                # Preserve the existing SRT seam for test doubles and old
+                # provider artifacts that do not expose probeable media.
+                logger.warning("ASS 字幕生成失败，回退 SRT：{}", exc)
+                srt = get_temp_path(f"ipb_{uid}.srt")
+                generate_srt(render_script, working_audio, srt)
+                _embed_subtitles_compat(merged, srt, final, force_style=force_style)
         else:
             shutil.copy2(merged, final)
 
     final = _mix_bgm_if_needed(final, session, uid)
-    cover_source = final
+    if not geometry_normalized or not cover_source or not Path(cover_source).exists():
+        # Invalid/fake media has no reliable clean frame.  Real media always
+        # reaches the branch above and therefore never reuses burned captions.
+        cover_source = final
     session.state["final_video_path"] = final
     session.artifacts["final_video"] = final
+    _populate_publish_metadata(session)
     await _ensure_template_cover(session, cover_source, uid)
     await _run_publish(session)
 
 
+def _embed_subtitles_compat(
+    input_path: str,
+    subtitle_path: str,
+    output_path: str,
+    *,
+    force_style: str,
+) -> str:
+    """Keep old provider/test doubles working while passing bundled fonts."""
+    kwargs: dict[str, Any] = {"force_style": force_style}
+    if "fontsdir" in inspect.signature(embed_subtitles).parameters:
+        kwargs["fontsdir"] = resolve_ip_broadcast_fonts_dir()
+    return embed_subtitles(input_path, subtitle_path, output_path, **kwargs)
+
+
+def _record_media_usage_and_snapshots(session: IpBroadcastSession) -> None:
+    """Account for V2 media references at the render boundary.
+
+    Legacy overlay groups continue to use their absolute compatibility path;
+    only stable V2 asset IDs are recorded in the new usage/snapshot ledger.
+    """
+    try:
+        from pixelle_video.services.assets_v2.repository import AssetLibraryRepository
+
+        repository = AssetLibraryRepository()
+    except (OSError, RuntimeError, ValueError) as exc:
+        logger.warning("V2 media ledger unavailable; continuing with legacy render: {}", exc)
+        return
+    references: list[dict[str, Any]] = []
+    # Domain resources are pinned together with media so a rerender uses the
+    # same voice, digital-human, brand and template revisions selected in the
+    # production flow.
+    domain_refs = (
+        ("voice", str(session.state.get("tts_ref_audio_id") or ""), STEP_VOICE, "reference", "voice-reference"),
+        ("digital_human", str(session.state.get("portrait_id") or ""), STEP_DIGITAL_HUMAN, "portrait", "digital-human"),
+        ("brand", str(session.state.get("brand_kit_id") or ""), STEP_POSTPRODUCTION, "brand_kit", "brand"),
+        ("audio", str(session.state.get("brand_bgm_asset_id") or ""), STEP_POSTPRODUCTION, "brand_bgm", "brand-bgm"),
+        ("audio", str(session.state.get("bgm_asset_id") or ""), STEP_POSTPRODUCTION, "bgm", "bgm"),
+        ("template", str(session.state.get("template_id") or ""), STEP_POSTPRODUCTION, "template", "template"),
+    )
+    for resource_kind, resource_id, step, purpose, slot_id in domain_refs:
+        if resource_id:
+            references.append({"resource_kind": resource_kind, "resource_id": resource_id, "step": step, "purpose": purpose, "slot_id": slot_id})
+    scene_id = str(session.state.get("digital_human_scene_id") or "").strip()
+    if scene_id:
+        references.append({"resource_kind": "digital_human_scene", "resource_id": scene_id, "step": STEP_DIGITAL_HUMAN, "purpose": "scene", "slot_id": "digital-human-scene"})
+    groups = session.state.get("visual_groups") or []
+    if not isinstance(groups, list):
+        groups = []
+    template_contract = repository.get_template_revision(str(session.state.get("template_id") or ""))
+    for index, group in enumerate(groups, start=1):
+        if not isinstance(group, dict):
+            continue
+        visual_type = str(group.get("visual_type") or "")
+        if visual_type == "uploaded_video":
+            resource_kind = "video"
+            asset_id = str(group.get("video_asset_id") or "").strip()
+            purpose = "overlay_video"
+        elif visual_type == "uploaded_image":
+            resource_kind = "image"
+            asset_id = str(group.get("image_asset_id") or "").strip()
+            purpose = "overlay_image"
+        else:
+            continue
+        if not asset_id or not repository.get_asset(asset_id):
+            continue
+        slot_id = str(group.get("group_id") or f"overlay-{index}")
+        references.append({"resource_kind": resource_kind, "resource_id": asset_id, "step": STEP_POSTPRODUCTION, "purpose": purpose, "slot_id": slot_id})
+    repository.reconcile_session_usage(session.session_id, references)
+
+    snapshot_ids: list[str] = []
+    for reference in references:
+        resource_kind = reference["resource_kind"]
+        resource_id = reference["resource_id"]
+        step = reference["step"]
+        if resource_kind in {"image", "video", "audio"}:
+            snapshot = repository.create_snapshot(
+                resource_id,
+                session.session_id,
+                step,
+                template_revision=int(template_contract.get("revision") or 1) if template_contract else 1,
+                renderer_version=(template_contract or {}).get("renderer_version") or "ip-broadcast-composer-v2",
+            )
+        else:
+            template_revision = int(template_contract.get("revision") or 1) if resource_kind == "template" and template_contract else None
+            renderer_version = (template_contract or {}).get("renderer_version") if resource_kind == "template" else None
+            snapshot = repository.create_external_snapshot(
+                resource_kind,
+                resource_id,
+                session.session_id,
+                step,
+                template_revision=template_revision,
+                renderer_version=renderer_version,
+                metadata=repository.domain_snapshot_metadata(resource_kind, resource_id),
+            )
+        if snapshot:
+            snapshot_ids.append(snapshot["snapshot_id"])
+    session.state["resource_snapshot_ids"] = snapshot_ids
+
+
 def _mix_bgm_if_needed(video_path: str, session: IpBroadcastSession, uid: str) -> str:
-    bgm_path = str(session.state.get("bgm_path") or "")
+    bgm_path = _resolve_v2_audio_path(
+        str(session.state.get("bgm_asset_id") or session.state.get("brand_bgm_asset_id") or ""),
+        str(session.state.get("bgm_path") or ""),
+    )
     if not bgm_path or not Path(bgm_path).exists():
         return video_path
     output_path = get_output_path(f"ipb_{uid}_final_bgm.mp4")
@@ -1088,6 +1298,16 @@ async def _ensure_template_cover(
 
 
 async def _run_publish(session: IpBroadcastSession) -> None:
+    _populate_publish_metadata(session)
+    if session.state.get("final_video_path"):
+        session.artifacts["final_video"] = session.state["final_video_path"]
+    if session.state.get("cover_path"):
+        session.artifacts["cover"] = session.state["cover_path"]
+    _write_publish_package(session)
+
+
+def _populate_publish_metadata(session: IpBroadcastSession) -> None:
+    """Fill metadata before cover rendering so title/description stay in sync."""
     script = str(session.state.get("final_script", "")).strip()
     if not session.state.get("title"):
         session.state["title"] = _shorten_title(script)
@@ -1097,11 +1317,6 @@ async def _run_publish(session: IpBroadcastSession) -> None:
         session.state["hashtags"] = _build_default_hashtags(
             str(session.state.get("business_goal_name") or "")
         )
-    if session.state.get("final_video_path"):
-        session.artifacts["final_video"] = session.state["final_video_path"]
-    if session.state.get("cover_path"):
-        session.artifacts["cover"] = session.state["cover_path"]
-    _write_publish_package(session)
 
 
 def _write_publish_package(session: IpBroadcastSession) -> None:
@@ -1240,3 +1455,46 @@ def _shorten_title(script: str) -> str:
 
 def _path_exists(value: str) -> bool:
     return bool(value and Path(value).exists())
+
+
+def _resolve_v2_audio_path(resource_id: str, fallback: str) -> str:
+    """Resolve a V2 voice reference to a local path at provider boundary."""
+    if resource_id:
+        try:
+            from pixelle_video.services.assets_v2.repository import AssetLibraryRepository
+
+            repository = AssetLibraryRepository()
+            asset = repository.get_asset(resource_id) or repository.get_asset_by_legacy_id("audio", resource_id)
+            if asset is None:
+                # The production picker stores the stable VoiceProfile ID. The
+                # profile owns the audio revision, so resolve through the
+                # domain projection before falling back to legacy IDs.
+                profile = repository.get_domain_item("voice", resource_id)
+                profile_asset_id = str((profile or {}).get("asset_id") or "")
+                if profile_asset_id:
+                    asset = repository.get_asset(profile_asset_id)
+            path = repository.get_revision_path(asset["asset_id"]) if asset else None
+            if path:
+                return str(path)
+        except (OSError, RuntimeError, ValueError) as exc:
+            logger.warning("Unable to resolve V2 voice reference {}: {}", resource_id, exc)
+    return fallback
+
+
+def _resolve_v2_portrait_path(profile_id: str, scene_id: str, fallback: str) -> str:
+    """Resolve a V2 digital-human profile/scene to its pinned local source."""
+    try:
+        from pixelle_video.services.assets_v2.repository import AssetLibraryRepository
+
+        repository = AssetLibraryRepository()
+        if scene_id:
+            scene_path = repository.get_scene_source_path(scene_id)
+            if scene_path:
+                return str(scene_path)
+        if profile_id:
+            profile_path = repository.get_profile_source_path(profile_id)
+            if profile_path:
+                return str(profile_path)
+    except (OSError, RuntimeError, ValueError) as exc:
+        logger.warning("Unable to resolve V2 digital-human {} / {}: {}", profile_id, scene_id, exc)
+    return fallback

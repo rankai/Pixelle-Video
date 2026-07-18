@@ -1,6 +1,6 @@
 import type { ThemeConfig } from "antd";
 
-export type ThemeSkin = "fresh" | "graphite" | "warm" | "brand";
+export type ThemeSkin = "fresh" | "coral" | "graphite" | "warm" | "brand";
 
 export type ThemeSkinConfig = {
   label: string;
@@ -16,6 +16,13 @@ export const themeSkins: Record<ThemeSkin, ThemeSkinConfig> = {
     description: "清新柔和的创作工具风格，适合门店老板日常使用。",
     primary: "#6D5DF6",
     bg: "#F7F5FC",
+    sidebar: "#FFFFFF",
+  },
+  coral: {
+    label: "高效珊瑚工作台",
+    description: "清晰、克制的企业视频工作台，突出当前任务和安全发布。",
+    primary: "#F05A47",
+    bg: "#F5F7FA",
     sidebar: "#FFFFFF",
   },
   graphite: {
@@ -47,8 +54,8 @@ export function createAntdTheme(skin: ThemeSkin): ThemeConfig {
     token: {
       colorPrimary: selected.primary,
       colorBgLayout: selected.bg,
-      colorBorder: "#DCE4EE",
-      colorText: "#111827",
+      colorBorder: "#E1E6ED",
+      colorText: "#172033",
       colorTextSecondary: "#64748B",
       borderRadius: 10,
       fontFamily:
@@ -56,7 +63,7 @@ export function createAntdTheme(skin: ThemeSkin): ThemeConfig {
     },
     components: {
       Button: {
-        controlHeight: 38,
+        controlHeight: 40,
         borderRadius: 8,
       },
       Card: {
@@ -81,7 +88,13 @@ export function readStoredThemeSkin(): ThemeSkin {
   if (!migrated) {
     window.localStorage.setItem("pixelle_theme_fresh_migrated", "1");
   }
-  if (value === "fresh" || value === "warm" || value === "brand" || value === "graphite") {
+  if (
+    value === "fresh" ||
+    value === "coral" ||
+    value === "warm" ||
+    value === "brand" ||
+    value === "graphite"
+  ) {
     return value;
   }
   return "fresh";

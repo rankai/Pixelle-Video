@@ -1,7 +1,6 @@
 from pathlib import Path
 
-
-SOURCE = Path("desktop/src/App.tsx").read_text()
+SOURCE = Path("desktop/src/StudioApp.tsx").read_text()
 
 
 def test_ip_learning_ui_requires_topic_confirmation_before_script_generation():

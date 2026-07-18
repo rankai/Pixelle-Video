@@ -29,6 +29,9 @@ env/
 # Desktop frontend/build artifacts
 desktop/node_modules/
 desktop/src-tauri/target/
+desktop/src-tauri/bin/pixelle-api-*
+desktop/src-tauri/gen/
+pixelle-api.spec
 
 # IDEs
 .vscode/
@@ -59,6 +62,7 @@ test_outputs/
 *.wav
 *.bak
 test_*.py
+docs/migrations/.asset-ux4-perf-*/
 
 !bgm/default.mp3
 
