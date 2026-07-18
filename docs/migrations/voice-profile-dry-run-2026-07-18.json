@@ -1,0 +1,53 @@
+{
+  "schema_version": "voice-profile-migration-dry-run-v1",
+  "dry_run": true,
+  "writes_performed": 0,
+  "source": {
+    "data_root_name": "data",
+    "manifest": "voice_references/voice_references.json",
+    "manifest_sha256": "5c558d79a3f43ca521eb62cef9576e5f1d7a885f8ab674d389b646b72d60d35a",
+    "record_count": 2
+  },
+  "voice_profiles": [
+    {
+      "voice_id": "41fe2946b77c",
+      "legacy_reference_id": "41fe2946b77c",
+      "name": "a老板本人声音",
+      "audio_asset_id": "media-audio-41fe2946b77c",
+      "audio_revision_id": "revision-audio-41fe2946b77c-1",
+      "source_relative_path": "voice_references/41fe2946b77c.mp3",
+      "source_sha256": "d3b84d5237dd138220a1f66ebc02a9170f862dbe58eab5267d40096b6dfb50ee",
+      "source_exists": true,
+      "production_reference_preserved": true
+    },
+    {
+      "voice_id": "305875630955",
+      "legacy_reference_id": "305875630955",
+      "name": "张",
+      "audio_asset_id": "media-audio-305875630955",
+      "audio_revision_id": "revision-audio-305875630955-1",
+      "source_relative_path": "voice_references/305875630955.flac",
+      "source_sha256": "f4caa2158f7ff3b0318857465b9ecb0fa3538f0828b16e9d222117f6a417007e",
+      "source_exists": true,
+      "production_reference_preserved": true
+    }
+  ],
+  "invalid_records": [],
+  "ordinary_audio_excluded_from_voice_facet": [],
+  "session_reconciliation": {
+    "sessions_seen": 1,
+    "references_resolved": 1,
+    "references_unresolved": 0,
+    "unresolved": [],
+    "all_references_resolvable": true
+  },
+  "missing_files": [],
+  "rollback": {
+    "manifest_backup_required": true,
+    "voice_profile_rows_are_additive": true,
+    "legacy_voice_id_unchanged": true,
+    "rollback_action": "disable_voice_profile_projection_and_restore_manifest_backup",
+    "media_files_deleted": false
+  },
+  "ready_for_review": true
+}

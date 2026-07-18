@@ -1,0 +1,99 @@
+{
+  "$defs": {
+    "AssetViewKind": {
+      "enum": [
+        "image",
+        "video",
+        "audio",
+        "voice",
+        "digital_human",
+        "template",
+        "brand"
+      ],
+      "title": "AssetViewKind",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "session_id": {
+      "minLength": 1,
+      "title": "Session Id",
+      "type": "string"
+    },
+    "step": {
+      "minLength": 1,
+      "title": "Step",
+      "type": "string"
+    },
+    "purpose": {
+      "minLength": 1,
+      "title": "Purpose",
+      "type": "string"
+    },
+    "slot_id": {
+      "minLength": 1,
+      "title": "Slot Id",
+      "type": "string"
+    },
+    "allowed_kinds": {
+      "items": {
+        "$ref": "#/$defs/AssetViewKind"
+      },
+      "minItems": 1,
+      "title": "Allowed Kinds",
+      "type": "array"
+    },
+    "aspect_ratio": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Aspect Ratio"
+    },
+    "max_duration_ms": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Max Duration Ms"
+    },
+    "required_capabilities": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Required Capabilities",
+      "type": "array"
+    },
+    "selection_mode": {
+      "default": "single",
+      "enum": [
+        "single",
+        "multiple"
+      ],
+      "title": "Selection Mode",
+      "type": "string"
+    }
+  },
+  "required": [
+    "session_id",
+    "step",
+    "purpose",
+    "slot_id",
+    "allowed_kinds"
+  ],
+  "title": "PickerContextContract",
+  "type": "object"
+}

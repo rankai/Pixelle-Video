@@ -1,0 +1,6 @@
+{
+  "schema_version": "asset-library-ux0-seed-v1",
+  "count": 1000,
+  "kinds": ["image", "video", "audio", "voice", "digital_human", "template", "brand"],
+  "generator": "asset-{index:04d}; kind = kinds[index % 7]; every 37th item archived; every 11th item favorite"
+}

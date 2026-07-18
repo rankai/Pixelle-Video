@@ -53,6 +53,7 @@ from api.desktop_security import (
 # Import routers
 from api.routers import (
     assets_router,
+    assets_v2_router,
     content_router,
     desktop_router,
     files_router,
@@ -141,6 +142,7 @@ if is_desktop_mode():
 app.include_router(health_router)
 app.include_router(desktop_router, prefix=api_config.api_prefix)
 app.include_router(assets_router, prefix=api_config.api_prefix)
+app.include_router(assets_v2_router, prefix=api_config.api_prefix)
 
 # API routers (with /api prefix)
 app.include_router(llm_router, prefix=api_config.api_prefix)
@@ -202,9 +204,15 @@ ReDoc: http://{args.host}:{args.port}/redoc
 Press Ctrl+C to stop the server
 """)
 
+    # PyInstaller executes this file as ``__main__`` and does not expose the
+    # source package as an importable ``api.app`` module.  Pass the already
+    # constructed ASGI app directly in the frozen sidecar; keep the import
+    # string for normal development so ``--reload`` continues to work.
+    server_app = app if getattr(sys, "frozen", False) else "api.app:app"
+
     # Start server
     uvicorn.run(
-        "api.app:app",
+        server_app,
         host=args.host,
         port=args.port,
         reload=args.reload,

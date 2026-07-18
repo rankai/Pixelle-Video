@@ -1,0 +1,75 @@
+{
+  "$defs": {
+    "CursorSort": {
+      "enum": [
+        "recent",
+        "updated",
+        "name"
+      ],
+      "title": "CursorSort",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "const": 1,
+      "default": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "sort": {
+      "$ref": "#/$defs/CursorSort"
+    },
+    "filter_hash": {
+      "maxLength": 64,
+      "minLength": 64,
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Filter Hash",
+      "type": "string"
+    },
+    "index_generation": {
+      "minimum": 1,
+      "title": "Index Generation",
+      "type": "integer"
+    },
+    "last_tuple": {
+      "items": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "maxItems": 8,
+      "minItems": 1,
+      "title": "Last Tuple",
+      "type": "array"
+    },
+    "signature": {
+      "maxLength": 64,
+      "minLength": 64,
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Signature",
+      "type": "string"
+    }
+  },
+  "required": [
+    "sort",
+    "filter_hash",
+    "index_generation",
+    "last_tuple",
+    "signature"
+  ],
+  "title": "CursorEnvelope",
+  "type": "object"
+}

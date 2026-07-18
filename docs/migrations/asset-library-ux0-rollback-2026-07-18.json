@@ -1,0 +1,24 @@
+{
+  "schema_version": "asset-library-ux0-rollback-smoke-v1",
+  "data_root_name": "data",
+  "source_baseline_schema": "asset-library-stage0-baseline-v1",
+  "source_missing_files": [],
+  "manifest_backup_count": 4,
+  "backed_up_manifests": [
+    "video_assets/overlay/video_assets.json",
+    "portraits/portraits.json",
+    "voice_references/voice_references.json",
+    "brand_kits/brand_kits.json"
+  ],
+  "restored_manifests": [
+    "video_assets/overlay/video_assets.json",
+    "portraits/portraits.json",
+    "voice_references/voice_references.json",
+    "brand_kits/brand_kits.json"
+  ],
+  "restore_verified": true,
+  "original_data_root_modified": false,
+  "media_files_moved_or_deleted": false,
+  "rollback_command": "uv run python scripts/assets_v2_baseline.py --restore-dir <backup> --confirm-restore",
+  "status": "pass"
+}

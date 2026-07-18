@@ -102,3 +102,23 @@ def test_video_asset_upload_list_and_delete(monkeypatch, tmp_path):
     assert deleted.status_code == 200
     assert deleted.json()["deleted"] is True
     assert client.get("/api/assets/videos").json()["items"] == []
+
+
+def test_image_asset_upload_preview_list_and_delete(monkeypatch, tmp_path):
+    client = _client(monkeypatch, tmp_path)
+
+    upload = client.post(
+        "/api/assets/images",
+        data={"name": "夏季新品主图"},
+        files={"file": ("product.webp", b"fake webp", "image/webp")},
+    )
+
+    assert upload.status_code == 200
+    item = upload.json()
+    assert item["asset_path"].endswith(".webp")
+    assert client.get(item["file_url"]).status_code == 200
+    assert [asset["asset_id"] for asset in client.get("/api/assets/images").json()["items"]] == [
+        item["asset_id"]
+    ]
+    assert client.delete(f"/api/assets/images/{item['asset_id']}").json()["deleted"] is True
+    assert client.get("/api/assets/images").json()["items"] == []
