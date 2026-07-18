@@ -15,6 +15,7 @@ Configuration Manager - Singleton pattern
 
 Provides unified access to configuration with automatic validation.
 """
+import os
 from pathlib import Path
 from typing import Any, Optional
 
@@ -41,8 +42,9 @@ class ConfigManager:
         # Only initialize once
         if hasattr(self, '_initialized'):
             return
-        
-        self.config_path = Path(config_path)
+
+        configured_path = os.environ.get("PIXELLE_CONFIG_PATH") if config_path == "config.yaml" else None
+        self.config_path = Path(configured_path or config_path)
         self.config: PixelleVideoConfig = self._load()
         self._initialized = True
     
@@ -200,4 +202,3 @@ class ConfigManager:
             updates["timeout"] = timeout
         if updates:
             self.update({"digital_human_service": updates})
-

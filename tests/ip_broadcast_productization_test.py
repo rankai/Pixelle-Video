@@ -6,7 +6,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from api.routers.ip_broadcast import _step_progress_message
+from api.routers.ip_broadcast import _is_allowed_artifact_path, _step_progress_message
 from api.tasks import TaskType
 from api.tasks.manager import TaskManager
 from api.tasks.models import TaskStatus
@@ -26,6 +26,13 @@ from pixelle_video.services.ip_broadcast_workflow import (
     IpBroadcastSessionStore,
     run_ip_broadcast_step,
 )
+
+
+def test_artifact_allowlist_accepts_configured_desktop_runtime_root(monkeypatch, tmp_path):
+    monkeypatch.setenv("PIXELLE_VIDEO_ROOT", str(tmp_path))
+    assert _is_allowed_artifact_path(tmp_path / "output" / "final.mp4")
+    assert _is_allowed_artifact_path(tmp_path / "temp" / "cover.png")
+    assert not _is_allowed_artifact_path(Path("/etc/passwd"))
 
 
 def _assets_client(monkeypatch, tmp_path) -> TestClient:
