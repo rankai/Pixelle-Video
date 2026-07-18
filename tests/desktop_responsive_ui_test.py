@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 STYLES = Path("desktop/src/styles.css").read_text()
 
 

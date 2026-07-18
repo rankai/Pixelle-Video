@@ -10,6 +10,7 @@ from pixelle_video.services.publish.browser_runtime import (
 )
 from pixelle_video.services.publish.models import PublishPackage, PublishStatus
 from pixelle_video.services.publish.platforms.douyin import DouyinPublisher
+from pixelle_video.services.publish.platforms.multiplatform import XiaohongshuPublisher
 from pixelle_video.utils.chromium import playwright_chromium_launch_options
 
 
@@ -31,6 +32,17 @@ def test_publish_package_model_accepts_douyin_payload():
 
     assert package.platform == "douyin"
     assert package.hashtags == ["火锅", "团购套餐"]
+
+
+def test_publish_package_model_accepts_all_supported_platforms():
+    for platform in ["douyin", "xiaohongshu", "shipinhao", "kuaishou"]:
+        package = PublishPackage(
+            session_id="s1",
+            platform=platform,
+            video_path="/tmp/final.mp4",
+            title="夏季新品",
+        )
+        assert package.platform == platform
 
 
 def test_publish_statuses_cover_desktop_assistant_flow():
@@ -142,6 +154,49 @@ async def test_douyin_publisher_prepares_draft_with_fake_runtime():
     ]
 
 
+async def test_multiplatform_publisher_always_requires_human_confirmation():
+    class FakeRuntime:
+        async def launch_persistent_context(self, platform: str):
+            self.platform = platform
+            return self
+
+        async def open_creator_page(self):
+            return None
+
+        async def is_logged_in(self):
+            return True
+
+        async def upload_video(self, _path: str):
+            return True
+
+        async def fill_title(self, _title: str):
+            return True
+
+        async def fill_description(self, _description: str):
+            return True
+
+        async def fill_hashtags(self, _hashtags: list[str]):
+            return True
+
+        async def wait_until_draft_ready(self):
+            return None
+
+    package = PublishPackage(
+        session_id="s1",
+        platform="xiaohongshu",
+        video_path="/tmp/final.mp4",
+        title="夏季新品",
+        description="今天到店",
+        hashtags=["新品"],
+    )
+    result = await XiaohongshuPublisher(FakeRuntime()).prepare_draft(package)
+
+    assert result.status is PublishStatus.DRAFT_READY
+    assert result.requires_human_confirmation is True
+    assert result.filled_fields == ["video", "title", "description", "hashtags"]
+    assert "亲自点击最终发布" in result.message
+
+
 def test_prepare_douyin_publish_endpoint_returns_publish_result(monkeypatch):
     class FakePublisher:
         async def prepare_draft(self, package: PublishPackage):
@@ -202,7 +257,9 @@ def test_prepare_douyin_publish_rejects_untrusted_local_paths(monkeypatch):
 def test_prepare_douyin_publish_maps_technical_errors_to_user_message(monkeypatch):
     class FakePublisher:
         async def prepare_draft(self, package: PublishPackage):
-            raise RuntimeError("Timeout 30000ms exceeded while waiting for locator input[type='file']")
+            raise RuntimeError(
+                "Timeout 30000ms exceeded while waiting for locator input[type='file']"
+            )
 
     monkeypatch.setenv("PIXELLE_DESKTOP_MODE", "true")
     monkeypatch.setattr(publish_router_module, "get_douyin_publisher", lambda: FakePublisher())

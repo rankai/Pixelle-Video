@@ -1,7 +1,6 @@
 from pathlib import Path
 
-
-SOURCE = Path("desktop/src/App.tsx").read_text()
+SOURCE = Path("desktop/src/StudioApp.tsx").read_text()
 
 
 def test_task_step_mapping_matches_six_step_workflow():

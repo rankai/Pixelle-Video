@@ -1,6 +1,6 @@
 from pathlib import Path
 
-APP_SOURCE = Path("desktop/src/App.tsx").read_text()
+APP_SOURCE = Path("desktop/src/StudioApp.tsx").read_text()
 API_SOURCE = Path("desktop/src/api.ts").read_text()
 
 
