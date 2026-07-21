@@ -36,6 +36,130 @@ export type DesktopConfig = {
   output_dir: string;
 };
 
+export type ApplicationManifest = {
+  schema_version: number;
+  app_id: string;
+  version: string;
+  name: string;
+  description: string;
+  category: string;
+  status: "draft" | "pilot" | "stable" | "maintenance" | "disabled" | "retired";
+  icon: "FilePenLine" | "BadgeCheck" | "Images" | "Video";
+  required_capabilities: string[];
+  feature_flag: string;
+  sort_order: number;
+  enabled: boolean;
+  readiness: {
+    status: "disabled" | "not_ready" | "ready";
+    missing_capabilities: string[];
+    configured_capabilities: string[];
+  };
+};
+
+export type ApplicationDirectory = {
+  schema_version: number;
+  apps: ApplicationManifest[];
+};
+
+export type ContentProject = {
+  project_id: string;
+  schema_version: number;
+  name: string;
+  status: "active" | "archived";
+  primary_goal: string;
+  brand_id: string | null;
+  current_context_snapshot_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ContextSnapshot = {
+  context_snapshot_id: string;
+  project_id: string;
+  schema_version: number;
+  payload: Record<string, unknown>;
+  source_brand_id: string | null;
+  source_brand_revision_id: string | null;
+  fingerprint: string;
+  created_at: string;
+};
+
+export type ArtifactVersion = {
+  artifact_version_id: string;
+  artifact_id: string;
+  project_id: string;
+  version_number: number;
+  schema_version: number;
+  content: Record<string, unknown> | null;
+  file_refs: Array<Record<string, unknown>>;
+  source: string;
+  content_fingerprint: string;
+  created_at: string;
+};
+
+export type ArtifactSummary = {
+  artifact_id: string;
+  project_id: string;
+  source_app_run_id: string | null;
+  artifact_type: string;
+  name: string;
+  status: string;
+  current_version_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AppRun = {
+  app_run_id: string;
+  project_id: string;
+  app_id: string;
+  app_version: string;
+  state: "draft" | "queued" | "running" | "needs_review" | "completed" | "failed" | "cancelled";
+  state_version: number;
+  idempotency_key: string;
+  input_payload: Record<string, unknown>;
+  context_snapshot_id: string | null;
+  output_artifact_ids: string[];
+  error_code: string | null;
+  archived_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AppRunExecutionAccepted = {
+  app_run_id: string;
+  task_id: string;
+  state: "queued" | "running";
+};
+
+export type IpBroadcastAppRun = {
+  app_run_id: string;
+  project_id: string;
+  app_id: string;
+  app_version: string;
+  state: string;
+  state_version: number;
+  session_id: string;
+  output_artifact_ids: string[];
+  error_code: string | null;
+  source_revision: string;
+  explicit_claim: boolean;
+  projection: {
+    when?: string;
+    session_step_status?: string;
+    task_status?: string;
+    app_run_state?: string;
+    completion_allowed?: boolean;
+    current_step?: string;
+  };
+  step_status: Record<string, string>;
+  notices: Record<string, { kind?: string; message?: string; [key: string]: unknown }>;
+  artifact_keys: string[];
+  context_snapshot_id?: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type VoiceAsset = {
   reference_id: string;
   name: string;
@@ -166,6 +290,84 @@ type AssetLibraryV2Upload = {
 
 export type PublishPlatform = "douyin" | "xiaohongshu" | "shipinhao" | "kuaishou";
 
+export type PublishAccountPlatform = "douyin" | "video_channel" | "kuaishou" | "xiaohongshu";
+
+export type PublishAccount = {
+  schema_version: number;
+  account_id: string;
+  platform: PublishAccountPlatform;
+  display_name: string;
+  profile_ref: string;
+  verification_state: "unverified" | "verified" | "degraded" | "revoked";
+  login_state: "not_connected" | "connecting" | "login_required" | "authenticated" | "expired" | "identity_changed" | "degraded" | "locked" | "revoked";
+  enabled: boolean;
+  is_default: boolean;
+  profile_exists: boolean;
+  platform_release_state: "pilot" | "unverified";
+  created_at: string;
+  updated_at: string;
+  last_verified_at: string | null;
+  last_error_code: string | null;
+  login_subject_hint: string | null;
+  archived_at: string | null;
+};
+
+export type PublishPlatformCapability = {
+  platform: PublishAccountPlatform;
+  display_name: string;
+  release_state: "pilot" | "unverified";
+  account_count: number;
+  default_account_id: string | null;
+};
+
+export type PublishPackageV2 = {
+  schema_version: number;
+  package_id: string;
+  project_id: string;
+  source: { kind: "artifact_versions" | "legacy_session"; artifact_ids: string[]; artifact_version_ids: string[]; session_id: string | null; source_revision: string };
+  artifact_refs: Array<{ artifact_id: string; artifact_version_id: string; artifact_type: string; content_fingerprint: string }>;
+  video_manifest: Record<string, unknown> | null;
+  carousel_manifests: Array<Record<string, unknown>> | null;
+  cover_manifest: Record<string, unknown> | null;
+  platform_copy: { title: string; description: string; hashtags: string[] };
+  policy: { human_confirmation_required: true; allow_final_publish: false; adapter_version: string };
+  package_fingerprint: string;
+  invalidated_at: string | null;
+  invalidation_reason: string | null;
+  created_at: string;
+};
+
+export type PublishRunV2 = {
+  schema_version: number;
+  run_id: string;
+  package_id: string;
+  account_id: string;
+  platform: PublishAccountPlatform;
+  state: "queued" | "running" | "waiting_for_login" | "waiting_for_human" | "needs_attention" | "succeeded" | "failed" | "cancelled";
+  state_version: number;
+  attempt: number;
+  current_step: string | null;
+  idempotency_key: string;
+  human_confirmation: { required: true; confirmed: boolean; confirmed_at: string | null; actor_ref: string | null };
+  task_id: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  checkpoint: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PublishRunEvent = {
+  event_id: string;
+  run_id: string;
+  event_seq: number;
+  event_type: string;
+  state: PublishRunV2["state"] | null;
+  state_version: number;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
 export type IpTemplateAsset = {
   template_id: string;
   display_name: string;
@@ -225,7 +427,7 @@ export type TaskInfo = {
   duration_ms?: number | null;
   retry_payload?: Record<string, unknown> | null;
   created_at?: string;
-  status: "pending" | "running" | "completed" | "failed" | "cancelled";
+  status: "pending" | "running" | "needs_review" | "completed" | "failed" | "cancelled";
   progress?: {
     current: number;
     total: number;
@@ -475,8 +677,211 @@ export function preparePlatformPublish(values: {
   });
 }
 
+export function listPublishAccounts(includeArchived = false) {
+  return apiFetch<{ items: PublishAccount[] }>(`/api/publish/accounts?include_archived=${includeArchived ? "true" : "false"}`);
+}
+
+export function listPublishAccountsV2(includeArchived = false) {
+  return apiFetch<{ items: PublishAccount[] }>(`/api/publish/v2/accounts?include_archived=${includeArchived ? "true" : "false"}`);
+}
+
+export function getPublishPackageV2(packageId: string) {
+  return apiFetch<PublishPackageV2>(`/api/publish/v2/packages/${encodeURIComponent(packageId)}`);
+}
+
+export function resolvePublishPackageV2(artifactId: string) {
+  return apiFetch<PublishPackageV2>(`/api/publish/v2/packages/resolve?artifact_id=${encodeURIComponent(artifactId)}`);
+}
+
+export function createPublishPackageFromSessionV2(values: { project_id: string; session_id: string; platform_copy?: { title?: string; description?: string; hashtags?: string[] } }) {
+  return apiFetch<PublishPackageV2>("/api/publish/v2/packages/from-session", { method: "POST", body: JSON.stringify(values) });
+}
+
+export function preflightPublishPackageV2(packageId: string) {
+  return apiFetch<{ package_id: string; status: "ready"; video_manifest: Record<string, unknown> | null; carousel_manifests: Array<Record<string, unknown>>; cover_manifest: Record<string, unknown> | null }>(`/api/publish/v2/packages/${encodeURIComponent(packageId)}/preflight`, { method: "POST" });
+}
+
+export function getPublishRunV2(runId: string) {
+  return apiFetch<{ run: PublishRunV2 }>(`/api/publish/v2/runs/${encodeURIComponent(runId)}`);
+}
+
+export function listPublishRunEventsV2(runId: string, after = 0) {
+  return apiFetch<{ items: PublishRunEvent[]; next_after: number }>(`/api/publish/v2/runs/${encodeURIComponent(runId)}/events?after=${after}`);
+}
+
+export function listPublishPlatforms() {
+  return apiFetch<{ items: PublishPlatformCapability[] }>("/api/publish/platforms");
+}
+
+export function createPublishAccount(values: { platform: PublishAccountPlatform; display_name: string; make_default?: boolean }) {
+  return apiFetch<PublishAccount>("/api/publish/accounts", { method: "POST", body: JSON.stringify(values) });
+}
+
+export function setDefaultPublishAccount(accountId: string) {
+  return apiFetch<PublishAccount>(`/api/publish/accounts/${accountId}/default`, { method: "POST" });
+}
+
+export function archivePublishAccount(accountId: string) {
+  return apiFetch<PublishAccount>(`/api/publish/accounts/${accountId}/archive`, { method: "POST" });
+}
+
+export function clearPublishAccountProfile(accountId: string) {
+  return apiFetch<PublishAccount>(`/api/publish/accounts/${accountId}/clear-profile`, { method: "POST" });
+}
+
+export function probePublishAccount(accountId: string) {
+  return apiFetch<PublishAccount>(`/api/publish/accounts/${accountId}/probe`, { method: "POST" });
+}
+
 export function getDesktopConfig() {
   return apiFetch<DesktopConfig>("/api/desktop/config");
+}
+
+export function listApplications() {
+  return apiFetch<ApplicationDirectory>("/api/apps");
+}
+
+export function createIpBroadcastAppRun(values: {
+  project_id: string;
+  input_payload: Record<string, unknown>;
+  idempotency_key: string;
+  explicit_claim?: boolean;
+  context_snapshot_id?: string | null;
+}) {
+  return apiFetch<IpBroadcastAppRun>("/api/app-center/ip-broadcast/runs", {
+    method: "POST",
+    body: JSON.stringify(values),
+  });
+}
+
+export function getIpBroadcastAppRun(appRunId: string, projectId: string) {
+  return apiFetch<IpBroadcastAppRun>(
+    `/api/app-center/ip-broadcast/runs/${encodeURIComponent(appRunId)}?project_id=${encodeURIComponent(projectId)}`,
+  );
+}
+
+export function executeIpBroadcastAppRun(appRunId: string) {
+  return apiFetch<IpBroadcastAppRun>(`/api/app-center/ip-broadcast/runs/${encodeURIComponent(appRunId)}/execute`, {
+    method: "POST",
+  });
+}
+
+export function cancelIpBroadcastAppRun(appRunId: string) {
+  return apiFetch<IpBroadcastAppRun>(`/api/app-center/ip-broadcast/runs/${encodeURIComponent(appRunId)}/cancel`, {
+    method: "POST",
+  });
+}
+
+export function retryIpBroadcastAppRun(appRunId: string) {
+  return apiFetch<IpBroadcastAppRun>(`/api/app-center/ip-broadcast/runs/${encodeURIComponent(appRunId)}/retry`, {
+    method: "POST",
+  });
+}
+
+export function acceptIpBroadcastAppRun(appRunId: string) {
+  return apiFetch<IpBroadcastAppRun>(`/api/app-center/ip-broadcast/runs/${encodeURIComponent(appRunId)}/accept`, {
+    method: "POST",
+  });
+}
+
+export function listContentProjects(includeArchived = false) {
+  return apiFetch<ContentProject[]>(`/api/content-projects?include_archived=${includeArchived ? "true" : "false"}`);
+}
+
+export function createContentProject(values: { name: string; primary_goal: string; brand_id?: string | null }) {
+  return apiFetch<ContentProject>("/api/content-projects", { method: "POST", body: JSON.stringify(values) });
+}
+
+export function updateContentProject(projectId: string, values: { name?: string; primary_goal?: string }) {
+  return apiFetch<ContentProject>(`/api/content-projects/${projectId}`, { method: "PATCH", body: JSON.stringify(values) });
+}
+
+export function archiveContentProject(projectId: string) {
+  return apiFetch<ContentProject>(`/api/content-projects/${projectId}/archive`, { method: "POST" });
+}
+
+export function getCurrentContextSnapshot(projectId: string) {
+  return apiFetch<ContextSnapshot | null>(`/api/content-projects/${projectId}/context-snapshots`);
+}
+
+export function listProjectArtifacts(projectId: string, includeArchived = false) {
+  return apiFetch<ArtifactSummary[]>(
+    `/api/content-projects/${encodeURIComponent(projectId)}/artifacts?include_archived=${includeArchived ? "true" : "false"}`,
+  );
+}
+
+export function listAppRuns(projectId?: string) {
+  const query = projectId ? `?project_id=${encodeURIComponent(projectId)}` : "";
+  return apiFetch<AppRun[]>(`/api/app-runs${query}`);
+}
+
+export function createAppRun(values: {
+  project_id: string;
+  app_id: string;
+  app_version: string;
+  input_payload: Record<string, unknown>;
+  idempotency_key: string;
+  context_snapshot_id?: string | null;
+}) {
+  return apiFetch<AppRun>("/api/app-runs", { method: "POST", body: JSON.stringify(values) });
+}
+
+export function createArtifactHandoff(values: {
+  project_id: string;
+  source_artifact_id: string;
+  source_artifact_version_id: string;
+  target_app_id: string;
+  target_app_version: string;
+  artifact_version_ids: string[];
+  target_run_id?: string;
+}) {
+  return apiFetch<Record<string, unknown>>(`/api/artifacts/${values.source_artifact_id}/handoffs`, {
+    method: "POST",
+    body: JSON.stringify(values),
+  });
+}
+
+export function transitionAppRun(appRunId: string, state: AppRun["state"], expectedStateVersion?: number) {
+  return apiFetch<AppRun>(`/api/app-runs/${appRunId}/transition`, {
+    method: "POST",
+    body: JSON.stringify({ state, expected_state_version: expectedStateVersion }),
+  });
+}
+
+export function executeAppRun(appRunId: string) {
+  return apiFetch<AppRunExecutionAccepted>(`/api/app-runs/${appRunId}/execute`, { method: "POST" });
+}
+
+export function retryAppRun(appRunId: string) {
+  return apiFetch<AppRun>(`/api/app-runs/${appRunId}/retry`, { method: "POST" });
+}
+
+export function cancelAppRun(appRunId: string) {
+  return apiFetch<AppRun>(`/api/app-runs/${appRunId}/cancel`, { method: "POST" });
+}
+
+export function completeAppRun(appRunId: string) {
+  return apiFetch<AppRun>(`/api/app-runs/${appRunId}/complete`, { method: "POST" });
+}
+
+export function listArtifactVersions(artifactId: string) {
+  return apiFetch<ArtifactVersion[]>(`/api/artifacts/${artifactId}/versions`);
+}
+
+export async function downloadAppArtifactFile(artifactId: string, fileKey: string) {
+  const { apiBaseUrl, desktopToken } = await getRuntime();
+  const headers = new Headers();
+  if (desktopToken) headers.set("X-Pixelle-Desktop-Token", desktopToken);
+  const response = await fetch(apiUrl(apiBaseUrl, `/api/artifacts/${artifactId}/files/${encodeURIComponent(fileKey)}/download`), { headers });
+  if (!response.ok) throw new Error(formatHttpError(response, await response.text()));
+  return response.blob();
+}
+
+export function appendArtifactVersion(artifactId: string, content: Record<string, unknown>, source: "edited" | "generated" = "edited") {
+  return apiFetch<ArtifactVersion>(`/api/artifacts/${artifactId}/versions`, {
+    method: "POST",
+    body: JSON.stringify({ content, source }),
+  });
 }
 
 export function saveDesktopConfig(config: Partial<DesktopConfig>) {

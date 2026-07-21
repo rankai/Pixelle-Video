@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import {
   artifactBlobUrl,
+  createPublishPackageFromSessionV2,
   downloadArtifact,
-  preparePlatformPublish,
   type IpBroadcastState,
   type PublishPlatform,
   type PublishResult,
@@ -15,9 +15,11 @@ const SUPPORTED_PLATFORMS: PublishPlatform[] = ["douyin", "xiaohongshu", "shipin
 export function PublishWorkspace({
   session,
   downloadFinalVideo,
+  onOpenPublishCenter,
 }: {
   session: IpBroadcastState;
   downloadFinalVideo: () => Promise<void>;
+  onOpenPublishCenter: (packageId?: string) => void;
 }) {
   const [loadingPlatform, setLoadingPlatform] = useState<PublishPlatform | null>(null);
   const [result, setResult] = useState<PublishResult | null>(null);
@@ -57,17 +59,20 @@ export function PublishWorkspace({
     setLoadingPlatform(platform);
     setResult(null);
     try {
-      setResult(
-        await preparePlatformPublish({
-          session_id: session.session_id,
-          platform,
-          video_path: finalVideoPath,
-          title: String(platformSuggestions[platform]?.title || title),
-          description: String(platformSuggestions[platform]?.description || description),
-          hashtags: hashtagList,
-          cover_path: coverPath,
-        }),
-      );
+      // PUB-4 batch 3: the legacy step only hands off to the canonical publish
+      // center; it never owns a second platform/package/run orchestration path.
+      const packageData = await createPublishPackageFromSessionV2({
+        project_id: `legacy_${session.session_id}`,
+        session_id: session.session_id,
+        platform_copy: { title, description, hashtags: hashtagList },
+      });
+      onOpenPublishCenter(packageData.package_id);
+      setResult({
+        status: "draft_ready",
+        platform,
+        message: "已切换到统一发布中心；请在那里选择账号并人工确认。",
+        requires_human_confirmation: true,
+      });
     } catch (error) {
       setResult({
         status: "failed",
@@ -152,8 +157,6 @@ export function PublishWorkspace({
                           description: platformDescription,
                           hashtags,
                           commentCta,
-                          finalVideoPath,
-                          coverPath,
                         })}
                       />
                     </Space>
@@ -340,16 +343,12 @@ function buildPlatformText({
   description,
   hashtags,
   commentCta,
-  finalVideoPath,
-  coverPath,
 }: {
   platform: PublishPlatform;
   title: string;
   description: string;
   hashtags: string;
   commentCta: string;
-  finalVideoPath: string;
-  coverPath: string;
 }) {
   return [
     `平台：${platformLabel(platform)}`,
@@ -357,8 +356,8 @@ function buildPlatformText({
     `描述：${description}`,
     hashtags ? `话题：${hashtags}` : "",
     commentCta ? `评论区引导：${commentCta}` : "",
-    `视频：${finalVideoPath}`,
-    coverPath ? `封面：${coverPath}` : "",
+    "视频：已准备（请从发布检查下载或预览）",
+    "封面：按发布检查中的预览与下载状态确认",
     "发布方式：自动填充后人工确认",
   ].filter(Boolean).join("\n");
 }

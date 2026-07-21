@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 
@@ -25,9 +26,59 @@ def test_browser_dev_defaults_to_standalone_api_port():
 
 
 def test_asset_center_v2_defaults_on_with_explicit_frontend_rollback():
-    source = Path("desktop/src/featureFlags.ts").read_text()
+    source = Path("desktop/src/flagResolver.ts").read_text()
 
-    assert 'envFlag(import.meta.env.VITE_ASSET_CENTER_V2, true)' in source
+    assert 'assetCenterV2: readFlag(env, "VITE_ASSET_CENTER_V2", true)' in source
+
+
+def test_app_center_shell_defaults_off_and_uses_hash_router_boundary():
+    flags = Path("desktop/src/flagResolver.ts").read_text()
+    shell = Path("desktop/src/features/app-center/AppShell.tsx").read_text()
+
+    assert 'appCenterShell: readFlag(env, "VITE_APP_CENTER_SHELL", false)' in flags
+    assert "export function HashRouter" in shell
+    assert "window.location.hash" in shell
+    assert "pixelle_app_center_last_route" in shell
+    assert "function normalizePath" in shell
+    assert "if (!featureFlags.appCenterShell)" in shell
+
+
+def test_app_shell_smoke_evidence_covers_flag_rollback_and_route_contract():
+    evidence = json.loads(
+        Path("docs/reviews/application-publishing-program/qa/AC-1-app-shell-smoke-2026-07-19.json").read_text()
+    )
+
+    assert evidence["stage"] == "APP-SHELL"
+    assert evidence["gate"] == "PG-B"
+    assert evidence["registry"]["list_endpoint"] == "GET /api/apps"
+    assert evidence["registry"]["manifest_count"] == 4
+    assert evidence["registry"]["canonical_flag_env"]["contentApps"] == "PIXELLE_APP_CENTER_CONTENT_APPS"
+    assert evidence["flag_on"]["pass"] is True
+    assert evidence["flag_on"]["console_errors"] == 0
+    assert evidence["flag_on"]["network_failures"] == 0
+    assert [step["hash"] for step in evidence["flag_on"]["steps"] if "hash" in step] == [
+        "/apps",
+        "/ip",
+    ]
+    assert evidence["flag_on"]["readiness"]["configured"]["button_enabled"] is True
+    assert evidence["flag_on"]["readiness"]["after_isolated_config_change_to_missing"]["button_enabled"] is False
+    assert evidence["flag_on"]["desktop_restart_route"]["pass"] is True
+    assert evidence["flag_on"]["forbidden_non_get_requests"] == []
+    assert evidence["flag_on"]["route_normalization"]["after_mount"] == "/apps"
+    assert evidence["flag_off"]["pass"] is True
+    assert evidence["flag_off"]["legacy_fallback"]["app_center_heading_count"] == 0
+
+
+def test_desktop_app_shell_has_vitest_and_registry_render_smokes():
+    package = json.loads(Path("desktop/package.json").read_text())
+    config = Path("desktop/vitest.config.ts").read_text()
+
+    assert package["scripts"]["test"] == "vitest"
+    assert "vitest" in package["devDependencies"]
+    assert "@testing-library/react" in package["devDependencies"]
+    assert "environment: \"jsdom\"" in config
+    assert Path("desktop/src/features/app-center/AppShell.test.tsx").exists()
+    assert Path("desktop/src/features/app-center/ApplicationCenterView.test.tsx").exists()
 
 
 def test_tauri_debug_runtime_matches_standalone_api_port():

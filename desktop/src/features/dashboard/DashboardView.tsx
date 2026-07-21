@@ -205,11 +205,11 @@ function stepLabel(step?: string) {
 }
 
 function statusLabel(status: TaskInfo["status"]) {
-  return { pending: "等待中", running: "进行中", completed: "已完成", failed: "需处理", cancelled: "已停止" }[status];
+  return { pending: "等待中", running: "进行中", needs_review: "待审核", completed: "已完成", failed: "需处理", cancelled: "已停止" }[status];
 }
 
 function statusColor(status: TaskInfo["status"]) {
-  return { pending: "default", running: "processing", completed: "success", failed: "error", cancelled: "default" }[status];
+  return { pending: "default", running: "processing", needs_review: "warning", completed: "success", failed: "error", cancelled: "default" }[status];
 }
 
 function formatDate(value?: string) {

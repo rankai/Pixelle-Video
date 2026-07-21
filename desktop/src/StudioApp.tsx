@@ -98,13 +98,19 @@ import { featureFlags } from "./featureFlags";
 import { createAntdTheme, readStoredThemeSkin, themeSkins, type ThemeSkin } from "./theme";
 import { AssetCenterV2 } from "./features/assets/components/AssetCenterV2";
 import { AssetPickerDialog } from "./features/assets/components/AssetPickerDialog";
+import { ApplicationCenterView } from "./features/app-center/ApplicationCenterView";
+import { DigitalHumanApplicationView } from "./features/app-center/DigitalHumanApplicationView";
+import { CreationWorkspace } from "./features/creation/CreationWorkspace";
+import { PublishCenterView } from "./features/publishing/PublishCenterView";
+import { useHashRouter } from "./features/app-center/AppShell";
 
 const PublishWorkspace = lazy(() => import("./features/publishing/PublishWorkspace"));
 const DashboardView = lazy(() => import("./features/dashboard/DashboardView"));
 
-type View = "home" | "ip" | "assets" | "publish_accounts" | "tasks" | "config" | "diagnostics";
+type View = "apps" | "home" | "ip" | "digital_human_app" | "assets" | "publish_accounts" | "tasks" | "config" | "diagnostics";
 type AssetTab = "videos" | "images" | "voices" | "portraits" | "templates" | "brands";
 type NavKey =
+  | "apps"
   | "home"
   | "ip"
   | "assets"
@@ -331,6 +337,7 @@ const emptyAssets: AssetState = {
 };
 
 const navItems: MenuProps["items"] = [
+  ...(featureFlags.appCenterShell ? [{ key: "apps", icon: <Images size={16} />, label: "应用中心" }] : []),
   { key: "home", icon: <Home size={16} />, label: "工作台" },
   { key: "ip", icon: <Video size={16} />, label: "口播剪辑" },
   { type: "divider" },
@@ -342,13 +349,17 @@ const navItems: MenuProps["items"] = [
 ];
 
 function viewTitle(view: View, assetTab: AssetTab) {
+  if (view === "apps") return "应用中心";
   if (view === "ip") return "口播剪辑";
+  if (view === "digital_human_app") return "数字人口播视频";
   if (view === "assets") return `企业资产库 · ${{ videos: "视频", images: "图片", voices: "音色", portraits: "数字人", templates: "模板", brands: "品牌" }[assetTab]}`;
   return { home: "企业视频工作台", publish_accounts: "发布中心", tasks: "任务记录", config: "系统设置", diagnostics: "启动自检" }[view] || "Pixelle Video";
 }
 
 function viewDescription(view: View) {
+  if (view === "apps") return "发现可扩展的文案、标题、图文和视频应用。";
   if (view === "ip") return "文案、配音、出镜、成片和发布，一条生产线完成。";
+  if (view === "digital_human_app") return "从项目或可信内容进入数字人口播应用，发布前保留人工确认。";
   if (view === "assets") return "集中管理可在不同项目中复用的企业视频资产。";
   if (view === "publish_accounts") return "自动填充平台信息，最终发布由人工确认。";
   return "管理企业视频资产、生产任务与发布交付。";
@@ -381,8 +392,38 @@ function uiStepForTask(stepKey: string) {
   );
 }
 
+function viewForPath(pathname: string): View {
+  const basePath = pathname.split("?", 1)[0];
+  if (basePath === "/" || basePath === "/apps") return "apps";
+  if (basePath === "/ip") return "ip";
+  if (basePath === "/apps/digital-human-video") return "digital_human_app";
+  if (basePath === "/assets") return "assets";
+  if (basePath === "/publish") return "publish_accounts";
+  if (basePath === "/tasks") return "tasks";
+  if (basePath === "/config" || basePath === "/settings") return "config";
+  if (basePath === "/runs") return "tasks";
+  if (basePath === "/projects") return "home";
+  if (basePath === "/diagnostics") return "diagnostics";
+  return "home";
+}
+
+function pathForView(view: View): string {
+  return {
+    apps: "/apps",
+    home: "/home",
+    ip: "/ip",
+    digital_human_app: "/apps/digital-human-video",
+    assets: "/assets",
+    publish_accounts: "/publish",
+    tasks: "/tasks",
+    config: "/config",
+    diagnostics: "/diagnostics",
+  }[view];
+}
+
 export function StudioApp() {
-  const [view, setView] = useState<View>("home");
+  const router = useHashRouter();
+  const [view, setView] = useState<View>(() => (router ? viewForPath(router.pathname) : "home"));
   const [assetTab, setAssetTab] = useState<AssetTab>("videos");
   const [themeSkin, setThemeSkinState] = useState<ThemeSkin>(() => readStoredThemeSkin());
   const [assets, setAssets] = useState<AssetState>(emptyAssets);
@@ -395,10 +436,20 @@ export function StudioApp() {
   const [appRecovering, setAppRecovering] = useState(false);
   const [workflowError, setWorkflowError] = useState("");
   const [storyboardOpen, setStoryboardOpen] = useState(false);
+  const [creationAppId, setCreationAppId] = useState("builtin.marketing-copy");
 
   useEffect(() => {
+    if (!router) return;
+    setView(viewForPath(router.pathname));
+  }, [router?.pathname]);
+
+  useEffect(() => {
+    // The application-center route must not create a legacy IP session as a
+    // side effect. Legacy recovery remains explicit when the old workflow is
+    // opened, preserving the historical StudioApp behavior there.
+    if (view === "apps" || view === "digital_human_app") return;
     recoverAppState().catch((err) => setAppError(formatUiError(err)));
-  }, []);
+  }, [view]);
 
   function setThemeSkin(skin: ThemeSkin) {
     window.localStorage.setItem("pixelle_desktop_theme_skin", skin);
@@ -603,29 +654,32 @@ export function StudioApp() {
 
   function openAssetTab(tab: AssetTab) {
     setAssetTab(tab);
-    setView("assets");
+    navigateToView("assets");
   }
 
   function openView(nextView: View) {
     if (nextView === "ip") {
       setActiveStep(1);
     }
+    navigateToView(nextView);
+  }
+
+  function navigateToView(nextView: View) {
     setView(nextView);
+    router?.navigate(pathForView(nextView));
+  }
+
+  function openPublishCenter(packageId?: string) {
+    setView("publish_accounts");
+    router?.navigate(packageId ? `/publish?package_id=${encodeURIComponent(packageId)}` : "/publish");
   }
 
   function openNavItem(key: NavKey) {
-    if (key === "assets") {
-      setView("assets");
-      return;
-    }
-    if (key === "publish_accounts") {
-      setView("publish_accounts");
-      return;
-    }
     openView(key);
   }
 
   function selectedNavKey(): string {
+    if (view === "digital_human_app") return "apps";
     if (view === "assets") return "assets";
     return view;
   }
@@ -639,7 +693,7 @@ export function StudioApp() {
     window.localStorage.removeItem(IPB_TASK_STORAGE_KEY);
     setSession(created);
     setActiveStep(1);
-    setView("ip");
+    navigateToView("ip");
   }
 
   async function downloadFinalVideo() {
@@ -703,6 +757,22 @@ export function StudioApp() {
               />
             ) : null}
 
+            {view === "apps" ? (
+              <ApplicationCenterView
+                onOpenApp={(application) => {
+                  if (application.routeView) navigateToView(application.routeView);
+                  else {
+                    setCreationAppId(application.appId);
+                    navigateToView("home");
+                  }
+                }}
+              />
+            ) : null}
+
+            {view === "digital_human_app" ? (
+              <DigitalHumanApplicationView onBack={() => navigateToView("apps")} />
+            ) : null}
+
             {view === "ip" && session ? (
               <section className="workspace">
                 <ProductionConsole
@@ -735,6 +805,7 @@ export function StudioApp() {
                     openAssetTab={openAssetTab}
                     reloadAssets={reloadAssets}
                     downloadFinalVideo={downloadFinalVideo}
+                    onOpenPublishCenter={openPublishCenter}
                     goToStep={setActiveStep}
                   />
                 </section>
@@ -755,6 +826,7 @@ export function StudioApp() {
 
       {view === "home" ? (
         <Suspense fallback={<div className="workspace-loading">正在加载企业视频工作台…</div>}>
+          {featureFlags.appCenterShell ? <CreationWorkspace appId={creationAppId} /> : null}
           <DashboardView
             assets={{
               videos: assets.videos.length,
@@ -765,12 +837,12 @@ export function StudioApp() {
               brands: assets.brands.length,
             }}
             onStart={() => startNewIpSession().catch((err) => setAppError(formatUiError(err)))}
-            onAssets={() => setView("assets")}
+            onAssets={() => navigateToView("assets")}
             onAssetTab={openAssetTab}
-            onConfig={() => setView("config")}
-            onDiagnostics={() => setView("diagnostics")}
-            onTasks={() => setView("tasks")}
-            onPublish={() => setView("publish_accounts")}
+            onConfig={() => navigateToView("config")}
+            onDiagnostics={() => navigateToView("diagnostics")}
+            onTasks={() => navigateToView("tasks")}
+            onPublish={() => navigateToView("publish_accounts")}
           />
         </Suspense>
       ) : null}
@@ -779,7 +851,7 @@ export function StudioApp() {
         featureFlags.assetCenterV2 && featureFlags.assetCenterSmbUx ? (
           <AssetCenterV2
             onUse={(item, sceneId) => {
-              setView("ip");
+              navigateToView("ip");
               if (!session) return;
               const values: Record<string, unknown> =
                 item.kind === "voice"
@@ -806,7 +878,7 @@ export function StudioApp() {
           />
         )
       ) : null}
-      {view === "publish_accounts" ? <PublishAccountsView /> : null}
+      {view === "publish_accounts" ? <PublishCenterView /> : null}
       {view === "tasks" ? <TaskCenterView /> : null}
       {view === "config" ? <ConfigView themeSkin={themeSkin} setThemeSkin={setThemeSkin} /> : null}
       {view === "diagnostics" ? <DiagnosticsView /> : null}
@@ -1182,6 +1254,7 @@ function taskStatusColor(status: TaskInfo["status"]) {
   const colors: Record<TaskInfo["status"], string> = {
     pending: "default",
     running: "processing",
+    needs_review: "warning",
     completed: "success",
     failed: "error",
     cancelled: "default",
@@ -1283,6 +1356,7 @@ function StepPanel({
   openAssetTab,
   reloadAssets,
   downloadFinalVideo,
+  onOpenPublishCenter,
   goToStep,
 }: {
   step: number;
@@ -1298,6 +1372,7 @@ function StepPanel({
   openAssetTab: (tab: AssetTab) => void;
   reloadAssets: () => Promise<void>;
   downloadFinalVideo: () => Promise<void>;
+  onOpenPublishCenter: (packageId?: string) => void;
   goToStep: (step: number) => void;
 }) {
   const notice = uiStepNotice(session, step);
@@ -1366,7 +1441,7 @@ function StepPanel({
       ) : null}
       {step === 5 ? (
         <Suspense fallback={<div className="workspace-loading">正在加载发布工作区…</div>}>
-          <PublishWorkspace session={session} downloadFinalVideo={downloadFinalVideo} />
+          <PublishWorkspace session={session} downloadFinalVideo={downloadFinalVideo} onOpenPublishCenter={onOpenPublishCenter} />
         </Suspense>
       ) : null}
       <StepStatusNotice
@@ -5639,74 +5714,6 @@ function BrandKitLibrary({ items, reload }: { items: BrandKit[]; reload: () => P
   );
 }
 
-function PublishAccountsView() {
-  const platforms = [
-    {
-      key: "douyin",
-      name: "抖音",
-      logo: "/platform-logos/douyin.svg",
-      description: "自动填充视频、封面、标题、描述与话题；最终发布由人工确认。",
-      status: <Tag color="success">可用</Tag>,
-      ready: true,
-    },
-    {
-      key: "shipinhao",
-      name: "视频号",
-      logo: "/platform-logos/shipinhao.svg",
-      description: "自动打开视频号助手并填充发布信息，保留最终人工确认。",
-      status: <Tag color="success">可用</Tag>,
-      ready: true,
-    },
-    {
-      key: "kuaishou",
-      name: "快手",
-      logo: "/platform-logos/kuaishou.svg",
-      description: "自动打开快手创作者平台并填充发布信息，保留最终人工确认。",
-      status: <Tag color="success">可用</Tag>,
-      ready: true,
-    },
-    {
-      key: "xiaohongshu",
-      name: "小红书",
-      logo: "/platform-logos/xiaohongshu.svg",
-      description: "自动打开小红书创作服务平台并填充发布信息，保留最终人工确认。",
-      status: <Tag color="success">可用</Tag>,
-      ready: true,
-    },
-  ];
-  return (
-    <section className="card wide publish-account-page">
-      <div className="card-title">
-        <div>
-          <h2>发布账号</h2>
-          <p className="muted">四个平台分别保存本机登录态；系统只准备发布内容，不会替你点击最终发布。</p>
-        </div>
-        <Tag color="processing">本机登录态</Tag>
-      </div>
-      <div className="publish-account-grid">
-        {platforms.map((platform) => (
-          <section key={platform.key} className={`publish-account-card ${platform.ready ? "ready" : ""}`}>
-            <div className="platform-logo">
-              <img src={platform.logo} alt={`${platform.name} logo`} />
-            </div>
-            <div>
-              <strong>{platform.name}</strong>
-              <span>{platform.description}</span>
-            </div>
-            {platform.status}
-          </section>
-        ))}
-      </div>
-      <Alert
-        type="info"
-        showIcon
-        title="登录数据只保存在本机"
-        description="各平台发布助手使用本机 data/publish_browser/ 下的独立目录保存登录态，该目录不会提交到代码仓库。自动化仅负责填充，最终发布始终需要你在平台页面确认。"
-      />
-    </section>
-  );
-}
-
 function TaskCenterView() {
   const [status, setStatus] = useState("");
   const [tasks, setTasks] = useState<TaskInfo[]>([]);
@@ -5821,6 +5828,7 @@ function taskStatusLabel(status: TaskInfo["status"]) {
     {
       pending: "等待中",
       running: "运行中",
+      needs_review: "待审核",
       completed: "已完成",
       failed: "失败",
       cancelled: "已取消",

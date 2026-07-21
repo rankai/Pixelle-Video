@@ -26,6 +26,9 @@ def test_desktop_diagnostics_reports_dependency_keys():
         "llm_config",
         "runninghub_config",
     }
+    serialized = response.text
+    assert "/Users/" not in serialized and "\\\\Users\\\\" not in serialized
+    assert payload["config"]["privacy"] == {"local_only": True, "raw_path_redacted": True, "secrets_redacted": True}
     assert {"id", "label", "status", "message"} <= set(payload["checks"][0])
 
 

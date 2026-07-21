@@ -14,10 +14,12 @@ def test_publish_page_states_platform_capabilities_without_overpromising():
 def test_platform_card_copy_uses_complete_publish_materials():
     platform_text = SOURCE[SOURCE.index("function buildPlatformText(") :]
 
-    assert "finalVideoPath" in platform_text
-    assert "coverPath" in platform_text
+    assert "finalVideoPath" not in platform_text
+    assert "coverPath" not in platform_text
     assert "视频：" in platform_text
     assert "封面：" in platform_text
+    assert "预览" in platform_text
+    assert "下载" in platform_text
     assert "自动填充后人工确认" in platform_text
 
 
