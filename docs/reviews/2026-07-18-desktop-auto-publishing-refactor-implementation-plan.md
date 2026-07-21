@@ -1,8 +1,10 @@
 # 桌面端自动发布 V2 重构实施方案
 
 - 日期：2026-07-18
-- 修订版本：v1.0（Luna 执行版）
+- 修订版本：v1.1（纳入应用中心与发布 Program 上位协调）
 - 交付对象：Luna（产品、前端、后端、自动化、测试均可据此拆任务）
+- 上位协调方案：`docs/superpowers/specs/2026-07-18-application-center-publishing-program-master-plan.md`
+- 执行约束：本方案的 PUB 阶段必须按上位方案的严格串行队列和 Program Gate 推进
 - 方案范围：发布账号管理、登录态持久化、发布中心、短视频生产成片交接、平台自动填充、最终人工发布、任务恢复、监控与回滚
 - 首个真实放行平台：抖音
 - 后续平台：快手、视频号、小红书，逐平台单独过门禁
@@ -10,7 +12,7 @@
 
 ## 0. 结论与实施授权
 
-**Luna 可以按本方案启动阶段 PUB-0。PUB-A 所要求的 ADR、schema、fixture、迁移 dry-run、当前版基线、人工发布安全证明和回滚证据交齐并评审通过后，才允许进入 PUB-1。**
+**Luna 只能在上位 Program 的 COORD-0 中联合执行 PUB-0。PUB-A 所要求的 ADR、schema、fixture、迁移 dry-run、当前版基线、人工发布安全证明和回滚证据交齐并评审通过后，才允许进入 PUB-1。**
 
 本轮不是给现有 Playwright 脚本继续补几个 selector，也不是只重画一个发布页面。当前问题横跨五个层次：
 
@@ -496,7 +498,11 @@ WHERE is_default = 1 AND archived_at IS NULL;
 CREATE TABLE publish_packages (
   package_id TEXT PRIMARY KEY,
   schema_version INTEGER NOT NULL,
-  source_session_id TEXT NOT NULL,
+  source_kind TEXT NOT NULL CHECK (source_kind IN ('artifact_versions', 'legacy_session')),
+  source_project_id TEXT,
+  source_artifact_ids_json TEXT NOT NULL DEFAULT '[]',
+  source_artifact_version_ids_json TEXT NOT NULL DEFAULT '[]',
+  source_session_id TEXT,
   source_revision TEXT NOT NULL,
   package_fingerprint TEXT NOT NULL,
   video_manifest_json TEXT NOT NULL,
@@ -579,7 +585,11 @@ ON publish_events(run_id, event_id);
   "schema_version": 2,
   "package_id": "pkg_...",
   "source": {
-    "session_id": "...",
+    "kind": "artifact_versions",
+    "project_id": "project_...",
+    "artifact_ids": ["artifact_..."],
+    "artifact_version_ids": ["artifact_version_..."],
+    "session_id": null,
     "source_revision": "...",
     "generated_at": "..."
   },
@@ -627,6 +637,7 @@ ON publish_events(run_id, event_id);
 规则：
 
 - package 创建后不可原地修改；文案或成片变化产生新 package；
+- 新应用默认使用 `artifact_versions` 来源；现有 IP 口播在 AC-5 前允许使用 `legacy_session` adapter；`source_session_id` 只在 legacy 来源时必填；
 - 生产步骤的依赖失效时，旧 package 标记 invalidated，新运行不得使用；已存在运行保留其快照以便追溯；
 - `source_revision` 由生产 session revision、最终视频/封面 hash 和文案 hash 共同确定；
 - 前端不再把任意本地路径提交给 publish API；后端从可信 session/artifact 创建 package；
@@ -652,8 +663,7 @@ POST   /api/publish/v2/accounts/{account_id}/archive
 POST   /api/publish/v2/accounts/{account_id}/clear-profile
 ```
 
-- `connect` 快速返回账号操作 ID，打开可见浏览器并进入等待登录；
-- `verify` 可复用已打开窗口，也可按需启动 profile；不同时启动四个平台浏览器做全量检查；
+- `connect/verify/open` 当前统一复用安全的显式 probe 入口并返回账号投影（HTTP 200）；不得把同步 probe 误报为异步操作 ID 或平台级真实验证；异步连接任务、已打开窗口复用和平台级 challenge/identity 细化留 PUB-3/PUB-4；
 - `clear-profile` 是破坏性操作，必须二次确认、profile 未被运行占用、先关闭 context，再删除本地登录数据；
 - 普通“退出账号”优先引导用户在平台页面退出，不静默删除 profile；
 - 列表返回缓存健康状态、最近验证时间和 adapter release state，不能为了渲染列表阻塞逐平台网络请求。
@@ -1169,6 +1179,8 @@ dry-run 必须证明：
 
 ## 17. Luna 实施阶段与门禁
 
+本章定义发布领域 Gate；实际进入顺序、与应用中心的共同契约、共享文件所有权和进度状态以上位 Program 协调方案及其实时台账为准。特别是 PUB-0 必须与 AC-0 在 `COORD-0` 联合冻结 ArtifactVersion、PublishPackage V2、PublishRun 与 Generic Task 投影边界；PUB-4 不得早于 AC-1/AC-2/AC-5 对应 Program Gate。
+
 ### 阶段 PUB-0：契约、基线和迁移证据（1–2 人日）
 
 交付：
@@ -1207,7 +1219,7 @@ dry-run 必须证明：
 6. 当前 9 项任务的截图/录像、点击数、自动化时间和人工等待时间分离记录；
 7. FinalActionGuard 的允许/禁止动作表和测试 fixture 通过；
 8. V1 回滚开关、旧 profile 可打开和旧发布素材复制回退 smoke 通过；
-9. 四个平台 UI 初始 release state 固定为抖音 pilot、其余 unverified，不再全部显示可用。
+9. 四个平台 V2 release state 的目标固定为抖音 pilot、其余 unverified；现有 V1 UI 的“可用”文案在 COORD-0 仅记录为 legacy baseline，不代表 V2 available。PUB-1 首次允许修正文案并由 Gate-E 验证，COORD-0 不修改业务 UI。
 
 ### 阶段 PUB-1：账号领域与 BrowserProfileManager（2–4 人日）
 
@@ -1577,6 +1589,6 @@ tests/ip_broadcast_productization_test.py
 
 ## 24. Luna 启动指令
 
-Luna 从 PUB-0 开始，只交付基线、五份 ADR、schema/OpenAPI/TypeScript 契约、媒体与 DOM fixtures、profile 与数据库迁移 dry-run、FinalActionGuard 规则、feature flag 和回滚 smoke。**在 PUB-A 九项证据正式评审通过前，不进入账号 UI 重构，不改平台 selector，不把任何平台标成 available。**
+Luna 不再独立从 PUB-0 启动，而是从上位 Program 的 `COORD-0` 开始，将 PUB-0 与 AC-0 联合执行。当前 Program Stage 未映射到 PUB-X 时，不得提前实施该发布阶段。PUB-0 只交付基线、五份 ADR、schema/OpenAPI/TypeScript 契约、媒体与 DOM fixtures、profile 与数据库迁移 dry-run、FinalActionGuard 规则、feature flag 和回滚 smoke。**在 PUB-A 与 Program Gate PG-A 正式评审通过前，不进入账号 UI 重构，不改平台 selector，不把任何平台标成 available。**
 
-PUB-A 通过后严格按 PUB-1 → PUB-2 → PUB-3 → PUB-4 → PUB-5 推进；先让抖音完成真实证据闭环，再逐个平台复制架构而不是复制 selector。每个阶段提交证据、耗时、失败样例和回滚结果。任何无法回读证明的动作都停在 `needs_attention`，任何最终发布语义动作都由 guard 拒绝。
+发布领域内部的依赖顺序仍是 PUB-1 → PUB-2 → PUB-3 → PUB-4 → PUB-5，但不得据此连续开工；实际日历执行必须服从上位 Program 队列，在 PUB-3 与 PUB-4 之间完成 AC-4、AC-5 及其 Program Gate。先让抖音完成真实证据闭环，再逐个平台复制架构而不是复制 selector。每个阶段提交证据、耗时、失败样例和回滚结果。任何无法回读证明的动作都停在 `needs_attention`，任何最终发布语义动作都由 guard 拒绝。

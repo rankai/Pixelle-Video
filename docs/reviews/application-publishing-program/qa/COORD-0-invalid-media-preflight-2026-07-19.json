@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": 4,
+  "result": "passed_local_preflight",
+  "timing_source": "monotonic wall-clock captured by the one-shot local preflight command; absolute UTC timestamps were not recorded",
+  "automation_ms": 545,
+  "human_wait_ms": 0,
+  "click_count": 0,
+  "browser_actions": 0,
+  "douyin_submission": false,
+  "fixtures": [
+    {"name": "valid_mp4_h264.mp4", "result": "accepted", "sha256": "sha256:cebb770ea49011d28217678bed7da4fae76788aa3275be14809ca10bc9f23e0c"},
+    {"name": "missing_moov_atom.mp4", "result": "rejected", "sha256": "sha256:551e61fcb6912b591773c6921c529eae42d9a9b23e2b1fa1725a2ab59779830c", "reason": "ffprobe_invalid_media"},
+    {"name": "zero_byte.mp4", "result": "rejected", "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "reason": "ffprobe_invalid_media"},
+    {"name": "fake_extension.mp4", "result": "rejected", "sha256": "sha256:11886b5183125f3f1f05e7a55d8595b2d084baf40a952c404f51c505e7d2335b", "reason": "ffprobe_invalid_media"}
+  ],
+  "cleanup": "temporary_fixture_directory_removed"
+}

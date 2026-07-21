@@ -1,0 +1,92 @@
+{
+  "started_at": "2026-07-19T01:54:25.840372+00:00",
+  "finished_at": "2026-07-19T01:54:44.338328+00:00",
+  "automation_ms": 18498,
+  "login_probe": true,
+  "url": "https://creator.douyin.com/creator-micro/content/post/video?enter_from=publish_page",
+  "events": [
+    {
+      "event": "login_probe",
+      "logged_in": true,
+      "url": "https://creator.douyin.com/creator-micro/content/upload",
+      "at": "2026-07-19T01:54:31.599247+00:00"
+    },
+    {
+      "event": "set_video_input_files",
+      "sha256": "d1b0e1900a9054ba45d131352f0e658e5acb49fe0de78863b7aa18958bb5619b",
+      "at": "2026-07-19T01:54:32.736466+00:00"
+    },
+    {
+      "event": "fill_title_description_hashtags",
+      "title_ok": true,
+      "description_selector": "[contenteditable='true'][data-placeholder*='简介']",
+      "description_ok": true,
+      "at": "2026-07-19T01:54:39.344193+00:00"
+    },
+    {
+      "event": "set_valid_cover",
+      "image_input_count": 1,
+      "cover_sha256": "026cfad4d9bc1d5d05a5b79a9afb8f90ecd2f0769c74c96aa904c15011de5bdc",
+      "at": "2026-07-19T01:54:39.365527+00:00"
+    },
+    {
+      "event": "click_cover_modal_save_only",
+      "at": "2026-07-19T01:54:41.901616+00:00"
+    }
+  ],
+  "console_errors": [
+    {
+      "type": "error",
+      "text": "[secsdk][csrf] setDowngradeLimit(2) failed TypeError: window.secsdk.csrf.setDowngradeLimit is not a function\n    at 4711 (https://lf3-csp.bytetos.com/obj/ies-csp-resource/ies/summon_web/static/js/index.c8880e5a.js:1:3513765)\n    at s (https://summon.bytedance.com/web/?header_toggle=true&host_app_version=&host_app_model=&sign_token=REDACTED&channel=24&app_id=10001&im_extra=&entrance=IM2906-1&render_width=375&render_height=667&is_in_frame=1&from=https://creator.douyin.com:9:36183)\n    at t (https://lf3-csp.bytetos.com/obj/ies-csp-resource/ies/summon_web/static/js/index.c8880e5a.js:1:3524526)\n    at https://lf3-csp.bytetos.com/obj/ies-csp-resource/ies/summon_web/static/js/index.c8880e5a.js:1:3524596\n    at s.O (https://summon.bytedance.com/web/?header_toggle=true&host_app_version=&host_app_model=&sign_token=REDACTED&channel=24&app_id=10001&im_extra=&entrance=IM2906-1&render_width=375&render_height=667&is_in_frame=1&from=https://creator.douyin.com:9:39069)\n    at https://lf3-csp.bytetos.com/obj/ies-csp-resource/ies/summon_web/static/js/index.c8880e5a.js:1:3524610\n    at u (https://summon.bytedance.com/web/?header_toggle=true&host_app_version=&host_app_model=&sign_token=REDACTED&channel=24&app_id=10001&im_extra=&entrance=IM2906-1&render_width=375&render_height=667&is_in_frame=1&from=https://creator.douyin.com:9:41139)\n    at https://lf3-csp.bytetos.com/obj/ies-csp-resource/ies/summon_web/static/js/index.c8880e5a.js:1:73"
+    },
+    {
+      "type": "error",
+      "text": "[0:00:00.013] [BoxParser] Box of type '\u0000\u0000\u0000\u0000' has a size 1024 greater than its container size 134"
+    }
+  ],
+  "cover_modal_save_visible_before": [
+    {
+      "index": 0,
+      "box": {
+        "x": 903,
+        "y": 569,
+        "width": 52,
+        "height": 32
+      }
+    }
+  ],
+  "cover_modal_save_visible_after": [],
+  "cover_save_clicked": true,
+  "cover_modal_closed": true,
+  "relevant_text": [
+    "高清发布",
+    "作品描述",
+    "门店短视频营销封面保存验证。​",
+    "#添加话题",
+    "设置封面",
+    "选择封面",
+    "竖封面3:4",
+    "选择封面",
+    "横封面4:3",
+    "Ai智能推荐封面生成中...",
+    "好封面会吸引更多人浏览作品优质封面示例",
+    "发布设置",
+    "同时发布",
+    "不同时发布",
+    "同时发布到",
+    "保存权限",
+    "发布时间",
+    "立即发布",
+    "定时发布",
+    "发布暂存离开",
+    "点击发布后，如作品还在上传中，请勿关闭页面，等待上传发布完成。",
+    "预览封面/标题",
+    "COORD-0封面保存验证 门店短视频营销封面保存验证。 *#门店营销 #短视频运营",
+    "检测中5%",
+    "横/竖双封面缺失",
+    "为增加作品的流量，建议同时设置横版和竖版的封面"
+  ],
+  "final_publish_clicked": false,
+  "screenshot": "/tmp/coord0-douyin-fields-cover-saved-20260719.png",
+  "screenshot_sha256": "42afd213e8fd2d59ae03a3ce3b9cbb303c0403177eedc77c7db8c30dfcc6e190"
+}

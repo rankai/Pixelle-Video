@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "stage": "PROGRAM-ROLLOUT",
+  "batch": "observation-readiness",
+  "status": "stable_observation_window_complete_with_boundary",
+  "pg_l": "open",
+  "policy_amendment": "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-observation-window-policy-amendment-2026-07-21.md",
+  "observation": {
+    "window_started_at": "2026-07-21T10:57:15.650469Z",
+    "window_checked_at": "2026-07-21T13:46:22.413509Z",
+    "window_hours_elapsed": 2.819,
+    "required_window_hours": 1,
+    "stable_observation": "complete",
+    "minimum_versions": 1,
+    "observed_version": "pixelle-video-desktop@0.1.0",
+    "observed_build_sha256": "3397e254460b959acf75dab084b30e9d02bc2c1d1004942a93faa9857ecdab9b",
+    "durable_create_run_samples": 20,
+    "state_readback_passed": 20,
+    "max_create_ms": 7.374,
+    "latest_user_simulation_at": "2026-07-21T13:46:22.413509Z",
+    "user_simulation_duration_ms": 6797.763,
+    "local_ui_browser_actions": 20,
+    "projects_api_read": 100,
+    "artifacts_api_read": 1000,
+    "ui_route_samples": 10,
+    "ui_route_p95_ms": 435.765,
+    "port_released": true,
+    "api_port_released": true,
+    "ui_port_released": true,
+    "observation_port_released": true,
+    "build_verified": true,
+    "global_task_db_unchanged": true,
+    "global_task_db_mutations": 0,
+    "historical_probe_rows_retained": true,
+    "historical_probe_cleanup": "not_performed",
+    "executor_scheduled": 0,
+    "browser_actions": 0,
+    "external_actions": 0,
+    "final_publish_clicks": 0,
+    "user_data_unchanged": true,
+    "user_data_mutations": 0,
+    "rollback_trigger_failures": [],
+    "rollback_trigger_evidence": {
+      "p0_p1_regression": {
+        "count": 0,
+        "status": "observed_local_noop",
+        "basis": "ui_and_durable_run_probes_passed"
+      },
+      "duplicate_upload": {
+        "count": 0,
+        "status": "observed_local_noop",
+        "basis": "no_browser_or_external_upload_action"
+      },
+      "unexpected_final_click": {
+        "count": 0,
+        "status": "observed_local_noop",
+        "basis": "no_final_publish_click"
+      },
+      "profile_corruption": {
+        "count": null,
+        "status": "not_executed",
+        "basis": "local_noop_probe_does_not_open_or_mutate_a_browser_profile",
+        "persistent_data_unchanged": true
+      }
+    }
+  },
+  "rollback_triggers": [
+    "P0_or_P1_regression",
+    "duplicate_upload",
+    "final_publish_click",
+    "profile_corruption"
+  ],
+  "product_owner_signoff": "pending",
+  "windows_build": "deferred_current_macos_environment",
+  "real_platform_rollback": "not_executed",
+  "local_noop_probe": true,
+  "local_user_simulation": true
+}

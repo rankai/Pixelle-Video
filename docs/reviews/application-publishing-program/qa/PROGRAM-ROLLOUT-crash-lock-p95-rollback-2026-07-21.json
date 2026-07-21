@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "stage": "PROGRAM-ROLLOUT",
+  "batch": "crash-lock-p95-rollback",
+  "status": "implementation_pass_with_boundary",
+  "pg_l": "open",
+  "local_probe": {
+    "status": "passed_local_bounded",
+    "api_p95_ms": {
+      "health": {"samples": 20, "p50_ms": 0.307, "p95_ms": 0.972},
+      "desktop_health": {"samples": 20, "p50_ms": 0.299, "p95_ms": 0.405},
+      "apps": {"samples": 20, "p50_ms": 0.414, "p95_ms": 0.453},
+      "diagnostics": {"samples": 20, "p50_ms": 0.422, "p95_ms": 4.295},
+      "content_projects": {"samples": 20, "p50_ms": 0.729, "p95_ms": 1.136},
+      "account_list_api": {"samples": 20, "p50_ms": 0.997, "p95_ms": 1.548},
+      "create_run_api": {"samples": 20, "p50_ms": 5.031, "p95_ms": 5.492},
+      "active_run_state_api": {"samples": 20, "p50_ms": 0.85, "p95_ms": 1.068}
+    },
+    "ui_p95_ms": {
+      "ui_shell": {"samples": 20, "p50_ms": 0.325, "p95_ms": 0.917},
+      "active_run_ui_state": {"samples": 20, "p50_ms": 1.13, "p95_ms": 1.763}
+    },
+    "p95_thresholds_ms": {
+      "create_run_api": 300,
+      "account_list_api": 200,
+      "active_run_ui_state": 1500,
+      "local_shell_and_other_api": 3000
+    },
+    "lock_contention": {
+      "cycles": 2,
+      "second_owner_blocked": 2,
+      "released_and_reusable": 2
+    },
+    "crash_recovery": {
+      "cycles": 2,
+      "stale_lock_reacquired": 2,
+      "fixture_exit": 17
+    },
+    "rollback": {
+      "sequence": ["v2", "v1", "v2"],
+      "history_active_profile_preserved": true,
+      "upload_count_delta": 0,
+      "destructive_deletes": 0,
+      "external_actions": 0,
+      "final_publish_clicks": 0
+    },
+    "port_released": {"api": true, "ui": true},
+    "global_task_db_unchanged": true,
+    "global_task_db_mutations": 0,
+    "browser_actions": 0,
+    "raw_stdout_recorded": false,
+    "isolated_probe_v2_enabled": true,
+    "local_noop_create_run": true,
+    "executor_scheduled": false
+  },
+  "tests": {
+    "batch4_contract": "4 passed",
+    "ruff": "passed",
+    "build": {
+      "sidecar_arm64": "passed",
+      "tauri_macos_release": "passed",
+      "windows": "deferred_current_macos_environment"
+    }
+  },
+  "boundaries": [
+    "Windows build deferred in current macOS environment",
+    "real platform/runtime rollback not executed",
+    "product owner signoff pending",
+    "7-day/20-run stable observation window pending",
+    "local UI shell HTTP p95 is not a WebView render SLA"
+  ],
+  "rollout": {
+    "publish_v2_default_enabled": false,
+    "douyin_release_state": "gray",
+    "douyin_rollout_percentage": 0,
+    "non_douyin_release_states_changed": false
+  },
+  "external_actions": 0,
+  "final_publish_clicks": 0
+}

@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "stage": "PROGRAM-ROLLOUT",
+  "batch": "lifecycle-performance",
+  "status": "implementation_pass_with_boundary",
+  "build": {
+    "sidecar_arm64": "passed",
+    "tauri_macos_release": "passed",
+    "windows_build": "deferred_current_macos_environment"
+  },
+  "sidecar_lifecycle": {
+    "cycles": 10,
+    "health_passed": 10,
+    "port_released": 10,
+    "normal_termination_codes": [-15],
+    "external_actions": 0,
+    "browser_actions": 0,
+    "final_publish_clicks": 0
+  },
+  "task_db_isolation": {
+    "tasks_db": "temporary_per_run",
+    "global_task_db_unchanged": true,
+    "global_task_db_mutations": 0
+  },
+  "performance": {
+    "metric": "media_preflight_ms",
+    "samples_per_fixture": 10,
+    "fixtures": {
+      "1s": {"p50_ms": 0.074, "p95_ms": 0.883},
+      "15s": {"p50_ms": 0.078, "p95_ms": 0.190},
+      "60s": {"p50_ms": 0.108, "p95_ms": 0.254}
+    },
+    "platform_upload_sla_claimed": false
+  },
+  "tests": {
+    "vitest_files": 10,
+    "vitest_tests": 53,
+    "desktop_api_tests": 6,
+    "entry_privacy_rollback_tests": 4,
+    "sidecar_build": "passed",
+    "tauri_build": "passed",
+    "ruff": "passed",
+    "git_diff_check": "passed"
+  },
+  "rollout": {
+    "publish_v2_default_enabled": false,
+    "douyin_release_state": "gray",
+    "douyin_rollout_percentage": 0,
+    "non_douyin_release_states_changed": false
+  },
+  "boundary": "Local lifecycle and media-preflight performance are measured. Crash/lock contention, API/UI p95, Windows build, real rollback rehearsal, product signoff and stable observation window remain open; no platform or final publish action was executed."
+}

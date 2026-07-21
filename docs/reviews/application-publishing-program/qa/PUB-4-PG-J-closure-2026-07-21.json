@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "stage": "PUB-INTEGRATION",
+  "gate": "PG-J",
+  "status": "passed_local_bounded",
+  "implementation": "PUB-4-PG-J-closure",
+  "build": {
+    "sidecar": {
+      "command": "uv run python desktop/scripts/build_sidecar.py",
+      "status": "passed",
+      "target": "desktop/src-tauri/bin/pixelle-api-aarch64-apple-darwin",
+      "sha256": "c1bf9cce23318427dcac102eed42ab07c3c6661676ef33a929704690283987d0"
+    },
+    "frontend": {
+      "command": "npm run build",
+      "status": "passed",
+      "warning": "existing Vite chunk size warning"
+    }
+  },
+  "tauri_sidecar_restart": {
+    "status": "passed",
+    "mode": "tauri_dev_with_rebuilt_sidecar",
+    "api": "http://127.0.0.1:8100/health",
+    "cycles": [
+      {
+        "cycle": 1,
+        "started_at": "2026-07-21T00:46:38Z",
+        "tauri_process_observed": true,
+        "sidecar_process_observed": true,
+        "health": {"status": "healthy", "version": "0.1.0", "service": "Pixelle-Video API"},
+        "stopped_at": "2026-07-21T00:47:33Z",
+        "port_closed_after_stop": true
+      },
+      {
+        "cycle": 2,
+        "started_at": "2026-07-21T00:47:40Z",
+        "tauri_process_observed": true,
+        "sidecar_process_observed": true,
+        "health": {"status": "healthy", "version": "0.1.0", "service": "Pixelle-Video API"},
+        "stopped_at": "2026-07-21T00:48:10Z",
+        "port_closed_after_stop": true
+      }
+    ],
+    "handoff_persistence_evidence": "AppShell refresh/remount/restart and leave-return tests retain canonical package_id/artifact_id/run_id only; generic navigate('/publish') restores the last canonical publish handoff",
+    "handoff_scope_boundary": "native WebView localStorage was not instrumented beyond the deterministic AppShell restart simulation"
+  },
+  "legacy_workspace_fallback": {
+    "status": "passed",
+    "evidence": "PublishWorkspace and PublishCenter Vitest fallback E2E",
+    "adapter_error": "ADAPTER_UNAVAILABLE",
+    "copy_available": true,
+    "preview_available": true,
+    "preview_dom_assertion": true,
+    "preview_evidence": "PublishWorkspace test asserts video and cover DOM nodes use the resolved blob URL",
+    "download_available": true,
+    "exposed_absolute_paths": [],
+    "exposed_secrets": [],
+    "fallback_route": "#/ip"
+  },
+  "resolver_runtime": {
+    "status": "passed",
+    "unique": {"status_code": 200},
+    "stale": {"status_code": 409, "error": "PUBLISH_PACKAGE_STALE"},
+    "ambiguous": {"status_code": 409, "error": "PUBLISH_PACKAGE_AMBIGUOUS"}
+  },
+  "published_state": {
+    "status": "passed",
+    "evidence": "PublishCenterView and PublishWorkspace tests assert no 已发布 projection and human-confirmation-only copy"
+  },
+  "external_actions": {
+    "browser": 0,
+    "authorization": 0,
+    "upload": 0,
+    "publish_run_create": 0,
+    "final_publish": 0
+  },
+  "deferred": [
+    "cross-process CAS/lock cleanup",
+    "real platform adapter/provider actions",
+    "final human publish"
+  ]
+}

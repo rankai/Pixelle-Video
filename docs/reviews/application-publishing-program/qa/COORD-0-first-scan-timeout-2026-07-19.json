@@ -1,0 +1,22 @@
+{
+  "task": "PUB-A-1-first-scan",
+  "result": "blocked_external_manual",
+  "profile_ref": "isolated-qa-profile-redacted",
+  "started_at_utc": "2026-07-19T09:47:41.752937+00:00",
+  "wait_timeout_seconds": 180,
+  "timeout_at_utc": "2026-07-19T09:50:41.752937+00:00",
+  "ended_at_utc": "2026-07-19T09:50:54.846828+00:00",
+  "cleanup_completed_at_utc": "2026-07-19T09:50:54.846828+00:00",
+  "qr_visible": true,
+  "signed_out_pre": true,
+  "scan_completed_by_user": false,
+  "signed_in_post": false,
+  "reopen_signed_in": false,
+  "intentional_action_count": 0,
+  "sensitive_data_recorded": false,
+  "final_publish_clicked": false,
+  "upload_started": false,
+  "profile_cleanup": "completed",
+  "stop_reason": "scan timeout; no upload or publish action",
+  "evidence_boundary": "No raw QR image, cookie, token, account identifier, or session material was persisted. The temporary QA profile was removed after the single waiting attempt."
+}

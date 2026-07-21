@@ -1,0 +1,109 @@
+name: Windows Desktop Build
+
+on:
+  push:
+    branches: [dev, main]
+    paths:
+      - ".github/workflows/windows-desktop-build.yml"
+      - "api/**"
+      - "desktop/**"
+      - "pixelle_video/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "templates/**"
+      - "workflows/**"
+  workflow_dispatch:
+    inputs:
+      run_frontend_tests:
+        description: "Run the desktop Vitest suite before packaging"
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  windows-desktop-build:
+    name: Windows NSIS installer and sidecar
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Install locked Python dependencies
+        run: uv sync --locked --extra desktop --extra dev
+
+      - name: Build Windows Python sidecar
+        run: uv run python desktop/scripts/build_sidecar.py
+
+      - name: Verify Windows sidecar target
+        run: |
+          $sidecar = "desktop/src-tauri/bin/pixelle-api-x86_64-pc-windows-msvc.exe"
+          if (-not (Test-Path -LiteralPath $sidecar)) {
+            throw "Windows sidecar was not produced: $sidecar"
+          }
+          if ((Get-Item -LiteralPath $sidecar).Length -le 0) {
+            throw "Windows sidecar is empty: $sidecar"
+          }
+
+      - name: Install desktop dependencies
+        working-directory: desktop
+        run: npm ci
+
+      - name: Run desktop tests
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_frontend_tests }}
+        working-directory: desktop
+        run: npm run test -- --run
+
+      - name: Build Windows NSIS installer
+        working-directory: desktop
+        run: npm run tauri build -- --target x86_64-pc-windows-msvc
+
+      - name: Generate artifact manifest
+        run: |
+          $bundleDir = "desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis"
+          $installer = Get-ChildItem -LiteralPath $bundleDir -Filter "*.exe" -File | Select-Object -First 1
+          if ($null -eq $installer) {
+            throw "No Windows NSIS installer found under $bundleDir"
+          }
+          uv run python scripts/windows_desktop_artifact_check.py `
+            --installer $installer.FullName `
+            --sidecar "desktop/src-tauri/bin/pixelle-api-x86_64-pc-windows-msvc.exe" `
+            --output windows-artifact-manifest.json
+
+      - name: Upload Windows installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixelle-video-windows-${{ github.sha }}
+          if-no-files-found: error
+          path: |
+            desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+            desktop/src-tauri/bin/pixelle-api-x86_64-pc-windows-msvc.exe
+            windows-artifact-manifest.json

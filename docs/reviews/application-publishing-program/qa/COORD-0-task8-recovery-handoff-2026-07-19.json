@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "task_id": 8,
+  "result": "failed_baseline_handoff_to_PUB-2",
+  "click_count": 0,
+  "automation_ms": 18129,
+  "human_wait_ms": 0,
+  "events": [
+    {"event": "first_context_opened", "at": "2026-07-19T00:39:56.558694+00:00"},
+    {"event": "upload_page_opened", "at": "2026-07-19T00:39:57.746625+00:00"},
+    {"event": "login_probe", "logged_in": true, "at": "2026-07-19T00:39:59.380533+00:00"},
+    {"event": "set_video_input_files", "uploaded": true, "duration_ms": 251, "at": "2026-07-19T00:39:59.631424+00:00"},
+    {"event": "editor_probe_before_close", "editor_detected": true, "at": "2026-07-19T00:40:06.668791+00:00"},
+    {"event": "first_context_closed", "at": "2026-07-19T00:40:07.005035+00:00"},
+    {"event": "new_context_opened", "at": "2026-07-19T00:40:09.076328+00:00"},
+    {"event": "reopen_recovery_probe", "same_editor_url": false, "url_state": "creator_upload", "at": "2026-07-19T00:40:14.401695+00:00"},
+    {"event": "new_context_closed", "at": "2026-07-19T00:40:14.687149+00:00"}
+  ],
+  "screenshot": {
+    "path": "docs/reviews/application-publishing-program/qa/COORD-0-douyin-midclose-reopen-redacted.png",
+    "sha256": "10a8717ef2c9cf684b2f8e2d76248145dfade74a4340c19c7026b91e6fba6be9"
+  },
+  "handoff": {
+    "implementation_stage": "PUB-2",
+    "do_not_retry_in_coord_0": true,
+    "required_future_facts": ["run_id", "attempt_id", "profile_lock", "package_id", "current_step", "checkpoint_or_needs_attention"]
+  }
+}
