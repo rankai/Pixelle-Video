@@ -1,0 +1,31 @@
+{
+  "states": ["queued", "running", "waiting_for_login", "waiting_for_human", "needs_attention", "succeeded", "failed", "cancelled"],
+  "transitions": [
+    {"from": "queued", "to": ["running", "cancelled", "needs_attention"]},
+    {"from": "running", "to": ["waiting_for_login", "waiting_for_human", "needs_attention", "failed", "cancelled"]},
+    {"from": "waiting_for_login", "to": ["running", "needs_attention", "cancelled"]},
+    {"from": "waiting_for_human", "to": ["succeeded", "needs_attention", "cancelled"]},
+    {"from": "needs_attention", "to": ["queued", "waiting_for_human", "failed", "cancelled"]},
+    {"from": "succeeded", "to": []},
+    {"from": "failed", "to": []},
+    {"from": "cancelled", "to": []}
+  ],
+  "terminal_states": ["succeeded", "failed", "cancelled"],
+  "human_confirmation_required": true,
+  "final_publish_action": "never_exposed",
+  "transition_guards": [
+    {
+      "from": "needs_attention",
+      "to": "waiting_for_human",
+      "requires": [
+        "checkpoint.last_stage=verify",
+        "checkpoint.completed_stages contains verify",
+        "checkpoint.blocker_code=null",
+        "checkpoint.blocked_stage=null",
+        "checkpoint.final_action_guard_armed=true",
+        "checkpoint.final_publish_clicked=false",
+        "event_type=verified_checkpoint_reconciled"
+      ]
+    }
+  ]
+}

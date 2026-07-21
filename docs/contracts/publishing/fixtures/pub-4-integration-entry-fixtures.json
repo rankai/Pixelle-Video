@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "contract_id": "pub-4-integration-entry",
+  "fixtures": [
+    {
+      "id": "first-publish-human-handoff",
+      "valid": true,
+      "flow": "first_publish",
+      "package_id": "package_first",
+      "package_ref": "ref_first",
+      "account_id": "account_douyin_1",
+      "run_id": "run_first",
+      "state": "waiting_for_human",
+      "field_checklist": ["video", "cover", "title", "description", "hashtags"],
+      "final_publish_clicks": 0,
+      "external_actions": []
+    },
+    {
+      "id": "repeat-publish-idempotent",
+      "valid": true,
+      "flow": "repeat_publish",
+      "package_ref": "ref_same",
+      "first_run_id": "run_repeat",
+      "replayed_run_id": "run_repeat",
+      "duplicate_package_refs": 0,
+      "duplicate_uploads": 0
+    },
+    {
+      "id": "refresh-leave-restart-recovery",
+      "valid": true,
+      "flow": "recovery",
+      "before_run_id": "run_recovery",
+      "after_refresh_run_id": "run_recovery",
+      "after_leave_return_run_id": "run_recovery",
+      "after_restart_run_id": "run_recovery",
+      "new_runs": 0
+    },
+    {
+      "id": "adapter-failure-safe-fallback",
+      "valid": true,
+      "flow": "recovery",
+      "package_id": "package_fallback",
+      "adapter_state": "needs_attention",
+      "copy_available": true,
+      "download_available": true,
+      "exposed_absolute_paths": [],
+      "external_actions": []
+    },
+    {
+      "id": "fingerprint-change-invalidates-old-package",
+      "valid": true,
+      "flow": "invalidation",
+      "old_package_ref": "ref_old",
+      "old_package_state": "invalidated",
+      "new_package_ref": "ref_new",
+      "old_history_auditable": true
+    },
+    {
+      "id": "final-publish-never-claimed",
+      "valid": true,
+      "flow": "first_publish",
+      "projection_state": "waiting_for_human",
+      "must_not_contain": ["published", "auto_published"],
+      "final_publish_clicks": 0
+    },
+    {
+      "id": "published-state-rejected",
+      "valid": false,
+      "error": "PUBLISH_STATE_FORBIDDEN",
+      "projection_state": "published",
+      "allowed": false
+    },
+    {
+      "id": "legacy-secondary-orchestration-rejected",
+      "valid": false,
+      "error": "LEGACY_ORCHESTRATOR_FORBIDDEN",
+      "legacy_workspace_attempts_publish": true,
+      "allowed": false
+    },
+    {
+      "id": "stale-package-new-run-rejected",
+      "valid": false,
+      "error": "PUBLISH_PACKAGE_STALE",
+      "package_state": "invalidated",
+      "new_run_allowed": false
+    },
+    {
+      "id": "account-package-mismatch-rejected",
+      "valid": false,
+      "error": "ACCOUNT_PACKAGE_MISMATCH",
+      "package_account_id": "account_a",
+      "selected_account_id": "account_b",
+      "allowed": false
+    },
+    {
+      "id": "fallback-secret-path-rejected",
+      "valid": false,
+      "error": "SAFE_FALLBACK_REDACTION_REQUIRED",
+      "fallback_exposes_secret": true,
+      "fallback_exposes_absolute_path": true,
+      "allowed": false
+    },
+    {
+      "id": "missing-checklist-or-duplicate-upload-rejected",
+      "valid": false,
+      "error": "PUBLISH_PREFLIGHT_INVALID",
+      "field_checklist": ["video", "title"],
+      "duplicate_uploads": 1,
+      "allowed": false
+    },
+    {
+      "id": "keyboard-narrow-dead-end-rejected",
+      "valid": false,
+      "error": "PUBLISH_UI_NOT_REACHABLE",
+      "keyboard_reachable": false,
+      "narrow_window_dead_end": true,
+      "allowed": false
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/profile-discovery-report.v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "generated_at", "writes_performed", "candidates"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "generated_at": {"type": "string"},
+    "writes_performed": {"const": 0},
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["candidate_ref", "platform", "size_kib", "mtime", "lock_state", "migration_conclusion"],
+        "properties": {
+          "candidate_ref": {"type": "string", "pattern": "^relative:[a-z0-9._/-]+$"},
+          "platform": {"enum": ["douyin", "video_channel", "kuaishou", "xiaohongshu", "unknown"]},
+          "size_kib": {"type": "integer", "minimum": 0},
+          "mtime": {"type": "string"},
+          "lock_state": {"enum": ["locked", "unlocked", "unknown"]},
+          "migration_conclusion": {"enum": ["defer_locked", "eligible_read_only", "not_a_profile"]}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "fixtures": [
+    {"id": "pg-k-prerequisite", "valid": true, "gate": "PG-K", "state": "passed_with_boundary"},
+    {"id": "flag-matrix-v2-off-v1-fallback", "valid": true, "v2": false, "legacy_fallback": true, "data_deleted": false, "digital_human": false, "content_apps": false},
+    {"id": "flag-matrix-douyin-gray-only", "valid": true, "douyin": "gray", "kuaishou": "unverified", "shipinhao": "unverified", "xiaohongshu": "unverified", "digital_human": "existing_safe", "content_apps": "existing_safe"},
+    {"id": "flag-matrix-unknown-fail-closed", "valid": true, "unknown_flag": "off", "conflicting_v2_off_platform_on": "off", "legacy_fallback": true},
+    {"id": "flag-canonical-alias-policy", "valid": true, "canonical_env": {"contentApps": {"backend_env": "PIXELLE_APP_CENTER_CONTENT_APPS", "desktop_env": "VITE_CONTENT_APPS"}, "digitalHumanInAppCenter": {"backend_env": "PIXELLE_APP_CENTER_DIGITAL_HUMAN", "desktop_env": "VITE_APP_CENTER_DIGITAL_HUMAN"}, "publishV2": {"backend_env": "PIXELLE_PUBLISH_V2_ENABLED", "desktop_env": "VITE_PUBLISH_CENTER_V2"}}, "aliases": {"VITE_PUBLISH_V2_ENABLED": "VITE_PUBLISH_CENTER_V2", "VITE_DIGITAL_HUMAN_IN_APP_CENTER": "VITE_APP_CENTER_DIGITAL_HUMAN"}, "unknown_alias_policy": "reject_and_use_legacy_safe_defaults"},
+    {"id": "redacted-telemetry", "valid": true, "allowlist": ["platform", "adapter_version", "step", "error_code", "duration_bucket", "app_version"], "forbidden_fields": ["api_key", "authorization", "cookie", "qr", "account_id", "account_nickname", "profile_path", "signed_url", "full_url_query", "title", "description", "media_content", "absolute_path"], "local_only": true, "upload_default": false, "raw_screenshot": false, "export_preview": true},
+    {"id": "packaged-lifecycle", "valid": true, "cycles": ["build", "start", "health", "stop", "port_released"]},
+    {"id": "restart-and-run-soak", "valid": true, "app_restart_count": 10, "sidecar_restart_count": 10, "bounded_run_count": 10, "crash_recovery_cases": 2, "profile_lock_contention_cases": 2, "each_cycle": ["health", "port_released", "run_state_reconciled", "external_actions_zero"], "duplicate_uploads": 0, "final_publish_clicks": 0, "unaccounted_runs": 0},
+    {"id": "performance-fixture-baseline", "valid": true, "durations_seconds": [1, 15, 60], "sample_count_per_fixture": 10, "statistics": ["p50", "p95"], "metrics": ["create_run_api_ms", "account_list_api_ms", "active_run_ui_visibility_ms", "media_preflight_ms", "local_overhead_ms", "platform_wait_ms"], "thresholds": {"create_run_api_p95_ms": 300, "account_list_api_p95_ms": 200, "active_run_ui_p95_ms": 1500, "media_preflight_p95_ms": 3000}},
+    {"id": "bidirectional-rollback", "valid": true, "v2_to_v1": true, "v1_to_v2": true, "legacy_entry_available": true, "copy_download_available": true, "history_readable": true, "active_and_waiting_runs_preserved": true, "profile_preserved": true, "data_deleted": false, "upload_count_delta": 0, "external_actions": 0},
+    {"id": "navigation-scale-and-windows-boundary", "valid": true, "navigation_dead_ends": 0, "projects": 100, "artifacts": 1000, "windows_build": "deferred_with_followup_gate", "migration_forward_backward": true, "product_owner_signoff": "manual_before_pg_l"},
+    {"id": "stable-observation-window", "valid": true, "minimum_versions": 1, "minimum_hours": 1, "minimum_bounded_runs": 20, "rollback_triggers": ["P0", "P1", "duplicate_upload", "unexpected_final_click", "profile_corruption"], "signoff_required": true},
+    {"id": "release-policy-boundary", "valid": true, "douyin": {"release_state": "gray", "rollout_percentage": 0, "default_on_allowed_in_entry": false, "default_on_condition": "PG-L_passed_and_product_owner_signed_and_observation_window_passed"}, "kuaishou": {"release_state": "unchanged"}, "shipinhao": {"release_state": "unchanged"}, "xiaohongshu": {"release_state": "unchanged"}},
+    {"id": "final-publish-blocked", "valid": true, "final_publish_click_count": 0},
+    {"id": "real-platform-success-claim", "valid": false, "error": "FORBIDDEN_BOUNDARY"}
+  ]
+}

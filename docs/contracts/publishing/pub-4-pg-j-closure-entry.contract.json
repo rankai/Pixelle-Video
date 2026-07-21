@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "contract_id": "pub-4-pg-j-closure-entry",
+  "stage": "PUB-INTEGRATION",
+  "gate": "PG-J",
+  "objective": "Close PUB-4 with auditable local desktop recovery and safe fallback evidence",
+  "required_evidence": {
+    "tauri_sidecar_restart_preserves_publish_handoff": true,
+    "leave_return_preserves_same_package": true,
+    "legacy_workspace_copy_download_fallback": true,
+    "resolver_unique_stale_ambiguous_runtime": true,
+    "no_fake_published_state": true,
+    "external_actions_zero": true
+  },
+  "forbidden": {
+    "browser": true,
+    "authorization": true,
+    "upload": true,
+    "publish_run_create": true,
+    "final_publish": true,
+    "cross_process_cas_claim": true
+  },
+  "exit_gate": {
+    "requires_independent_six_dimension_review": true,
+    "p0_p1_must_be_zero": true,
+    "only_then_may_close_pg_j": true
+  }
+}

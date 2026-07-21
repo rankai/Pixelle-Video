@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "request_override_cases": [
+    {"request": {"model": "attacker-model"}, "expected": "reject_model_override"},
+    {"request": {"provider": "attacker-provider", "api_key": "secret"}, "expected": "reject_model_override"},
+    {"request": {"base_url": "https://attacker.invalid"}, "expected": "reject_model_override"}
+  ],
+  "allowed_context": {"store_category": "coffee", "project_id": "project_store_001", "artifact_version_ids": ["artifact_version_copy_001_r1"]},
+  "forbidden_persisted_values": ["sk-test-secret", "Authorization: Bearer", "session_cookie", "/Users/secret/profile"],
+  "response_metadata": {"model_ref": "local-default:test-model", "diagnostic": "provider timeout (redacted)"},
+  "hot_reload_rule": "each call resolves current ConfigManager.llm local-default; no request-level model cache"
+}

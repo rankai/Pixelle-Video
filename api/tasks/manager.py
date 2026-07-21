@@ -17,6 +17,7 @@ In-memory task management for video generation jobs.
 """
 
 import asyncio
+import os
 import uuid
 from datetime import datetime, timedelta
 from typing import Callable, Dict, List, Optional
@@ -90,6 +91,8 @@ class TaskManager:
         session_id: str = "",
         artifact_keys: Optional[list[str]] = None,
         retry_payload: Optional[dict] = None,
+        source_kind: Optional[str] = None,
+        source_fact_id: Optional[str] = None,
     ) -> Task:
         """
         Create a new task
@@ -113,6 +116,8 @@ class TaskManager:
             session_id=session_id,
             artifact_keys=artifact_keys or [],
             retry_payload=retry_payload,
+            source_kind=source_kind,
+            source_fact_id=source_fact_id,
         )
         
         self._tasks[task_id] = task
@@ -332,7 +337,7 @@ class TaskManager:
 
 
 # Global task manager instance
-task_manager = TaskManager(TaskPersistence())
+task_manager = TaskManager(TaskPersistence(os.getenv("PIXELLE_DESKTOP_TASKS_DB")))
 
 
 def _duration_ms(started_at: Optional[datetime], completed_at: Optional[datetime]) -> int | None:

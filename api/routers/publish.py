@@ -1,11 +1,23 @@
 """Desktop publishing assistant endpoints."""
 
+from functools import lru_cache
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
 from api.desktop_security import is_desktop_mode
+from api.schemas.publish_accounts import (
+    PublishAccountCreateRequest,
+    PublishAccountListResponse,
+    PublishPlatformListResponse,
+)
 from api.tasks import TaskType, task_manager
+from pixelle_video.services.publish.account_models import PublishAccount
+from pixelle_video.services.publish.account_repository import (
+    PublishAccountConflict,
+    PublishAccountNotFound,
+)
+from pixelle_video.services.publish.account_service import PublishAccountService
 from pixelle_video.services.publish.browser_runtime import PlaywrightBrowserRuntime
 from pixelle_video.services.publish.models import PublishPackage, PublishResult, PublishStatus
 from pixelle_video.services.publish.platforms.base import PLATFORM_LABELS, HumanConfirmedPublisher
@@ -15,8 +27,78 @@ from pixelle_video.services.publish.platforms.multiplatform import (
     ShipinhaoPublisher,
     XiaohongshuPublisher,
 )
+from pixelle_video.services.publish.profile_manager import ProfileLockError
 
 router = APIRouter(prefix="/publish", tags=["Publish"])
+
+
+@lru_cache(maxsize=1)
+def get_publish_account_service() -> PublishAccountService:
+    return PublishAccountService()
+
+
+@router.get("/platforms", response_model=PublishPlatformListResponse)
+async def list_publish_platforms() -> PublishPlatformListResponse:
+    return PublishPlatformListResponse(items=get_publish_account_service().list_platforms())
+
+
+@router.get("/accounts", response_model=PublishAccountListResponse)
+async def list_publish_accounts(include_archived: bool = False) -> PublishAccountListResponse:
+    return PublishAccountListResponse(
+        items=get_publish_account_service().list_accounts(include_archived=include_archived)
+    )
+
+
+@router.post("/accounts", response_model=PublishAccount, status_code=201)
+async def create_publish_account(payload: PublishAccountCreateRequest):
+    try:
+        return get_publish_account_service().create_account(
+            payload.platform,
+            payload.display_name,
+            make_default=payload.make_default,
+        )
+    except PublishAccountConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/accounts/{account_id}/default", response_model=PublishAccount)
+async def set_default_publish_account(account_id: str):
+    try:
+        return get_publish_account_service().set_default(account_id)
+    except PublishAccountNotFound as exc:
+        raise HTTPException(status_code=404, detail="发布账号不存在") from exc
+    except PublishAccountConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/accounts/{account_id}/archive", response_model=PublishAccount)
+async def archive_publish_account(account_id: str):
+    try:
+        return get_publish_account_service().archive(account_id)
+    except PublishAccountNotFound as exc:
+        raise HTTPException(status_code=404, detail="发布账号不存在") from exc
+    except PublishAccountConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/accounts/{account_id}/clear-profile", response_model=PublishAccount)
+async def clear_publish_account_profile(account_id: str):
+    try:
+        return get_publish_account_service().clear_profile(account_id)
+    except PublishAccountNotFound as exc:
+        raise HTTPException(status_code=404, detail="发布账号不存在") from exc
+    except ProfileLockError as exc:
+        raise HTTPException(status_code=409, detail="账号 profile 正在使用，无法清理") from exc
+
+
+@router.post("/accounts/{account_id}/probe", response_model=PublishAccount)
+async def probe_publish_account(account_id: str):
+    try:
+        return await get_publish_account_service().probe_account(account_id)
+    except PublishAccountNotFound as exc:
+        raise HTTPException(status_code=404, detail="发布账号不存在") from exc
 
 
 def get_douyin_publisher() -> DouyinPublisher:

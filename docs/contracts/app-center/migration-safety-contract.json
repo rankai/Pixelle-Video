@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "database": "app_center.sqlite",
+  "runner_status": "implemented_app_core_batch_1",
+  "required_guards": {
+    "single_process_lock": {"mechanism": "exclusive_lock_file", "on_contention": "fail_read_only"},
+    "pre_transaction_backup": {"required": true, "on_failure": "abort_without_schema_change"},
+    "migration_checksum": {"stored_in": "app_schema_migrations.checksum", "algorithm": "sha256", "drift": "fail_read_only"},
+    "future_schema_version": {"detection": "schema_version_greater_than_supported", "action": "fail_read_only"},
+    "sqlite_corruption": {"detection": "integrity_check_or_open_error", "action": "fail_read_only"},
+    "rollback": {"scope": "restore_pre_transaction_backup", "production_write": false},
+    "staging_atomic_replace": {"required": true, "visible_database_replaced_after": ["schema", "seed", "foreign_key_check"], "on_failure": "delete_staging_leave_original_unchanged"}
+  },
+  "transaction_order": [
+    "acquire_lock",
+    "create_backup",
+    "create_staging_copy",
+    "open_staging_database",
+    "integrity_check",
+    "validate_existing_checksum",
+    "apply_schema_migration",
+    "seed_builtin_registry",
+    "foreign_key_check",
+    "commit",
+    "atomic_replace_visible_database",
+    "release_lock"
+  ],
+  "forbidden_behaviors": ["auto_delete_database", "auto_downgrade", "ignore_checksum_drift", "write_before_backup"]
+}

@@ -32,10 +32,10 @@ async def diagnostics():
         "playwright": {"available": _playwright_available()},
         "yt_dlp": {"available": _module_available("yt_dlp")},
         "config": {
-            "path": str(config_manager.config_path),
-            "exists": config_manager.config_path.exists(),
+            "path_present": config_manager.config_path.exists(),
             "llm_configured": config_manager.config.is_llm_configured(),
             "runninghub_configured": bool(config_manager.config.comfyui.runninghub_api_key),
+            "privacy": {"local_only": True, "raw_path_redacted": True, "secrets_redacted": True},
         },
         "checks": _diagnostic_checks(),
     }
@@ -139,7 +139,7 @@ def _diagnostic_checks() -> list[dict]:
             "output_dir",
             "输出目录",
             "ok" if output_writable else "missing",
-            f"输出目录可写：{output_dir}" if output_writable else f"输出目录不可写：{output_dir}",
+            "输出目录可写。" if output_writable else "输出目录不可写，请检查本地目录权限。",
         ),
         _check_item(
             "llm_config",

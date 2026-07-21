@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "status": "entry_contract_only",
+  "source_of_truth": "AppRun in app_center.sqlite",
+  "cases": [
+    {
+      "id": "secret_request_rejected",
+      "input": {"request_params": {"api_key": "secret", "model": "override"}},
+      "expected": "reject_and_do_not_persist_secret"
+    },
+    {
+      "id": "task_cleanup_preserves_fact",
+      "input": {"cleanup": true, "source_fact": "app_run"},
+      "expected": "delete_projection_only"
+    },
+    {
+      "id": "retry_reuses_projection_id",
+      "input": {"retry": true, "source_fact": "app_run", "attempt": 2},
+      "expected": "same_task_id_new_attempt_preserve_old_evidence"
+    },
+    {
+      "id": "unknown_source_rejected",
+      "input": {"source_kind": "unknown", "source_fact_id": "x"},
+      "expected": "reject_without_projection"
+    },
+    {
+      "id": "redacted_projection",
+      "input": {"absolute_file_path": "/private/video.mp4", "cookie": "secret"},
+      "expected": "omit_forbidden_fields"
+    }
+  ],
+  "allowed_projection_fields": ["task_id", "source_kind", "source_fact_id", "status", "progress", "title", "error_code", "created_at", "updated_at"],
+  "forbidden_projection_fields": ["request_params", "absolute_file_path", "cookie", "authorization", "api_key", "result"]
+}

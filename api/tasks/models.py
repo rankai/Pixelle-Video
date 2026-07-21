@@ -26,6 +26,10 @@ class TaskStatus(str, Enum):
 
     PENDING = "pending"
     RUNNING = "running"
+    WAITING_FOR_LOGIN = "waiting_for_login"
+    WAITING_FOR_HUMAN = "waiting_for_human"
+    NEEDS_ATTENTION = "needs_attention"
+    NEEDS_REVIEW = "needs_review"
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
@@ -37,6 +41,7 @@ class TaskType(str, Enum):
     VIDEO_GENERATION = "video_generation"
     IP_BROADCAST_STEP = "ip_broadcast_step"
     PUBLISH_ASSISTANT = "publish_assistant"
+    APP_RUN = "app_run"
 
 
 class TaskProgress(BaseModel):
@@ -78,6 +83,11 @@ class Task(BaseModel):
     artifact_keys: list[str] = Field(default_factory=list)
     duration_ms: Optional[int] = None
     retry_payload: Optional[dict] = None
+
+    # Domain projection provenance.  These fields identify the source fact
+    # without copying application-center input or output payloads.
+    source_kind: Optional[str] = None
+    source_fact_id: Optional[str] = None
 
     class Config:
         json_encoders = {datetime: lambda v: v.isoformat()}

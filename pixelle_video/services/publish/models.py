@@ -38,3 +38,7 @@ class PublishResult(BaseModel):
     draft_url: str = ""
     requires_human_confirmation: bool = True
     filled_fields: list[str] = Field(default_factory=list)
+    # V1 keeps the historical ``status`` vocabulary.  The adapter_state
+    # projection carries the PUB-3/PUB-4 state-machine meaning without
+    # breaking old clients that only understand failed/login_required.
+    adapter_state: str | None = None

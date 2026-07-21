@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "package_id": "pkg_artifact_001",
+  "project_id": "project_store_001",
+  "source": {
+    "kind": "artifact_versions",
+    "artifact_ids": ["artifact_video_001", "artifact_cover_001", "artifact_copy_001"],
+    "artifact_version_ids": ["artifact_version_video_001_r1", "artifact_version_cover_001_r1", "artifact_version_copy_001_r1"],
+    "session_id": null,
+    "source_revision": "project_store_001:r3"
+  },
+  "artifact_refs": [
+    {"artifact_id": "artifact_video_001", "artifact_version_id": "artifact_version_video_001_r1", "artifact_type": "video", "content_fingerprint": "sha256:video-001"},
+    {"artifact_id": "artifact_cover_001", "artifact_version_id": "artifact_version_cover_001_r1", "artifact_type": "cover", "content_fingerprint": "sha256:cover-001"},
+    {"artifact_id": "artifact_copy_001", "artifact_version_id": "artifact_version_copy_001_r1", "artifact_type": "publish_copy", "content_fingerprint": "sha256:copy-001"}
+  ],
+  "video_manifest": {"sha256": "sha256:video-file-001", "size_bytes": 1024, "mime_type": "video/mp4", "path_token": "asset_video_001", "duration_ms": 15000, "width": 1080, "height": 1920},
+  "policy": {"human_confirmation_required": true, "allow_final_publish": false, "adapter_version": "platform-neutral@1"},
+  "package_fingerprint": "sha256:package-artifact-001",
+  "created_at": "2026-07-19T00:00:00Z"
+}

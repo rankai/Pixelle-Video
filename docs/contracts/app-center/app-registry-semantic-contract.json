@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "known_app_ids": [
+    "builtin.marketing-copy",
+    "builtin.viral-titles",
+    "builtin.douyin-carousel",
+    "builtin.digital-human-video"
+  ],
+  "known_executor_keys": [
+    "marketing_copy_v1",
+    "viral_titles_v1",
+    "douyin_carousel_v1",
+    "digital_human_video_v1"
+  ],
+  "known_icons": ["FilePenLine", "BadgeCheck", "Images", "Video"],
+  "known_capabilities": ["llm", "template", "runninghub", "digital_human"],
+  "known_artifact_types": [
+    "brief", "copywriting", "title_set", "selected_title", "carousel_plan",
+    "carousel_page", "carousel_package", "video", "cover", "publish_copy",
+    "publish_package_ref"
+  ],
+  "known_feature_flags": {
+    "contentApps": {"default": false, "env": "PIXELLE_APP_CENTER_CONTENT_APPS"},
+    "douyinCarousel": {"default": false, "env": "PIXELLE_APP_CENTER_DOUYIN_CAROUSEL"},
+    "digitalHumanInAppCenter": {"default": false, "env": "PIXELLE_APP_CENTER_DIGITAL_HUMAN"}
+  },
+  "baseline_capabilities_configured": ["llm", "template", "runninghub"],
+  "ownership": {
+    "manifest_source_of_truth": "pixelle_video.app_center.registry.BUILTIN_MANIFESTS",
+    "sqlite_role": "read_only_versioned_snapshot",
+    "sqlite_primary_key": ["app_id", "version"],
+    "seed_trigger": "app_center_database_initialization",
+    "seed_key": ["app_id", "version"],
+    "seed_writer": "trusted_backend_only",
+    "user_manifest_write_api": false,
+    "foreign_key_precondition": "registry_seed_must_commit_before_app_run_or_handoff_insert"
+  },
+  "semantic_rules": [
+    "executor_key, icon, capability and artifact type must be in the corresponding allowlist",
+    "handoff target must be a known_app_id, must not equal app_id, and must accept at least one produced artifact type",
+    "feature flag unknown or missing resolves to false; manifest status never overrides a false flag",
+    "effective readiness is the intersection of manifest status, feature flag and every required capability being configured",
+    "all published manifest app_ids are unique and each executor_key is registered exactly once"
+  ],
+  "effective_readiness": {
+    "stable_or_pilot_and_flag_true_and_capabilities_present": "ready",
+    "stable_or_pilot_and_flag_true_and_capability_missing": "not_ready",
+    "stable_or_pilot_and_flag_false": "disabled",
+    "draft_maintenance_retired": "not_ready"
+  }
+}

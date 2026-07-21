@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/app-center/app-output.v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "app_run_id", "state", "artifacts"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "app_run_id": {"type": "string", "minLength": 1},
+    "state": {"enum": ["needs_review", "completed", "failed", "cancelled"]},
+    "artifacts": {"type": "array", "items": {"type": "object", "required": ["artifact_id", "artifact_version_id", "artifact_type"], "additionalProperties": false, "properties": {"artifact_id": {"type": "string"}, "artifact_version_id": {"type": "string"}, "artifact_type": {"type": "string"}}}},
+    "error_code": {"type": ["string", "null"]}
+  }
+}

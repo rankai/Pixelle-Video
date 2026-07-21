@@ -15,6 +15,8 @@ API Routers
 """
 
 from api.routers import publish
+from api.routers.app_center import router as app_center_router
+from api.routers.apps import router as apps_router
 from api.routers.assets import router as assets_router
 from api.routers.assets_v2 import router as assets_v2_router
 from api.routers.content import router as content_router
@@ -24,8 +26,10 @@ from api.routers.frame import router as frame_router
 from api.routers.health import router as health_router
 from api.routers.image import router as image_router
 from api.routers.ip_broadcast import router as ip_broadcast_router
+from api.routers.ip_broadcast_app import router as ip_broadcast_app_router
 from api.routers.llm import router as llm_router
 from api.routers.publish import router as publish_router
+from api.routers.publish_v2 import router as publish_v2_router
 from api.routers.resources import router as resources_router
 from api.routers.tasks import router as tasks_router
 from api.routers.tts import router as tts_router
@@ -36,12 +40,16 @@ __all__ = [
     "desktop_router",
     "assets_router",
     "assets_v2_router",
+    "apps_router",
+    "app_center_router",
     "llm_router",
     "publish",
     "publish_router",
+    "publish_v2_router",
     "tts_router",
     "image_router",
     "ip_broadcast_router",
+    "ip_broadcast_app_router",
     "content_router",
     "video_router",
     "tasks_router",

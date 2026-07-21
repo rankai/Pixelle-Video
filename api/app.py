@@ -52,6 +52,8 @@ from api.desktop_security import (
 
 # Import routers
 from api.routers import (
+    app_center_router,
+    apps_router,
     assets_router,
     assets_v2_router,
     content_router,
@@ -60,9 +62,11 @@ from api.routers import (
     frame_router,
     health_router,
     image_router,
+    ip_broadcast_app_router,
     ip_broadcast_router,
     llm_router,
     publish_router,
+    publish_v2_router,
     resources_router,
     tasks_router,
     tts_router,
@@ -81,6 +85,12 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("🚀 Starting AI-Video-Factory API...")
     await task_manager.start()
+    # Recover durable PublishRun facts before serving requests.  A browser
+    # process may disappear with the sidecar; the run must not remain forever
+    # in ``running`` or permit a blind duplicate upload after restart.
+    from api.routers.publish_v2 import get_publish_run_service
+
+    get_publish_run_service()
     logger.info("✅ AI-Video-Factory API started successfully\n")
 
     yield
@@ -143,13 +153,17 @@ app.include_router(health_router)
 app.include_router(desktop_router, prefix=api_config.api_prefix)
 app.include_router(assets_router, prefix=api_config.api_prefix)
 app.include_router(assets_v2_router, prefix=api_config.api_prefix)
+app.include_router(apps_router, prefix=api_config.api_prefix)
+app.include_router(app_center_router, prefix=api_config.api_prefix)
 
 # API routers (with /api prefix)
 app.include_router(llm_router, prefix=api_config.api_prefix)
 app.include_router(tts_router, prefix=api_config.api_prefix)
 app.include_router(image_router, prefix=api_config.api_prefix)
 app.include_router(ip_broadcast_router, prefix=api_config.api_prefix)
+app.include_router(ip_broadcast_app_router, prefix=api_config.api_prefix)
 app.include_router(publish_router, prefix=api_config.api_prefix)
+app.include_router(publish_v2_router, prefix=api_config.api_prefix)
 app.include_router(content_router, prefix=api_config.api_prefix)
 app.include_router(video_router, prefix=api_config.api_prefix)
 app.include_router(tasks_router, prefix=api_config.api_prefix)

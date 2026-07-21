@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 from pathlib import Path
 from typing import Iterable
@@ -11,8 +12,9 @@ from api.tasks.models import Task, TaskProgress, TaskStatus, TaskType
 
 
 class TaskPersistence:
-    def __init__(self, db_path: str | Path = "data/desktop_tasks.sqlite"):
-        self.db_path = Path(db_path)
+    def __init__(self, db_path: str | Path | None = None):
+        configured_path = db_path or os.getenv("PIXELLE_DESKTOP_TASKS_DB") or "data/desktop_tasks.sqlite"
+        self.db_path = Path(configured_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._ensure_schema()
 
@@ -23,9 +25,9 @@ class TaskPersistence:
                 INSERT INTO tasks (
                     task_id, task_type, status, display_name, flow_name, step_key,
                     session_id, request_params, progress, result, error, artifact_keys,
-                    retry_payload, created_at, started_at, completed_at, duration_ms
+                    retry_payload, source_kind, source_fact_id, created_at, started_at, completed_at, duration_ms
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(task_id) DO UPDATE SET
                     task_type=excluded.task_type,
                     status=excluded.status,
@@ -39,6 +41,8 @@ class TaskPersistence:
                     error=excluded.error,
                     artifact_keys=excluded.artifact_keys,
                     retry_payload=excluded.retry_payload,
+                    source_kind=excluded.source_kind,
+                    source_fact_id=excluded.source_fact_id,
                     created_at=excluded.created_at,
                     started_at=excluded.started_at,
                     completed_at=excluded.completed_at,
@@ -102,6 +106,8 @@ class TaskPersistence:
                     error TEXT,
                     artifact_keys TEXT NOT NULL DEFAULT '[]',
                     retry_payload TEXT,
+                    source_kind TEXT,
+                    source_fact_id TEXT,
                     created_at TEXT NOT NULL,
                     started_at TEXT,
                     completed_at TEXT,
@@ -109,6 +115,11 @@ class TaskPersistence:
                 )
                 """
             )
+            columns = {row[1] for row in conn.execute("PRAGMA table_info(tasks)")}
+            if "source_kind" not in columns:
+                conn.execute("ALTER TABLE tasks ADD COLUMN source_kind TEXT")
+            if "source_fact_id" not in columns:
+                conn.execute("ALTER TABLE tasks ADD COLUMN source_fact_id TEXT")
 
 
 def _task_to_row(task: Task) -> tuple:
@@ -126,6 +137,8 @@ def _task_to_row(task: Task) -> tuple:
         task.error,
         _dump_json(task.artifact_keys),
         _dump_json(task.retry_payload),
+        task.source_kind,
+        task.source_fact_id,
         task.created_at.isoformat(),
         task.started_at.isoformat() if task.started_at else None,
         task.completed_at.isoformat() if task.completed_at else None,
@@ -153,6 +166,8 @@ def _row_to_task(row: sqlite3.Row) -> Task:
         artifact_keys=_load_json(row["artifact_keys"]) or [],
         duration_ms=row["duration_ms"],
         retry_payload=_load_json(row["retry_payload"]),
+        source_kind=row["source_kind"] if "source_kind" in row.keys() else None,
+        source_fact_id=row["source_fact_id"] if "source_fact_id" in row.keys() else None,
     )
 
 

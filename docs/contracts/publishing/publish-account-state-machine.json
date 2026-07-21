@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/publish-account-state-machine.v1.json",
+  "title": "Publish account login state machine",
+  "description": "PUB-1 uses account login state independently from platform adapter release state. Credentials, QR payloads and browser storage are never values in this contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["login_states", "platform_release_states", "transitions"],
+  "properties": {
+    "login_states": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "not_connected",
+          "connecting",
+          "login_required",
+          "authenticated",
+          "expired",
+          "identity_changed",
+          "degraded",
+          "locked",
+          "revoked"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "platform_release_states": {
+      "type": "array",
+      "items": { "enum": ["pilot", "unverified"] },
+      "uniqueItems": true
+    },
+    "transitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to"],
+        "properties": {
+          "from": { "type": "string" },
+          "to": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+        }
+      }
+    }
+  }
+}

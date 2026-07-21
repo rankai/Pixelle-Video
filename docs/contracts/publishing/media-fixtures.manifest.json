@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "generation": {
+    "status": "contract_frozen",
+    "generator": "docs/contracts/publishing/generate_media_fixtures.py",
+    "writes_to_production": false
+  },
+  "fixtures": [
+    {"fixture_id": "valid_mp4_h264", "kind": "video", "extension": ".mp4", "expected": "accepted", "duration_ms": 200, "has_moov_atom": true, "sha256": "sha256:cebb770ea49011d28217678bed7da4fae76788aa3275be14809ca10bc9f23e0c"},
+    {"fixture_id": "missing_moov_atom", "kind": "video", "extension": ".mp4", "expected": "rejected", "duration_ms": null, "has_moov_atom": false, "sha256": "sha256:551e61fcb6912b591773c6921c529eae42d9a9b23e2b1fa1725a2ab59779830c"},
+    {"fixture_id": "zero_byte", "kind": "video", "extension": ".mp4", "expected": "rejected", "duration_ms": null, "has_moov_atom": false, "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+    {"fixture_id": "fake_extension", "kind": "video", "extension": ".mp4", "expected": "rejected", "duration_ms": null, "has_moov_atom": false, "sha256": "sha256:11886b5183125f3f1f05e7a55d8595b2d084baf40a952c404f51c505e7d2335b"},
+    {"fixture_id": "valid_cover_png", "kind": "cover", "extension": ".png", "expected": "accepted", "width": 1080, "height": 1440, "sha256": "sha256:026cfad4d9bc1d5d05a5b79a9afb8f90ecd2f0769c74c96aa904c15011de5bdc"},
+    {"fixture_id": "invalid_cover_dimensions", "kind": "cover", "extension": ".png", "expected": "rejected", "width": 1, "height": 1, "sha256": "sha256:67f69f85258ee9b740fd752be0f34986276816e6c1533eee1ff7f4cb1d904a3b"}
+  ]
+}

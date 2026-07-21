@@ -1,0 +1,5 @@
+[
+  {"app_id": "builtin.marketing-copy", "status": "stable", "flag_enabled": false, "configured_capabilities": ["llm"], "expected": "disabled"},
+  {"app_id": "builtin.digital-human-video", "status": "pilot", "flag_enabled": true, "configured_capabilities": ["llm", "runninghub"], "expected": "not_ready"},
+  {"app_id": "builtin.viral-titles", "status": "stable", "flag_enabled": true, "configured_capabilities": ["llm"], "expected": "ready"}
+]

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "categories": [
+    {"id": "hotpot", "store_type": "火锅", "goal": "周末双人套餐", "facts": {"offer": "双人套餐", "address": "待补充"}},
+    {"id": "beauty", "store_type": "美容", "goal": "新客到店体验", "facts": {"offer": "体验项目", "price": null}},
+    {"id": "homestay", "store_type": "民宿", "goal": "工作日入住", "facts": {"city": "待补充", "address": null}},
+    {"id": "laundry", "store_type": "洗衣店", "goal": "换季洗护", "facts": {"service": "衣物洗护"}},
+    {"id": "training", "store_type": "培训", "goal": "试听报名", "facts": {"subject": "待补充", "date": null}},
+    {"id": "retail", "store_type": "零售", "goal": "新品到店", "facts": {"product": "待补充", "price": null}}
+  ],
+  "invalid_cases": [
+    {"id": "invented_price", "facts": {"offer": "新品"}, "forbidden_output": ["price"]},
+    {"id": "invented_address", "facts": {"address": null}, "forbidden_output": ["address"]},
+    {"id": "duplicate_titles", "candidates": ["同一个标题", "同一个标题"]},
+    {"id": "banned_term", "candidates": ["全网第一，保证有效"]}
+  ]
+}

@@ -1,0 +1,9 @@
+[
+  {"case": "unknown_executor", "patch": {"executor_key": "evil_executor"}, "expected_error": "EXECUTOR_NOT_REGISTERED"},
+  {"case": "unknown_icon", "patch": {"icon": "EvilIcon"}, "expected_error": "ICON_NOT_ALLOWLISTED"},
+  {"case": "unknown_handoff", "patch": {"handoff_targets": ["builtin.missing"]}, "expected_error": "HANDOFF_TARGET_NOT_REGISTERED"},
+  {"case": "self_handoff", "patch": {"handoff_targets": ["builtin.marketing-copy"]}, "expected_error": "HANDOFF_SELF_REFERENCE"},
+  {"case": "unknown_capability", "patch": {"required_capabilities": ["root_shell"]}, "expected_error": "CAPABILITY_NOT_REGISTERED"},
+  {"case": "unknown_feature_flag", "patch": {"feature_flag": "remoteKillSwitch"}, "expected_error": "FEATURE_FLAG_NOT_REGISTERED"},
+  {"case": "handoff_incompatible", "patch": {"produced_artifact_types": ["brief"]}, "expected_error": "HANDOFF_ARTIFACT_INCOMPATIBLE"}
+]

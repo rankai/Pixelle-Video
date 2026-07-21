@@ -1,0 +1,203 @@
+{
+  "contract_id": "ip-broadcast-adapter-entry",
+  "schema_version": 1,
+  "app_id": "builtin.digital-human-video",
+  "app_version": "1.0.0",
+  "executor_type": "workflow_adapter",
+  "feature_flag": "digitalHumanInAppCenter",
+  "facts": {
+    "app_run_source": "app_center.sqlite",
+    "session_step_source": "legacy_ip_broadcast_session_store",
+    "task_role": "projection_only",
+    "publish_package_source": "publishing.sqlite3"
+  },
+  "source_modes": [
+    {
+      "mode": "blank_project",
+      "artifact_types": [],
+      "required": ["project_id", "source_mode", "goal"],
+      "source_version_count": 0
+    },
+    {
+      "mode": "copywriting",
+      "artifact_types": ["copywriting"],
+      "required": ["project_id", "source_mode", "source_artifact_version_ids", "selected_variant_index"],
+      "source_version_count": 1,
+      "selection": {"content_key": "variants", "selected_item_key": "full_text", "index_min": 0, "index_max": 2}
+    },
+    {
+      "mode": "selected_title",
+      "artifact_types": ["selected_title"],
+      "required": ["project_id", "source_mode", "source_artifact_version_ids"],
+      "source_version_count": 1,
+      "selection": {"content_key": "title", "selected_item_key": "title", "non_empty": true}
+    }
+  ],
+  "session_step_statuses": ["pending", "ready", "running", "done", "error"],
+  "state_projection": [
+    {"when": "new_or_not_enqueued", "session_step_status": "pending", "task_status": "pending", "app_run_state": "draft", "completion_allowed": false},
+    {"when": "queued_for_execution", "session_step_status": "ready", "task_status": "pending", "app_run_state": "queued", "completion_allowed": false},
+    {"when": "step_running", "session_step_status": "running", "task_status": "running", "app_run_state": "running", "completion_allowed": false},
+    {"when": "user_must_edit_or_confirm", "session_step_status": "ready", "task_status": "needs_review", "app_run_state": "needs_review", "completion_allowed": false},
+    {"when": "waiting_for_login", "session_step_status": "ready", "task_status": "waiting_for_login", "app_run_state": "needs_review", "completion_allowed": false},
+    {"when": "waiting_for_human", "session_step_status": "ready", "task_status": "waiting_for_human", "app_run_state": "needs_review", "completion_allowed": false},
+    {"when": "needs_attention", "session_step_status": "error", "task_status": "needs_attention", "app_run_state": "needs_review", "completion_allowed": false},
+    {"when": "ip_learning_topic_confirmation", "session_step_status": "ready", "task_status": "needs_review", "app_run_state": "needs_review", "current_step": "source", "completion_allowed": false},
+    {"when": "retryable_step_error", "session_step_status": "error", "task_status": "failed", "app_run_state": "failed", "completion_allowed": false},
+    {"when": "user_cancelled", "session_step_status": "error", "task_status": "cancelled", "app_run_state": "cancelled", "completion_allowed": false},
+    {"when": "all_outputs_verified", "session_step_status": "done", "task_status": "completed", "app_run_state": "completed", "completion_allowed": true}
+  ],
+  "legacy_waiting_states": ["waiting_for_login", "waiting_for_human", "needs_attention", "ip_learning_topic_confirmation"],
+  "session_binding": {
+    "required": ["session_id", "project_id", "app_run_id"],
+    "recovery_order": [
+      "exact_app_run_id",
+      "same_project_and_session_id_latest_non_terminal",
+      "refuse_when_session_has_multiple_projects_or_no_project_binding"
+    ],
+    "forbid_implicit_cross_project_recovery": true
+  },
+  "legacy_session_resume": {
+    "input": ["session_id", "project_id", "resume_mode"],
+    "resume_modes": ["new_session", "resume_existing"],
+    "existing_session_rules": [
+      "session_id_must_exist_in_legacy_store",
+      "project_id_must_match_binding_or_legacy_unbound_session_requires_explicit_claim",
+      "one_active_app_run_per_session_and_project",
+      "app_run_session_id_must_be_written_on_create_and_recovery",
+      "source_revision_must_be_pinned_before_resuming",
+      "ambiguous_or_cross_project_session_must_fail_closed"
+    ],
+    "legacy_unbound_policy": "do_not_auto_claim; require explicit user-selected project and write immutable binding evidence",
+    "restart_reconciliation": [
+      "load_existing_binding",
+      "read_legacy_current_step_and_step_status",
+      "reconcile_task_projection_without_creating_session",
+      "preserve_completed_artifacts_and_history"
+    ]
+  },
+  "lifecycle_invariants": {
+    "idempotency_key_required": true,
+    "duplicate_active_run": "return_existing_binding",
+    "cancel_is_idempotent": true,
+    "retry": "new_attempt_same_session_no_duplicate_success_artifact",
+    "restart": "reload_binding_and_current_step_without_new_session",
+    "old_artifacts": "preserve_history"
+  },
+  "artifact_outputs": ["video", "cover", "publish_copy"],
+  "artifact_output_contract": {
+    "required_fields": ["artifact_type", "project_id", "source_app_run_id", "version_number", "file_refs"],
+    "file_ref_required_fields": ["file_key", "relative_path", "mime_type", "sha256", "size_bytes"],
+    "trusted_root_only": true,
+    "forbid_absolute_path": true,
+    "forbid_symlink_escape": true,
+    "exactly_one_current_version_per_artifact": true
+  },
+  "legacy_output_registration": {
+    "allowed_app_run_state": "needs_review",
+    "source": "imported",
+    "output_types": ["video", "cover", "publish_copy"],
+    "required_legacy_sources": {
+      "video": ["session.artifacts.final_video", "session.artifacts.digital_human_video", "session.state.final_video_path", "session.state.digital_human_video_path"],
+      "cover": ["session.artifacts.cover", "session.state.cover_path"],
+      "publish_copy": ["session.state.publish_package", "session.state.title", "session.state.description", "session.state.hashtags"]
+    },
+    "file_policy": {
+      "absolute_input_path_required": true,
+      "trusted_roots_only": true,
+      "symlink_escape_forbidden": true,
+      "allowed_mime": {"video": ["video/mp4", "video/quicktime"], "cover": ["image/png", "image/jpeg"]},
+      "sha256_recorded": true,
+      "size_bytes_recorded": true,
+      "absolute_path_persisted": false
+    },
+    "idempotency": "same complete imported versions are returned; partial or mixed registrations fail closed",
+    "side_effect_boundary": "read existing session/files and append immutable ArtifactVersions only; no provider, browser, upload, publish or completion transition",
+    "legacy_output_fingerprint": {
+      "algorithm": "sha256",
+      "inputs": ["video.file_refs.sha256", "cover.file_refs.sha256", "publish_copy.canonical_content"],
+      "excludes": ["absolute_path", "provider", "model", "credentials"],
+      "must_be_stable_after_restart": true
+    },
+    "review_accept": {
+      "registration_state": "needs_review",
+      "requires": ["same_project_binding", "complete_imported_outputs", "reviewable_attempt", "fingerprint_match"],
+      "accept_transition": "needs_review -> completed",
+      "repeated_accept": "idempotent",
+      "external_actions": []
+    }
+  },
+  "execution_bridge": {
+    "mode": "local_or_isolated_executor_only",
+    "input_source_modes": ["blank_project", "copywriting", "selected_title"],
+    "state_flow": ["draft", "queued", "running", "needs_review"],
+    "task_role": "projection_only",
+    "binding_required": ["project_id", "app_id", "app_version", "session_id", "app_run_id", "source_revision", "context_snapshot_id"],
+    "context_snapshot_policy": "nullable_but_equal_between_request_app_run_and_binding",
+    "source_revision_policy": "pinned_and_equal_between_input_binding_and_resume",
+    "execute_idempotency": "same_app_run_and_session_or_fail_closed",
+    "restart": ["reload_existing_binding", "reuse_same_session", "reconcile_task_projection", "preserve_artifacts_and_history"],
+    "retry": ["new_attempt_same_session", "preserve_old_attempt_and_artifacts", "no_duplicate_imported_outputs"],
+    "cancel": "idempotent_and_never_deletes_session_or_artifacts",
+    "failure": "fail_closed_and_projects_needs_attention_or_failed_without_completion",
+    "duplicate_execute": "same_run_or_conflict_without_second_session_or_attempt",
+    "missing_binding_or_session": "fail_closed",
+    "cross_project_or_old_entry": "fail_closed",
+    "completion_path": "review_accept_only",
+    "waiting_states_never_complete": true,
+    "external_actions": []
+  },
+  "execution_error_codes": [
+    "APP_RUN_BINDING_MISMATCH",
+    "APP_RUN_EXECUTION_CONFLICT",
+    "APP_RUN_STATE_INVALID",
+    "APP_EXECUTOR_FAILED",
+    "APP_EXECUTOR_INTERRUPTED",
+    "APP_EXECUTOR_LOCAL_ONLY",
+    "APP_FEATURE_DISABLED",
+    "BINDING_MISSING",
+    "SESSION_PROJECT_MISMATCH",
+    "SOURCE_REVISION_MISMATCH",
+    "SESSION_NOT_FOUND",
+    "ARTIFACT_ACCEPT_EXPLICIT_REQUIRED"
+  ],
+  "legacy_output_error_codes": [
+    "ARTIFACT_OUTPUT_STATE_INVALID",
+    "ARTIFACT_OUTPUT_NOT_READY",
+    "ARTIFACT_FILE_NOT_ABSOLUTE",
+    "ARTIFACT_FILE_NOT_FOUND",
+    "ARTIFACT_FILE_OUTSIDE_ROOT",
+    "ARTIFACT_FILE_EMPTY",
+    "ARTIFACT_FILE_TOO_LARGE",
+    "ARTIFACT_FILE_MIME_INVALID",
+    "ARTIFACT_FILE_SIGNATURE_INVALID",
+    "ARTIFACT_FILE_READ_FAILED",
+    "ARTIFACT_FILE_CHANGED",
+    "ARTIFACT_PUBLISH_COPY_INVALID",
+    "ARTIFACT_REGISTRATION_PARTIAL",
+    "ARTIFACT_REGISTRATION_CONFLICT",
+    "ARTIFACT_REVIEW_ATTEMPT_REQUIRED",
+    "ARTIFACT_REVIEW_ATTEMPT_CONFLICT",
+    "ARTIFACT_FINGERPRINT_MISMATCH",
+    "ARTIFACT_ACCEPT_INVALID",
+    "ARTIFACT_OUTPUT_BINDING_MISMATCH",
+    "APP_RUN_BINDING_MISMATCH",
+    "ARTIFACT_ACCEPT_EXPLICIT_REQUIRED"
+  ],
+  "invariants": [
+    "source_artifact_versions_must_belong_to_project",
+    "retry_creates_new_attempt_without_deleting_old_session_or_artifacts",
+    "cancel_is_idempotent",
+    "waiting_states_never_map_to_completed",
+    "publish_package_is_created_by_publishing_domain",
+    "feature_flag_off_preserves_legacy_entry"
+  ],
+  "forbidden_in_entry": [
+    "rewrite_ip_broadcast_workflow",
+    "delete_legacy_studio_entry",
+    "modify_publish_run_state_machine",
+    "real_platform_upload_or_final_publish",
+    "second_model_configuration_source",
+    "admin_rbac_or_multitenant_control_plane"
+  ]
+}

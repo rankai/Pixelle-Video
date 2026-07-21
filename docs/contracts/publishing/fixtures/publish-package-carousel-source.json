@@ -1,0 +1,28 @@
+{
+  "schema_version": 2,
+  "package_id": "pkg_carousel_001",
+  "project_id": "project_store_001",
+  "source": {
+    "kind": "artifact_versions",
+    "artifact_ids": ["artifact_carousel_001", "artifact_page_001", "artifact_page_002", "artifact_page_003"],
+    "artifact_version_ids": ["artifact_version_carousel_001_r1", "artifact_version_page_001_r1", "artifact_version_page_002_r1", "artifact_version_page_003_r1"],
+    "session_id": null,
+    "source_revision": "project_store_001:r4"
+  },
+  "artifact_refs": [
+    {"artifact_id": "artifact_carousel_001", "artifact_version_id": "artifact_version_carousel_001_r1", "artifact_type": "carousel_package", "content_fingerprint": "sha256:carousel-001"},
+    {"artifact_id": "artifact_page_001", "artifact_version_id": "artifact_version_page_001_r1", "artifact_type": "carousel_page", "content_fingerprint": "sha256:page-001"},
+    {"artifact_id": "artifact_page_002", "artifact_version_id": "artifact_version_page_002_r1", "artifact_type": "carousel_page", "content_fingerprint": "sha256:page-002"},
+    {"artifact_id": "artifact_page_003", "artifact_version_id": "artifact_version_page_003_r1", "artifact_type": "carousel_page", "content_fingerprint": "sha256:page-003"}
+  ],
+  "video_manifest": null,
+  "carousel_manifests": [
+    {"sha256": "sha256:page-file-001", "size_bytes": 1024, "mime_type": "image/png", "path_token": "asset_carousel_page_001", "width": 1080, "height": 1440},
+    {"sha256": "sha256:page-file-002", "size_bytes": 1024, "mime_type": "image/png", "path_token": "asset_carousel_page_002", "width": 1080, "height": 1440},
+    {"sha256": "sha256:page-file-003", "size_bytes": 1024, "mime_type": "image/png", "path_token": "asset_carousel_page_003", "width": 1080, "height": 1440}
+  ],
+  "platform_copy": {"title": "门店图文内容", "description": "适用于门店运营的图文内容", "hashtags": ["门店运营"]},
+  "policy": {"human_confirmation_required": true, "allow_final_publish": false, "adapter_version": "platform-neutral@1"},
+  "package_fingerprint": "sha256:package-carousel-001",
+  "created_at": "2026-07-20T00:00:00Z"
+}

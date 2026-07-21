@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "contract_id": "ip-broadcast-desktop-entry",
+  "fixtures": [
+    {
+      "id": "flag-off-legacy-preserved",
+      "valid": true,
+      "desktop_flag": false,
+      "backend_flag": false,
+      "card_actionable": false,
+      "legacy_route_reachable": true,
+      "new_route_reachable": false,
+      "writes": []
+    },
+    {
+      "id": "flag-on-ready-card-actionable",
+      "valid": true,
+      "desktop_flag": true,
+      "backend_flag": true,
+      "registry_enabled": true,
+      "readiness": "ready",
+      "card_actionable": true,
+      "new_route": "/apps/digital-human-video",
+      "legacy_route_reachable": true,
+      "external_actions": []
+    },
+    {
+      "id": "backend-disabled-non-actionable",
+      "valid": true,
+      "desktop_flag": true,
+      "backend_flag": false,
+      "registry_enabled": false,
+      "readiness": "disabled",
+      "card_actionable": false,
+      "legacy_route_reachable": true,
+      "writes": []
+    },
+    {
+      "id": "blank-source-run",
+      "valid": true,
+      "source_mode": "blank_project",
+      "source_artifact_version_ids": [],
+      "required_payload": ["project_id", "idempotency_key", "source_mode", "goal"],
+      "external_actions": []
+    },
+    {
+      "id": "copywriting-source-run",
+      "valid": true,
+      "source_mode": "copywriting",
+      "source_artifact_version_ids": ["av_copy_v2"],
+      "selected_variant_index": 1,
+      "source_artifact_type": "copywriting",
+      "external_actions": []
+    },
+    {
+      "id": "selected-title-source-run",
+      "valid": true,
+      "source_mode": "selected_title",
+      "source_artifact_version_ids": ["av_title_v1"],
+      "source_artifact_type": "selected_title",
+      "external_actions": []
+    },
+    {
+      "id": "missing-copywriting-index",
+      "valid": false,
+      "source_mode": "copywriting",
+      "source_artifact_version_ids": ["av_copy_v2"],
+      "error": "COPYWRITING_VARIANT_REQUIRED"
+    },
+    {
+      "id": "cross-project-selected-title",
+      "valid": false,
+      "source_mode": "selected_title",
+      "source_artifact_version_ids": ["av_other_project_title"],
+      "error": "SOURCE_VERSION_PROJECT_MISMATCH"
+    },
+    {
+      "id": "waiting-projection-nonterminal",
+      "valid": true,
+      "projection": {
+        "when": "waiting_for_human",
+        "task_status": "waiting_for_human",
+        "app_run_state": "needs_review",
+        "completion_allowed": false
+      },
+      "auto_accept": false
+    },
+    {
+      "id": "restart-reuses-binding",
+      "valid": true,
+      "before_restart": {
+        "app_run_id": "run_123",
+        "session_id": "session_123",
+        "source_revision": "sha256:source"
+      },
+      "after_restart": {
+        "app_run_id": "run_123",
+        "session_id": "session_123",
+        "source_revision": "sha256:source",
+        "new_post_runs": 0,
+        "new_sessions": 0,
+        "auto_execute": false
+      }
+    },
+    {
+      "id": "local-gray-cycle-no-external-action",
+      "valid": true,
+      "flags": {
+        "desktop": true,
+        "backend": true,
+        "isolated_executor": true
+      },
+      "source_modes": ["blank_project", "copywriting", "selected_title"],
+      "project_id": "project_gray",
+      "app_run_id": "run_gray",
+      "session_id": "session_gray",
+      "source_revision": "sha256:gray-source",
+      "before_after_restart": {
+        "before": {"app_run_id": "run_gray", "session_id": "session_gray"},
+        "after": {"app_run_id": "run_gray", "session_id": "session_gray", "new_post_runs": 0, "new_sessions": 0}
+      },
+      "artifact_ids": ["artifact_video_gray", "artifact_cover_gray", "artifact_copy_gray"],
+      "terminal_before_accept": "needs_review",
+      "explicit_accept": true,
+      "external_provider_calls": 0,
+      "platform_writes": 0,
+      "final_publish_clicks": 0,
+      "external_action_counters": {"provider_calls": 0, "platform_writes": 0, "final_publish_clicks": 0},
+      "screenshot_or_dom_snapshot_sha256": "sha256:gray-snapshot"
+    },
+    {
+      "id": "final-publish-blocked",
+      "valid": true,
+      "local_gray_evidence": true,
+      "final_action": "publish",
+      "allowed": false,
+      "error": "FINAL_ACTION_BLOCKED",
+      "external_actions": []
+    }
+  ]
+}

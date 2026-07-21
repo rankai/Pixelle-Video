@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "fixtures": [
+    {"id": "tauri-sidecar-restart-preserves-handoff", "valid": true},
+    {"id": "leave-return-same-package", "valid": true},
+    {"id": "legacy-copy-download-fallback", "valid": true},
+    {"id": "resolver-runtime-three-state", "valid": true},
+    {"id": "published-state-never-claimed", "valid": true},
+    {"id": "external-actions-zero", "valid": true},
+    {"id": "cross-process-cas-not-claimed", "valid": false, "error": "DEFERRED_CAPABILITY"}
+  ]
+}

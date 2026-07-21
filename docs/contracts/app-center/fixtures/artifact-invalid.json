@@ -1,0 +1,6 @@
+[
+  {"case": "current_version_missing", "patch": {"current_version_id": "missing"}, "expected_error": "CURRENT_VERSION_NOT_FOUND"},
+  {"case": "duplicate_revision", "patch": {"versions": [{"revision": 1}, {"revision": 1}]}, "expected_error": "REVISION_NOT_UNIQUE"},
+  {"case": "publish_ref_missing_source", "patch": {"artifact_type": "publish_package_ref", "versions": [{"content": {"package_id": "pkg"}}]}, "expected_error": "PUBLISH_REF_SOURCE_REQUIRED"},
+  {"case": "revision_gap", "patch": {"versions": [{"revision": 2}]}, "expected_error": "REVISION_GAP"}
+]

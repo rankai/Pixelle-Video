@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/publish-event-cursor.v1.json",
+  "title": "Publish event cursor semantics",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["ordering", "allocation", "after_cursor", "state_version"],
+  "properties": {
+    "ordering": { "const": "per_run_event_seq_ascending" },
+    "allocation": { "const": "repository_transaction_max_plus_one" },
+    "after_cursor": { "const": "strictly_greater_event_seq" },
+    "state_version": { "const": "event_state_version_matches_run_transition" },
+    "gap_policy": { "const": "no_gaps_within_committed_run" }
+  }
+}
