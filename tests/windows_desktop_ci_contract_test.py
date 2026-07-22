@@ -4,6 +4,7 @@ from pathlib import Path
 WORKFLOW = Path(".github/workflows/windows-desktop-build.yml")
 ARTIFACT_CHECK = Path("scripts/windows_desktop_artifact_check.py")
 PACKAGE_LOCK = Path("desktop/package-lock.json")
+WINDOWS_ICON = Path("desktop/src-tauri/icons/icon.ico")
 
 
 def test_windows_ci_uses_a_windows_runner_and_builds_both_targets():
@@ -30,6 +31,11 @@ def test_cross_platform_rolldown_bindings_are_optional_in_lockfile():
     assert package["os"] == ["darwin"]
     assert package["cpu"] == ["arm64"]
     assert package["optional"] is True
+
+
+def test_windows_bundle_has_a_native_ico_resource():
+    assert WINDOWS_ICON.exists()
+    assert WINDOWS_ICON.stat().st_size > 0
 
 
 def test_artifact_manifest_requires_windows_executables_and_marks_install_pending():
