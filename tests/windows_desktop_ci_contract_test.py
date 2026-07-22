@@ -1,7 +1,9 @@
+import json
 from pathlib import Path
 
 WORKFLOW = Path(".github/workflows/windows-desktop-build.yml")
 ARTIFACT_CHECK = Path("scripts/windows_desktop_artifact_check.py")
+PACKAGE_LOCK = Path("desktop/package-lock.json")
 
 
 def test_windows_ci_uses_a_windows_runner_and_builds_both_targets():
@@ -20,6 +22,14 @@ def test_windows_ci_is_manual_or_scoped_to_desktop_changes():
     assert '"desktop/**"' in source
     assert '"pyproject.toml"' in source
     assert '"uv.lock"' in source
+
+
+def test_cross_platform_rolldown_bindings_are_optional_in_lockfile():
+    lock = json.loads(PACKAGE_LOCK.read_text(encoding="utf-8"))
+    package = lock["packages"]["node_modules/@rolldown/binding-darwin-arm64"]
+    assert package["os"] == ["darwin"]
+    assert package["cpu"] == ["arm64"]
+    assert package["optional"] is True
 
 
 def test_artifact_manifest_requires_windows_executables_and_marks_install_pending():
