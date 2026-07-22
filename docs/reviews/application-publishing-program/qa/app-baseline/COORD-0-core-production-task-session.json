@@ -1,0 +1,35 @@
+{
+  "session_id": "11fb418e06664fa2a4d214f64c5f736b",
+  "current_step": 6,
+  "completed_steps": 5,
+  "next_action": {
+    "key": "publish",
+    "step": 6,
+    "label": "查看并下载",
+    "description": "最终视频和发布素材已准备好",
+    "disabled": false
+  },
+  "step_status": {
+    "1": "done",
+    "2": "done",
+    "3": "done",
+    "4": "done",
+    "5": "done",
+    "6": "ready"
+  },
+  "artifacts": {
+    "final_video": "/Users/nickfury/projects/pixelle-video/output/ipb_5c967246_final.mp4",
+    "cover": "/Users/nickfury/projects/pixelle-video/temp/ipb_cover_5c967246.png",
+    "script": "/Users/nickfury/projects/pixelle-video/output/ipb_11fb418e_script.txt",
+    "publish_package_json": "/Users/nickfury/projects/pixelle-video/output/ipb_11fb418e_publish_package.json"
+  },
+  "state": {
+    "final_video_path": null,
+    "cover_path": null,
+    "title": null,
+    "description": null,
+    "hashtags": null,
+    "final_script": null,
+    "copywriting_confirmed": null
+  }
+}

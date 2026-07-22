@@ -16,16 +16,16 @@ System settings component for web UI
 
 import streamlit as st
 
-from web.i18n import tr, get_language
-from web.utils.streamlit_helpers import safe_rerun
 from pixelle_video.config import config_manager
+from web.i18n import get_language, tr
+from web.utils.streamlit_helpers import safe_rerun
 
 
 def render_advanced_settings():
     """Render system configuration (required) with 2-column layout"""
     # Check if system is configured
     is_configured = config_manager.validate()
-    
+
     # Expand if not configured, collapse if configured
     with st.expander(tr("settings.title"), expanded=not is_configured):
         # 2-column layout: LLM | ComfyUI
@@ -39,7 +39,11 @@ def render_advanced_settings():
                 st.markdown(f"**{tr('settings.llm.title')}**")
                 
                 # Quick preset selection
-                from pixelle_video.llm_presets import get_preset_names, get_preset, find_preset_by_base_url_and_model
+                from pixelle_video.llm_presets import (
+                    find_preset_by_base_url_and_model,
+                    get_preset,
+                    get_preset_names,
+                )
                 
                 # Custom at the end
                 preset_names = get_preset_names() + ["Custom"]
@@ -331,5 +335,47 @@ def render_advanced_settings():
                 config_manager.config = PixelleVideoConfig()
                 config_manager.save()
                 st.success(tr("status.config_reset"))
+                safe_rerun()
+
+        # ====================================================================
+        # Digital Human Service Config (optional, collapsible)
+        # ====================================================================
+        st.markdown("---")
+        with st.expander(f"🤖 {tr('settings.dh_service.title')}", expanded=False):
+            from types import SimpleNamespace as _NS
+            _dh_raw = getattr(config_manager.config, 'digital_human_service', None)
+            dh_svc = _dh_raw if _dh_raw is not None else _NS(provider='comfyui', api_key='', base_url='')
+            _dh_providers = ["comfyui", "heixiang", "infomers"]
+            _dh_provider_val = dh_svc.provider if dh_svc.provider in _dh_providers else "comfyui"
+            dh_col1, dh_col2 = st.columns(2)
+            with dh_col1:
+                dh_provider = st.selectbox(
+                    tr("settings.dh_service.provider"),
+                    options=_dh_providers,
+                    index=_dh_providers.index(_dh_provider_val),
+                    key="dh_provider_select",
+                )
+                dh_api_key = st.text_input(
+                    tr("settings.dh_service.api_key"),
+                    value=dh_svc.api_key,
+                    type="password",
+                    key="dh_api_key_input",
+                )
+            with dh_col2:
+                dh_base_url = st.text_input(
+                    tr("settings.dh_service.base_url"),
+                    value=dh_svc.base_url,
+                    key="dh_base_url_input",
+                )
+            if st.button("保存数字人服务配置", key="save_dh_service_btn", use_container_width=True):
+                config_manager.update({
+                    "digital_human_service": {
+                        "provider": dh_provider,
+                        "api_key": dh_api_key,
+                        "base_url": dh_base_url,
+                    }
+                })
+                config_manager.save()
+                st.success("数字人服务配置已保存")
                 safe_rerun()
 

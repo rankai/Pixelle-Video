@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>上传形象卡片三版方案</title>
+    <style>
+      :root {
+        --primary: #6d5df6;
+        --primary-rgb: 109 93 246;
+        --text: #172033;
+        --muted: #758197;
+        --border: #e5e9f2;
+        --surface: #ffffff;
+        --page: #f6f7fb;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at 18% 12%, rgb(var(--primary-rgb) / 12%), transparent 30%),
+          linear-gradient(180deg, #fbfbff, var(--page));
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .page {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 42px 28px 64px;
+      }
+
+      header {
+        margin-bottom: 28px;
+      }
+
+      header p {
+        max-width: 760px;
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 30px;
+        letter-spacing: 0;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+      }
+
+      .modal-shell {
+        border: 1px solid rgb(229 233 242 / 78%);
+        border-radius: 26px;
+        padding: 22px;
+        background: rgb(255 255 255 / 88%);
+        box-shadow: 0 22px 54px rgb(31 41 55 / 9%);
+      }
+
+      .modal-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .modal-head h2 {
+        margin: 0;
+        font-size: 21px;
+      }
+
+      .modal-head p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .tag {
+        border-radius: 999px;
+        padding: 6px 10px;
+        background: rgb(var(--primary-rgb) / 10%);
+        color: var(--primary);
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .name-field {
+        display: grid;
+        gap: 7px;
+        margin-bottom: 14px;
+      }
+
+      label {
+        color: #40506a;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .input-fake {
+        height: 42px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0 13px;
+        color: #9aa3b2;
+        background: #ffffff;
+        line-height: 42px;
+      }
+
+      .caption {
+        margin: 0 0 9px;
+        color: #8a93a3;
+        font-size: 13px;
+      }
+
+      .caption a {
+        color: var(--primary);
+        font-weight: 800;
+        text-decoration: none;
+      }
+
+      .upload-card {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 164px;
+        border-radius: 20px;
+        padding: 24px;
+        text-align: center;
+      }
+
+      .upload-card strong {
+        display: block;
+        margin-top: 13px;
+        font-size: 16px;
+      }
+
+      .upload-card small {
+        display: block;
+        max-width: 360px;
+        margin: 7px auto 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .icon {
+        position: relative;
+        display: grid;
+        width: 58px;
+        height: 58px;
+        place-items: center;
+      }
+
+      .icon svg {
+        width: 34px;
+        height: 34px;
+        stroke: currentColor;
+      }
+
+      .icon::after {
+        position: absolute;
+        right: 3px;
+        bottom: 4px;
+        width: 19px;
+        height: 19px;
+        border-radius: 999px;
+        background: var(--primary);
+        color: #ffffff;
+        content: "↑";
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 18px;
+      }
+
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .btn {
+        height: 38px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0 18px;
+        background: #ffffff;
+        color: #334155;
+        font-weight: 800;
+      }
+
+      .btn.primary {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: #ffffff;
+      }
+
+      .option-title {
+        margin: 0 0 12px;
+        color: var(--primary);
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      /* A */
+      .card-a {
+        border: 1px dashed rgb(var(--primary-rgb) / 25%);
+        background:
+          radial-gradient(circle at 50% 24%, rgb(var(--primary-rgb) / 12%), transparent 38%),
+          linear-gradient(180deg, #ffffff, #f8f9ff);
+      }
+
+      .card-a .icon {
+        border: 1px solid rgb(var(--primary-rgb) / 18%);
+        border-radius: 18px;
+        background: #ffffff;
+        color: var(--primary);
+        box-shadow: 0 12px 28px rgb(var(--primary-rgb) / 13%);
+      }
+
+      /* B */
+      .card-b {
+        grid-template-columns: 88px minmax(0, 1fr);
+        place-items: center start;
+        border: 1px solid #edf0f6;
+        background: linear-gradient(135deg, #ffffff, #f7f8fc);
+        text-align: left;
+      }
+
+      .card-b .icon {
+        border-radius: 22px;
+        background: rgb(var(--primary-rgb) / 10%);
+        color: var(--primary);
+      }
+
+      .card-b strong {
+        margin-top: 0;
+      }
+
+      .card-b small {
+        margin-left: 0;
+      }
+
+      .mini-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 12px;
+      }
+
+      .mini-chips span {
+        border-radius: 999px;
+        padding: 5px 8px;
+        background: #ffffff;
+        color: #7b8495;
+        font-size: 11px;
+        font-weight: 800;
+        box-shadow: inset 0 0 0 1px #edf0f6;
+      }
+
+      /* C */
+      .card-c {
+        overflow: hidden;
+        border: 1px solid rgb(var(--primary-rgb) / 18%);
+        background:
+          linear-gradient(135deg, rgb(var(--primary-rgb) / 11%), transparent 42%),
+          #ffffff;
+      }
+
+      .card-c::before,
+      .card-c::after {
+        position: absolute;
+        width: 42px;
+        height: 42px;
+        border-color: rgb(var(--primary-rgb) / 24%);
+        content: "";
+      }
+
+      .card-c::before {
+        top: 18px;
+        left: 18px;
+        border-top: 2px solid;
+        border-left: 2px solid;
+        border-radius: 14px 0 0;
+      }
+
+      .card-c::after {
+        right: 18px;
+        bottom: 18px;
+        border-right: 2px solid;
+        border-bottom: 2px solid;
+        border-radius: 0 0 14px;
+      }
+
+      .card-c .icon {
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--primary), rgb(var(--primary-rgb) / 72%));
+        color: #ffffff;
+        box-shadow: 0 14px 28px rgb(var(--primary-rgb) / 18%);
+      }
+
+      @media (max-width: 980px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header>
+        <h1>数字人形象上传区三版视觉方案</h1>
+        <p>
+          三版都保留“整块点击上传”的交互，同时兼容图片形象和视频形象。重点差异在视觉表达：A 更轻柔，B 更信息化，C 更有影像感。
+        </p>
+      </header>
+
+      <section class="grid">
+        <article class="modal-shell">
+          <p class="option-title">A. 轻柔云感上传卡（推荐）</p>
+          <div class="modal-head">
+            <div>
+              <h2>添加数字人形象</h2>
+              <p>上传一张清晰正面照，或一段闭口真人视频。</p>
+            </div>
+            <span class="tag">图片 / 视频</span>
+          </div>
+          <div class="name-field">
+            <label>形象名称</label>
+            <div class="input-fake">可选，默认使用文件名</div>
+          </div>
+          <p class="caption">支持 JPG/PNG/MP4/MOV，建议正面、光线稳定、脸部清晰。<a href="#">素材规范</a></p>
+          <div class="upload-card card-a">
+            <span class="icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v13A2.5 2.5 0 0 1 17.5 21h-11A2.5 2.5 0 0 1 4 18.5z" />
+                <path d="m7 16 3.2-3.2a1.2 1.2 0 0 1 1.7 0L15 16" />
+                <circle cx="15.5" cy="8.5" r="1.5" />
+              </svg>
+            </span>
+            <div>
+              <strong>点击上传形象素材</strong>
+              <small>上传后会自动保存到数字人库，并在当前流程中选中。</small>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn">取消</button>
+            <button class="btn primary">保存并使用</button>
+          </div>
+        </article>
+
+        <article class="modal-shell">
+          <p class="option-title">B. 信息卡式上传</p>
+          <div class="modal-head">
+            <div>
+              <h2>添加数字人形象</h2>
+              <p>更强调格式、状态和素材要求。</p>
+            </div>
+            <span class="tag">清晰稳妥</span>
+          </div>
+          <div class="name-field">
+            <label>形象名称</label>
+            <div class="input-fake">可选，默认使用文件名</div>
+          </div>
+          <p class="caption">支持 JPG/PNG/MP4/MOV，图片建议不小于 300px。<a href="#">查看要求</a></p>
+          <div class="upload-card card-b">
+            <span class="icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                <path d="M15 10 20 7v10l-5-3z" />
+                <rect x="3" y="6" width="12" height="12" rx="2" />
+              </svg>
+            </span>
+            <div>
+              <strong>选择图片或闭口视频</strong>
+              <small>适合需要明确素材标准、减少上传错误的场景。</small>
+              <div class="mini-chips">
+                <span>正脸</span>
+                <span>不遮挡</span>
+                <span>光线稳定</span>
+              </div>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn">取消</button>
+            <button class="btn primary">保存并使用</button>
+          </div>
+        </article>
+
+        <article class="modal-shell">
+          <p class="option-title">C. 影像取景框上传</p>
+          <div class="modal-head">
+            <div>
+              <h2>添加数字人形象</h2>
+              <p>更有“拍摄素材”的感觉，适合强调形象质量。</p>
+            </div>
+            <span class="tag">更有记忆点</span>
+          </div>
+          <div class="name-field">
+            <label>形象名称</label>
+            <div class="input-fake">可选，默认使用文件名</div>
+          </div>
+          <p class="caption">请上传正面半身或上半身素材，避免低头、侧脸和强逆光。<a href="#">示例</a></p>
+          <div class="upload-card card-c">
+            <span class="icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+                <path d="M4 21a8 8 0 0 1 16 0" />
+              </svg>
+            </span>
+            <div>
+              <strong>上传老板形象素材</strong>
+              <small>图片用于数字人出镜，闭口视频用于真人视频改口型。</small>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn">取消</button>
+            <button class="btn primary">保存并使用</button>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

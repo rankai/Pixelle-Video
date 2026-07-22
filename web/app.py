@@ -17,6 +17,8 @@ This is the entry point for the Streamlit multi-page application.
 Uses st.navigation to define pages and set the default page to Home.
 """
 
+# ruff: noqa: E402
+
 import sys
 from pathlib import Path
 
@@ -30,7 +32,7 @@ import streamlit as st
 
 # Setup page config (must be first Streamlit command)
 st.set_page_config(
-    page_title="Pixelle-Video - AI Video Generator",
+    page_title="AI-Video-Factory - AI 全自动短视频生产工厂",
     page_icon="🎬",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -52,9 +54,15 @@ def main():
         title="History",
         icon="📚"
     )
-    
+
+    ip_broadcast_page = st.Page(
+        "pages/3_🎙️_IP口播.py",
+        title="IP口播",
+        icon="🎙️"
+    )
+
     # Set up navigation and run
-    pg = st.navigation([home_page, history_page])
+    pg = st.navigation([home_page, history_page, ip_broadcast_page])
     pg.run()
 
 

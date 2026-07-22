@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "result": "passed_local_contract_smoke",
+  "automation_ms": 3,
+  "temp_root_removed": true,
+  "no_platform_actions": true,
+  "rollback": {
+    "v2_flag_before": true,
+    "v2_flag_after": false,
+    "profile_preserved": true,
+    "v1_material_copy_available": true,
+    "duplicate_uploads": 0,
+    "production_writes": 0
+  },
+  "final_action_guard": {
+    "default": "deny",
+    "decisions": [
+      {"action_id": "save_cover", "decision": "allow", "error_code": null},
+      {"action_id": "publish", "decision": "deny", "error_code": "FINAL_ACTION_BLOCKED"},
+      {"action_id": "confirm_publish", "decision": "deny", "error_code": "FINAL_ACTION_BLOCKED"},
+      {"action_id": "unknown", "decision": "deny", "error_code": "FINAL_ACTION_BLOCKED"}
+    ],
+    "stop_state": "waiting_for_human"
+  },
+  "scope": "local temporary files and contract matrix only; this is not a platform live smoke and does not claim final publish execution"
+}

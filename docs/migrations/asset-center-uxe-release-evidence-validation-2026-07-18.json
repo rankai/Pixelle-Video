@@ -1,0 +1,21 @@
+{
+  "schema_version": "asset-center-uxe-release-evidence-validation-v1",
+  "status": "pending_external_evidence",
+  "source_status": "pending_external_evidence",
+  "checks": {
+    "schema_version": true,
+    "environment_complete": false,
+    "participant_roles": true,
+    "participant_metrics": false,
+    "glyph_mask": false,
+    "gray_observation": false,
+    "review_signoff": false
+  },
+  "role_counts": {
+    "store_owner": 2,
+    "store_manager_or_ops": 2,
+    "experienced_video_operator": 1
+  },
+  "default_rollout_authorized": false,
+  "note": "This validator only accepts supplied external evidence; it never generates participant, device, glyph, or gray-observation values."
+}

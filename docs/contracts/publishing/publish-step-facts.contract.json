@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/publish-step-facts.v1.json",
+  "title": "Publish step fact ownership",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["canonical_table", "legacy_table", "write_policy", "retry_policy"],
+  "properties": {
+    "canonical_table": { "const": "publish_run_step_attempts" },
+    "legacy_table": { "const": "publish_step_results" },
+    "write_policy": { "const": "new PUB-2 code writes canonical table only; legacy table is read-only compatibility data" },
+    "retry_policy": { "const": "new attempt row; never overwrite prior evidence" }
+  }
+}

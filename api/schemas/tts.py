@@ -15,6 +15,7 @@ TTS API schemas
 """
 
 from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -28,6 +29,26 @@ class TTSSynthesizeRequest(BaseModel):
     ref_audio: Optional[str] = Field(
         None, 
         description="Reference audio path for voice cloning (optional). Can be a local file path or URL."
+    )
+    inference_mode: Optional[str] = Field(
+        None,
+        description="TTS inference mode override, e.g. 'local' or 'comfyui'."
+    )
+    voice: Optional[str] = Field(
+        None,
+        description="Voice identifier for local Edge TTS or workflow TTS."
+    )
+    speed: Optional[float] = Field(
+        None,
+        description="Speech speed multiplier."
+    )
+    pitch: Optional[float | str] = Field(
+        None,
+        description="Pitch adjustment for supported TTS engines."
+    )
+    volume: Optional[float | str] = Field(
+        None,
+        description="Volume adjustment for supported TTS engines."
     )
     voice_id: Optional[str] = Field(
         None, 
@@ -50,4 +71,3 @@ class TTSSynthesizeResponse(BaseModel):
     message: str = "Success"
     audio_path: str = Field(..., description="Path to generated audio file")
     duration: float = Field(..., description="Audio duration in seconds")
-

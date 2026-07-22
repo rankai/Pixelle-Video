@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/publish-run.v1.schema.json",
+  "title": "PublishRun",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run_id", "package_id", "account_id", "platform", "state", "state_version", "attempt", "current_step", "idempotency_key", "human_confirmation", "created_at", "updated_at"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "run_id": { "type": "string", "pattern": "^run_[A-Za-z0-9_-]+$" },
+    "package_id": { "type": "string", "pattern": "^pkg_[A-Za-z0-9_-]+$" },
+    "account_id": { "type": "string", "pattern": "^acct_[A-Za-z0-9_-]+$" },
+    "platform": { "enum": ["douyin", "video_channel", "kuaishou", "xiaohongshu"] },
+    "state": { "enum": ["queued", "running", "waiting_for_login", "waiting_for_human", "needs_attention", "succeeded", "failed", "cancelled"] },
+    "state_version": { "type": "integer", "minimum": 1 },
+    "attempt": { "type": "integer", "minimum": 1 },
+    "current_step": { "type": ["string", "null"] },
+    "idempotency_key": { "type": "string", "minLength": 8 },
+    "human_confirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "confirmed"],
+      "properties": {
+        "required": { "const": true },
+        "confirmed": { "type": "boolean" },
+        "confirmed_at": { "type": ["string", "null"] },
+        "actor_ref": { "type": ["string", "null"] }
+      }
+    },
+    "created_at": { "type": "string", "minLength": 1 },
+    "updated_at": { "type": "string", "minLength": 1 }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "state": { "const": "succeeded" } } },
+      "then": { "properties": { "human_confirmation": { "properties": { "confirmed": { "const": true } } } } }
+    },
+    {
+      "if": { "properties": { "state": { "const": "waiting_for_human" } } },
+      "then": { "properties": { "human_confirmation": { "properties": { "confirmed": { "const": false } } } } }
+    }
+  ]
+}

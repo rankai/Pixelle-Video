@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "stage": "PROGRAM-ROLLOUT",
+  "gate": "PG-L",
+  "audit_time": "2026-07-21T23:11:26Z",
+  "overall_status": "open",
+  "independent_review": {
+    "status": "passed_with_boundary",
+    "reviewer": "/root/pg_a_closure_reviewer_v3",
+    "scope": "PG-L closure audit and batch 8 one-hour observation synchronization",
+    "code_modification_by_reviewer": false,
+    "review_evidence": "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-pg-l-closure-audit-review-2026-07-21.md",
+    "batch8_review_evidence": "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-implementation-batch-8-one-hour-user-observation-review-2026-07-21.md",
+    "p0": 0,
+    "p1": 0,
+    "substantive_p2": 0
+  },
+  "release_v2_default": false,
+  "douyin_gray_percentage": 0,
+  "non_douyin_release_states_changed": false,
+  "criteria": [
+    {
+      "id": "PG-L-00",
+      "requirement": "PG-A 至 PG-K 全部处于 passed 或 passed_with_boundary",
+      "status": "passed_with_boundary",
+      "evidence": [
+        "docs/reviews/2026-07-18-application-center-publishing-program-progress.md"
+      ],
+      "boundary": "台账中 PG-A 至 PG-K 均已登记为 passed 或 passed_with_boundary；不改变各 Gate 的既有边界。"
+    },
+    {
+      "id": "PG-L-01",
+      "requirement": "工作台使用业务项目并能继续创作/发布",
+      "status": "passed_with_boundary",
+      "evidence": [
+        "docs/reviews/application-publishing-program/COORD-0-core-production-task-2026-07-19.md",
+        "docs/reviews/application-publishing-program/qa/app-baseline/COORD-0-core-production-task.json",
+        "docs/reviews/application-publishing-program/AC-5-implementation-batch-7-implementation-review-2026-07-20.md"
+      ],
+      "boundary": "有真实工作台成片到发布前停手证据，但不等价生产默认 rollout。"
+    },
+    {
+      "id": "PG-L-02",
+      "requirement": "应用中心和发布 V2 可独立开关与回滚",
+      "status": "passed_with_boundary",
+      "evidence": [
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-flag-normalization-2026-07-21.json",
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-privacy-rollback-2026-07-21.json"
+      ],
+      "boundary": "已验证本地 flag 与 V1/V2 状态回滚；不等价真实平台回滚。"
+    },
+    {
+      "id": "PG-L-03",
+      "requirement": "macOS 构建、sidecar、迁移与生命周期证据",
+      "status": "passed_with_boundary",
+      "evidence": [
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-lifecycle-performance-2026-07-21.json",
+        "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-implementation-batch-3-2026-07-21.md",
+        "docs/reviews/application-publishing-program/COORD-0-app-center-migration-dry-run.md"
+      ],
+      "boundary": "本地 macOS arm64/Release 与 10 次 sidecar 生命周期通过。"
+    },
+    {
+      "id": "PG-L-04",
+      "requirement": "Windows 构建证据",
+      "status": "deferred",
+      "evidence": [
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-lifecycle-performance-2026-07-21.json",
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-windows-ci-contract-2026-07-22.json",
+        "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-ci-build-implementation-2026-07-22.md"
+      ],
+      "boundary": "Windows CI workflow 已实现并独立复审通过，但当前尚未执行 Windows Runner、installer/sidecar 产物、安装、启动和重启测试；PG-L-04 继续 deferred，不能视为通过。"
+    },
+    {
+      "id": "PG-L-05",
+      "requirement": "1/15/60 秒媒体预检与 API/UI 性能证据",
+      "status": "passed_with_boundary",
+      "evidence": [
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-lifecycle-performance-2026-07-21.json",
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-crash-lock-p95-rollback-2026-07-21.json"
+      ],
+      "boundary": "本机临时 fixture、API 和 Vite UI p95 已测；不等价原生 WebView、生产负载或平台上传 SLA。"
+    },
+    {
+      "id": "PG-L-06",
+      "requirement": "隐私、诊断和 telemetry 脱敏",
+      "status": "passed_with_boundary",
+      "evidence": [
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-privacy-rollback-2026-07-21.json",
+        "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-implementation-batch-2-2026-07-21.md"
+      ],
+      "boundary": "本地 content-free 规则与诊断脱敏通过；未宣称云端上传或生产数据审计。"
+    },
+    {
+      "id": "PG-L-07",
+      "requirement": "重启、crash、lock 和双向 rollback 恢复",
+      "status": "passed_with_boundary",
+      "evidence": [
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-crash-lock-p95-rollback-2026-07-21.json",
+        "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-implementation-batch-4-review-2026-07-21.md"
+      ],
+      "boundary": "本地隔离 sidecar、临时 profile/JSON 与锁竞争通过；真实平台双向 rollback 仍未执行。"
+    },
+    {
+      "id": "PG-L-08",
+      "requirement": "100 projects/1000 artifacts 有界规模检查",
+      "status": "passed_with_boundary",
+      "evidence": [
+        "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-implementation-batch-6-scale-review-2026-07-21.md",
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-scale-2026-07-21.json",
+        "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-implementation-batch-7-api-ui-scale-2026-07-21.md",
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-scale-api-ui-2026-07-21.json"
+      ],
+      "boundary": "临时 SQLite、FastAPI 和 React 路由的数量与回读通过；不等价生产数据库压测、原生 Tauri WebView SLA 或云端多租户规模。"
+    },
+    {
+      "id": "PG-L-09",
+      "requirement": "至少一个版本、1 小时、20 bounded run 稳定观察窗",
+      "status": "passed_with_boundary",
+      "evidence": [
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-observation-readiness-2026-07-21.json",
+        "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-implementation-batch-8-one-hour-user-observation-2026-07-21.md",
+        "scripts/program_rollout_user_simulation.py",
+        "scripts/program_rollout_observation_probe.py"
+      ],
+      "observed_version": "pixelle-video-desktop@0.1.0",
+      "observed_build_sha256": "3397e254460b959acf75dab084b30e9d02bc2c1d1004942a93faa9857ecdab9b",
+      "version_observed": true,
+      "window_hours_elapsed": 2.819,
+      "durable_create_run_samples": 20,
+      "state_readback_passed": 20,
+      "observation_port_released": true,
+      "build_verified": true,
+      "boundary": "1 小时窗口已由原始起点未修改的真实时间经过与一次用户式本地 UI/API/no-op 复核满足；profile 损坏、真实平台动作、Windows、产品签字和原生 WebView/生产 SLA 仍保持独立边界。"
+    },
+    {
+      "id": "PG-L-10",
+      "requirement": "产品负责人 P0 正式放行签署",
+      "status": "pending_external",
+      "evidence": [
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-observation-readiness-2026-07-21.json"
+      ],
+      "boundary": "product_owner_signoff=pending；不得由自动化线程代签。"
+    },
+    {
+      "id": "PG-L-11",
+      "requirement": "真实平台双向 rollback 与原生 WebView SLA",
+      "status": "not_executed",
+      "evidence": [
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-crash-lock-p95-rollback-2026-07-21.json",
+        "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-entry-2026-07-21.md"
+      ],
+      "boundary": "仅有本地 rehearsal；真实平台动作和需人工确认的 WebView/平台验证保持暂停。"
+    },
+    {
+      "id": "PG-L-12",
+      "requirement": "feature flags 与平台 release state 保持门禁和可审计",
+      "status": "passed_with_boundary",
+      "evidence": [
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-flag-normalization-2026-07-21.json",
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-crash-lock-p95-rollback-2026-07-21.json"
+      ],
+      "boundary": "publish V2 默认关闭、抖音灰度 0%、其他平台 release state 未变；PG-L 和产品签字前禁止 default-on。"
+    },
+    {
+      "id": "PG-L-13",
+      "requirement": "独立严格复审确认 PG-L 退出条件、证据和边界",
+      "status": "passed_with_boundary",
+      "evidence": [
+        "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-pg-l-closure-audit-review-2026-07-21.md"
+      ],
+      "boundary": "独立审计已通过有界复核，但 Windows、观察窗、产品签字和真实平台/WebView 条件仍未满足，因此 PG-L 不关闭。"
+    }
+  ],
+  "closure_rule": "PG-L 只有在所有 criteria 不再为 deferred/not_complete/pending_external/not_executed，且独立复审与产品签署齐全后才可关闭。"
+}

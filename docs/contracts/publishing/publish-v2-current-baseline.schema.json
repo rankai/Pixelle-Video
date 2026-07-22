@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/publish-v2-current-baseline.v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "environment", "evidence_status", "tasks"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "environment": {"type": "string"},
+    "evidence_status": {
+      "enum": ["not_run", "blocked_external_manual", "complete_with_boundary"],
+      "description": "complete_with_boundary means all nine baseline rows have evidence and separated metrics; a row may legitimately be failed (for example task 8) and this value does not mean every task succeeded or that live adapter behavior is released."
+    },
+    "tasks": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["task_id", "name", "status", "evidence_ref", "metrics_ref", "click_count", "automation_ms", "human_wait_ms", "notes"],
+        "properties": {
+          "task_id": {"type": "integer", "minimum": 1, "maximum": 9},
+          "name": {"type": "string"},
+          "status": {"enum": ["not_run", "blocked_external_manual", "passed", "failed"]},
+          "evidence_ref": {"type": ["string", "null"]},
+          "metrics_ref": {"type": ["string", "null"]},
+          "click_count": {"type": ["integer", "null"], "minimum": 0},
+          "automation_ms": {"type": ["integer", "null"], "minimum": 0},
+          "human_wait_ms": {"type": ["integer", "null"], "minimum": 0},
+          "notes": {"type": "string"}
+        }
+      }
+    }
+  }
+}

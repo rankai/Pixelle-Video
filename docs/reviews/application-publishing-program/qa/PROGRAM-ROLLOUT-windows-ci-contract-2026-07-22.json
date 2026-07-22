@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "stage": "PROGRAM-ROLLOUT",
+  "batch": "windows-ci-build",
+  "status": "implementation_pass_with_boundary",
+  "workflow": ".github/workflows/windows-desktop-build.yml",
+  "runner": "windows-latest",
+  "target": "x86_64-pc-windows-msvc",
+  "installer_target": "nsis",
+  "sidecar_target": "pixelle-api-x86_64-pc-windows-msvc.exe",
+  "artifact_manifest": "scripts/windows_desktop_artifact_check.py",
+  "local_contract_tests": {
+    "command": "uv run pytest -q tests/windows_desktop_ci_contract_test.py",
+    "passed": 3,
+    "status": "passed"
+  },
+  "local_yaml_parse": "passed",
+  "local_artifact_checker_fixture": "passed",
+  "independent_review": {
+    "status": "implementation_pass_with_boundary",
+    "reviewer": "/root/pg_a_closure_reviewer_v3",
+    "p0": 0,
+    "p1": 0,
+    "substantive_p2": 0,
+    "evidence": "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-ci-build-review-2026-07-22.md"
+  },
+  "windows_runner_executed": false,
+  "windows_install_test": "pending_windows_manual_install",
+  "pg_l_04": "deferred_until_windows_runner",
+  "release_v2_default": false,
+  "douyin_gray_percentage": 0,
+  "external_actions": 0
+}

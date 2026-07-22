@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "stage": "PROGRAM-ROLLOUT",
+  "batch": "flag-normalization",
+  "status": "implementation_pass_with_boundary",
+  "changed_files": [
+    "desktop/src/flagResolver.ts",
+    "desktop/src/featureFlags.ts",
+    "tests/desktop_build_config_test.py",
+    "desktop/src/flagResolver.test.ts"
+  ],
+  "canonical_behavior": {
+    "canonical_names_supported": true,
+    "documented_aliases_normalized": true,
+    "conflicting_aliases_fail_closed": true,
+    "unknown_values_fail_closed": true,
+    "present_undefined_fails_closed": true,
+    "legacy_safe_defaults_preserved": true
+  },
+  "tests": {
+    "vitest_files": 9,
+    "vitest_tests": 51,
+    "python_tests": 20,
+    "entry_contract_tests": 2,
+    "pydantic_warnings_existing": 12,
+    "ruff": "passed",
+    "json_parse": "passed",
+    "git_diff_check": "passed",
+    "desktop_build": "passed"
+  },
+  "rollout": {
+    "publish_v2_default_enabled": false,
+    "douyin_release_state": "gray",
+    "douyin_rollout_percentage": 0,
+    "non_douyin_release_states_changed": false,
+    "final_publish_click_count": 0,
+    "external_actions": 0
+  },
+  "privacy": {
+    "api_keys_or_cookies_recorded": false,
+    "account_identifiers_recorded": false,
+    "signed_urls_recorded": false,
+    "absolute_paths_recorded": false
+  },
+  "boundary": "Flag normalization is implemented and locally verified, including present undefined/non-string/unknown/conflicting values failing closed even when a flag default is true. Packaged lifecycle, soak, performance, diagnostic export, rollback and stable observation evidence remain open for later batches; no platform or final publish action was executed."
+}

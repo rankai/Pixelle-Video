@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/publish-local-capability.v1.json",
+  "title": "Desktop local publishing capability",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["mode", "token", "token_ttl_seconds", "allowed_origins", "mutating_methods"],
+  "properties": {
+    "mode": { "const": "desktop_local" },
+    "token": { "type": "string", "pattern": "^cap_[A-Za-z0-9_-]{32,}$" },
+    "token_ttl_seconds": { "type": "integer", "minimum": 60, "maximum": 3600 },
+    "allowed_origins": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "enum": ["tauri://localhost", "http://127.0.0.1:1420", "http://localhost:1420"] },
+      "uniqueItems": true
+    },
+    "mutating_methods": { "const": ["POST", "PUT", "PATCH", "DELETE"] },
+    "final_publish_endpoint": { "const": false },
+    "missing_or_expired_token": { "const": "403 CAPABILITY_REQUIRED" },
+    "wrong_origin": { "const": "403 ORIGIN_NOT_ALLOWED" }
+  }
+}

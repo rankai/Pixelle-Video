@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/app-center/app-run-state.v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "state", "state_version", "attempt", "idempotency_key"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "state": {"enum": ["draft", "queued", "running", "needs_review", "completed", "failed", "cancelled"]},
+    "state_version": {"type": "integer", "minimum": 1},
+    "attempt": {"type": "integer", "minimum": 1},
+    "idempotency_key": {"type": "string", "minLength": 8}
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "platform": "douyin",
+  "purpose": "PUB-0 deterministic local DOM fixture inventory; no account, cookie, QR payload, token, or production URL",
+  "coverage_scope": "state markers, semantic selectors, privacy redaction, and SHA inventory only; behavioral probe harness is deferred to PUB-3",
+  "fixtures": [
+    {"fixture_id": "logged_in", "path": "dom/douyin/logged-in.html", "state": "signed_in", "sha256": "sha256:b036b12e8d0534521bb1468a078d7f27b98cf07e840d16820dcd04d1f7bd4de5", "required_markers": ["data-auth-state=\"signed_in\"", "data-testid=\"creator-upload\""]},
+    {"fixture_id": "logged_out", "path": "dom/douyin/logged-out.html", "state": "signed_out", "sha256": "sha256:cab7bc76db279b90ddce23e6819c9e87a605ea7fd816b30b4f79ea833accbaeb", "required_markers": ["data-auth-state=\"signed_out\"", "data-testid=\"login-entry\""]},
+    {"fixture_id": "captcha", "path": "dom/douyin/captcha.html", "state": "captcha", "sha256": "sha256:79906b7c1278a985434aaba57603c4aa64ef3f402821149268850ed7fa68a151", "required_markers": ["data-state=\"captcha\"", "data-testid=\"human-check\""]},
+    {"fixture_id": "loading", "path": "dom/douyin/loading.html", "state": "loading", "sha256": "sha256:5e5c0ba32f0ef4ec1f4e3d70a719125855fbacb0ca623772e16e29b443a51031", "required_markers": ["data-state=\"loading\"", "data-testid=\"page-loading\""]},
+    {"fixture_id": "network_error", "path": "dom/douyin/network-error.html", "state": "network_error", "sha256": "sha256:33232cfd379279479fc2b100d8958840f4faf4f73af6b8d8998353731c34824c", "required_markers": ["data-state=\"network_error\"", "data-testid=\"retry-page\""]},
+    {"fixture_id": "upload_entry", "path": "dom/douyin/upload-entry.html", "state": "upload_entry", "sha256": "sha256:d8f708b7591ae03cb9d20689cb2359954040c460cc336fb06bcf93bcf384770e", "required_markers": ["data-testid=\"upload-video\"", "type=\"file\""]},
+    {"fixture_id": "upload_progress", "path": "dom/douyin/upload-progress.html", "state": "uploading", "sha256": "sha256:78c1e3bc1d386ab954870dc096b2c1d9ce7bf81b02ce456636f6b5bdd64126ff", "required_markers": ["data-testid=\"upload-progress\"", "aria-valuenow=\"50\""]},
+    {"fixture_id": "processing", "path": "dom/douyin/processing.html", "state": "processing", "sha256": "sha256:bacfc3dadda6b66a79f3f57a5fe66a02da8360a0502795a9668c053c86dfba04", "required_markers": ["data-testid=\"platform-processing\"", "data-progress=\"10\""]},
+    {"fixture_id": "editor_fields", "path": "dom/douyin/editor-fields.html", "state": "editor_ready", "sha256": "sha256:a674c71de47e441c626bcd4ff6c859653a6713755ec7b9044b0e1a23f1be2f0e", "required_markers": ["data-testid=\"title-input\"", "data-placeholder=\"简介\"", "data-testid=\"hashtag-editor\""]},
+    {"fixture_id": "cover_modal", "path": "dom/douyin/cover-modal.html", "state": "cover_modal", "sha256": "sha256:04e1c4c6efebe88e2d237ca49ebb9cb3256a4110487bb94802b5a5e0dff98045", "required_markers": ["data-testid=\"cover-modal\"", "data-testid=\"cover-save\""]},
+    {"fixture_id": "cover_error", "path": "dom/douyin/cover-error.html", "state": "cover_error", "sha256": "sha256:e75da431988404a763892f087cb9d3e48a446b4e4a07dfd84ab1dc8a4015f8dc", "required_markers": ["data-testid=\"cover-error\"", "data-error-code=\"REJECT_DIMENSIONS\""]},
+    {"fixture_id": "waiting_for_human", "path": "dom/douyin/waiting-for-human.html", "state": "waiting_for_human", "sha256": "sha256:158847ba98b537ea42c6934ceef81190225991ff2021b8f9ef3aef8655c32f2b", "required_markers": ["data-testid=\"final-publish\"", "data-guard=\"deny\"", "data-state=\"waiting_for_human\""]},
+    {"fixture_id": "unknown_page", "path": "dom/douyin/unknown-page.html", "state": "unknown", "sha256": "sha256:08bf96fd9860651b904294f6a9d8064af9eba9ecbac276afd4872f42fb57234a", "required_markers": ["data-state=\"unknown\"", "data-error-code=\"PLATFORM_PAGE_CHANGED\""]}
+  ]
+}

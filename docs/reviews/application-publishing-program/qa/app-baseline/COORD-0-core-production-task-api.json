@@ -1,0 +1,254 @@
+{
+  "task_id": "f1edf647-4d4d-45e9-a845-4a46203514b7",
+  "task_type": "ip_broadcast_step",
+  "status": "completed",
+  "progress": {
+    "current": 3,
+    "total": 3,
+    "percentage": 100.0,
+    "message": "步骤执行完成。"
+  },
+  "result": {
+    "session_id": "11fb418e06664fa2a4d214f64c5f736b",
+    "current_step": 6,
+    "completed_steps": 5,
+    "next_action": {
+      "key": "publish",
+      "step": 6,
+      "label": "查看并下载",
+      "description": "最终视频和发布素材已准备好",
+      "disabled": false
+    },
+    "missing_requirements": [],
+    "step_status": {
+      "1": "done",
+      "2": "done",
+      "3": "done",
+      "4": "done",
+      "5": "done",
+      "6": "ready"
+    },
+    "notices": {
+      "5": {
+        "kind": "success",
+        "message": "步骤执行完成"
+      }
+    },
+    "artifacts": {
+      "final_video": "/Users/nickfury/projects/pixelle-video/output/ipb_5c967246_final.mp4",
+      "cover": "/Users/nickfury/projects/pixelle-video/temp/ipb_cover_5c967246.png",
+      "script": "/Users/nickfury/projects/pixelle-video/output/ipb_11fb418e_script.txt",
+      "publish_package_json": "/Users/nickfury/projects/pixelle-video/output/ipb_11fb418e_publish_package.json"
+    },
+    "state": {
+      "source_mode": "paste",
+      "video_input": "",
+      "business_preset_id": "",
+      "business_goal_name": "门店探店",
+      "business_script_structure": [],
+      "business_visual_strategy": "",
+      "business_publish_platforms": [
+        "douyin"
+      ],
+      "business_intent_note": "",
+      "brand_kit_id": "",
+      "brand_bgm_asset_id": "",
+      "bgm_asset_id": "",
+      "source_text": "门店老板实测：把一条真实顾客反馈讲清楚，短视频才更容易带来进店咨询。",
+      "source_label": "",
+      "video_type": "口播文案",
+      "copy_type": "人设型",
+      "industry_persona": "",
+      "selling_points": "",
+      "target_customer": "",
+      "conversion_phrase": "",
+      "other_reqs": "",
+      "ip_profile_url": "",
+      "ip_manual_video_links": "",
+      "ip_learning_video_urls": [],
+      "ip_learning_scripts": [],
+      "ip_learning_errors": [],
+      "ip_learning_topics": [],
+      "ip_learning_summary": "",
+      "ip_learning_selected_topic": "",
+      "ip_learning_requires_topic_confirmation": false,
+      "style_prompt": "口语化、亲切自然、有感染力",
+      "word_count": 200,
+      "final_script": "门店老板实测：把一条真实顾客反馈讲清楚，短视频才更容易带来进店咨询。\n今天用一条真实案例，演示从口播到成片的完整流程。",
+      "copywriting_confirmed": true,
+      "tts_inference_mode": "local",
+      "tts_voice": "zh-CN-YunjianNeural",
+      "tts_speed": 1.2,
+      "tts_pitch": 0,
+      "tts_volume": 0,
+      "tts_workflow": "runninghub/tts_index_custom.json",
+      "tts_workflow_language": "zh-CN",
+      "tts_workflow_voice": "[Chinese] zh-CN Yunjian",
+      "tts_workflow_speed": 1.0,
+      "tts_workflow_pitch": 0,
+      "tts_index_mode": "Auto",
+      "tts_index_do_sample_mode": "on",
+      "tts_temperature": 0.8,
+      "tts_top_p": 0.9,
+      "tts_top_k": 30,
+      "tts_num_beams": 3,
+      "tts_repetition_penalty": 10.0,
+      "tts_length_penalty": 0.0,
+      "tts_max_mel_tokens": 1500,
+      "tts_max_tokens_per_sentence": 120,
+      "tts_seed": 0,
+      "tts_spark_gender": "male",
+      "tts_spark_speed": "moderate",
+      "tts_spark_pitch": "moderate",
+      "tts_max_new_tokens": 3000,
+      "tts_do_sample": true,
+      "tts_ref_audio_id": "",
+      "tts_ref_audio_path": "",
+      "audio_path": "/Users/nickfury/projects/pixelle-video/data/ip_broadcast_cache/tts/f1f88fcdabc37407c22803d2fcba4030ac4aedf72467709b7a835b64833ff571.mp3",
+      "portrait_id": "",
+      "portrait_path": "/Users/nickfury/projects/pixelle-video/data/portraits/9767582bcb3b.png",
+      "portrait_media_type": "image",
+      "digital_human_scene_id": "",
+      "digital_human_workflow": "workflows/runninghub/digital_combination.json",
+      "digital_human_prompt": "自然口播，正面镜头，表情稳定，唇形同步",
+      "digital_human_duration": 0.0,
+      "digital_human_width": 720,
+      "digital_human_height": 1280,
+      "digital_human_video_path": "/Users/nickfury/projects/pixelle-video/data/ip_broadcast_cache/digital_human/0060699b0f79eabd621a23d2637a182fae3f99e7dbfd5b780ff4591ef78e74ef.mp4",
+      "output_canvas_width": 1080,
+      "output_canvas_height": 1920,
+      "template_id": "boss_clean",
+      "story_segments": [],
+      "visual_groups": [],
+      "video_plan": {},
+      "video_plan_status": "empty",
+      "video_plan_applied": false,
+      "overlay_enabled": false,
+      "subtitle_enabled": true,
+      "bgm_path": "",
+      "bgm_volume": 0.3,
+      "voice_volume": 1.0,
+      "remove_silence": false,
+      "final_video_path": "/Users/nickfury/projects/pixelle-video/output/ipb_5c967246_final.mp4",
+      "title": "门店老板短视频实测",
+      "description": "门店老板实测：从真实反馈到口播成片。",
+      "hashtags": [
+        "门店营销",
+        "短视频运营"
+      ],
+      "cover_path": "/Users/nickfury/projects/pixelle-video/temp/ipb_cover_5c967246.png",
+      "publish_package": {
+        "video_path": "/Users/nickfury/projects/pixelle-video/output/ipb_5c967246_final.mp4",
+        "cover_path": "/Users/nickfury/projects/pixelle-video/temp/ipb_cover_5c967246.png",
+        "title": "门店老板短视频实测",
+        "description": "门店老板实测：从真实反馈到口播成片。",
+        "cover_title": "门店老板短视频实测",
+        "comment_cta": "想知道门店地址，评论区打“位置”。",
+        "hashtags": [
+          "门店营销",
+          "短视频运营"
+        ],
+        "preferred_platforms": [
+          "douyin"
+        ],
+        "script": "门店老板实测：把一条真实顾客反馈讲清楚，短视频才更容易带来进店咨询。\n今天用一条真实案例，演示从口播到成片的完整流程。",
+        "script_summary": "门店老板实测：把一条真实顾客反馈讲清楚，短视频才更容易带来进店咨询。\n今天用一条真实案例，演示从口播到成片的完整流程。",
+        "platform_suggestions": {
+          "douyin": {
+            "title": "门店老板短视频实测",
+            "description": "门店老板实测：从真实反馈到口播成片。\n#门店营销 #短视频运营",
+            "hashtags": [
+              "门店营销",
+              "短视频运营"
+            ]
+          },
+          "xiaohongshu": {
+            "title": "门店老板短视频实测",
+            "description": "门店老板实测：从真实反馈到口播成片。\n\n#门店营销 #短视频运营",
+            "hashtags": [
+              "门店营销",
+              "短视频运营"
+            ]
+          },
+          "shipinhao": {
+            "title": "门店老板短视频实测",
+            "description": "门店老板实测：从真实反馈到口播成片。",
+            "hashtags": [
+              "门店营销",
+              "短视频运营"
+            ]
+          },
+          "kuaishou": {
+            "title": "门店老板短视频实测",
+            "description": "门店老板实测：从真实反馈到口播成片。 #门店营销 #短视频运营",
+            "hashtags": [
+              "门店营销",
+              "短视频运营"
+            ]
+          }
+        }
+      },
+      "platform_suggestions": {
+        "douyin": {
+          "title": "门店老板短视频实测",
+          "description": "门店老板实测：从真实反馈到口播成片。\n#门店营销 #短视频运营",
+          "hashtags": [
+            "门店营销",
+            "短视频运营"
+          ]
+        },
+        "xiaohongshu": {
+          "title": "门店老板短视频实测",
+          "description": "门店老板实测：从真实反馈到口播成片。\n\n#门店营销 #短视频运营",
+          "hashtags": [
+            "门店营销",
+            "短视频运营"
+          ]
+        },
+        "shipinhao": {
+          "title": "门店老板短视频实测",
+          "description": "门店老板实测：从真实反馈到口播成片。",
+          "hashtags": [
+            "门店营销",
+            "短视频运营"
+          ]
+        },
+        "kuaishou": {
+          "title": "门店老板短视频实测",
+          "description": "门店老板实测：从真实反馈到口播成片。 #门店营销 #短视频运营",
+          "hashtags": [
+            "门店营销",
+            "短视频运营"
+          ]
+        }
+      },
+      "script_summary": "门店老板实测：把一条真实顾客反馈讲清楚，短视频才更容易带来进店咨询。\n今天用一条真实案例，演示从口播到成片的完整流程。",
+      "resource_snapshot_ids": [
+        "snapshot-3b5317ad621e42299584a59e3157adfc"
+      ]
+    }
+  },
+  "error": null,
+  "created_at": "2026-07-19T17:13:57.015273",
+  "started_at": "2026-07-19T17:13:57.018489",
+  "completed_at": "2026-07-19T17:14:11.048086",
+  "request_params": {
+    "session_id": "11fb418e06664fa2a4d214f64c5f736b",
+    "step_key": "postproduction"
+  },
+  "display_name": "一键成片",
+  "flow_name": "IP口播",
+  "step_key": "postproduction",
+  "session_id": "11fb418e06664fa2a4d214f64c5f736b",
+  "artifact_keys": [
+    "final_video",
+    "publish_package_json",
+    "script"
+  ],
+  "duration_ms": 14029,
+  "retry_payload": {
+    "kind": "ip_broadcast_step",
+    "session_id": "11fb418e06664fa2a4d214f64c5f736b",
+    "step_key": "postproduction"
+  }
+}

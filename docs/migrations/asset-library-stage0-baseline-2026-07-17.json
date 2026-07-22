@@ -1,0 +1,97 @@
+{
+  "schema_version": "asset-library-stage0-baseline-v1",
+  "generated_at": "2026-07-17T07:34:02.543884+00:00",
+  "data_root_name": "data",
+  "manifests": [
+    {
+      "resource_kind": "video",
+      "relative_path": "video_assets/overlay/video_assets.json",
+      "exists": true,
+      "sha256": "8c6fa00455c8ede9084d113405ecf15d0adeb8433ad79e0ecbb99fdfd26147c2",
+      "record_count": 2,
+      "legacy_ids": [
+        "38e71df447c6",
+        "9f021312c89c"
+      ],
+      "referenced_files": [
+        "video_assets/overlay/38e71df447c6.mp4",
+        "video_assets/overlay/38e71df447c6_cover.jpg",
+        "video_assets/overlay/9f021312c89c.mp4",
+        "video_assets/overlay/9f021312c89c_cover.jpg"
+      ],
+      "referenced_file_checksums": {
+        "video_assets/overlay/38e71df447c6.mp4": "f3d6e04267c59c11d5ed86c3614e3b519e81489bc99ab1f7661b39369e54c5d0",
+        "video_assets/overlay/38e71df447c6_cover.jpg": "6c0ce93360536e7a0015b32268923d5fa0f32638d12d0dab9192e1a783503c0b",
+        "video_assets/overlay/9f021312c89c.mp4": "d1b0e1900a9054ba45d131352f0e658e5acb49fe0de78863b7aa18958bb5619b",
+        "video_assets/overlay/9f021312c89c_cover.jpg": "aaf4c7996239fc706df8f86f2a14caa6ec4168f39beec8b66837211101b1a265"
+      }
+    },
+    {
+      "resource_kind": "image",
+      "relative_path": "image_assets/image_assets.json",
+      "exists": false,
+      "sha256": null,
+      "record_count": 0,
+      "legacy_ids": [],
+      "referenced_files": [],
+      "referenced_file_checksums": {}
+    },
+    {
+      "resource_kind": "digital_human",
+      "relative_path": "portraits/portraits.json",
+      "exists": true,
+      "sha256": "28017afc700b4c1111058bb773b03de39a2110d67c6bccd605134f41bb84c4bc",
+      "record_count": 2,
+      "legacy_ids": [
+        "9767582bcb3b",
+        "cf89d6806c28"
+      ],
+      "referenced_files": [
+        "portraits/9767582bcb3b.png",
+        "portraits/cf89d6806c28.png"
+      ],
+      "referenced_file_checksums": {
+        "portraits/9767582bcb3b.png": "816f217c5a1a405e328c4127e43aa3a6a01965984d97fccb142c205637761418",
+        "portraits/cf89d6806c28.png": "754640e95adf9012e246d6e66708a5797de00dd8ef430b00f37d684238a708a8"
+      }
+    },
+    {
+      "resource_kind": "voice",
+      "relative_path": "voice_references/voice_references.json",
+      "exists": true,
+      "sha256": "5c558d79a3f43ca521eb62cef9576e5f1d7a885f8ab674d389b646b72d60d35a",
+      "record_count": 2,
+      "legacy_ids": [
+        "41fe2946b77c",
+        "305875630955"
+      ],
+      "referenced_files": [
+        "voice_references/305875630955.flac",
+        "voice_references/41fe2946b77c.mp3"
+      ],
+      "referenced_file_checksums": {
+        "voice_references/305875630955.flac": "f4caa2158f7ff3b0318857465b9ecb0fa3538f0828b16e9d222117f6a417007e",
+        "voice_references/41fe2946b77c.mp3": "d3b84d5237dd138220a1f66ebc02a9170f862dbe58eab5267d40096b6dfb50ee"
+      }
+    },
+    {
+      "resource_kind": "brand",
+      "relative_path": "brand_kits/brand_kits.json",
+      "exists": true,
+      "sha256": "e8469be985429aefc47236173fb4fa12d880c3831638c4ccbc41696d22ee8c27",
+      "record_count": 1,
+      "legacy_ids": [
+        "268bf0210cc8"
+      ],
+      "referenced_files": [],
+      "referenced_file_checksums": {}
+    }
+  ],
+  "missing_files": [],
+  "rollback": {
+    "original_files_untouched": true,
+    "manifest_backup_required": true,
+    "migration_is_transactional": true,
+    "restore_strategy": "restore manifest backup and keep original media files"
+  }
+}

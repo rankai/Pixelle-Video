@@ -1,0 +1,15 @@
+{
+    "source": "runninghub",
+    "type": "ai_app",
+    "webapp_id": "2030929648594460673",
+    "display_name": "数字人口播（图片形象 + 提示词）",
+    "ip_broadcast": {
+        "description": "参数：音频、图片形象、时长、提示词描述。该 AI App 仅支持图片形象，不支持视频形象。",
+        "params": {
+            "audio": {"node_id": "48", "field_name": "audio", "description": "audio"},
+            "portrait": {"node_id": "35", "field_name": "image", "description": "image"},
+            "duration": {"node_id": "115", "field_name": "value", "description": "时长S"},
+            "prompt": {"node_id": "105", "field_name": "text", "description": "prompt"}
+        }
+    }
+}

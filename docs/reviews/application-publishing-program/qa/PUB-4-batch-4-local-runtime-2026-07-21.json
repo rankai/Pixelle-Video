@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "stage": "PUB-INTEGRATION",
+  "batch": "PUB-4-implementation-batch-4",
+  "status": "passed_local_bounded",
+  "recovery": {
+    "refresh": {"status": "passed", "evidence": "AppShell canonical publish query test"},
+    "leave_return": {"status": "passed", "evidence": "Hash route handoff remains canonical; no local path projection"},
+    "restart_simulation": {"status": "passed", "evidence": "AppShell unmount/remount with empty hash restores persisted package/artifact query"}
+  },
+  "fallback": {
+    "adapter_error": "ADAPTER_UNAVAILABLE",
+    "copy_available": true,
+    "download_available": true,
+    "fallback_route": "#/ip",
+    "exposed_absolute_paths": [],
+    "exposed_secrets": []
+  },
+  "resolver_runtime": {
+    "unique": {"status_code": 200},
+    "stale": {"status_code": 409, "error": "PUBLISH_PACKAGE_STALE"},
+    "ambiguous": {"status_code": 409, "error": "PUBLISH_PACKAGE_AMBIGUOUS"}
+  },
+  "external_actions": {
+    "browser": 0,
+    "authorization": 0,
+    "upload": 0,
+    "publish_run_create": 0,
+    "final_publish": 0
+  },
+  "boundaries": [
+    "本地 AppShell remount/restart simulation，不等价打包 Tauri 重启",
+    "不声称跨进程 CAS/锁清理",
+    "不声称真实平台或最终发布"
+  ]
+}

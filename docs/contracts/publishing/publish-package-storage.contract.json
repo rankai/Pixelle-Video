@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/publish-package-storage.v1.json",
+  "title": "PublishPackage storage validation authority",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["immutable_columns", "json_validation_authority", "legacy_read_policy"],
+  "properties": {
+    "immutable_columns": { "const": ["schema_version", "project_id", "source", "artifact_refs", "video_manifest", "carousel_manifests", "cover_manifest", "platform_copy", "policy", "package_fingerprint", "created_at"] },
+    "json_validation_authority": { "const": "PublishPackageV2 domain validator before repository insert; SQL stores valid JSON and enforces immutability" },
+    "legacy_read_policy": { "const": "existing legacy rows may be read by adapter but cannot be used to create a new V2 run without preflight" }
+  }
+}

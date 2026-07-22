@@ -71,9 +71,19 @@ async def tts_synthesize(
         # Add ref_audio if specified
         if request.ref_audio:
             tts_params["ref_audio"] = request.ref_audio
+        if request.inference_mode:
+            tts_params["inference_mode"] = request.inference_mode
+        if request.voice:
+            tts_params["voice"] = request.voice
+        if request.speed is not None:
+            tts_params["speed"] = request.speed
+        if request.pitch is not None:
+            tts_params["pitch"] = request.pitch
+        if request.volume is not None:
+            tts_params["volume"] = request.volume
         
         # Legacy voice_id support (deprecated)
-        if request.voice_id and not request.workflow:
+        if request.voice_id and not request.workflow and not request.voice:
             logger.warning("voice_id parameter is deprecated, please use workflow instead")
             tts_params["voice"] = request.voice_id
         
@@ -91,4 +101,3 @@ async def tts_synthesize(
     except Exception as e:
         logger.error(f"TTS synthesis error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-

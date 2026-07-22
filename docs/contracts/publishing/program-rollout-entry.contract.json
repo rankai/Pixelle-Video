@@ -1,0 +1,145 @@
+{
+  "contract_id": "program-rollout-entry",
+  "schema_version": 1,
+  "stage": "PROGRAM-ROLLOUT",
+  "source_stages": ["AC-6", "PUB-7D"],
+  "upstream_gates": {
+    "required": ["PG-A", "PG-B", "PG-C", "PG-D", "PG-E", "PG-F", "PG-G", "PG-H", "PG-I", "PG-J", "PG-K"],
+    "accepted_statuses": ["passed", "passed_with_boundary"],
+    "all_required": true
+  },
+  "required_evidence": {
+    "entry_gate_pg_k_passed_with_boundary": true,
+    "workbench_and_legacy_fallback_scope": true,
+    "feature_flag_matrix": true,
+    "telemetry_and_diagnostic_redaction": true,
+    "packaged_macos_and_sidecar_lifecycle": true,
+    "restart_and_bounded_run_soak": true,
+    "performance_fixture_baseline": true,
+    "bidirectional_v1_v2_rollback": true,
+    "douyin_only_gray_release": true,
+    "non_douyin_release_states_unchanged": true,
+    "navigation_and_scale_boundary": true,
+    "windows_build_and_migration_boundary": true,
+    "product_owner_release_signoff_boundary": true,
+    "stable_observation_window_definition": true
+  },
+  "forbidden": {
+    "final_publish_click": true,
+    "third_party_auth_or_qr": true,
+    "new_platform_adapter": true,
+    "admin_rbac_plan_payment": true,
+    "second_model_source": true,
+    "destructive_profile_or_data_cleanup": true,
+    "cloud_deployment": true,
+    "fixture_claimed_as_platform_success": true,
+    "unknown_flag_defaults_to_on": true,
+    "telemetry_upload": true
+  },
+  "feature_flags": {
+    "required": [
+      "VITE_APP_CENTER_SHELL",
+      "VITE_CONTENT_PROJECTS",
+      "VITE_CONTENT_APPS",
+      "VITE_DOUYIN_CAROUSEL",
+      "VITE_APP_CENTER_DIGITAL_HUMAN",
+      "VITE_APP_CENTER_NEW_NAV",
+      "VITE_PUBLISH_CENTER_V2",
+      "VITE_ASSET_CENTER_V2",
+      "VITE_ASSET_CENTER_SMB_UX",
+      "PIXELLE_APP_CENTER_CONTENT_APPS",
+      "PIXELLE_APP_CENTER_DOUYIN_CAROUSEL",
+      "PIXELLE_APP_CENTER_DIGITAL_HUMAN",
+      "PIXELLE_ASSET_CENTER_V2",
+      "PIXELLE_PUBLISH_V2_ENABLED",
+      "PIXELLE_PUBLISH_PLATFORM_DOUYIN",
+      "PIXELLE_PUBLISH_PLATFORM_KUAISHOU",
+      "PIXELLE_PUBLISH_PLATFORM_SHIPINHAO",
+      "PIXELLE_PUBLISH_PLATFORM_XIAOHONGSHU"
+    ],
+    "default_policy": "off_or_existing_legacy_safe",
+    "fail_closed_unknown_or_conflicting": true,
+    "matrix_cases": ["all_off_legacy", "douyin_gray_only", "unknown_flag_fail_closed", "conflicting_v2_off_platform_on"],
+    "canonical_env": {
+      "contentApps": {"backend_env": "PIXELLE_APP_CENTER_CONTENT_APPS", "desktop_env": "VITE_CONTENT_APPS", "default": false},
+      "douyinCarousel": {"backend_env": "PIXELLE_APP_CENTER_DOUYIN_CAROUSEL", "desktop_env": "VITE_DOUYIN_CAROUSEL", "default": false},
+      "digitalHumanInAppCenter": {"backend_env": "PIXELLE_APP_CENTER_DIGITAL_HUMAN", "desktop_env": "VITE_APP_CENTER_DIGITAL_HUMAN", "default": false},
+      "publishV2": {"backend_env": "PIXELLE_PUBLISH_V2_ENABLED", "desktop_env": "VITE_PUBLISH_CENTER_V2", "default": false},
+      "appCenterShell": {"backend_env": null, "desktop_env": "VITE_APP_CENTER_SHELL", "default": false},
+      "contentProjects": {"backend_env": null, "desktop_env": "VITE_CONTENT_PROJECTS", "default": false},
+      "newNav": {"backend_env": null, "desktop_env": "VITE_APP_CENTER_NEW_NAV", "default": false},
+      "assetV2": {"backend_env": "PIXELLE_ASSET_CENTER_V2", "desktop_env": "VITE_ASSET_CENTER_V2", "default": true}
+    },
+    "alias_policy": {
+      "VITE_DIGITAL_HUMAN_IN_APP_CENTER": {"canonical": "VITE_APP_CENTER_DIGITAL_HUMAN", "action": "normalize_before_build"},
+      "VITE_PUBLISH_V2_ENABLED": {"canonical": "VITE_PUBLISH_CENTER_V2", "action": "normalize_before_build"},
+      "logical_contentApps": {"canonical_backend": "PIXELLE_APP_CENTER_CONTENT_APPS", "canonical_desktop": "VITE_CONTENT_APPS", "action": "resolve_via_registry"},
+      "unknown_or_conflicting": {"action": "reject_and_use_legacy_safe_defaults"}
+    }
+  },
+  "compatibility_scope": {
+    "navigation_dead_ends": {"required": true, "target": "zero"},
+    "project_scale": {"projects": 100, "artifacts": 1000, "required": true, "target": "bounded_ui_and_api_response"},
+    "windows_build": {"required": false, "status": "explicitly_deferred_with_followup_gate"},
+    "migration_forward_backward": {"required": true, "rollback_safe": true},
+    "product_owner_signoff": {"required_before_pg_l_close": true, "status": "manual_signoff_artifact"}
+  },
+  "soak_requirements": {
+    "app_restart_count": 10,
+    "sidecar_restart_count": 10,
+    "bounded_run_count": 10,
+    "crash_recovery_cases": 2,
+    "profile_lock_contention_cases": 2,
+    "each_cycle_requires": ["health", "port_released", "run_state_reconciled", "external_actions_zero"],
+    "success_conditions": {"duplicate_uploads": 0, "final_publish_clicks": 0, "unaccounted_runs": 0}
+  },
+  "performance_requirements": {
+    "media_fixture_seconds": [1, 15, 60],
+    "sample_count_per_fixture": 10,
+    "statistics": ["p50", "p95"],
+    "metrics": ["create_run_api_ms", "account_list_api_ms", "active_run_ui_visibility_ms", "media_preflight_ms", "local_overhead_ms", "platform_wait_ms"],
+    "thresholds": {"create_run_api_p95_ms": 300, "account_list_api_p95_ms": 200, "active_run_ui_p95_ms": 1500, "media_preflight_p95_ms": 3000},
+    "external_platform_upload_absolute_sla": false
+  },
+  "privacy_requirements": {
+    "allowlist_dimensions": ["platform", "adapter_version", "step", "error_code", "duration_bucket", "app_version"],
+    "forbidden_fields": ["api_key", "authorization", "cookie", "qr", "account_id", "account_nickname", "profile_path", "signed_url", "full_url_query", "title", "description", "media_content", "absolute_path"],
+    "local_only": true,
+    "upload_default": false,
+    "raw_screenshot_default": false,
+    "export_preview_required": true
+  },
+  "rollback_requirements": {
+    "directions": ["v2_to_v1", "v1_to_v2"],
+    "legacy_entry_available": true,
+    "copy_download_available": true,
+    "history_readable": true,
+    "active_and_waiting_runs_preserved": true,
+    "profile_preserved": true,
+    "data_deleted": false,
+    "upload_count_delta": 0,
+    "external_actions": 0
+  },
+  "stable_observation_window": {
+    "minimum_versions": 1,
+    "minimum_hours": 1,
+    "minimum_bounded_runs": 20,
+    "policy_amendment": "PROGRAM-ROLLOUT-observation-window-policy-amendment-2026-07-21",
+    "required_metrics": ["p95_create_run_api_ms", "duplicate_uploads", "final_publish_clicks", "profile_lock_conflicts", "crash_recoveries"],
+    "rollback_triggers": ["P0", "P1", "duplicate_upload", "unexpected_final_click", "profile_corruption"],
+    "owner": "product_owner_and_luna",
+    "signoff_required": true
+  },
+  "release_policy": {
+    "douyin": {"release_state": "gray", "cohort": "isolated_test_accounts_then_opt_in", "rollout_percentage": 0, "default_on_allowed_in_entry": false, "default_on_condition": "PG-L_passed_and_product_owner_signed_and_observation_window_passed"},
+    "kuaishou": {"release_state": "unchanged"},
+    "shipinhao": {"release_state": "unchanged"},
+    "xiaohongshu": {"release_state": "unchanged"}
+  },
+  "exit_gate": {
+    "requires_independent_six_dimension_review": true,
+    "p0_p1_must_be_zero": true,
+    "stable_observation_window_required": true,
+    "only_then_may_close_pg_l": true
+  }
+}

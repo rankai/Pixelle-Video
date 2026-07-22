@@ -30,8 +30,9 @@ import os
 import re
 import tempfile
 import uuid
-from typing import Dict, Any, Optional
 from pathlib import Path
+from typing import Any, Dict, Optional
+
 from loguru import logger
 
 from pixelle_video.utils.template_util import parse_template_size
@@ -289,7 +290,6 @@ class HTMLFrameGenerator:
         
         def replacer(match):
             param_name = match.group(1)
-            param_type = match.group(2) or 'text'
             default_value_str = match.group(3)
             
             if param_name in values:
@@ -326,6 +326,9 @@ class HTMLFrameGenerator:
             cls._browser = None
             cls._playwright = None
             from playwright.async_api import async_playwright
+
+            from pixelle_video.utils.chromium import playwright_chromium_launch_options
+
             cls._playwright = await async_playwright().start()
             cls._browser = await cls._playwright.chromium.launch(
                 args=[
@@ -333,7 +336,8 @@ class HTMLFrameGenerator:
                     '--disable-dev-shm-usage',
                     '--disable-gpu',
                     '--disable-extensions',
-                ]
+                ],
+                **playwright_chromium_launch_options(),
             )
             cls._browser_loop = current_loop
             logger.debug("Initialized Playwright Chromium browser")

@@ -1,0 +1,190 @@
+{
+  "schema_version": "asset-library-ux0-gate-v1",
+  "generated_at": "2026-07-18T07:30:36.798032+00:00",
+  "status": "pass",
+  "checks": {
+    "adrs_complete": true,
+    "schemas_complete": true,
+    "fixtures_complete": true,
+    "template_valid_fixture_loads": true,
+    "baseline_has_no_missing_files": true,
+    "voice_dry_run_only": true,
+    "voice_sessions_resolvable": true,
+    "rollback_pass": true,
+    "rollback_preserves_source": true,
+    "rollback_preserves_media": true,
+    "current_version_baseline_recordings": true,
+    "uxa_formal_evidence_review": true
+  },
+  "artifacts": {
+    "adrs": [
+      {
+        "path": "002-asset-center-smb-ux-a-contracts.md",
+        "exists": true,
+        "sha256": "7a683f0e364ac48d35bb802f09352b3d0c82619eeaf9267fb57ce729a8c3852d"
+      },
+      {
+        "path": "003-template-layout-contract-v2.md",
+        "exists": true,
+        "sha256": "cb1257abb48fb0414fb333038e0a0214f9b870a6bbc88ef089903443801f73e5"
+      },
+      {
+        "path": "004-voice-profile.md",
+        "exists": true,
+        "sha256": "2bb47df1b3440679f87d42d2d426a2768fa08e50bc56f4b863f3d8e32f8f3426"
+      },
+      {
+        "path": "005-deferred-upload-finalize.md",
+        "exists": true,
+        "sha256": "89355ce86a4cf19b210cf287cfd7dce4b08f17675f847b7f0da48308b806f25a"
+      },
+      {
+        "path": "006-stable-cursor-facets.md",
+        "exists": true,
+        "sha256": "186a50b220fd237d57f6c2237162f1634a9b0aede9e3eb529448fecc29cd195d"
+      }
+    ],
+    "schemas": [
+      {
+        "path": "asset-view-model.schema.json",
+        "exists": true,
+        "sha256": "4007f5552a399f8b16677911b9187cb6f928b5b6f479e208ffb5bf8cc978d45a"
+      },
+      {
+        "path": "picker-context.schema.json",
+        "exists": true,
+        "sha256": "cc765d78795803e39e1f10d145e58109913d371024770724035664e95e51827a"
+      },
+      {
+        "path": "template-layout-contract-v2.schema.json",
+        "exists": true,
+        "sha256": "e439c61f691409e97935cfa98e2551f5ccd2113b9b0bcd3dab0fbf64e64bc307"
+      },
+      {
+        "path": "voice-profile.schema.json",
+        "exists": true,
+        "sha256": "5683062f1727230421cf1db2373ed0350205932a9f9fb27fe24ca562587c0bc0"
+      },
+      {
+        "path": "deferred-upload-create.schema.json",
+        "exists": true,
+        "sha256": "09501d11f8c40b0222398ab6fa374b73922897db4d6e186985e019249ae332ed"
+      },
+      {
+        "path": "deferred-upload-finalize.schema.json",
+        "exists": true,
+        "sha256": "1b3f33a124c01e2ccc9c15ceb423e90cf4d52f4960850d4368600739d10a2e9a"
+      },
+      {
+        "path": "deferred-upload-response.schema.json",
+        "exists": true,
+        "sha256": "2d333d2a6feddcc57abf55d20de3776f16ae9dcd9d3cf8cea70e02799a394428"
+      },
+      {
+        "path": "library-cursor.schema.json",
+        "exists": true,
+        "sha256": "516931ced27cc2966a90d4af307eff1bbf20f59f91dd171d010ab1fcc5695e4d"
+      },
+      {
+        "path": "library-page-facets.schema.json",
+        "exists": true,
+        "sha256": "7278e2c94c90ca4d196f56ed59440bd5a5ba95448c7edae53bec9d466ca21345"
+      }
+    ],
+    "fixtures": [
+      {
+        "path": "asset-library-1000.seed.json",
+        "exists": true,
+        "sha256": "a5bb63d8f8d2007c87d332541775c6d3594ce10675e8ec4669d952dbcea4de6f"
+      },
+      {
+        "path": "cursor-pages.json",
+        "exists": true,
+        "sha256": "81e70bd7de558b9a37ac759dbcbbe5ec088c312975c7221e0b95a08e98b6e6aa"
+      },
+      {
+        "path": "deferred-upload/cases.json",
+        "exists": true,
+        "sha256": "04557e41957f2d8ca4d189557b5fff851fb62ae6232643bad2d89d2c3258b180"
+      },
+      {
+        "path": "template-layout/valid.json",
+        "exists": true,
+        "sha256": "9b1b701c3ad15a304dae7d772d2452fc629d3bb29c473575da0370f1765db53a"
+      },
+      {
+        "path": "template-layout/unknown-field.json",
+        "exists": true,
+        "sha256": "67c1bc7e99d23513ee61e314e7efa0e0f11aab68c6488953340051412c30797a"
+      },
+      {
+        "path": "template-layout/missing-font.json",
+        "exists": true,
+        "sha256": "6669585ab4674f678f00f051c5b36655bf54de876240402697ca7804591527f6"
+      },
+      {
+        "path": "template-layout/golden.json",
+        "exists": true,
+        "sha256": "117fde19e81c6111d6ddf66ee28cd8013f59c1d889fa72650b3564d9f09bfa9c"
+      },
+      {
+        "path": "voice-migration/legacy/voice_references.json",
+        "exists": true,
+        "sha256": "09cfc5d3b92ee1f021d705703917aa76799dcb1d67cf51458860dd4dba6a6a51"
+      },
+      {
+        "path": "voice-migration/legacy/audio_assets.json",
+        "exists": true,
+        "sha256": "99a8a5a754edc0e814993256973436615542b5115ab1e1700412ca4e316897ce"
+      },
+      {
+        "path": "voice-migration/sessions/session-voice-001.json",
+        "exists": true,
+        "sha256": "dc25c0740cdf5dc76b8d31d6d09627985dd43c3e6247b39ae6974499ffc04b06"
+      },
+      {
+        "path": "voice-migration/sessions/session-voice-002.json",
+        "exists": true,
+        "sha256": "19223ea6f46078c4514af1ad41f90deb689fcaf2f084e472d2f8ddf9cfc105b9"
+      }
+    ],
+    "baseline": {
+      "path": "docs/migrations/asset-library-ux0-baseline-2026-07-18.json",
+      "exists": true,
+      "sha256": "4d7169d5d7b598f1a42395f388ab9b0188431b68edc70b9c198671881be418d2"
+    },
+    "voice_dry_run": {
+      "path": "docs/migrations/voice-profile-dry-run-2026-07-18.json",
+      "exists": true,
+      "sha256": "4bab3f95466f0cf3ac2a48f530a58581d55b00d331bf1b5e3fb646a37133aea9"
+    },
+    "rollback_smoke": {
+      "path": "docs/migrations/asset-library-ux0-rollback-2026-07-18.json",
+      "exists": true,
+      "sha256": "2e4087b4c6406047dfe766e4808977aa872fc09aa9a296c9249942ddf2e4e2bc"
+    },
+    "current_version_baseline": {
+      "path": "docs/migrations/asset-center-ux0-current-baseline-2026-07-18/report.json",
+      "exists": true,
+      "sha256": "bbf7318cafe7a58fc8fc77ab56beb14c04eea3da772da43e5ef0a65b1a416f22"
+    },
+    "uxa_formal_review": {
+      "path": "docs/reviews/2026-07-18-asset-center-uxa-formal-evidence-review.md",
+      "exists": true,
+      "sha256": "55903b716a9be246d029ebc0fb99c2030673afff5f5779382d0614d65f99fd69"
+    }
+  },
+  "live_results": {
+    "baseline_missing_files": 0,
+    "voice_profiles": 2,
+    "voice_sessions_seen": 1,
+    "voice_references_resolved": 1,
+    "voice_references_unresolved": 0,
+    "voice_writes_performed": 0,
+    "rollback_manifest_backup_count": 4,
+    "current_baseline_tasks": 7,
+    "current_baseline_observed_errors": 3
+  },
+  "ux_a_status": "pass",
+  "next_gate": "UX-1 acceptance may proceed; UX-C/UX-D/UX-E evidence remains required before default rollout."
+}

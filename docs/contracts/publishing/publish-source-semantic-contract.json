@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "rules": [
+    "artifact_versions source requires non-empty artifact_version_ids and null session_id",
+    "legacy_session source requires non-empty session_id and empty artifact_ids and artifact_version_ids",
+    "artifact_ids and artifact_version_ids have a one-to-one positional correspondence",
+    "every artifact_ref version ID must be present in source_artifact_version_ids for artifact_versions source",
+    "source_revision and package_fingerprint are immutable snapshot identifiers",
+    "new application-center handoffs cannot use legacy_session"
+  ],
+  "error_codes": ["SOURCE_ARTIFACT_VERSION_REQUIRED", "SOURCE_SESSION_MUST_BE_NULL", "LEGACY_SESSION_REQUIRED", "LEGACY_ARTIFACT_VERSIONS_FORBIDDEN", "SOURCE_ARTIFACT_ID_MISMATCH", "SOURCE_VERSION_NOT_REFERENCED"]
+}

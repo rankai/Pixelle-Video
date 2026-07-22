@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "scenario": "咖啡老板",
+  "final_state": "completed",
+  "url": "http://127.0.0.1:1420/#/home",
+  "api_write_policy": "app-center and unrecognised non-GET requests route-mocked; no local API writes",
+  "blocked_unknown_write_count": 0,
+  "blocked_unknown_writes": [],
+  "screenshot_sha256": "dfd9a5bd4271e176055a8e89d70885f0189e698a5b408919e0f259c18c44cc85",
+  "script_sha256": "7635ec92502d02524db5f9c9fc6638d3776d724ee16f7b1885e2be356c758d78"
+}

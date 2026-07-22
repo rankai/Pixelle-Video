@@ -19,7 +19,7 @@ These functions are reusable across different pipelines.
 
 import json
 import re
-from typing import List, Optional, Literal
+from typing import List, Literal, Optional
 
 from loguru import logger
 
@@ -59,7 +59,8 @@ async def generate_title(
     
     # Pass max_length to prompt so LLM knows the character limit
     prompt = build_title_generation_prompt(content, max_length=max_length)
-    response = await llm_service(prompt, temperature=0.7, max_tokens=50)
+    response = await llm_service(prompt, temperature=1.0,  # kimi-k2.6 only accepts 1.0
+                          max_tokens=50)
     
     # Clean up response
     title = response.strip()
@@ -125,7 +126,7 @@ async def generate_narrations_from_topic(
     
     response = await llm_service(
         prompt=prompt,
-        temperature=0.8,
+        temperature=1.0,  # kimi-k2.6 only accepts 1.0
         max_tokens=2000
     )
     
@@ -183,7 +184,7 @@ async def generate_narrations_from_content(
     
     response = await llm_service(
         prompt=prompt,
-        temperature=0.8,
+        temperature=1.0,  # kimi-k2.6 only accepts 1.0
         max_tokens=2000
     )
     
@@ -316,7 +317,7 @@ async def generate_image_prompts(
                 
                 response = await llm_service(
                     prompt=prompt,
-                    temperature=0.7,
+                    temperature=1.0,  # kimi-k2.6 only accepts 1.0
                     max_tokens=8192
                 )
                 
@@ -419,7 +420,7 @@ async def generate_video_prompts(
                 
                 response = await llm_service(
                     prompt=prompt,
-                    temperature=0.7,
+                    temperature=1.0,  # kimi-k2.6 only accepts 1.0
                     max_tokens=8192
                 )
                 

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "contract_id": "pub-5-e2e-douyin-entry",
+  "fixtures": [
+    {"id": "production-session-artifact-chain", "valid": true},
+    {"id": "real-account-profile-isolation", "valid": true},
+    {"id": "run-idempotency-and-hash", "valid": true},
+    {"id": "upload-field-cover-readback", "valid": true},
+    {"id": "waiting-for-human-terminal", "valid": true},
+    {"id": "restart-no-duplicate-upload", "valid": true},
+    {"id": "final-action-guard-deny", "valid": true},
+    {"id": "manual-final-publish-separate", "valid": true},
+    {"id": "provider-blocker-truthful", "valid": true},
+    {"id": "final-publish-click", "valid": false, "error": "FORBIDDEN_AUTOMATIC_ACTION"},
+    {"id": "silent-qr-authorization", "valid": false, "error": "USER_AUTH_REQUIRED"},
+    {"id": "fixture-fabricates-cloud-production", "valid": false, "error": "PRODUCTION_SOURCE_UNVERIFIED"}
+  ]
+}

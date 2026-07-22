@@ -1,0 +1,85 @@
+{
+  "stage": "APP-SHELL",
+  "gate": "PG-B",
+  "run_at": "2026-07-20T00:30:00+08:00",
+  "scope": "read-only frontend and registry smoke; no app executor, generation, publishing, account, or platform action",
+  "runtime": {
+    "browser": "Playwright Chromium",
+    "viewport": "1280x800",
+    "api": "FastAPI http://127.0.0.1:8100 using isolated temporary PIXELLE_VIDEO_ROOT",
+    "vite_flag_on": "http://127.0.0.1:1420/",
+    "vite_flag_off": "http://127.0.0.1:1421/",
+    "registry_flags_for_ready_run": ["PIXELLE_APP_CENTER_CONTENT_APPS=true", "PIXELLE_APP_CENTER_DOUYIN_CAROUSEL=true", "PIXELLE_APP_CENTER_DIGITAL_HUMAN=true"]
+  },
+  "registry": {
+    "list_endpoint": "GET /api/apps",
+    "detail_endpoint": "GET /api/apps/builtin.digital-human-video",
+    "readiness_endpoint": "GET /api/apps/builtin.digital-human-video/readiness",
+    "manifest_count": 4,
+    "frontend_source": "ApplicationCenterView consumes listApplications()/GET /api/apps; no second hardcoded application list",
+    "canonical_flag_env": {
+      "contentApps": "PIXELLE_APP_CENTER_CONTENT_APPS",
+      "douyinCarousel": "PIXELLE_APP_CENTER_DOUYIN_CAROUSEL",
+      "digitalHumanInAppCenter": "PIXELLE_APP_CENTER_DIGITAL_HUMAN"
+    }
+  },
+  "flag_on": {
+    "pass": true,
+    "console_errors": 0,
+    "network_failures": 0,
+    "steps": [
+      {"name": "initial_app_directory", "hash": "/apps", "heading_count": 2, "card_count": 4, "registry_request": true},
+      {"name": "category_filter", "category": "文案创作", "card_count": 2, "aria_selected": "true"},
+      {"name": "search_filter", "query": "标题", "card_count": 1, "matched_app": "爆款标题"},
+      {"name": "keyboard_category_filter", "input": "Enter", "category": "图文创作", "card_count": 1, "aria_selected": "true"},
+      {"name": "ready_app_route", "card": "数字人口播视频", "hash": "/ip", "ip_heading_count": 1}
+    ],
+    "readiness": {
+      "configured": {"registry_status": "ready", "label": "可进入现有流程", "button_enabled": true},
+      "after_isolated_config_change_to_missing": {
+        "action": "restart isolated FastAPI sidecar against config-empty.yaml, then reload",
+        "registry_status": "not_ready",
+        "missing_capabilities": ["digital_human", "llm", "runninghub"],
+        "label": "需先完善配置",
+        "button_enabled": false
+      },
+      "source": "GET /api/apps readiness aggregates existing PixelleVideoConfig.llm and RunningHub configuration; no second model store"
+    },
+    "legacy_route_refresh": [
+      {"path": "/home", "after_reload": "/home"},
+      {"path": "/ip", "after_reload": "/ip"},
+      {"path": "/assets", "after_reload": "/assets"},
+      {"path": "/publish", "after_reload": "/publish"},
+      {"path": "/tasks", "after_reload": "/tasks"},
+      {"path": "/config", "after_reload": "/config"},
+      {"path": "/diagnostics", "after_reload": "/diagnostics"}
+    ],
+    "route_normalization": {"input": "/unknown", "after_mount": "/apps", "pass": true},
+    "desktop_restart_route": {"stored": "/tasks", "after_new_persistent_context": "/tasks", "pass": true, "boundary": "persistent browser context simulation, not a packaged Tauri process restart"},
+    "non_get_requests": [
+      {"method": "POST", "path": "/api/ip-broadcast/sessions"},
+      {"method": "POST", "path": "/api/ip-broadcast/sessions"}
+    ],
+    "forbidden_non_get_requests": [],
+    "legacy_side_effect": "recoverAppState creates two local IP broadcast sessions under React StrictMode; this is pre-existing R-012 behavior, not a publishing or executor call",
+    "screenshot": {
+      "path": "/tmp/pixelle-app-shell-pg-b-ready.png",
+      "sha256": "dcc2a7d229382efb6f4c0d5486ebfe2fb363735241de74327e98620d24a9f1b9"
+    }
+  },
+  "flag_off": {
+    "pass": true,
+    "console_errors": 0,
+    "network_failures": 0,
+    "legacy_fallback": {
+      "hash": "",
+      "app_center_heading_count": 0,
+      "workspace_heading_count": 1
+    }
+  },
+  "boundary": [
+    "This evidence validates the read-only registry, shell, route reachability, route persistence, static directory interactions, readiness gating, and flag rollback only.",
+    "It does not claim application execution, provider generation, publishing, registry mutation, or administrator controls are implemented.",
+    "Legacy session POSTs are recorded explicitly; the stage does not claim zero non-GET traffic or zero legacy side effects."
+  ]
+}

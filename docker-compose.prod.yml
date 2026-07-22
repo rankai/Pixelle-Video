@@ -1,0 +1,172 @@
+services:
+  init:
+    image: alpine:latest
+    volumes:
+      - ./:/workspace
+    command: >
+      sh -c '
+        mkdir -p /workspace/data /workspace/output /workspace/temp;
+        if [ -d /workspace/config.yaml ]; then
+          echo "config.yaml is a directory, removing it";
+          rm -rf /workspace/config.yaml;
+        fi;
+        if [ ! -f /workspace/config.yaml ] && [ -f /workspace/config.example.yaml ]; then
+          cp /workspace/config.example.yaml /workspace/config.yaml;
+          echo "config.yaml created from config.example.yaml";
+        else
+          echo "config.yaml already exists";
+        fi
+      '
+    restart: "no"
+
+  api:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+      args:
+        PYTHON_BASE: ${PYTHON_BASE:-python:3.11-slim}
+        USE_CN_MIRROR: ${USE_CN_MIRROR:-true}
+        IMAGE_TAG: ${IMAGE_TAG:-latest}
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
+        BUILD_TIME: ${BUILD_TIME:-unknown}
+    image: ${REGISTRY:?REGISTRY is required}/pixelle-video-api:${IMAGE_TAG:-latest}
+    container_name: pixelle-api
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    expose:
+      - "8000"
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ./data:/app/data
+      - ./output:/app/output
+      - ./temp:/app/temp
+    environment:
+      - TZ=${TZ:-Asia/Shanghai}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - pixelle-network
+
+  web:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        NODE_BASE: ${NODE_BASE:-node:20-alpine}
+        NGINX_BASE: ${NGINX_BASE:-nginx:alpine}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        IMAGE_TAG: ${IMAGE_TAG:-latest}
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
+        BUILD_TIME: ${BUILD_TIME:-unknown}
+    image: ${REGISTRY:?REGISTRY is required}/pixelle-video-web:${IMAGE_TAG:-latest}
+    container_name: pixelle-web
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_HOST:-127.0.0.1}:${WEB_PORT:-18080}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - pixelle-network
+
+  streamlit:
+    profiles:
+      - streamlit
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+      args:
+        PYTHON_BASE: ${PYTHON_BASE:-python:3.11-slim}
+        USE_CN_MIRROR: ${USE_CN_MIRROR:-true}
+        IMAGE_TAG: ${IMAGE_TAG:-latest}
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
+        BUILD_TIME: ${BUILD_TIME:-unknown}
+    image: ${REGISTRY:?REGISTRY is required}/pixelle-video-streamlit:${IMAGE_TAG:-latest}
+    container_name: pixelle-streamlit
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    ports:
+      - "${STREAMLIT_HOST:-127.0.0.1}:${STREAMLIT_PORT:-8501}:8501"
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ./data:/app/data
+      - ./output:/app/output
+      - ./temp:/app/temp
+    environment:
+      - TZ=${TZ:-Asia/Shanghai}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - pixelle-network
+
+  webhook:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile.webhook
+      args:
+        NODE_BASE: ${NODE_BASE:-node:20-alpine}
+    container_name: pixelle-webhook
+    network_mode: host
+    working_dir: ${PROJECT_DIR}
+    volumes:
+      - ${PROJECT_DIR:?PROJECT_DIR is required}:${PROJECT_DIR}
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DEPLOY_WEBHOOK_SECRET: ${DEPLOY_WEBHOOK_SECRET:?DEPLOY_WEBHOOK_SECRET is required}
+      WEBHOOK_PORT: ${WEBHOOK_PORT:-9877}
+      FEISHU_WEBHOOK_URL: ${FEISHU_WEBHOOK_URL:-}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-pixelle-video}
+      PROJECT_ROOT: ${PROJECT_DIR}
+      ACR_USERNAME: ${ACR_USERNAME:-}
+      ACR_PASSWORD: ${ACR_PASSWORD:-}
+      REGISTRY: ${REGISTRY:?REGISTRY is required}
+      WEB_HOST: ${WEB_HOST:-127.0.0.1}
+      WEB_PORT: ${WEB_PORT:-18080}
+      API_PORT: ${API_PORT:-8000}
+      DEPLOY_STREAMLIT: ${DEPLOY_STREAMLIT:-false}
+      STREAMLIT_HOST: ${STREAMLIT_HOST:-127.0.0.1}
+      STREAMLIT_PORT: ${STREAMLIT_PORT:-8501}
+    restart: unless-stopped
+
+networks:
+  pixelle-network:
+    driver: bridge

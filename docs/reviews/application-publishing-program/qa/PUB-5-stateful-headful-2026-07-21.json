@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "stage": "E2E-DOUYIN/PUB-5",
+  "status": "headful_bounded_pass_with_boundary",
+  "browser_runtime": "project_playwright_persistent_profile",
+  "run": {
+    "same_run_reused": true,
+    "upload_checkpoint_observed_once": true,
+    "checkpoint_prefix_observed": ["inspect", "upload", "wait", "mutate", "verify"],
+    "video_reinjection_after_that_checkpoint": false,
+    "final_publish_clicked": false,
+    "final_publish_click_count": 0
+  },
+  "live_topic_probe": {
+    "toolbar": "#添加话题",
+    "duplicate_marker_before_fix": "##问答",
+    "selected_editor_text": "#问答",
+    "semantic_node": "data-mention=#",
+    "remote_cid_observed_in_suggestion_response": true,
+    "entity_readback_with_cid": true,
+    "plain_text_only_acceptance": false
+  },
+  "live_cover_probe": {
+    "modal_role": "modal",
+    "modal_save_scoped_and_observed": true,
+    "https_cdn_image_receipt_observed": true,
+    "blob_or_local_path_accepted": false,
+    "same_publish_run_package": false,
+    "accepted_url": "REDACTED"
+  },
+  "controlled_run_outcome": {
+    "before_runtime_reload": "topic_readback_blocker_then_cover_readback_blocker",
+    "after_runtime_reload": "route_transition_upload_to_post_video_reached_state_ambiguous_inspect",
+    "after_bounded_same_run_resume": "one_new_upload_then_verify_checkpoint",
+    "new_video_upload_attempted": true,
+    "new_video_upload_count": 1,
+    "video_reinjection_after_checkpoint": false,
+    "checkpoint_stages": ["inspect", "upload", "wait", "mutate", "verify"],
+    "topic_entities_count": 2,
+    "cover_https_receipt": true,
+    "final_action_guard_armed": true,
+    "runner_error_observed": "RUNNER_ERROR_stale_state_version_on_adapter_result_append",
+    "runner_error_fixed_in_code": true,
+    "db_only_reconciliation": "verified_checkpoint_reconciled",
+    "restart_recovery_guard": "waiting_for_human_preserved",
+    "post_restart_state_version": 49,
+    "post_restart_process_restart_downgrade": false,
+    "last_event": "verified_checkpoint_reconciled@49",
+    "current_run_state": "waiting_for_human",
+    "current_blocker": null,
+    "current_step": "await_human_publish",
+    "no_final_publish": true
+  },
+  "latest_bounded_attempt": {
+    "attempt": 3,
+    "upload_mode": "injected",
+    "checkpoint_prefix": ["inspect", "upload", "wait", "mutate", "verify"],
+    "single_video_upload": true,
+    "video_reinjection_after_checkpoint": false,
+    "topic_entities_count": 2,
+    "cover_receipt_https": true,
+    "final_action_guard_armed": true,
+    "final_publish_click_count": 0,
+    "post_verify_state": "waiting_for_human",
+    "post_verify_event": "verified_checkpoint_reconciled",
+    "post_restart_state": "waiting_for_human",
+    "post_restart_browser_actions": false,
+    "browser_reconciliation_after_verify": false
+  },
+  "latest_read_only_profile_probe": {
+    "logged_in": true,
+    "url_path": "/creator-micro/content/upload",
+    "canonical_task_space_name_observed": "douyin:https://creator.douyin.com/creator-micro/content/editor",
+    "task_space_matches_old_checkpoint": false,
+    "video_preview_count": 0,
+    "uploaded_media_metadata_present": false,
+    "remote_media_identity_present": false,
+    "mutations_performed": false,
+    "recovery_or_upload_started": false
+  },
+  "boundary": "The same package/run has now completed one bounded attempt through inspect → upload → wait → mutate → verify with topic entity and cover HTTPS receipt evidence. A stale state-version race initially produced RUNNER_ERROR after the verify checkpoint; the source run was reconciled through the guarded DB/service path to waiting_for_human. A subsequent patched sidecar restart preserved waiting_for_human (no PROCESS_RESTART downgrade); the final event is verified_checkpoint_reconciled@49, with no browser retry, upload, or publish click. PG-K is passed with boundary: the final publish action remains intentionally human-gated and was not clicked.",
+  "privacy": {
+    "account_identifier_recorded": false,
+    "package_identifier_recorded": false,
+    "signed_url_recorded": false,
+    "cdn_path_recorded": false
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "contract_id": "pub-4-integration-entry",
+  "stage": "PUB-INTEGRATION",
+  "source_stage": "PUB-4",
+  "route": {
+    "canonical_path": "/publish",
+    "hash_path": "#/publish",
+    "single_publish_center": true,
+    "legacy_publish_workspace_must_not_orchestrate": true
+  },
+  "facts": {
+    "package": "PublishPackage",
+    "package_ref": "publish_package_ref",
+    "run": "PublishRun",
+    "account": "AccountProfile",
+    "project_artifact_handoff": "ArtifactVersion"
+  },
+  "safe_states": ["draft", "queued", "running", "waiting_for_human", "needs_attention", "failed", "cancelled", "completed"],
+  "forbidden_projection_states": ["published", "auto_published"],
+  "flows": {
+    "first_publish": {
+      "required": ["package_preflight", "account_selection", "run_timeline", "field_checklist", "human_handoff"],
+      "terminal": "waiting_for_human",
+      "duplicate_uploads": 0,
+      "final_publish_clicks": 0
+    },
+    "repeat_publish": {
+      "same_package_ref_reuses_run": true,
+      "duplicate_package_refs": 0,
+      "duplicate_uploads": 0
+    },
+    "recovery": {
+      "refresh_preserves_run": true,
+      "leave_and_return_preserves_run": true,
+      "app_restart_preserves_run": true,
+      "adapter_failure_preserves_package": true
+    }
+  },
+  "invalidation": {
+    "artifact_or_content_fingerprint_change_invalidates_previous_package": true,
+    "old_history_remains_auditable": true,
+    "new_run_must_not_use_invalidated_package": true
+  },
+  "fallback": {
+    "copy_and_download_remain_available_when_adapter_fails": true,
+    "fallback_must_use_trusted_artifact_refs": true,
+    "absolute_path_or_secret_must_not_be_exposed": true
+  },
+  "ui": {
+    "keyboard_reachable": true,
+    "narrow_window_no_dead_end": true,
+    "field_checklist_is_explicit": true,
+    "status_never_claims_final_publish": true
+  },
+  "negative_case_errors": [
+    "PUBLISH_STATE_FORBIDDEN",
+    "LEGACY_ORCHESTRATOR_FORBIDDEN",
+    "PUBLISH_PACKAGE_STALE",
+    "ACCOUNT_PACKAGE_MISMATCH",
+    "SAFE_FALLBACK_REDACTION_REQUIRED",
+    "PUBLISH_PREFLIGHT_INVALID",
+    "PUBLISH_UI_NOT_REACHABLE"
+  ],
+  "forbidden_in_entry": [
+    "real_scan_or_third_party_authorization",
+    "real_platform_upload",
+    "final_publish_click",
+    "destructive_profile_or_database_cleanup",
+    "second_browser_runtime",
+    "second_model_configuration_source",
+    "admin_rbac_plan_payment_or_multitenant_control_plane"
+  ]
+}

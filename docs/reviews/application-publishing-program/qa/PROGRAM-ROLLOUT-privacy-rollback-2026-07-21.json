@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "stage": "PROGRAM-ROLLOUT",
+  "batch": "privacy-telemetry-rollback",
+  "status": "implementation_pass_with_boundary",
+  "telemetry": {
+    "local_only": true,
+    "network_upload": false,
+    "allowlist": ["platform", "adapter_version", "step", "error_code", "duration_bucket", "app_version"],
+    "max_events": 500,
+    "raw_content_recorded": false
+  },
+  "diagnostics": {
+    "raw_path_redacted": true,
+    "secrets_redacted": true,
+    "privacy_metadata_present": true,
+    "absolute_path_in_response": false
+  },
+  "rollback": {
+    "v2_to_v1": true,
+    "v1_to_v2": true,
+    "legacy_entry_available": true,
+    "copy_download_available": true,
+    "history_readable": true,
+    "profile_preserved": true,
+    "duplicate_uploads": 0,
+    "production_writes": 0
+  },
+  "tests": {
+    "vitest_files": 10,
+    "vitest_tests": 53,
+    "desktop_api_tests": 6,
+    "privacy_rollback_tests": 4,
+    "pydantic_warnings_existing": 12,
+    "desktop_build": "passed",
+    "ruff": "passed",
+    "json_parse": "passed",
+    "git_diff_check": "passed"
+  },
+  "rollout": {
+    "publish_v2_default_enabled": false,
+    "douyin_release_state": "gray",
+    "douyin_rollout_percentage": 0,
+    "non_douyin_release_states_changed": false,
+    "final_publish_click_count": 0,
+    "external_actions": 0
+  },
+  "boundary": "Privacy/diagnostics and local rollback contracts are implemented and tested. Packaged lifecycle, soak, performance, real rollback rehearsal and stable observation remain open; no platform or final publish action was executed."
+}

@@ -1,0 +1,67 @@
+{
+  "contract_id": "ip-broadcast-handoff-entry",
+  "schema_version": 1,
+  "app_id": "builtin.digital-human-video",
+  "app_version": "1.0.0",
+  "feature_flag": "digitalHumanInAppCenter",
+  "facts": {
+    "app_run_source": "app_center.sqlite",
+    "publish_package_source": "publishing.sqlite3",
+    "publish_package_ref_source": "app_center.sqlite",
+    "legacy_session_source": "legacy_ip_broadcast_session_store"
+  },
+  "canonical_output_identity": {
+    "algorithm": "sha256",
+    "inputs": [
+      "project_id",
+      "publishing_schema_version",
+      "video.file_refs.sha256",
+      "cover.file_refs.sha256",
+      "publish_copy.canonical_content"
+    ],
+    "excludes": ["source_kind", "source_revision", "session_id", "app_run_id", "artifact_id", "absolute_path", "provider", "model", "credentials", "temporary_task_state"],
+    "same_content_across_sources_must_match": true
+  },
+  "legacy_session_recovery": {
+    "requires_explicit_claim_for_unbound": true,
+    "binding_fields": ["session_id", "project_id", "app_id", "app_version", "app_run_id", "source_revision", "context_snapshot_id"],
+    "recovery": ["exact_app_run_id", "same_project_session_latest_non_terminal", "refuse_ambiguous_or_cross_project"],
+    "restart_reuses": ["session_id", "app_run_id", "task_id", "output_artifact_version_ids"],
+    "implicit_cross_project_recovery": false
+  },
+  "package_idempotency": {
+    "same_handoff_identity": "same_package_and_fingerprint",
+    "same_package_ref": "one_active_ref_no_duplicate_append",
+    "content_revision_change": "new_package_and_old_ref_and_package_invalidated",
+    "retry_compensation": "current_attempt_new_objects_only",
+    "source_kind_audit_only": true
+  },
+  "three_source_handoff": {
+    "modes": ["blank_project", "copywriting", "selected_title"],
+    "required_binding": ["project_id", "source_revision", "context_snapshot_id"],
+    "completion_path": "isolated_execute_then_explicit_accept",
+    "invalid_inputs": ["missing_source", "mixed_source", "cross_project_version", "empty_title", "empty_publish_copy", "context_drift"],
+    "waiting_states_never_complete": true
+  },
+  "error_codes": [
+    "LEGACY_SESSION_EXPLICIT_CLAIM_REQUIRED",
+    "SESSION_PROJECT_MISMATCH",
+    "SOURCE_REVISION_MISMATCH",
+    "SOURCE_MODE_EXACTLY_ONE",
+    "SOURCE_VERSION_PROJECT_MISMATCH",
+    "SELECTED_TITLE_REQUIRED",
+    "ARTIFACT_PUBLISH_COPY_INVALID",
+    "APP_RUN_BINDING_MISMATCH",
+    "ARTIFACT_OUTPUT_BINDING_MISMATCH",
+    "ARTIFACT_REGISTRATION_PARTIAL"
+  ],
+  "external_actions": [],
+  "forbidden_in_entry": [
+    "rewrite_ip_broadcast_workflow",
+    "delete_legacy_studio_entry",
+    "real_provider_or_browser",
+    "douyin_authorization_upload_or_final_publish",
+    "second_model_configuration_source",
+    "admin_rbac_plan_payment_or_multitenant_control_plane"
+  ]
+}

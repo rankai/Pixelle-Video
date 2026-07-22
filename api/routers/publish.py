@@ -1,0 +1,214 @@
+"""Desktop publishing assistant endpoints."""
+
+from functools import lru_cache
+from pathlib import Path
+
+from fastapi import APIRouter, HTTPException
+
+from api.desktop_security import is_desktop_mode
+from api.schemas.publish_accounts import (
+    PublishAccountCreateRequest,
+    PublishAccountListResponse,
+    PublishPlatformListResponse,
+)
+from api.tasks import TaskType, task_manager
+from pixelle_video.services.publish.account_models import PublishAccount
+from pixelle_video.services.publish.account_repository import (
+    PublishAccountConflict,
+    PublishAccountNotFound,
+)
+from pixelle_video.services.publish.account_service import PublishAccountService
+from pixelle_video.services.publish.browser_runtime import PlaywrightBrowserRuntime
+from pixelle_video.services.publish.models import PublishPackage, PublishResult, PublishStatus
+from pixelle_video.services.publish.platforms.base import PLATFORM_LABELS, HumanConfirmedPublisher
+from pixelle_video.services.publish.platforms.douyin import DouyinPublisher
+from pixelle_video.services.publish.platforms.multiplatform import (
+    KuaishouPublisher,
+    ShipinhaoPublisher,
+    XiaohongshuPublisher,
+)
+from pixelle_video.services.publish.profile_manager import ProfileLockError
+
+router = APIRouter(prefix="/publish", tags=["Publish"])
+
+
+@lru_cache(maxsize=1)
+def get_publish_account_service() -> PublishAccountService:
+    return PublishAccountService()
+
+
+@router.get("/platforms", response_model=PublishPlatformListResponse)
+async def list_publish_platforms() -> PublishPlatformListResponse:
+    return PublishPlatformListResponse(items=get_publish_account_service().list_platforms())
+
+
+@router.get("/accounts", response_model=PublishAccountListResponse)
+async def list_publish_accounts(include_archived: bool = False) -> PublishAccountListResponse:
+    return PublishAccountListResponse(
+        items=get_publish_account_service().list_accounts(include_archived=include_archived)
+    )
+
+
+@router.post("/accounts", response_model=PublishAccount, status_code=201)
+async def create_publish_account(payload: PublishAccountCreateRequest):
+    try:
+        return get_publish_account_service().create_account(
+            payload.platform,
+            payload.display_name,
+            make_default=payload.make_default,
+        )
+    except PublishAccountConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/accounts/{account_id}/default", response_model=PublishAccount)
+async def set_default_publish_account(account_id: str):
+    try:
+        return get_publish_account_service().set_default(account_id)
+    except PublishAccountNotFound as exc:
+        raise HTTPException(status_code=404, detail="发布账号不存在") from exc
+    except PublishAccountConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/accounts/{account_id}/archive", response_model=PublishAccount)
+async def archive_publish_account(account_id: str):
+    try:
+        return get_publish_account_service().archive(account_id)
+    except PublishAccountNotFound as exc:
+        raise HTTPException(status_code=404, detail="发布账号不存在") from exc
+    except PublishAccountConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@router.post("/accounts/{account_id}/clear-profile", response_model=PublishAccount)
+async def clear_publish_account_profile(account_id: str):
+    try:
+        return get_publish_account_service().clear_profile(account_id)
+    except PublishAccountNotFound as exc:
+        raise HTTPException(status_code=404, detail="发布账号不存在") from exc
+    except ProfileLockError as exc:
+        raise HTTPException(status_code=409, detail="账号 profile 正在使用，无法清理") from exc
+
+
+@router.post("/accounts/{account_id}/probe", response_model=PublishAccount)
+async def probe_publish_account(account_id: str):
+    try:
+        return await get_publish_account_service().probe_account(account_id)
+    except PublishAccountNotFound as exc:
+        raise HTTPException(status_code=404, detail="发布账号不存在") from exc
+
+
+def get_douyin_publisher() -> DouyinPublisher:
+    return DouyinPublisher(PlaywrightBrowserRuntime())
+
+
+def get_platform_publisher(platform: str) -> HumanConfirmedPublisher:
+    publisher_types = {
+        "douyin": DouyinPublisher,
+        "xiaohongshu": XiaohongshuPublisher,
+        "shipinhao": ShipinhaoPublisher,
+        "kuaishou": KuaishouPublisher,
+    }
+    publisher_type = publisher_types.get(platform)
+    if not publisher_type:
+        raise HTTPException(status_code=404, detail="暂不支持该发布平台。")
+    return publisher_type(PlaywrightBrowserRuntime())
+
+
+@router.post("/douyin/prepare", response_model=PublishResult)
+async def prepare_douyin_publish(package: PublishPackage):
+    if package.platform != "douyin":
+        raise HTTPException(status_code=400, detail="发布平台与接口不匹配。")
+    return await _prepare_platform_publish(package, publisher=get_douyin_publisher())
+
+
+@router.post("/{platform}/prepare", response_model=PublishResult)
+async def prepare_platform_publish(platform: str, package: PublishPackage):
+    if platform != package.platform:
+        raise HTTPException(status_code=400, detail="发布平台与接口不匹配。")
+    return await _prepare_platform_publish(package, publisher=get_platform_publisher(platform))
+
+
+async def _prepare_platform_publish(package: PublishPackage, publisher: HumanConfirmedPublisher):
+    if not is_desktop_mode():
+        raise HTTPException(
+            status_code=403, detail="发布助手仅支持桌面端本地运行，服务器端不执行自动发布。"
+        )
+
+    _validate_publish_file_path(package.video_path)
+    if package.cover_path:
+        _validate_publish_file_path(package.cover_path)
+
+    platform_label = PLATFORM_LABELS[package.platform]
+    task = task_manager.create_task(
+        task_type=TaskType.PUBLISH_ASSISTANT,
+        request_params=package.model_dump(),
+        display_name=f"{platform_label}发布助手",
+        flow_name="短视频发布",
+        step_key="publish",
+        session_id=package.session_id,
+        artifact_keys=["final_video"],
+        retry_payload={"kind": f"publish_{package.platform}", "package": package.model_dump()},
+    )
+    task_manager.update_progress(task.task_id, 1, 3, f"正在打开{platform_label}发布助手。")
+    try:
+        raw_result = await publisher.prepare_draft(package)
+        result = (
+            raw_result
+            if isinstance(raw_result, PublishResult)
+            else PublishResult.model_validate(raw_result)
+        )
+    except Exception as exc:
+        result = PublishResult(
+            status=PublishStatus.FAILED,
+            platform=package.platform,
+            message=_publish_error_message(exc),
+            task_id=task.task_id,
+        )
+        task_manager.fail_task(task.task_id, result.message, result.model_dump(mode="json"))
+        return result
+    result.task_id = task.task_id
+    result.requires_human_confirmation = True
+    if result.status == PublishStatus.FAILED:
+        task_manager.fail_task(task.task_id, result.message, result.model_dump(mode="json"))
+    else:
+        task_manager.update_progress(task.task_id, 3, 3, result.message or "发布助手任务完成。")
+        task_manager.complete_task(task.task_id, result.model_dump(mode="json"))
+    return result
+
+
+def _validate_publish_file_path(path_value: str) -> None:
+    path = Path(path_value).expanduser().resolve()
+    allowed_roots = [
+        Path.cwd() / "output",
+        Path.cwd() / "temp",
+        Path.cwd() / "data",
+        Path("/tmp"),
+        Path("/private/tmp"),
+    ]
+    for root in allowed_roots:
+        try:
+            path.relative_to(root.resolve())
+            return
+        except ValueError:
+            continue
+    raise HTTPException(
+        status_code=403, detail="不允许发布该文件路径，请使用当前任务生成的视频或素材库文件。"
+    )
+
+
+def _publish_error_message(error: Exception) -> str:
+    message = str(error)
+    lowered = message.lower()
+    if "timeout" in lowered or "exceeded" in lowered:
+        return "发布页面响应超时，请确认网络正常并重新打开发布助手。"
+    if "locator" in lowered or "selector" in lowered or "input[type='file']" in lowered:
+        return "没有找到发布页面的上传入口，可能是平台页面已变化，请更新发布适配。"
+    if "login" in lowered or "登录" in message:
+        return "请先在发布助手浏览器中登录平台账号。"
+    if "permission" in lowered or "denied" in lowered:
+        return "发布助手没有读取该文件的权限，请检查文件位置或重新生成视频。"
+    return "发布助手执行失败，请重新打开发布窗口后再试。"

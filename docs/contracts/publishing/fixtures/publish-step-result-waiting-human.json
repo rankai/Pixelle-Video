@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "run_id": "run_douyin_001",
+  "step_id": "step_await_human_001",
+  "step": "await_human_publish",
+  "state": "waiting_for_human",
+  "evidence": {"kind": "screenshot_ref", "ref": "evidence://run_douyin_001/step_await_human_001", "redacted": true},
+  "error_code": null,
+  "created_at": "2026-07-19T00:00:01Z"
+}

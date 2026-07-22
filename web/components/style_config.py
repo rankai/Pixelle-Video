@@ -14,16 +14,17 @@
 Style configuration components for web UI (middle column)
 """
 
+import base64
 import os
 from pathlib import Path
 
 import streamlit as st
 from loguru import logger
 
-from web.i18n import tr, get_language
+from pixelle_video.config import config_manager
+from web.i18n import get_language, tr
 from web.utils.async_helpers import run_async
 from web.utils.streamlit_helpers import check_and_warn_selfhost_workflow
-from pixelle_video.config import config_manager
 
 
 def render_style_config(pixelle_video):
@@ -183,10 +184,23 @@ def render_style_config(pixelle_video):
         # TTS Preview (works for both modes)
         # ================================================================
         with st.expander(tr("tts.preview_title"), expanded=False):
+            # Determine default preview text based on selected voice locale
+            # English voices (en-US, en-GB, etc.) cannot synthesize Chinese text,
+            # and vice versa. Match preview text language to voice locale.
+            _preview_voice = selected_voice if tts_mode == "local" else None
+            if _preview_voice:
+                voice_locale = _preview_voice.split("-")[0].lower() if "-" in _preview_voice else ""
+                if voice_locale == "zh":
+                    default_preview_text = "大家好，这是一段测试语音。"
+                else:
+                    default_preview_text = "Hello, this is a test voice."
+            else:
+                default_preview_text = "大家好，这是一段测试语音。"
+
             # Preview text input
             preview_text = st.text_input(
                 tr("tts.preview_text"),
-                value="大家好，这是一段测试语音。",
+                value=default_preview_text,
                 placeholder=tr("tts.preview_text_placeholder"),
                 key="tts_preview_text"
             )
@@ -285,7 +299,10 @@ def render_style_config(pixelle_video):
         current_lang = get_language()
         
         # Import template utilities
-        from pixelle_video.utils.template_util import get_templates_grouped_by_size_and_type, get_template_type
+        from pixelle_video.utils.template_util import (
+            get_template_type,
+            get_templates_grouped_by_size_and_type,
+        )
         
         # Template type selector
         st.markdown(f"**{tr('template.type_selector')}**")
@@ -498,6 +515,7 @@ def render_style_config(pixelle_video):
         
         # Custom template parameters (for video generation)
         from pixelle_video.services.frame_html import HTMLFrameGenerator
+
         # Resolve template path to support both data/templates/ and templates/
         from pixelle_video.utils.template_util import resolve_template_path
         template_path_for_params = resolve_template_path(frame_template)
@@ -510,7 +528,6 @@ def render_style_config(pixelle_video):
         st.session_state['template_media_height'] = media_height
         
         # Detect template media type
-        from pixelle_video.utils.template_util import get_template_type
         
         template_name = Path(frame_template).name
         template_media_type = get_template_type(template_name)

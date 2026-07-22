@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "fixtures": [
+    {"id": "refresh-preserves-package-handoff", "valid": true},
+    {"id": "leave-return-preserves-package-handoff", "valid": true},
+    {"id": "restart-preserves-package-handoff", "valid": true},
+    {"id": "adapter-failure-safe-copy-download", "valid": true},
+    {"id": "resolver-unique-runtime", "valid": true, "status_code": 200},
+    {"id": "resolver-ambiguous-runtime", "valid": false, "error": "PUBLISH_PACKAGE_AMBIGUOUS", "status_code": 409},
+    {"id": "resolver-stale-runtime", "valid": false, "error": "PUBLISH_PACKAGE_STALE", "status_code": 409},
+    {"id": "external-action-forbidden", "valid": false, "error": "EXTERNAL_ACTION_FORBIDDEN"}
+  ]
+}

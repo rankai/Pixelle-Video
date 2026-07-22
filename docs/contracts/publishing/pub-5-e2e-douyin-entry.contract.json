@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "contract_id": "pub-5-e2e-douyin-entry",
+  "stage": "E2E-DOUYIN",
+  "program_stage": "PUB-5",
+  "gate": "PG-K",
+  "objective": "Verify production session to a real Douyin editor waiting_for_human without automatic final publish",
+  "required_evidence": {
+    "production_session_to_artifact_versions": true,
+    "artifact_versions_to_publish_package": true,
+    "real_account_selection_and_profile_isolation": true,
+    "publish_run_idempotency_and_package_hash": true,
+    "douyin_upload_and_field_cover_readback": true,
+    "waiting_for_human_terminal_state": true,
+    "restart_does_not_duplicate_login_or_upload": true,
+    "final_action_guard_denies_automatic_publish": true,
+    "manual_final_publish_is_separate_user_decision": true,
+    "provider_source_and_blockers_are_truthful": true
+  },
+  "forbidden": {
+    "automatic_final_publish": true,
+    "silent_qr_or_third_party_authorization": true,
+    "fake_local_fixture_as_cloud_production": true,
+    "credential_or_cookie_logging": true,
+    "cross_platform_release_state_change": true
+  },
+  "pause_points": [
+    "real QR scan or third-party authorization",
+    "real media upload or field mutation",
+    "challenge/captcha/login expiry",
+    "final publish button or any irreversible platform action",
+    "provider credit/balance or cloud-production blocker"
+  ],
+  "exit_gate": {
+    "requires_independent_six_dimension_review": true,
+    "p0_p1_must_be_zero": true,
+    "terminal_state_must_be_waiting_for_human": true,
+    "final_publish_click_count_must_be_zero": true,
+    "only_then_may_close_pg_k": true
+  }
+}

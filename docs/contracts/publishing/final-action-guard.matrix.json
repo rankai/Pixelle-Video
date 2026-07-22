@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "guard": "FinalActionGuard",
+  "default": "deny",
+  "allowed": [
+    {"action_id": "upload_media", "semantic": "select upload input", "requires_page_fingerprint": true},
+    {"action_id": "fill_title", "semantic": "fill title field", "requires_page_fingerprint": true},
+    {"action_id": "fill_description", "semantic": "fill description field", "requires_page_fingerprint": true},
+    {"action_id": "select_topic", "semantic": "select topic", "requires_page_fingerprint": true},
+    {"action_id": "save_cover", "semantic": "save cover crop", "requires_page_fingerprint": true}
+  ],
+  "denied": [
+    {"action_id": "publish", "semantic": "final publish"},
+    {"action_id": "confirm_publish", "semantic": "confirm final publish"},
+    {"action_id": "submit", "semantic": "form submit with publish effect"},
+    {"action_id": "unknown", "semantic": "unregistered action"},
+    {"action_id": "coordinate_click", "semantic": "coordinate or nth click"}
+  ],
+  "deny_error_code": "FINAL_ACTION_BLOCKED",
+  "stop_state": "waiting_for_human",
+  "fixture_policy": "DOM fixtures contain no account identity or real publish side effect"
+}

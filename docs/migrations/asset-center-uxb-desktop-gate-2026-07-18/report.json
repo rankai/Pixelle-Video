@@ -1,0 +1,62 @@
+{
+  "schema_version": "asset-center-uxb-desktop-gate-v1",
+  "status": "technical_pass",
+  "environment": {
+    "surface": "real Vite + FastAPI desktop web surface",
+    "isolated_data_root": true,
+    "viewport": "1440x900",
+    "fixed_asset_count": 1000,
+    "target_user_study": false,
+    "release_device_signoff": false
+  },
+  "reachability": {
+    "facet_checks": {
+      "video": {
+        "filter_text": "视频 1",
+        "browse_count": 1,
+        "preview_opened": true
+      },
+      "image": {
+        "filter_text": "图片 1000",
+        "browse_count": 60,
+        "preview_opened": true
+      },
+      "digital_human": {
+        "filter_text": "数字人 1",
+        "browse_count": 1,
+        "preview_opened": true
+      },
+      "voice": {
+        "filter_text": "音色 1",
+        "browse_count": 1,
+        "preview_opened": true
+      },
+      "audio": {
+        "filter_text": "音频 1",
+        "browse_count": 1,
+        "preview_opened": true
+      },
+      "template": {
+        "filter_text": "模板 4",
+        "browse_count": 4,
+        "preview_opened": true
+      },
+      "brand": {
+        "filter_text": "品牌 1",
+        "browse_count": 1,
+        "preview_opened": true
+      }
+    },
+    "image_filter_text": "图片 1000",
+    "first_interactive_ms": 2430,
+    "loaded_card_count": 1000,
+    "unique_card_label_count": 1000,
+    "load_more_clicks": 16,
+    "search_result_count": 1,
+    "search_result_label": "性能素材 00999，图片，图片规格待分析"
+  },
+  "notes": [
+    "The 1,000 rows are a fixed isolated fixture and are loaded through the real cursor-backed desktop surface.",
+    "This is a technical UX-B gate; it does not replace target-user or release-device sign-off."
+  ]
+}

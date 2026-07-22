@@ -1,0 +1,53 @@
+{
+  "schema_version": "asset-center-uxc-duplicate-desktop-e2e-v1",
+  "status": "pass",
+  "environment": {
+    "surface": "real Vite + FastAPI desktop web surface",
+    "isolated_data_root": true,
+    "viewport": "1440x900",
+    "target_user_study": false,
+    "release_device_signoff": false
+  },
+  "policies": {
+    "reuse_existing": {
+      "asset_count": 1,
+      "revision_count": 1,
+      "latest_status": "ready"
+    },
+    "attach_revision": {
+      "asset_count": 1,
+      "revision_count": 2,
+      "latest_status": "finalized"
+    },
+    "create_separate": {
+      "asset_count": 2,
+      "revision_count": 2,
+      "latest_status": "finalized"
+    }
+  },
+  "idempotence": [
+    {
+      "policy": "reuse_existing",
+      "upload_id": "upload-3a654cd46ff042ba8bde99fb61dcda04",
+      "same_asset_id": true,
+      "status": "ready"
+    },
+    {
+      "policy": "attach_revision",
+      "upload_id": "upload-c5f4cc2dd4e94fc09e6c6551ba0b61e9",
+      "same_asset_id": true,
+      "status": "finalized"
+    },
+    {
+      "policy": "create_separate",
+      "upload_id": "upload-2f8cb485765c4cd6a7fd0def1f0e74e3",
+      "same_asset_id": true,
+      "status": "finalized"
+    }
+  ],
+  "notes": [
+    "Each policy was selected through the real desktop AssetUploadQueue duplicate decision UI.",
+    "Repeated finalize calls were sent through the real API route and did not create additional assets or revisions.",
+    "This is technical UX-C evidence and does not replace target-user or release-device sign-off."
+  ]
+}

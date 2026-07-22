@@ -1,0 +1,4 @@
+-r requirements-api-server.txt
+-r requirements-api-media.txt
+-r requirements-api-ai.txt
+-r requirements-api-browser.txt

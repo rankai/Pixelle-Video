@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "stage": "PUB-DOUYIN/PUB-3",
+  "gate": "PG-G",
+  "status": "live_smoke_passed_with_boundary",
+  "platform": "douyin",
+  "browser_runtime": "codex-in-app-browser-playwright",
+  "target_path": "/creator-micro/content/post/video?enter_from=publish_page",
+  "login": {
+    "mode": "existing_signed_in_session",
+    "login_markers": [],
+    "qr_required": false,
+    "third_party_challenge": false
+  },
+  "media": {
+    "video_name": "9f021312c89c.mp4",
+    "video_sha256": "sha256:d1b0e1900a9054ba45d131352f0e658e5acb49fe0de78863b7aa18958bb5619b",
+    "upload_observed": true,
+    "processing_completed": true,
+    "platform_result": "作品未见异常"
+  },
+  "field_readback": {
+    "title": "门店短视频测试标题",
+    "description": "这是一次抖音发布链路边界验证，完成后不发布。",
+    "topics": ["#问答"],
+    "semantic_topic_node": "#问答"
+  },
+  "cover": {
+    "cover_name": "9f021312c89c_cover.jpg",
+    "cover_sha256": "sha256:aaf4c7996239fc706df8f86f2a14caa6ec4168f39beec8b66837211101b1a265",
+    "vertical_editor_upload_observed": true,
+    "vertical_editor_complete_clicked": true,
+    "horizontal_cover_set": false,
+    "horizontal_cover_skip_clicked": true,
+    "horizontal_cover_warning_observed": true,
+    "boundary_reason": "平台在竖封面完成后建议设置横封面；本次只验证竖封面上传/编辑/完成，不追加第二张封面"
+  },
+  "final_action_guard": {
+    "publish_button_visible": true,
+    "publish_button_clicked": false,
+    "final_publish": "not_attempted",
+    "manual_stop_preserved": true
+  },
+  "event_sequence": [
+    {"sequence": 1, "event": "open_existing_signed_in_session"},
+    {"sequence": 2, "event": "upload_video_once"},
+    {"sequence": 3, "event": "processing_completed_platform_ok"},
+    {"sequence": 4, "event": "title_readback"},
+    {"sequence": 5, "event": "description_fill_timeout_then_fresh_readback"},
+    {"sequence": 6, "event": "topic_select_and_readback"},
+    {"sequence": 7, "event": "vertical_cover_upload_and_editor_complete"},
+    {"sequence": 8, "event": "horizontal_cover_skip_clicked"},
+    {"sequence": 9, "event": "publish_button_observed_not_clicked"}
+  ],
+  "challenge_markers": [],
+  "screenshot": {
+    "path": "docs/reviews/application-publishing-program/qa/PG-G-douyin-live-smoke-2026-07-20.png",
+    "sha256": "sha256:f2fd191520d8f3950f6ea2c693bf0e05d986e4720c0df22bbe384e5be70af92e"
+  },
+  "observations": [
+    "简介填充调用出现一次超时返回，但刷新 DOM 后语义回读成功；未重复填充。",
+    "平台页面存在横封面缺失建议；未将建议误报为失败。",
+    "未执行真实扫码，因为既有登录会话直接进入上传页且未出现登录/二维码/挑战标记。"
+  ],
+  "privacy": {
+    "account_identifier_recorded": false,
+    "signed_url_recorded": false,
+    "screenshot_cropped": true
+  }
+}

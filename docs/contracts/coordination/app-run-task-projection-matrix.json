@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "facts": [
+    {
+      "object": "AppRun",
+      "source_of_truth": "app_center.sqlite",
+      "task_role": "projection",
+      "task_cleanup_must_delete_fact": false
+    },
+    {
+      "object": "PublishRun",
+      "source_of_truth": "publishing.sqlite3",
+      "task_role": "projection",
+      "task_cleanup_must_delete_fact": false
+    },
+    {
+      "object": "GenericTask",
+      "source_of_truth": "desktop_tasks.sqlite",
+      "task_role": "projection_only",
+      "task_cleanup_must_delete_fact": false
+    }
+  ],
+  "projection_contract": {
+    "generic_task_id": "stable projection ID; does not replace fact IDs",
+    "source_fact_id": "app_run_id or publish_run_id",
+    "idempotency_key": "copied from source fact and never regenerated on retry",
+    "allowed_fields": ["task_id", "source_kind", "source_fact_id", "status", "progress", "title", "error_code", "created_at", "updated_at"],
+    "redacted_fields": ["request_params", "absolute_file_path", "cookie", "authorization", "api_key"],
+    "retry_rule": "retry updates the same projection and creates a new attempt on the source fact",
+    "cleanup_rule": "task cleanup may delete projection rows only; source fact and evidence remain"
+  },
+  "waiting_states": [
+    "waiting_for_login",
+    "needs_attention",
+    "waiting_for_human"
+  ],
+  "success_states_must_not_include": [
+    "waiting_for_login",
+    "needs_attention",
+    "waiting_for_human"
+  ],
+  "status_mapping": {
+    "draft": "pending",
+    "queued": "pending",
+    "running": "running",
+    "waiting_for_login": "waiting_for_login",
+    "waiting_for_human": "waiting_for_human",
+    "needs_attention": "needs_attention",
+    "needs_review": "needs_review",
+    "completed": "completed",
+    "succeeded": "completed",
+    "failed": "failed",
+    "cancelled": "cancelled"
+  },
+  "app_run_states": ["draft", "queued", "running", "needs_review", "completed", "failed", "cancelled"],
+  "publish_run_states": ["queued", "running", "waiting_for_login", "waiting_for_human", "needs_attention", "succeeded", "failed", "cancelled"],
+  "succeeded_scope": "publish_run_only; AppRun uses completed",
+  "legacy_compatibility": "existing V1 tasks remain readable; no backfill or destructive rewrite in COORD-0"
+}

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "contract_id": "pub-4-batch-2-entry",
+  "stage": "PUB-INTEGRATION",
+  "batch": "PUB-4-implementation-batch-2",
+  "handoff": {
+    "application_handoff_refs": ["package_id", "artifact_id"],
+    "recovery_route_refs": ["run_id"],
+    "unknown_ref_policy": "reject",
+    "allowed_fields": ["package_id", "artifact_id", "run_id"],
+    "forbidden_fields": [
+      "absolute_path", "absolute_file_path", "session_content", "api_key", "cookie", "profile_path",
+      "qr_payload", "authorization", "access_token", "refresh_token", "token", "secret", "password", "browser_storage"
+    ],
+    "unknown_field_policy": "reject",
+    "must_reuse_publish_facts": true
+  },
+  "projection": {
+    "package_preflight": true,
+    "run_timeline": true,
+    "refresh_leave_restart_recovery": true,
+    "forbidden_states": ["published", "auto_published"],
+    "invalid_package_fail_closed": true,
+    "event_order_is_monotonic": true,
+    "duplicate_or_out_of_order_events_fail_closed": true
+  },
+  "flag_off": {
+    "v2_requests": 0,
+    "legacy_fallback_reachable": true
+  },
+  "external_actions": {
+    "browser": 0,
+    "authorization": 0,
+    "upload": 0,
+    "final_publish": 0,
+    "publish_run_create": 0,
+    "platform_selection": 0,
+    "business_writes": 0
+  }
+}

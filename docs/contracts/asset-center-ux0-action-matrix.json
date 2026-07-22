@@ -1,0 +1,39 @@
+{
+  "schema_version": "asset-center-ux0-contract-v1",
+  "status": "proposed_pending_ux_a_review",
+  "view_models": {
+    "image": {"decision_fields": ["width", "height", "aspect_ratio", "transparent", "purpose"], "actions": ["preview", "use", "favorite"]},
+    "video": {"decision_fields": ["duration_ms", "width", "height", "aspect_ratio", "has_audio"], "actions": ["preview", "use", "favorite"]},
+    "audio": {"decision_fields": ["duration_ms", "purpose", "authorization_status"], "actions": ["preview", "use", "favorite"]},
+    "voice": {"decision_fields": ["language", "style", "reference_duration_ms", "authorization_status"], "actions": ["preview", "use", "favorite"]},
+    "digital_human": {"decision_fields": ["scene_count", "default_scene_id", "media_types"], "actions": ["preview", "use", "favorite"]},
+    "template": {"decision_fields": ["canvas_width", "canvas_height", "subtitle_layout", "cover_layout", "revision"], "actions": ["preview", "use", "favorite"]},
+    "brand": {"decision_fields": ["has_logo", "has_bgm", "has_contact", "primary_color", "secondary_color"], "actions": ["preview", "use", "edit", "favorite"]}
+  },
+  "action_matrix": {
+    "management": {
+      "preview": "open detail without writing session",
+      "edit": "patch domain resource only",
+      "archive": "reversible archive with impact confirmation",
+      "use": "open picker confirmation path; no card-click patch"
+    },
+    "picker": {
+      "preview": "select for preview only",
+      "confirm": "one session patch plus usage reconcile",
+      "cancel": "close without session or usage write",
+      "upload": "inherit picker context and return selected"
+    }
+  },
+  "error_codes": {
+    "asset_service_unavailable": "企业资产服务暂时不可用",
+    "list_load_failed": "资产列表加载失败，可重试",
+    "preview_failed": "预览暂时不可用，可重新生成预览",
+    "upload_failed": "此文件上传失败，可单项重试",
+    "duplicate_decision_required": "文件已上传，请选择处理方式",
+    "cursor_stale": "资产列表已更新，正在刷新第一页",
+    "cursor_filter_mismatch": "筛选条件已变化，请重新加载",
+    "incompatible_asset": "当前生产步骤不接受此规格",
+    "archive_failed": "归档失败，请重试"
+  },
+  "restart_copy": "应用已重启，请重新选择原文件继续上传"
+}

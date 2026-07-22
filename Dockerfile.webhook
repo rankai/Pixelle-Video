@@ -1,0 +1,12 @@
+ARG NODE_BASE=node:20-alpine
+
+FROM ${NODE_BASE}
+
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+    apk add --no-cache bash curl docker-cli docker-compose util-linux
+
+WORKDIR /app
+
+COPY scripts/webhook-server.js ./scripts/webhook-server.js
+
+CMD ["node", "/app/scripts/webhook-server.js"]

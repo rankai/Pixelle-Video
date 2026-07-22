@@ -1,0 +1,19 @@
+{
+  "schema_version": 2,
+  "package_id": "pkg_legacy_001",
+  "project_id": "legacy_ipb_session_001",
+  "source": {
+    "kind": "legacy_session",
+    "artifact_ids": [],
+    "artifact_version_ids": [],
+    "session_id": "session_ipb_001",
+    "source_revision": "session_ipb_001:r7"
+  },
+  "artifact_refs": [
+    {"artifact_id": "legacy_video_001", "artifact_version_id": "legacy_video_001_r7", "artifact_type": "video", "content_fingerprint": "sha256:legacy-video-001"}
+  ],
+  "video_manifest": {"sha256": "sha256:legacy-video-file-001", "size_bytes": 2048, "mime_type": "video/mp4", "path_token": "asset_legacy_video_001", "duration_ms": 15000, "width": 1080, "height": 1920},
+  "policy": {"human_confirmation_required": true, "allow_final_publish": false, "adapter_version": "legacy@1"},
+  "package_fingerprint": "sha256:package-legacy-001",
+  "created_at": "2026-07-19T00:00:00Z"
+}

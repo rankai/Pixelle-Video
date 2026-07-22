@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "status": "implemented_app_core_batch_1",
+  "source": "pixelle_video.app_center.registry.BUILTIN_MANIFESTS",
+  "destination": "app_center.sqlite.app_registry",
+  "seed_key": ["app_id", "version"],
+  "transaction_required": true,
+  "ordering": ["begin_transaction", "validate_schema", "upsert_builtin_manifests", "verify_seed_count_and_versions", "commit", "allow_app_run_or_handoff_fk_writes"],
+  "idempotency": "upsert_same_manifest_hash_is_noop",
+  "drift": "manifest_hash_mismatch_fails_read_only",
+  "forbidden": ["seed_after_app_run_insert", "load_user_executor_from_sqlite", "load_feature_flag_from_sqlite", "silently_replace_version"]
+}

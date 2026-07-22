@@ -1,0 +1,61 @@
+{
+    "source": "runninghub",
+    "type": "ai_app",
+    "webapp_id": "2005957723193831426",
+    "display_name": "视频改口型（视频形象 + 音频）",
+    "ip_broadcast": {
+        "description": "wan2.1 Infinite Talk 视频改口型/对口型。输入一段视频形象和新音频，输出匹配新音频口型的视频。",
+        "portrait_media_type": "video",
+        "defaults": {
+            "audio_source_select": "1",
+            "frame_load_cap": 0,
+            "skip_first_frames": 10,
+            "width": 480,
+            "height": 832
+        },
+        "params": {
+            "audio_source_select": {
+                "node_id": "520",
+                "field_name": "select",
+                "description": "音频对口型路径",
+                "order": 1
+            },
+            "audio": {
+                "node_id": "348",
+                "field_name": "audio",
+                "description": "上传自定义音频",
+                "order": 2
+            },
+            "portrait": {
+                "node_id": "473",
+                "field_name": "video",
+                "description": "对口型视频+音频",
+                "order": 3
+            },
+            "frame_load_cap": {
+                "node_id": "473",
+                "field_name": "frame_load_cap",
+                "description": "视频总帧率（0为原长度，25帧/s）",
+                "order": 4
+            },
+            "skip_first_frames": {
+                "node_id": "473",
+                "field_name": "skip_first_frames",
+                "description": "跳过前n帧",
+                "order": 5
+            },
+            "width": {
+                "node_id": "521",
+                "field_name": "value",
+                "description": "宽度",
+                "order": 6
+            },
+            "height": {
+                "node_id": "522",
+                "field_name": "value",
+                "description": "高度",
+                "order": 7
+            }
+        }
+    }
+}

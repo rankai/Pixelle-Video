@@ -1,0 +1,10 @@
+[
+  {"action_id": "upload_media", "expected": "allow"},
+  {"action_id": "fill_title", "expected": "allow"},
+  {"action_id": "save_cover", "expected": "allow"},
+  {"action_id": "publish", "expected": "deny", "error_code": "FINAL_ACTION_BLOCKED"},
+  {"action_id": "confirm_publish", "expected": "deny", "error_code": "FINAL_ACTION_BLOCKED"},
+  {"action_id": "submit", "expected": "deny", "error_code": "FINAL_ACTION_BLOCKED"},
+  {"action_id": "unknown", "expected": "deny", "error_code": "FINAL_ACTION_BLOCKED"},
+  {"action_id": "coordinate_click", "expected": "deny", "error_code": "FINAL_ACTION_BLOCKED"}
+]

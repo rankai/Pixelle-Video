@@ -20,10 +20,9 @@ import json
 import re
 from typing import Optional, Type, TypeVar, Union
 
+from loguru import logger
 from openai import AsyncOpenAI
 from pydantic import BaseModel
-from loguru import logger
-
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -121,7 +120,7 @@ class LLMService:
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
         model: Optional[str] = None,
-        temperature: float = 0.7,
+        temperature: float = 1.0,  # kimi-k2.6 only accepts 1.0
         max_tokens: int = 2000,
         response_type: Optional[Type[T]] = None,
         **kwargs
@@ -193,7 +192,11 @@ class LLMService:
                     **kwargs
                 )
                 
-                result = response.choices[0].message.content
+                msg = response.choices[0].message
+                # Reasoning models (kimi-k2.6, DeepSeek-R1, etc.) output the actual
+                # response in 'reasoning_content' instead of 'content'.
+                # Fallback to reasoning_content when content is empty.
+                result = msg.content or getattr(msg, 'reasoning_content', None) or ''
                 logger.debug(f"LLM response length: {len(result)} chars")
                 
                 return result

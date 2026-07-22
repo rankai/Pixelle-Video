@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/publish-idempotency.v1.json",
+  "title": "PublishRun create idempotency",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["same_key_same_payload", "same_key_different_payload", "same_package_active_run", "different_package_active_run"],
+  "properties": {
+    "same_key_same_payload": { "const": "replay_existing_run_and_task_without_new_attempt_including_terminal_state" },
+    "same_key_different_payload": { "const": "409 IDEMPOTENCY_CONFLICT" },
+    "same_package_active_run": { "const": "replay_existing_run_for_same_package_fingerprint_account_platform" },
+    "different_package_active_run": { "const": "409 RUN_ALREADY_ACTIVE_without_returning_other_package_run" }
+  }
+}

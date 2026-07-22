@@ -16,8 +16,7 @@ LLM Presets - Predefined configurations for popular LLM providers
 All providers support OpenAI SDK protocol.
 """
 
-from typing import Dict, Any, List
-
+from typing import Any, Dict, List
 
 LLM_PRESETS: List[Dict[str, Any]] = [
     {
@@ -56,6 +55,12 @@ LLM_PRESETS: List[Dict[str, Any]] = [
         "base_url": "https://api.moonshot.cn/v1",
         "model": "moonshot-v1-8k",
         "api_key_url": "https://platform.moonshot.cn/console/api-keys",
+    },
+    {
+        "name": "Doubao",
+        "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+        "model": "doubao-pro-32k",
+        "api_key_url": "https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey",
     },
 ]
 

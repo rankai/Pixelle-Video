@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/publish-package-v2.v1.schema.json",
+  "title": "PublishPackage V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "package_id", "project_id", "source", "artifact_refs", "video_manifest", "policy", "package_fingerprint", "created_at"],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "package_id": { "type": "string", "pattern": "^pkg_[A-Za-z0-9_-]+$" },
+    "project_id": { "type": "string", "minLength": 1 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "artifact_ids", "artifact_version_ids", "session_id", "source_revision"],
+      "properties": {
+        "kind": { "enum": ["artifact_versions", "legacy_session"] },
+        "artifact_ids": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "artifact_version_ids": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "session_id": { "type": ["string", "null"] },
+        "source_revision": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "artifact_versions" } } },
+          "then": {
+            "properties": {
+              "artifact_version_ids": { "minItems": 1 },
+              "artifact_ids": { "minItems": 1 },
+              "session_id": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "legacy_session" } } },
+          "then": {
+            "properties": {
+              "artifact_version_ids": { "maxItems": 0 },
+              "artifact_ids": { "maxItems": 0 },
+              "session_id": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      ]
+    },
+    "artifact_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["artifact_id", "artifact_version_id", "artifact_type", "content_fingerprint"],
+        "properties": {
+          "artifact_id": { "type": "string", "minLength": 1 },
+          "artifact_version_id": { "type": "string", "minLength": 1 },
+          "artifact_type": { "enum": ["video", "cover", "publish_copy", "carousel_package", "carousel_page"] },
+          "content_fingerprint": { "type": "string", "pattern": "^sha256:.+" }
+        }
+      }
+    },
+    "package_fingerprint": { "type": "string", "pattern": "^sha256:.+" },
+    "video_manifest": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["sha256", "size_bytes", "mime_type", "path_token"],
+      "properties": {
+        "sha256": { "type": "string", "pattern": "^sha256:.+" },
+        "size_bytes": { "type": "integer", "minimum": 1 },
+        "mime_type": { "type": "string", "pattern": "^video/" },
+        "path_token": { "type": "string", "pattern": "^asset_[A-Za-z0-9_-]+$" },
+        "duration_ms": { "type": "integer", "minimum": 1 },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "carousel_manifests": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sha256", "size_bytes", "mime_type", "path_token"],
+        "properties": {
+          "sha256": { "type": "string", "pattern": "^sha256:.+" },
+          "size_bytes": { "type": "integer", "minimum": 1 },
+          "mime_type": { "type": "string", "pattern": "^image/" },
+          "path_token": { "type": "string", "pattern": "^asset_[A-Za-z0-9_-]+$" },
+          "width": { "type": "integer", "minimum": 1 },
+          "height": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "cover_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "size_bytes", "mime_type", "path_token"],
+      "properties": {
+        "sha256": { "type": "string", "pattern": "^sha256:.+" },
+        "size_bytes": { "type": "integer", "minimum": 1 },
+        "mime_type": { "type": "string", "pattern": "^image/" },
+        "path_token": { "type": "string", "pattern": "^asset_[A-Za-z0-9_-]+$" },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "platform_copy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 5000 },
+        "hashtags": { "type": "array", "items": { "type": "string", "maxLength": 50 }, "uniqueItems": true }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["human_confirmation_required", "allow_final_publish"],
+      "properties": {
+        "human_confirmation_required": { "const": true },
+        "allow_final_publish": { "const": false },
+        "adapter_version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "invalidated_at": { "type": ["string", "null"] },
+    "invalidation_reason": { "type": ["string", "null"] },
+    "created_at": { "type": "string", "minLength": 1 }
+  },
+  "oneOf": [
+    {
+      "required": ["video_manifest"],
+      "properties": {
+        "video_manifest": { "type": "object" },
+        "carousel_manifests": { "maxItems": 0 },
+        "artifact_refs": {
+          "contains": { "type": "object", "properties": { "artifact_type": { "const": "video" } } },
+          "not": { "contains": { "type": "object", "properties": { "artifact_type": { "const": "carousel_package" } } } }
+        }
+      }
+    },
+    {
+      "required": ["video_manifest", "carousel_manifests"],
+      "properties": {
+        "video_manifest": { "type": "null" },
+        "carousel_manifests": { "minItems": 1 },
+        "artifact_refs": {
+          "contains": { "type": "object", "properties": { "artifact_type": { "const": "carousel_package" } } },
+          "not": { "contains": { "type": "object", "properties": { "artifact_type": { "const": "video" } } } }
+        }
+      }
+    }
+  ]
+}

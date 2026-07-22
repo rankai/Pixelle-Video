@@ -14,6 +14,8 @@
 Home Page - Main video generation interface
 """
 
+# ruff: noqa: E402
+
 import sys
 from pathlib import Path
 
@@ -25,17 +27,18 @@ if str(_project_root) not in sys.path:
 
 import streamlit as st
 
-# Import state management
-from web.state.session import init_session_state, init_i18n, get_pixelle_video
+from web.components.faq import render_faq_sidebar
 
 # Import components
 from web.components.header import render_header
 from web.components.settings import render_advanced_settings
-from web.components.faq import render_faq_sidebar
+
+# Import state management
+from web.state.session import get_pixelle_video, init_i18n, init_session_state
 
 # Page config
 st.set_page_config(
-    page_title="Home - Pixelle-Video",
+    page_title="Home - AI-Video-Factory",
     page_icon="🎬",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -86,4 +89,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

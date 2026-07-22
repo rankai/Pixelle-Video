@@ -1,0 +1,19 @@
+{
+  "state_machine": [
+    "created",
+    "uploading",
+    "analyzing",
+    "uploaded",
+    "awaiting_duplicate_decision",
+    "finalized",
+    "expired"
+  ],
+  "policies": {
+    "reuse_existing": {"creates_asset": false, "creates_revision": false, "returns_existing": true},
+    "attach_revision": {"requires_target_asset_id": true, "creates_asset": false, "creates_revision": true},
+    "create_separate": {"creates_asset": true, "creates_revision": true, "independent_lifecycle": true}
+  },
+  "restart_copy": "应用已重启，请重新选择原文件继续上传",
+  "ttl_hours": 24,
+  "idempotency": "same finalize request returns the first result without a second asset or revision"
+}

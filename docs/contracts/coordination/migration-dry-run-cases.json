@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "database_migrations": {
+    "app_center": {"sql": "docs/contracts/app-center/app-center-v1.sql", "expected_tables": ["app_schema_migrations", "app_registry", "content_projects", "artifacts", "artifact_versions", "app_runs", "artifact_handoffs"]},
+    "publishing": {"sql": "docs/contracts/publishing/publishing-v2.sql", "expected_tables": ["publishing_schema_migrations", "publish_accounts", "publish_packages_v2", "publish_runs_v2", "publish_step_results", "publish_run_step_attempts", "publish_events"]}
+  },
+  "cases": [
+    {"name": "empty_database", "expected": "pass"},
+    {"name": "existing_legacy_tables", "expected": "pass_without_touching_legacy"},
+    {"name": "repeat_execution", "expected": "pass_noop"},
+    {"name": "unsupported_future_version", "expected": "refuse_without_write"},
+    {"name": "injected_failure", "expected": "rollback_transaction"}
+  ],
+  "rollback": {"production_writes": 0, "temporary_database_deleted": true, "legacy_tables_modified": false}
+}

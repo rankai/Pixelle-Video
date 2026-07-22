@@ -1,0 +1,20 @@
+{
+    "source": "runninghub",
+    "type": "ai_app",
+    "webapp_id": "2042467436926083074",
+    "display_name": "数字人口播快速版（图片形象 720x1280）",
+    "ip_broadcast": {
+        "description": "优化版 AI App，参数：音频、图片形象、宽、高、提示词描述。默认 720x1280，可手动调整；仅支持图片形象。",
+        "params": {
+            "portrait": {"node_id": "269", "field_name": "image", "description": "image"},
+            "audio": {"node_id": "276", "field_name": "audio", "description": "audio"},
+            "width": {"node_id": "368", "field_name": "value", "description": "宽"},
+            "height": {"node_id": "382", "field_name": "value", "description": "高"},
+            "prompt": {"node_id": "391", "field_name": "value", "description": "value"}
+        },
+        "defaults": {
+            "width": 720,
+            "height": 1280
+        }
+    }
+}

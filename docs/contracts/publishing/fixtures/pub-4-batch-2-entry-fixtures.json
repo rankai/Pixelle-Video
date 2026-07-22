@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "fixtures": [
+    {"id": "missing-ref-rejected", "valid": false, "error": "PUBLISH_REF_REQUIRED"},
+    {"id": "unknown-ref-rejected", "valid": false, "error": "PUBLISH_REF_UNKNOWN"},
+    {"id": "package-artifact-account-mismatch-rejected", "valid": false, "error": "PUBLISH_FACT_MISMATCH"},
+    {"id": "invalidated-package-new-run-rejected", "valid": false, "error": "PUBLISH_PACKAGE_STALE"},
+    {"id": "api-error-fail-closed", "valid": false, "error": "PUBLISH_READ_FAILED"},
+    {"id": "duplicate-or-out-of-order-event-rejected", "valid": false, "error": "PUBLISH_EVENT_ORDER_INVALID"},
+    {"id": "sensitive-or-unknown-handoff-field-rejected", "valid": false, "error": "PUBLISH_HANDOFF_FIELD_FORBIDDEN"},
+    {"id": "flag-off-v2-request-rejected", "valid": false, "error": "PUBLISH_V2_DISABLED"}
+  ]
+}

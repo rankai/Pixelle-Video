@@ -1,0 +1,46 @@
+{
+  "started_at": "2026-07-19T02:13:03.263723+00:00",
+  "finished_at": "2026-07-19T02:13:09.666579+00:00",
+  "automation_ms": 6403,
+  "click_count": 6,
+  "events": [
+    {
+      "event": "workspace_loaded",
+      "url": "http://127.0.0.1:1420/",
+      "at": "2026-07-19T02:13:05.464508+00:00"
+    },
+    {
+      "event": "voice_workspace_opened",
+      "url": "http://127.0.0.1:1420/",
+      "at": "2026-07-19T02:13:06.796757+00:00"
+    },
+    {
+      "event": "step_opened",
+      "label": "配音",
+      "at": "2026-07-19T02:13:07.344508+00:00"
+    },
+    {
+      "event": "step_opened",
+      "label": "出镜",
+      "at": "2026-07-19T02:13:07.887152+00:00"
+    },
+    {
+      "event": "step_opened",
+      "label": "成片",
+      "at": "2026-07-19T02:13:08.442992+00:00"
+    },
+    {
+      "event": "step_opened",
+      "label": "发布",
+      "at": "2026-07-19T02:13:08.977343+00:00"
+    },
+    {
+      "event": "step_opened",
+      "label": "文案与分段",
+      "at": "2026-07-19T02:13:09.524851+00:00"
+    }
+  ],
+  "console_errors": [],
+  "video": "docs/reviews/application-publishing-program/qa/app-baseline/COORD-0-core-production-navigation.webm",
+  "video_sha256": "8e2c95cc61b1edaa55d8f180c6c1ffe26c1ba58d868884e8bc500f298e374752"
+}
