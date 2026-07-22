@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "stage": "PROGRAM-ROLLOUT",
+  "batch": "windows-ci-run-3",
+  "status": "passed_with_boundary",
+  "run": {
+    "id": 29881594901,
+    "number": 3,
+    "head_sha": "b652960edb2f03f4c29a58f9093e011a6b689fc6",
+    "workflow_url": "https://github.com/rankai/Pixelle-Video/actions/runs/29881594901",
+    "job_id": 88803468708,
+    "job_url": "https://github.com/rankai/Pixelle-Video/actions/runs/29881594901/job/88803468708",
+    "runner": "windows-latest",
+    "target": "x86_64-pc-windows-msvc",
+    "started_at": "2026-07-22T00:54:29Z",
+    "completed_at": "2026-07-22T01:04:28Z",
+    "conclusion": "success"
+  },
+  "steps": {
+    "python_sidecar": "passed",
+    "sidecar_target_verification": "passed",
+    "npm_ci": "passed",
+    "desktop_tests": "passed",
+    "tauri_nsis_build": "passed",
+    "manifest_generation": "passed",
+    "artifact_upload": "passed"
+  },
+  "artifact": {
+    "id": 8515139706,
+    "name": "pixelle-video-windows-b652960edb2f03f4c29a58f9093e011a6b689fc6",
+    "size_bytes": 264883933,
+    "expired": false,
+    "installer": {
+      "name": "Pixelle Video_0.1.0_x64-setup.exe",
+      "size_bytes": 134129674,
+      "sha256": "525b28b10face2ee83143648e62794ad9d0d13e266730ba7d255acbe42406d24"
+    },
+    "sidecar": {
+      "name": "pixelle-api-x86_64-pc-windows-msvc.exe",
+      "size_bytes": 131787323,
+      "sha256": "d25ba449cea6342ca8911419ebf1652b834a3931335c2c07787e9fa98a2eb49d"
+    },
+    "manifest_recomputed_on_macos": true,
+    "manifest_sha_match": true
+  },
+  "pg_l": {
+    "criterion": "PG-L-04",
+    "status": "passed_with_boundary",
+    "boundary": "Windows 实机安装、启动、关闭重开和 sidecar health 尚未人工执行。",
+    "windows_install_test": "pending_windows_manual_install",
+    "final_publish_clicks": 0
+  },
+  "release_guard": {
+    "publish_v2_default": false,
+    "douyin_gray_percentage": 0,
+    "non_douyin_release_states_changed": false
+  }
+}

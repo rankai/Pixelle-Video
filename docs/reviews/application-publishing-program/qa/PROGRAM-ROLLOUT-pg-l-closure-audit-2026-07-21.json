@@ -2,15 +2,16 @@
   "schema_version": 1,
   "stage": "PROGRAM-ROLLOUT",
   "gate": "PG-L",
-  "audit_time": "2026-07-21T23:11:26Z",
+  "audit_time": "2026-07-22T01:10:37Z",
   "overall_status": "open",
   "independent_review": {
     "status": "passed_with_boundary",
     "reviewer": "/root/pg_a_closure_reviewer_v3",
-    "scope": "PG-L closure audit and batch 8 one-hour observation synchronization",
+    "scope": "PG-L closure audit, Windows CI run 3 synchronization and batch 8 observation",
     "code_modification_by_reviewer": false,
-    "review_evidence": "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-pg-l-closure-audit-review-2026-07-21.md",
+    "review_evidence": "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-pg-l-closure-audit-review-2026-07-22.md",
     "batch8_review_evidence": "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-implementation-batch-8-one-hour-user-observation-review-2026-07-21.md",
+    "windows_run_evidence": "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-ci-run-2026-07-22.md",
     "p0": 0,
     "p1": 0,
     "substantive_p2": 0
@@ -63,13 +64,20 @@
     {
       "id": "PG-L-04",
       "requirement": "Windows 构建证据",
-      "status": "deferred",
+      "status": "passed_with_boundary",
       "evidence": [
         "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-lifecycle-performance-2026-07-21.json",
         "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-windows-ci-contract-2026-07-22.json",
-        "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-ci-build-implementation-2026-07-22.md"
+        "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-ci-build-implementation-2026-07-22.md",
+        "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-ci-run-2026-07-22.md",
+        "docs/reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-windows-ci-run-2026-07-22.json"
       ],
-      "boundary": "Windows CI workflow 已实现并独立复审通过，但当前尚未执行 Windows Runner、installer/sidecar 产物、安装、启动和重启测试；PG-L-04 继续 deferred，不能视为通过。"
+      "run_id": 29881594901,
+      "runner": "windows-latest",
+      "target": "x86_64-pc-windows-msvc",
+      "installer_sha256": "525b28b10face2ee83143648e62794ad9d0d13e266730ba7d255acbe42406d24",
+      "sidecar_sha256": "d25ba449cea6342ca8911419ebf1652b834a3931335c2c07787e9fa98a2eb49d",
+      "boundary": "Windows Runner、installer/sidecar artifact 和 manifest 已真实通过并完成 SHA 重算；Windows 实机安装、启动、关闭重开和 sidecar health 尚未人工执行，不能提升为无边界通过。"
     },
     {
       "id": "PG-L-05",
@@ -167,9 +175,10 @@
       "requirement": "独立严格复审确认 PG-L 退出条件、证据和边界",
       "status": "passed_with_boundary",
       "evidence": [
-        "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-pg-l-closure-audit-review-2026-07-21.md"
+        "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-pg-l-closure-audit-review-2026-07-21.md",
+        "docs/reviews/application-publishing-program/PROGRAM-ROLLOUT-pg-l-closure-audit-review-2026-07-22.md"
       ],
-      "boundary": "独立审计已通过有界复核，但 Windows、观察窗、产品签字和真实平台/WebView 条件仍未满足，因此 PG-L 不关闭。"
+      "boundary": "独立审计已通过有界复核；Windows build/artifact 已满足 PG-L-04，但 Windows 实机安装、产品签字和真实平台/WebView 条件仍未满足，因此 PG-L 不关闭。"
     }
   ],
   "closure_rule": "PG-L 只有在所有 criteria 不再为 deferred/not_complete/pending_external/not_executed，且独立复审与产品签署齐全后才可关闭。"
