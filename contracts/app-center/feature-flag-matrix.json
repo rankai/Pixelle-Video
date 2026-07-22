@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "flags": [
+    {"name": "contentApps", "default": false, "owner_stage": "APP-SHELL"},
+    {"name": "douyinCarousel", "default": false, "owner_stage": "APP-CAROUSEL"},
+    {"name": "digitalHumanInAppCenter", "default": false, "owner_stage": "APP-IPB"},
+    {"name": "publishV2", "default": false, "owner_stage": "PUB-CORE"}
+  ],
+  "unknown_flag_behavior": "false",
+  "frontend_cannot_write": true,
+  "rollback": "disable flag; retain SQLite facts and old entry points"
+}

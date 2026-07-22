@@ -1,0 +1,49 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "Pixelle Publish V2 Contract Snapshot", "version": "0.2.0-pub-2-entry"},
+  "servers": [{"url": "/api/publish/v2"}],
+  "paths": {
+    "/accounts": {
+      "get": {"operationId": "listPublishAccountsV2", "responses": {"200": {"description": "safe account projections"}}},
+      "post": {"operationId": "createPublishAccountV2", "security": [{"DesktopCapability": []}], "responses": {"201": {"description": "account created"}}}
+    },
+    "/accounts/{account_id}": {"get": {"operationId": "getPublishAccountV2", "responses": {"200": {"description": "safe account projection"}}}},
+    "/accounts/{account_id}/connect": {"post": {"operationId": "connectPublishAccountV2", "security": [{"DesktopCapability": []}], "responses": {"200": {"description": "bounded login probe projection"}}}},
+    "/accounts/{account_id}/verify": {"post": {"operationId": "verifyPublishAccountV2", "security": [{"DesktopCapability": []}], "responses": {"200": {"description": "bounded verification probe projection"}}}},
+    "/accounts/{account_id}/open": {"post": {"operationId": "openPublishAccountV2", "security": [{"DesktopCapability": []}], "responses": {"200": {"description": "bounded profile probe projection"}}}},
+    "/accounts/{account_id}/make-default": {"post": {"operationId": "makeDefaultPublishAccountV2", "security": [{"DesktopCapability": []}], "responses": {"200": {"description": "default updated"}}}},
+    "/accounts/{account_id}/archive": {"post": {"operationId": "archivePublishAccountV2", "security": [{"DesktopCapability": []}], "responses": {"200": {"description": "account archived"}}}},
+    "/accounts/{account_id}/clear-profile": {"post": {"operationId": "clearPublishProfileV2", "security": [{"DesktopCapability": []}], "responses": {"200": {"description": "profile cleared"}}}},
+    "/packages": {"post": {"operationId": "createPublishPackageV2", "requestBody": {"required": true, "content": {"application/json": {"$ref": "#/components/schemas/PublishPackageCreateRequest"}}}, "security": [{"DesktopCapability": []}], "responses": {"201": {"description": "immutable package created", "content": {"application/json": {"$ref": "#/components/schemas/PublishPackageV2"}}}, "422": {"description": "source/media invariant rejected"}}}},
+    "/packages/from-session": {"post": {"operationId": "createPublishPackageFromSessionV2", "requestBody": {"required": true, "content": {"application/json": {"$ref": "#/components/schemas/PublishPackageFromSessionRequest"}}}, "security": [{"DesktopCapability": []}], "responses": {"201": {"description": "immutable package created from trusted session", "content": {"application/json": {"$ref": "#/components/schemas/PublishPackageV2"}}}, "422": {"description": "session/package invariant rejected"}}}},
+    "/packages/resolve": {"get": {"operationId": "resolvePublishPackageV2", "parameters": [{"name": "artifact_id", "in": "query", "required": true, "schema": {"type": "string", "minLength": 1}}], "responses": {"200": {"description": "unique non-invalidated package snapshot", "content": {"application/json": {"$ref": "#/components/schemas/PublishPackageV2"}}}, "404": {"description": "artifact or package not found"}, "409": {"description": "stale or ambiguous package candidates"}}}},
+    "/packages/{package_id}": {"get": {"operationId": "getPublishPackageV2", "responses": {"200": {"description": "immutable package snapshot"}}}},
+    "/packages/{package_id}/preflight": {"post": {"operationId": "preflightPublishPackageV2", "security": [{"DesktopCapability": []}], "responses": {"200": {"description": "media preflight result"}, "422": {"description": "media rejected"}}}},
+    "/runs": {"post": {"operationId": "createPublishRunV2", "requestBody": {"required": true, "content": {"application/json": {"$ref": "#/components/schemas/PublishRunCreateRequest"}}}, "security": [{"DesktopCapability": []}], "responses": {"202": {"description": "run queued or idempotent replay; same run_id/task_id returned", "content": {"application/json": {"$ref": "#/components/schemas/PublishRunAcceptedResponse"}}}, "409": {"description": "idempotency mismatch", "content": {"application/json": {"$ref": "#/components/schemas/PublishError"}}}}}},
+    "/runs/{run_id}": {"get": {"operationId": "getPublishRunV2", "responses": {"200": {"description": "run projection"}}}},
+    "/runs/{run_id}/events": {"get": {"operationId": "listPublishRunEventsV2", "responses": {"200": {"description": "redacted event cursor page"}}}},
+    "/runs/{run_id}/resume": {"post": {"operationId": "resumePublishRunV2", "security": [{"DesktopCapability": []}], "responses": {"202": {"description": "run resume queued"}}}},
+    "/runs/{run_id}/verify": {"post": {"operationId": "verifyPublishRunV2", "security": [{"DesktopCapability": []}], "responses": {"202": {"description": "draft verification queued"}}}},
+    "/runs/{run_id}/retry-step": {"post": {"operationId": "retryPublishRunStepV2", "security": [{"DesktopCapability": []}], "responses": {"202": {"description": "step retry queued"}, "409": {"description": "step/state not retryable"}}}},
+    "/runs/{run_id}/cancel": {"post": {"operationId": "cancelPublishRunV2", "security": [{"DesktopCapability": []}], "responses": {"202": {"description": "cancellation queued"}}}},
+    "/runs/{run_id}/mark-outcome": {"post": {"operationId": "markPublishRunOutcomeV2", "security": [{"DesktopCapability": []}], "responses": {"200": {"description": "human outcome recorded"}, "422": {"description": "only published_by_user or abandoned_by_user"}}}}
+  },
+  "components": {
+    "securitySchemes": {"DesktopCapability": {"type": "http", "scheme": "Bearer", "bearerFormat": "capability-token"}},
+    "schemas": {
+      "PublishPackageCreateRequest": {"type": "object", "additionalProperties": false, "required": ["project_id", "artifact_version_ids"], "properties": {"project_id": {"type": "string", "minLength": 1}, "artifact_version_ids": {"type": "array", "minItems": 1, "maxItems": 20, "items": {"type": "string", "minLength": 1}}, "platform_copy": {"type": "object"}, "package_id": {"type": "string", "pattern": "^pkg_[A-Za-z0-9_-]+$"}, "supersedes_package_id": {"type": "string", "pattern": "^pkg_[A-Za-z0-9_-]+$"}}},
+      "PublishPackageFromSessionRequest": {"type": "object", "additionalProperties": false, "required": ["project_id", "session_id"], "properties": {"project_id": {"type": "string", "minLength": 1}, "session_id": {"type": "string", "minLength": 1}, "platform_copy": {"type": "object"}, "package_id": {"type": "string", "pattern": "^pkg_[A-Za-z0-9_-]+$"}}},
+      "PublishRunCreateRequest": {"type": "object", "additionalProperties": false, "required": ["package_id", "account_id", "platform", "idempotency_key"], "properties": {"package_id": {"type": "string"}, "account_id": {"type": "string"}, "platform": {"enum": ["douyin", "video_channel", "kuaishou", "xiaohongshu"]}, "idempotency_key": {"type": "string", "minLength": 8}}},
+      "PublishRunAcceptedResponse": {"type": "object", "additionalProperties": false, "required": ["run_id", "task_id", "state", "requires_human_confirmation", "idempotent_replay"], "properties": {"run_id": {"type": "string"}, "task_id": {"type": "string"}, "state": {"enum": ["queued", "running", "waiting_for_login", "waiting_for_human", "needs_attention", "succeeded", "failed", "cancelled"]}, "requires_human_confirmation": {"const": true}, "idempotent_replay": {"type": "boolean"}}},
+      "PublishError": {"type": "object", "additionalProperties": false, "required": ["error_code", "message"], "properties": {"error_code": {"enum": ["ACCOUNT_NOT_FOUND", "ACCOUNT_PLATFORM_MISMATCH", "IDEMPOTENCY_CONFLICT", "RUN_ALREADY_ACTIVE", "RUN_STATE_INVALID", "PUBLISH_PACKAGE_STALE"]}, "message": {"type": "string"}}},
+      "PublishPackageV2": {"$ref": "pixelle://contracts/publishing/publish-package-v2.v1.schema.json"}
+    }
+  },
+  "securityPolicy": {
+    "base_path": "/api/publish/v2",
+    "mutating_methods": ["POST", "PUT", "PATCH", "DELETE"],
+    "local_capability_token": "required",
+    "strict_origin_allowlist": ["tauri://localhost", "http://127.0.0.1:1420", "http://localhost:1420"],
+    "final_publish_action": "never_exposed"
+  }
+}

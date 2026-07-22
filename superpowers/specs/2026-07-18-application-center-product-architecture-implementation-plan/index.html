@@ -1,0 +1,4340 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="AI Video Creator - Generate a short video in 3 minutes">
+      
+      
+        <meta name="author" content="Pixelle.AI">
+      
+      
+        <link rel="canonical" href="https://AIDC-AI.github.io/Pixelle-Video/superpowers/specs/2026-07-18-application-center-product-architecture-implementation-plan/">
+      
+      
+      
+      
+        
+          <link rel="alternate" href="./" hreflang="en">
+        
+          <link rel="alternate" href="../../../zh/superpowers/specs/2026-07-18-application-center-product-architecture-implementation-plan/" hreflang="zh">
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Pixelle Video 应用中心产品规划与实施落地方案 - Pixelle-Video</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#pixelle-video" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Pixelle-Video" class="md-header__button md-logo" aria-label="Pixelle-Video" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Pixelle-Video
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Pixelle Video 应用中心产品规划与实施落地方案
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../../zh/superpowers/specs/2026-07-18-application-center-product-architecture-implementation-plan/" hreflang="zh" class="md-select__link">
+              中文
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/AIDC-AI/Pixelle-Video" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AIDC-AI/Pixelle-Video
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../user-guide/web-ui/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../gallery/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Gallery
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../tutorials/your-first-video/" class="md-tabs__link">
+          
+  
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../reference/api-overview/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../development/architecture/" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../troubleshooting/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Troubleshooting
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Pixelle-Video" class="md-nav__button md-logo" aria-label="Pixelle-Video" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Pixelle-Video
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/AIDC-AI/Pixelle-Video" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AIDC-AI/Pixelle-Video
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../user-guide/web-ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web UI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../user-guide/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../user-guide/workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../user-guide/templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../gallery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gallery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorials/your-first-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Your First Video
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorials/custom-style/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Style
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorials/voice-cloning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Voice Cloning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/api-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/config-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../development/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../development/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. 执行结论
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#01" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.1 默认产品决策
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 现状判断与参考图取舍
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 现状判断与参考图取舍">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 当前代码中可直接复用的基础
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 当前阻碍扩展的问题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 参考图中应该采用的部分
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.4 参考图中不能照搬的部分
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 产品定位、用户任务与指标
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 产品定位、用户任务与指标">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 产品定位
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 核心用户任务
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 北极星指标
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 产品原则
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 首期明确不做
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 目标信息架构
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 目标信息架构">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 一级导航
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 应用中心首页
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 应用卡片规范
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 应用工作区统一骨架
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 我的创作
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 工作台调整
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#37" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.7 可访问性和低门槛要求
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 应用组合与优先级
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 应用组合与优先级">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 路线图
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-p0-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 P0-1 门店营销文案
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-p0-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 P0-2 爆款标题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-p0-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 P0-3 抖音图文
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-p0-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 P0-4 数字人口播视频
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 首期核心串联路径
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 统一应用架构
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 统一应用架构">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 分层
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#511" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1.1 后台技术路线决策
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 应用定义与应用实现分离
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#521-p0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2.1 P0 应用管理边界
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.2.1 P0 应用管理边界">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deferred-capabilityac-admin-controlp1p2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deferred Capability：AC-ADMIN-CONTROL（P1/P2）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 三类执行器
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#531-llm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3.1 应用中心 LLM 复用边界
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 运行生命周期
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 创作上下文
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 数据模型与持久化
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. 数据模型与持久化">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 领域对象
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 关系
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 首期表字段
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 存储策略
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.5 产物类型
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 后端设计
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. 后端设计">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 建议目录
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 API 契约
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 创建运行请求
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-taskmanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 运行与 TaskManager 的关系
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#75" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.5 结构化生成
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#76-prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.6 Prompt 管理
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#77" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.7 安全和隐私
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 前端设计与迁移
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. 前端设计与迁移">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 建议目录
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 路由
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 前端状态边界
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 共享组件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 视觉系统
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 跨应用流转协议
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. 跨应用流转协议">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 原则
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 首期映射
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3 下一步建议
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. 质量、遥测与商业化预留
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. 质量、遥测与商业化预留">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#101" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1 内容质量门禁
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#102" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2 本地产品事件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#103" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3 成本与套餐预留
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-luna" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Luna 实施阶段与门禁
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Luna 实施阶段与门禁">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ac-0adr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 AC-0：基线、ADR 与契约
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ac-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 AC-1：应用目录与路由外壳
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ac-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 AC-2：创作项目、运行与产物内核
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ac-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 AC-3：门店营销文案与爆款标题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ac-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 AC-4：抖音图文
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ac-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 AC-5：数字人口播应用化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ac-6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 AC-6：工作台整合、遥测与正式启用
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. 测试矩阵
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. 测试矩阵">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#121" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.1 后端
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#122" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.2 前端组件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#123-e2e" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.3 桌面端 E2E
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#124" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.4 发布前命令
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-feature-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Feature flag 与回滚
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. 风险清单
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-luna" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Luna 工作规范
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="15. Luna 工作规范">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#151" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.1 总执行提示词
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#152" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.2 每阶段开始前检查
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#153-definition-of-done" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.3 Definition of Done
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. 产品负责人验收任务
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. 最终上线判定
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="pixelle-video">Pixelle Video 应用中心产品规划与实施落地方案<a class="headerlink" href="#pixelle-video" title="Permanent link">&para;</a></h1>
+<ul>
+<li>日期：2026-07-18</li>
+<li>版本：v1.4（正式登记管理后台 P1/P2 Deferred Capability 与启动条件）</li>
+<li>交付对象：Luna（产品、前端、后端、测试可直接据此执行）</li>
+<li>实施主端：React/Tauri 桌面端</li>
+<li>上位协调方案：<code>docs/superpowers/specs/2026-07-18-application-center-publishing-program-master-plan.md</code></li>
+<li>执行约束：本方案的 AC 阶段必须按上位方案的严格串行队列和 Program Gate 推进</li>
+<li>参考：用户提供的“应用中心”截图、当前 <code>StudioApp</code>、企业资产库 V2、5 步口播生产链路、任务与发布中心</li>
+<li>首期目标：把 Pixelle Video 从“数字人口播工具”升级为“中小门店短视频内容生产工作台”</li>
+</ul>
+<h2 id="0">0. 执行结论<a class="headerlink" href="#0" title="Permanent link">&para;</a></h2>
+<p>应用中心不能只做成参考图那样的工具卡片集合。卡片陈列能解决“找到工具”，但解决不了门店老板真正的连续工作：同一份门店信息要反复填写、文案和标题不能继续用于成片、生成结果容易丢、任务记录与可编辑内容混在一起。</p>
+<p>本方案确定采用以下产品结构：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>应用中心负责发现和启动能力
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>创作项目负责承接一次营销目标
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>应用运行负责执行和重试
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>创作产物负责保存、编辑、版本和跨应用流转
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>企业资产库负责复用品牌、人物、声音、图片、视频和模板
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>发布中心负责最终平台交付
+</span></code></pre></div>
+<p>首期只上线四个高频应用：</p>
+<ol>
+<li>门店营销文案；</li>
+<li>爆款标题；</li>
+<li>抖音图文；</li>
+<li>数字人口播视频（迁入已有能力，不重写生产内核）。</li>
+</ol>
+<p>必须先建立统一的应用协议、创作上下文、运行记录和产物模型，再继续加应用。禁止为每个新工具各写一套页面、接口、提示词调用和历史记录。</p>
+<h2 id="01">0.1 默认产品决策<a class="headerlink" href="#01" title="Permanent link">&para;</a></h2>
+<p>以下决策用于让 Luna 无需等待即可开工；任何一项与业务现状不符时，产品负责人只需修改对应决策，不需要推翻整体架构。</p>
+<table>
+<thead>
+<tr>
+<th>决策项</th>
+<th>本方案默认值</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>主要客户端</td>
+<td>React/Tauri 桌面端</td>
+<td>当前桌面端已具备工作台、资产、任务、发布和安全模式；Streamlit 只保留旧版兼容</td>
+</tr>
+<tr>
+<td>首期用户模型</td>
+<td>单机、单用户、可管理多个品牌/门店</td>
+<td>符合现有本地桌面架构，同时为未来 <code>workspace_id</code> 留字段</td>
+</tr>
+<tr>
+<td>当前后台</td>
+<td>保留 FastAPI + Python 模块化单体</td>
+<td>最大化复用已跑通的 LLM、数字人、媒体、渲染、任务和资产能力；不迁移 Express</td>
+</tr>
+<tr>
+<td>P0 模型管理</td>
+<td>复用现有 <code>ConfigManager + LLMService + 桌面配置页</code></td>
+<td>当前已有单一默认模型配置、脱敏读写、热更新和结构化输出能力，不重复建设模型配置库</td>
+</tr>
+<tr>
+<td>P0 应用管理</td>
+<td>不建设管理员控制台</td>
+<td>使用内置 Registry、版本化 manifest、feature flag 和 Program Gate 控制上线；管理员动态上下架与可视化模型策略延期</td>
+</tr>
+<tr>
+<td>未来 SaaS</td>
+<td>NestJS 控制面 + Python 执行面</td>
+<td>正式建设账户/组织/RBAC/商业化/开放能力或升级云端多租户时，按 ADR-007 启动混合架构</td>
+</tr>
+<tr>
+<td>首发平台</td>
+<td>抖音优先</td>
+<td>用户明确提出抖音图文，现有发布中心也已支持抖音准备流程</td>
+</tr>
+<tr>
+<td>首发语言</td>
+<td>简体中文</td>
+<td>目标用户是国内中小企业主和门店老板</td>
+</tr>
+<tr>
+<td>内容生成方式</td>
+<td>结构化 LLM 输出 + 人工确认</td>
+<td>保证结果可编辑、可验证、可继续流转，不直接把自由文本当最终数据</td>
+</tr>
+<tr>
+<td>数据存储</td>
+<td>新增独立 SQLite 领域库</td>
+<td>不迁移或破坏现有任务库、资产库与口播 session，降低上线风险</td>
+</tr>
+<tr>
+<td>上线方式</td>
+<td>feature flag 分阶段开启</td>
+<td>当前工作区已有大量资产库改动，必须支持并行开发与快速回滚</td>
+</tr>
+<tr>
+<td>商业化</td>
+<td>首期只记录能力用量和成本估算，不做套餐扣费</td>
+<td>先验证使用频率和价值，再决定计费单位</td>
+</tr>
+</tbody>
+</table>
+<h2 id="1">1. 现状判断与参考图取舍<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<h3 id="11">1.1 当前代码中可直接复用的基础<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
+<p>本方案基于真实代码，不按全新项目推演：</p>
+<ul>
+<li><code>desktop/src/StudioApp.tsx</code> 已有工作台、口播剪辑、企业资产库、发布中心、任务记录、系统设置和启动自检；</li>
+<li><code>desktop/src/features/dashboard/DashboardView.tsx</code> 已有首页项目、队列、资产和就绪状态区；</li>
+<li><code>desktop/src/features/assets/</code> 已建立统一资产模型、选择器、稳定 ID、预览和领域资源；</li>
+<li><code>api/tasks/</code> 已有异步任务、取消、重试、进度和 SQLite 持久化；</li>
+<li><code>api/routers/ip_broadcast.py</code> 和 <code>pixelle_video/services/ip_broadcast_workflow.py</code> 已承载可用的数字人口播链路；</li>
+<li><code>pixelle_video/services/llm_service.py</code> 支持 Pydantic 结构化输出；</li>
+<li><code>pixelle_video/config/manager.py</code>、<code>pixelle_video/config/schema.py</code> 与 <code>/api/desktop/config</code> 已统一管理默认 LLM 的 <code>api_key/base_url/model</code>，桌面配置页已有密钥脱敏读写；</li>
+<li><code>desktop/src/theme.ts</code>、<code>desktop/src/styles.css</code> 与 Ant Design 已形成现有主题体系；</li>
+<li><code>desktop/src/featureFlags.ts</code> 已有灰度开关模式；</li>
+<li>现有发布中心可以继续承接视频、标题、描述和平台发布准备。</li>
+</ul>
+<h3 id="12">1.2 当前阻碍扩展的问题<a class="headerlink" href="#12" title="Permanent link">&para;</a></h3>
+<ol>
+<li><code>StudioApp.tsx</code> 已超过 5,000 行，导航、会话、资产和生产步骤仍高度集中；继续把新工具塞入其中会快速失控。</li>
+<li>当前 <code>View</code> 是硬编码联合类型，应用数量增加后会形成大段条件渲染和回调传递。</li>
+<li>现有任务是“执行日志”，不是用户可持续编辑的“创作项目”。任务过期或清理后不能承担内容库职责。</li>
+<li>现有 LLM <code>/api/llm/chat</code> 只返回自由文本，无法支撑稳定的文案卡片、标题候选、图文页和后续流转。</li>
+<li>品牌包已经包含颜色、Logo、地址、电话和优惠话术，但内容生成还没有统一消费这些上下文。</li>
+<li>数字人口播已有完整流程，新应用不应复制它的 session 和 task 实现，也不能要求它一次性改写成通用引擎。</li>
+</ol>
+<h3 id="13">1.3 参考图中应该采用的部分<a class="headerlink" href="#13" title="Permanent link">&para;</a></h3>
+<ul>
+<li>独立的一级“应用中心”入口；</li>
+<li>搜索、分类、应用卡片和清晰的一句话说明；</li>
+<li>视频创作、文案创作、图文创作、运营工具的类别心智；</li>
+<li>新应用可以持续加入而不改首页主结构。</li>
+</ul>
+<h3 id="14">1.4 参考图中不能照搬的部分<a class="headerlink" href="#14" title="Permanent link">&para;</a></h3>
+<ul>
+<li>不做几十个同权重工具的平铺市场；</li>
+<li>不用“AI 一键成片”等重叠应用制造选择困难；</li>
+<li>不让每个应用重复填写门店、产品、优惠、受众和语气；</li>
+<li>不把“任务记录”当“我的作品”；</li>
+<li>不在首期上线需要实时外部数据的热点、同行监控等应用；</li>
+<li>不承诺“爆款”，产品文案必须说明结果是候选与优化建议，不保证流量。</li>
+</ul>
+<h2 id="2">2. 产品定位、用户任务与指标<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<h3 id="21">2.1 产品定位<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
+<p>Pixelle Video 是给中小企业主、门店老板和轻量运营人员使用的 AI 内容生产工作台：围绕一次经营目标，快速产出可编辑、可复用、可继续成片、可准备发布的短视频与图文内容。</p>
+<p>不是：</p>
+<ul>
+<li>专业剪辑软件；</li>
+<li>通用 AI 聊天机器人；</li>
+<li>工具数量越多越好的 AI 导航站；</li>
+<li>首期就覆盖 CRM、投放、舆情、团队审批的企业营销平台。</li>
+</ul>
+<h3 id="22">2.2 核心用户任务<a class="headerlink" href="#22" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>用户任务</th>
+<th>用户真实问题</th>
+<th>应用中心应提供的结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>今天发什么</td>
+<td>没有选题、不会从经营目标变成内容</td>
+<td>从活动/产品/案例生成可执行文案</td>
+</tr>
+<tr>
+<td>怎么写得有人看</td>
+<td>开头弱、卖点散、行动引导不清</td>
+<td>多版本文案、结构说明和可编辑结果</td>
+</tr>
+<tr>
+<td>标题怎么起</td>
+<td>不会提炼冲突、利益和好奇点</td>
+<td>多角度标题候选与风险提示</td>
+</tr>
+<tr>
+<td>怎么做抖音图文</td>
+<td>不会拆页、排版和准备发布文案</td>
+<td>封面、分页文案、图片组、标题描述标签</td>
+</tr>
+<tr>
+<td>怎么快速成视频</td>
+<td>不会录制、配音和剪辑</td>
+<td>复用已有数字人口播链路完成成片</td>
+</tr>
+<tr>
+<td>同一内容怎么继续用</td>
+<td>每个工具都要重新复制粘贴</td>
+<td>产物一键流转到标题、图文、口播和发布</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23">2.3 北极星指标<a class="headerlink" href="#23" title="Permanent link">&para;</a></h3>
+<p>北极星指标：<strong>每周完成并保存的“可发布内容包”数量</strong>。</p>
+<p>“可发布内容包”至少包含一种可交付主产物和对应平台文案：</p>
+<ul>
+<li>视频 + 标题/描述/标签；或</li>
+<li>图文图片组 + 标题/描述/标签。</li>
+</ul>
+<p>首期观测指标：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>建议目标</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>应用中心到首次运行转化率</td>
+<td>≥ 45%</td>
+<td>打开应用中心后启动任一应用</td>
+</tr>
+<tr>
+<td>文本应用首次可用结果时间</td>
+<td>P50 &lt; 60 秒</td>
+<td>从打开应用到得到可编辑结果</td>
+</tr>
+<tr>
+<td>文本应用运行成功率</td>
+<td>≥ 97%</td>
+<td>排除用户主动取消</td>
+</tr>
+<tr>
+<td>结果保存率</td>
+<td>≥ 50%</td>
+<td>运行成功后保存为项目产物</td>
+</tr>
+<tr>
+<td>跨应用继续创作率</td>
+<td>≥ 20%</td>
+<td>例如文案继续生成标题或口播</td>
+</tr>
+<tr>
+<td>抖音图文完整导出率</td>
+<td>≥ 70%</td>
+<td>已进入生成阶段的运行中完成图片组导出</td>
+</tr>
+<tr>
+<td>原口播流程成功率</td>
+<td>不低于上线前基线</td>
+<td>应用中心迁移不能伤害已有能力</td>
+</tr>
+</tbody>
+</table>
+<p>首期不设置“生成次数”为北极星指标。生成很多但没有保存、导出或发布准备，不代表给老板提效。</p>
+<h3 id="24">2.4 产品原则<a class="headerlink" href="#24" title="Permanent link">&para;</a></h3>
+<ol>
+<li>按经营任务说话，不按模型能力说话。</li>
+<li>默认路径只问必要信息，高级参数渐进展开。</li>
+<li>每个应用只有一个主动作。</li>
+<li>所有 AI 结果先可编辑，再继续创作或导出。</li>
+<li>同一项目内复用品牌、门店、产品、受众和活动上下文。</li>
+<li>应用定义与执行解耦，新增应用不改全局导航和任务内核。</li>
+<li>内容项目、执行任务和资产必须是三个不同概念。</li>
+<li>失败可重试、输入不丢失、成功结果有版本。</li>
+<li>技术配置、模型名、workflow ID 和内部路径默认不暴露给业务用户。</li>
+<li>不自动对外发布；仍由用户在发布中心最终确认。</li>
+</ol>
+<h3 id="25">2.5 首期明确不做<a class="headerlink" href="#25" title="Permanent link">&para;</a></h3>
+<ul>
+<li>第三方应用市场和用户自定义插件；</li>
+<li>多人组织、权限、审核流；</li>
+<li>应用管理员控制台、无发版动态上下架、远程灰度和管理操作审计；</li>
+<li>按应用、用户、租户或套餐配置不同模型的可视化管理；</li>
+<li>云端账户同步；</li>
+<li>自动抓取实时热点、同行数据；</li>
+<li>承诺式的标题流量评分；</li>
+<li>全自动平台发布；</li>
+<li>重写已有数字人口播后端；</li>
+<li>为每个应用制作独立视觉系统；</li>
+<li>将旧 Streamlit 页面同步改造成应用中心。</li>
+</ul>
+<h2 id="3">3. 目标信息架构<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<h3 id="31">3.1 一级导航<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
+<p>最终导航顺序：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>工作台
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>应用中心
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>我的创作
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>----------------
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>企业资产库
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>发布中心
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>任务记录
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>----------------
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>系统设置
+</span></code></pre></div>
+<p>说明：</p>
+<ul>
+<li>“应用中心”负责找能力、开始创作；</li>
+<li>“我的创作”负责找回可编辑项目和结果；</li>
+<li>“任务记录”只负责查看运行状态、失败、耗时、取消和重试；</li>
+<li>“口播剪辑”在迁移完成后不再作为一级入口，改为应用中心里的“数字人口播视频”；</li>
+<li>灰度期间旧“口播剪辑”入口保留，只有 <code>digitalHumanInAppCenter</code> 门禁通过后才移除；</li>
+<li>“工作台”保留继续项目、生产队列、系统就绪和最近结果，不变成第二个应用中心。</li>
+</ul>
+<h3 id="32">3.2 应用中心首页<a class="headerlink" href="#32" title="Permanent link">&para;</a></h3>
+<p>页面标题建议：<code>今天想做什么内容？</code></p>
+<p>页面从上到下分为：</p>
+<ol>
+<li>搜索：按应用名、任务描述和业务关键词搜索，例如“标题”“开业”“图文”；</li>
+<li>继续创作：最近 3 个未完成项目或最近产物的下一步建议；</li>
+<li>为你推荐：首次按高频应用排序，后续按最近使用和项目上下文排序；</li>
+<li>分类标签：全部、文案创作、视频创作、图文创作、运营提效；</li>
+<li>应用网格：桌面宽度默认 3 列，宽屏最多 4 列，窄屏降为 2/1 列；</li>
+<li>即将上线：最多展示 3 个已明确排期的应用，禁止堆满概念卡片。</li>
+</ol>
+<p>推荐区的首期排序：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>门店营销文案 -&gt; 爆款标题 -&gt; 抖音图文 -&gt; 数字人口播视频
+</span></code></pre></div>
+<p>如果用户有未完成口播 session，则“继续上次口播”优先于推荐应用。</p>
+<h3 id="33">3.3 应用卡片规范<a class="headerlink" href="#33" title="Permanent link">&para;</a></h3>
+<p>每张卡片必须包含：</p>
+<ul>
+<li>Lucide 图标，不使用 emoji 或自绘 SVG；</li>
+<li>应用名称；</li>
+<li>一句话结果说明，最多两行；</li>
+<li>1 至 2 个业务标签，例如“门店活动”“抖音”；</li>
+<li>状态：可用、Beta、即将上线；</li>
+<li>唯一主动作：<code>开始创作</code> 或 <code>继续</code>；</li>
+<li>最近使用时间仅在确有运行记录时展示。</li>
+</ul>
+<p>卡片不能展示：</p>
+<ul>
+<li>模型名、供应商、workflow ID；</li>
+<li>模糊的“强大”“智能”“全能”；</li>
+<li>无依据的节省百分比和流量承诺；</li>
+<li>首期尚未实现但看似可点击的能力。</li>
+</ul>
+<h3 id="34">3.4 应用工作区统一骨架<a class="headerlink" href="#34" title="Permanent link">&para;</a></h3>
+<p>所有新应用使用同一工作区外壳：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>顶部：返回应用中心 / 应用名 / 项目名 / 保存状态
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>上下文条：当前品牌门店 + 本次营销目标 + 可切换入口
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>左侧 360-400px：输入与必要设置
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>右侧自适应：生成结果、版本、编辑与导出
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>底部或结果顶部：唯一主动作
+</span></code></pre></div>
+<p>文本应用在窄屏时改为上下布局。数字人口播继续使用已有 5 步工作区，但外层接入统一的项目、上下文和产物协议。</p>
+<p>统一状态：</p>
+<ul>
+<li>未填写；</li>
+<li>可以生成；</li>
+<li>生成中；</li>
+<li>已生成未保存；</li>
+<li>已保存；</li>
+<li>生成失败；</li>
+<li>已取消。</li>
+</ul>
+<p>用户离开“已生成未保存”的页面时必须提示保存或放弃；输入草稿则自动保存，不弹窗打扰。</p>
+<h3 id="35">3.5 我的创作<a class="headerlink" href="#35" title="Permanent link">&para;</a></h3>
+<p>“我的创作”不是任务表，而是内容项目列表。</p>
+<p>默认字段：</p>
+<ul>
+<li>项目名称；</li>
+<li>品牌/门店；</li>
+<li>本次目标；</li>
+<li>已包含的产物类型；</li>
+<li>最近编辑时间；</li>
+<li>下一步建议；</li>
+<li>打开、归档。</li>
+</ul>
+<p>项目详情包含：</p>
+<ul>
+<li>项目上下文；</li>
+<li>文案、标题、图文、视频等产物卡片；</li>
+<li>每个产物的版本；</li>
+<li>由哪个应用、哪个输入、哪个 prompt 版本生成；</li>
+<li>继续生成标题、转图文、制作口播、准备发布等动作；</li>
+<li>相关运行记录，只作为详情的次级信息。</li>
+</ul>
+<h3 id="36">3.6 工作台调整<a class="headerlink" href="#36" title="Permanent link">&para;</a></h3>
+<p>工作台主按钮从固定的“新建口播视频”调整为：</p>
+<ul>
+<li>有未完成项目：<code>继续创作</code>；</li>
+<li>无未完成项目：<code>开始创作</code>，进入应用中心；</li>
+<li>保留一个快捷次动作：<code>新建口播视频</code>，直到用户习惯迁移完成。</li>
+</ul>
+<p>最近项目展示业务项目，不再只显示任务 ID 和执行步骤。生产队列仍来自现有 TaskManager。</p>
+<h3 id="37">3.7 可访问性和低门槛要求<a class="headerlink" href="#37" title="Permanent link">&para;</a></h3>
+<ul>
+<li>正文最小 14px，辅助文字最小 12px；</li>
+<li>主按钮高度至少 40px；</li>
+<li>卡片、Tab、输入、候选标题全部支持键盘访问和可见 focus；</li>
+<li>不能只用颜色表达状态；</li>
+<li>生成进度使用文字和进度状态，不只显示转圈；</li>
+<li>长文案编辑器必须保留撤销、复制和字符数；</li>
+<li>错误使用业务语言，技术详情放入“复制诊断信息”；</li>
+<li>所有删除在首期均实现为可恢复归档。</li>
+</ul>
+<h2 id="4">4. 应用组合与优先级<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<h3 id="41">4.1 路线图<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>优先级</th>
+<th>应用</th>
+<th>类别</th>
+<th>主要产物</th>
+<th>依赖</th>
+<th>决策</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P0</td>
+<td>门店营销文案</td>
+<td>文案创作</td>
+<td>结构化营销文案、多版本</td>
+<td>LLM、品牌上下文</td>
+<td>首发</td>
+</tr>
+<tr>
+<td>P0</td>
+<td>爆款标题</td>
+<td>文案创作</td>
+<td>多角度标题候选</td>
+<td>LLM、文案产物</td>
+<td>首发</td>
+</tr>
+<tr>
+<td>P0</td>
+<td>抖音图文</td>
+<td>图文创作</td>
+<td>图片组、标题、描述、标签</td>
+<td>LLM、模板、图片、品牌</td>
+<td>首发</td>
+</tr>
+<tr>
+<td>P0</td>
+<td>数字人口播视频</td>
+<td>视频创作</td>
+<td>视频、封面、发布素材</td>
+<td>现有口播全链路</td>
+<td>首发迁移</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>一稿多平台</td>
+<td>运营提效</td>
+<td>抖音/小红书/视频号适配文案</td>
+<td>P0 文案协议</td>
+<td>第二批</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>朋友圈营销</td>
+<td>文案创作</td>
+<td>朋友圈短文案与配图建议</td>
+<td>LLM、品牌</td>
+<td>第二批</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>活动日历文案</td>
+<td>运营提效</td>
+<td>节点计划和系列文案</td>
+<td>内容项目</td>
+<td>第二批</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>视频拆解</td>
+<td>运营提效</td>
+<td>结构、开头、卖点、CTA 分析</td>
+<td>现有提取能力</td>
+<td>第二批</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>评论回复助手</td>
+<td>运营提效</td>
+<td>批量回复候选</td>
+<td>平台内容导入</td>
+<td>数据来源明确后</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>热点选题</td>
+<td>运营提效</td>
+<td>行业热点与选题</td>
+<td>实时合规数据源</td>
+<td>暂不上线</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>同行监控</td>
+<td>运营提效</td>
+<td>账号/内容观察</td>
+<td>外部平台数据与授权</td>
+<td>暂不上线</td>
+</tr>
+</tbody>
+</table>
+<p>P1/P2 只是路线图，不得在 P0 应用中心中以可用卡片出现。</p>
+<h3 id="42-p0-1">4.2 P0-1 门店营销文案<a class="headerlink" href="#42-p0-1" title="Permanent link">&para;</a></h3>
+<p>用户结果：把一个经营目标转成 2 至 3 个可直接修改的门店营销文案版本。</p>
+<p>必要输入：</p>
+<ul>
+<li>当前品牌/门店；</li>
+<li>营销目标：团购转化、新品推荐、到店引流、老板人设、客户案例、知识干货、自由创作；</li>
+<li>主推产品/服务；</li>
+<li>核心卖点或优惠；</li>
+<li>目标顾客；</li>
+<li>内容载体：口播、图文、通用；</li>
+<li>期望长度：短（约 15 秒）、中（约 30 秒）、长（约 60 秒）。</li>
+</ul>
+<p>高级输入：语气、禁用表达、必须出现的信息、参考文案。</p>
+<p>结构化输出：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>版本名称
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>创作角度
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>开头钩子
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>正文段落
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>行动引导
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>完整文案
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>建议时长
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>风险/缺失信息提示
+</span></code></pre></div>
+<p>核心交互：</p>
+<ol>
+<li>选择品牌和目标；</li>
+<li>自动带入品牌包中的门店地址、电话、优惠话术，但由用户确认是否使用；</li>
+<li>生成 3 个角度不同的版本；</li>
+<li>用户在结果区直接编辑；</li>
+<li>保存选中版本或全部版本；</li>
+<li>下一步可选“生成标题”“制作抖音图文”“制作数字人口播”。</li>
+</ol>
+<p>验收标准：</p>
+<ul>
+<li>不配置模型时给出明确引导并保留已填输入；</li>
+<li>结构化返回失败时自动进行一次修复解析，仍失败则展示可重试的业务错误；</li>
+<li>三个版本的角度字段不能完全相同；</li>
+<li>完整文案必须由钩子、正文和行动引导组成，编辑后重新计算字数与估算时长；</li>
+<li>保存后可在“我的创作”恢复编辑；</li>
+<li>品牌上下文以快照保存，后续修改品牌包不应悄悄改动旧产物。</li>
+</ul>
+<h3 id="43-p0-2">4.3 P0-2 爆款标题<a class="headerlink" href="#43-p0-2" title="Permanent link">&para;</a></h3>
+<p>产品界面可使用“爆款标题”作为用户熟悉的功能名，但副文案必须写明：<code>从多个传播角度生成高点击标题候选，效果需结合内容与发布测试。</code></p>
+<p>必要输入：</p>
+<ul>
+<li>原文、文案产物或主题，三选一；</li>
+<li>发布平台；</li>
+<li>目标：点击、到店、咨询、完播、收藏；</li>
+<li>标题数量，默认 10 条。</li>
+</ul>
+<p>高级输入：期望角度、关键词、长度范围、禁用词。</p>
+<p>结构化输出：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>标题正文
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>角度：利益 / 好奇 / 冲突 / 数字 / 场景 / 身份
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>适用目标
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>使用提示
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>风险标签：夸大 / 信息不完整 / 可能违规 / 无
+</span></code></pre></div>
+<p>设计规则：</p>
+<ul>
+<li>不展示伪精确的“爆款概率 92%”；</li>
+<li>可以提供基于明确规则的“完整度、清晰度、具体性”检查；</li>
+<li>默认按角度分组，不用一个不透明总分排序；</li>
+<li>每条支持复制、收藏、编辑、设为主标题；</li>
+<li>设为主标题后可送往抖音图文、数字人口播封面或发布中心。</li>
+</ul>
+<p>验收标准：</p>
+<ul>
+<li>输入为空不能生成；</li>
+<li>标题去重后达到请求数量的 80% 以上，否则自动补生成一次；</li>
+<li>长度、禁用词和平台规则使用确定性代码校验，不只依赖提示词；</li>
+<li>任何风险标签都可展开查看原因；</li>
+<li>编辑和选择主标题后保存为独立 artifact version。</li>
+</ul>
+<h3 id="44-p0-3">4.4 P0-3 抖音图文<a class="headerlink" href="#44-p0-3" title="Permanent link">&para;</a></h3>
+<p>用户结果：得到一套可以预览和导出的竖版图文图片组，以及配套标题、描述和标签。</p>
+<p>必要输入：</p>
+<ul>
+<li>品牌/门店；</li>
+<li>主题、营销文案产物或自由文本；</li>
+<li>图文目标；</li>
+<li>图片来源：企业资产库、AI 配图、纯文字模板；</li>
+<li>模板；</li>
+<li>页数，默认 5 页，可选 3 至 8 页。</li>
+</ul>
+<p>高级输入：页面比例、语气、品牌色覆盖、必须使用的图片。</p>
+<p>首期固定产品规格：</p>
+<ul>
+<li>默认画布 1080 × 1440（3:4）；</li>
+<li>产物包括 1 张封面 + 2 至 7 张正文页；</li>
+<li>每页都保存页面角色、标题、正文、配图引用和渲染结果；</li>
+<li>导出为 PNG 图片组与 ZIP；</li>
+<li>同时生成发布标题、描述、标签；</li>
+<li>不直接自动发布。</li>
+</ul>
+<p>页面结构建议：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>封面：一句核心利益或冲突
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>第 2 页：问题/场景
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>第 3-4 页：卖点、方法或证据
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>倒数第 2 页：总结或套餐信息
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>最后 1 页：行动引导、门店信息
+</span></code></pre></div>
+<p>实现必须复用：</p>
+<ul>
+<li>企业资产库的图片、品牌和模板稳定 ID；</li>
+<li>现有 HTML 模板渲染与字体注册；</li>
+<li>品牌包中的 Logo、颜色、地址、电话、优惠话术；</li>
+<li>现有上传安全与文件服务。</li>
+</ul>
+<p>验收标准：</p>
+<ul>
+<li>用户可以先编辑分页文案，再触发渲染；</li>
+<li>单页渲染失败可单独重试，不重新生成整套内容；</li>
+<li>替换图片只重渲染受影响页面；</li>
+<li>导出顺序稳定，文件名包含两位页码；</li>
+<li>图片组和发布文案可以一起形成“抖音图文内容包”；</li>
+<li>字体缺失、文本溢出、图片丢失必须进入可见校验结果；</li>
+<li>所有已渲染页面在项目恢复后仍可预览。</li>
+</ul>
+<h3 id="45-p0-4">4.5 P0-4 数字人口播视频<a class="headerlink" href="#45-p0-4" title="Permanent link">&para;</a></h3>
+<p>数字人口播是已有能力的“应用化接入”，不是重做。</p>
+<p>首期改动：</p>
+<ol>
+<li>在应用注册表中增加 <code>builtin.digital-human-video</code>；</li>
+<li>应用卡片启动现有 session；</li>
+<li>新建时可接受营销文案、主标题、品牌和项目上下文；</li>
+<li>现有 5 步状态仍由 <code>IpBroadcastWorkflow</code> 管理；</li>
+<li>最终视频、封面和发布素材登记为统一 artifacts；</li>
+<li><code>app_run</code> 保存 <code>session_id</code> 与 <code>task_id</code> 的关联；</li>
+<li>支持从“我的创作”恢复到原有步骤；</li>
+<li>灰度稳定后移除一级“口播剪辑”入口，但保留同一页面组件与回滚开关。</li>
+</ol>
+<p>明确禁止：</p>
+<ul>
+<li>在首期把口播 5 步强行改成通用表单应用；</li>
+<li>复制一套新的数字人 API；</li>
+<li>搬迁已有成片文件；</li>
+<li>修改旧 session 的字段语义；</li>
+<li>在迁移门禁前删除旧导航路径。</li>
+</ul>
+<p>验收标准：</p>
+<ul>
+<li>从营销文案进入时自动带入完整文案但仍可确认编辑；</li>
+<li>从主标题进入时带入封面/发布标题候选；</li>
+<li>原有直接新建口播路径和已有 session 恢复均不回归；</li>
+<li>生成成功后项目中出现视频与发布素材；</li>
+<li>旧任务列表仍可查看、取消和重试。</li>
+</ul>
+<h3 id="46">4.6 首期核心串联路径<a class="headerlink" href="#46" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+    A["门店营销目标"] --&gt; B["门店营销文案"]
+    B --&gt; C["爆款标题"]
+    B --&gt; D["抖音图文"]
+    B --&gt; E["数字人口播视频"]
+    C --&gt; D
+    C --&gt; E
+    D --&gt; F["发布中心"]
+    E --&gt; F
+    B --&gt; G["我的创作"]
+    C --&gt; G
+    D --&gt; G
+    E --&gt; G</code></pre>
+<p>任何跨应用动作都创建明确的 handoff 记录和目标应用草稿，不能直接覆盖来源产物。</p>
+<h2 id="5">5. 统一应用架构<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<h3 id="51">5.1 分层<a class="headerlink" href="#51" title="Permanent link">&para;</a></h3>
+<p>推荐的近期目标架构：</p>
+<pre class="mermaid"><code>flowchart TB
+    UI["React / Tauri"]
+    API["FastAPI API 层"]
+    DOMAIN["应用中心领域层"]
+    REGISTRY["Application Registry"]
+    PROJECT["ContentProject / Artifact"]
+    RUNNER["AppRunner"]
+    QUEUE["任务调度层"]
+    AI["Python AI 能力"]
+    MEDIA["媒体与数字人能力"]
+    DB["SQLite"]
+    ASSET["资产库与文件"]
+
+    UI --&gt; API
+    API --&gt; DOMAIN
+    DOMAIN --&gt; REGISTRY
+    DOMAIN --&gt; PROJECT
+    DOMAIN --&gt; RUNNER
+    RUNNER --&gt; QUEUE
+    QUEUE --&gt; AI
+    QUEUE --&gt; MEDIA
+    PROJECT --&gt; DB
+    MEDIA --&gt; ASSET</code></pre>
+<p>其中任务调度层首期复用并补强现有 <code>TaskManager</code>；Python AI 能力包括结构化 LLM Executor；媒体与数字人能力包括图文渲染、现有 <code>IpBroadcastWorkflow</code>、TTS、数字人和 FFmpeg。各层的详细执行器、存储和适配边界见后续章节。</p>
+<h3 id="511">5.1.1 后台技术路线决策<a class="headerlink" href="#511" title="Permanent link">&para;</a></h3>
+<p>本方案接受并受 <code>docs/adr/007-fastapi-current-and-saas-hybrid-architecture.md</code> 约束：</p>
+<ul>
+<li>应用中心 P0 和本地桌面阶段保留 FastAPI 作为应用中心与 AI/媒体执行后端；</li>
+<li>当前目标是 Python 模块化单体，不迁移 Node.js/Express，不提前拆微服务；</li>
+<li>FastAPI router 只做协议接线，新增业务进入 <code>pixelle_video/app_center/</code> 领域层；</li>
+<li>LLM、内容生成、数字人、媒体处理和渲染继续由 Python 执行；</li>
+<li>当前 SQLite 与本地文件实现必须通过稳定 ID、版本化 Schema、文件引用和幂等任务为未来迁移留边界；</li>
+<li>这些兼容性要求不授权 P0 提前引入云端基础设施。</li>
+</ul>
+<p>当产品正式建设账户、组织、RBAC、套餐、支付、订单、Webhook、开放 API、运营后台，或升级为云端多租户 SaaS 时，目标架构调整为：</p>
+<pre class="mermaid"><code>flowchart LR
+    CLIENT["Web / Desktop / Open API"] --&gt; NEST["NestJS：账户 / 租户 / RBAC / 商业化 / 开放 API / 运营后台"]
+    NEST --&gt; PG["PostgreSQL：业务与审计数据"]
+    NEST --&gt; QUEUE["Redis / Queue：调度、并发、重试、事件"]
+    QUEUE --&gt; PY["Python：LLM / 内容 / 数字人 / 媒体 / 渲染"]
+    PY --&gt; OSS["对象存储：图片 / 视频 / 音频"]
+    PY --&gt; PG
+    PY --&gt; EVENTS["状态事件"]
+    EVENTS --&gt; NEST</code></pre>
+<p>混合架构必须另立 SaaS 架构与迁移 Gate；NestJS 不通过子进程直接运行 Python，也不复制 AI/媒体实现。</p>
+<h3 id="52">5.2 应用定义与应用实现分离<a class="headerlink" href="#52" title="Permanent link">&para;</a></h3>
+<p>“应用”由版本化 manifest 描述，执行器由后端注册。首期 manifest 只允许随代码发布，不能从外部 JSON 动态加载任意 Python 路径，避免安全和兼容问题。</p>
+<p>建议 manifest：</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nt">&quot;app_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;builtin.marketing-copy&quot;</span><span class="p">,</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;门店营销文案&quot;</span><span class="p">,</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;围绕门店活动、产品和经营目标生成可编辑营销文案&quot;</span><span class="p">,</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="nt">&quot;category&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;copywriting&quot;</span><span class="p">,</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;stable&quot;</span><span class="p">,</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">  </span><span class="nt">&quot;icon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FilePenLine&quot;</span><span class="p">,</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">  </span><span class="nt">&quot;executor_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;structured_llm&quot;</span><span class="p">,</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">  </span><span class="nt">&quot;executor_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;marketing_copy_v1&quot;</span><span class="p">,</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">  </span><span class="nt">&quot;input_schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;marketing-copy-input.v1&quot;</span><span class="p">,</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">  </span><span class="nt">&quot;output_schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;marketing-copy-output.v1&quot;</span><span class="p">,</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">  </span><span class="nt">&quot;required_capabilities&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;llm&quot;</span><span class="p">],</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">  </span><span class="nt">&quot;accepted_artifact_types&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;brief&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;copywriting&quot;</span><span class="p">],</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">  </span><span class="nt">&quot;produced_artifact_types&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;copywriting&quot;</span><span class="p">],</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">  </span><span class="nt">&quot;handoff_targets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;builtin.viral-titles&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;builtin.douyin-carousel&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;builtin.digital-human-video&quot;</span><span class="p">],</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">  </span><span class="nt">&quot;feature_flag&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;contentApps&quot;</span><span class="p">,</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">  </span><span class="nt">&quot;sort_order&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>字段规则：</p>
+<ul>
+<li><code>app_id</code> 永久稳定，名称允许变化；</li>
+<li>manifest 修改输入或输出语义时必须升级 schema 或 major version；</li>
+<li><code>icon</code> 只能从前端允许列表映射，不能传任意 SVG/HTML；</li>
+<li><code>executor_key</code> 必须在后端显式注册；</li>
+<li>前端不根据 <code>app_id</code> 拼接任意组件路径；</li>
+<li>未满足 capability 时应用仍可见，但卡片显示“需要配置”并给出修复入口。</li>
+</ul>
+<h3 id="521-p0">5.2.1 P0 应用管理边界<a class="headerlink" href="#521-p0" title="Permanent link">&para;</a></h3>
+<p>P0 不建设 <code>/#/admin/apps</code>、<code>AppControlPolicy</code>、管理员账号、RBAC 或远程配置服务，也不增加独立的 <code>APP-CONTROL</code> 实施阶段。当前应用是否上线由四层静态门禁共同决定：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>受信任的内置 Registry
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>→ 版本化 manifest
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>→ feature flag
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>→ Program Gate / 产品负责人放行
+</span></code></pre></div>
+<p>这意味着 P0 的应用上下架、排序和版本变化通常需要修改受控配置或随客户端发版，运营人员不能在不发版的情况下远程操作。为避免未来补管理后台时重写应用执行层，当前必须保留：</p>
+<ul>
+<li>永久稳定的 <code>app_id</code> 和版本化 manifest；</li>
+<li>前端只消费 <code>/api/apps</code> 的有效目录，不维护第二份硬编码应用列表；</li>
+<li>AppRunner 服务端校验 Registry、feature flag 和 capability，不能只靠前端隐藏；</li>
+<li>应用定义、应用可见性和执行器注册保持概念分离；</li>
+<li>未来可以在 Registry 与 <code>/api/apps</code> 之间插入 <code>AppControlPolicy</code>，并在 AppRunner 中使用同一有效策略。</li>
+</ul>
+<h4 id="deferred-capabilityac-admin-controlp1p2">Deferred Capability：AC-ADMIN-CONTROL（P1/P2）<a class="headerlink" href="#deferred-capabilityac-admin-controlp1p2" title="Permanent link">&para;</a></h4>
+<p>管理后台正式登记为 <code>P1/P2 Deferred Capability</code>，不属于 P0 Definition of Done，也不阻塞 <code>PG-A</code> 至 <code>PG-L</code>。出现以下任一条件时必须启动该能力的产品评审和独立实施 Program，不能继续只依赖客户端发版与静态 feature flag：</p>
+<ol>
+<li>应用数量明显增加，代码级 Registry、排序和发布节奏已经形成持续运营负担；</li>
+<li>需要不发版远程上架、下架、维护或紧急停用应用；</li>
+<li>出现组织、多人协作或多租户；</li>
+<li>套餐、权益或用量决定用户可以使用哪些应用；</li>
+<li>需要按客户、渠道或发布批次灰度应用和模型；</li>
+<li>引入第三方应用、插件或外部开发者能力；</li>
+<li>需要运营审计、配置追踪和远程熔断。</li>
+</ol>
+<p>优先级建议：仅涉及应用数量、远程上下架、渠道灰度、运营审计或熔断时，可先作为 P1 轻量控制层建设；涉及组织/多租户、套餐权益、第三方插件或统一云端控制面时，进入 P2/SaaS Program，并按 ADR-007 使用 NestJS 控制面。无论在哪一阶段启动，NestJS/管理后台拥有策略写模型，Python AppRunner 只消费已授权的有效策略。</p>
+<h3 id="53">5.3 三类执行器<a class="headerlink" href="#53" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>执行器类型</th>
+<th>适用应用</th>
+<th>特征</th>
+<th>首期实现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>structured_llm</code></td>
+<td>文案、标题、分页策划</td>
+<td>结构化输入输出、秒级到分钟级</td>
+<td>新建通用执行器</td>
+</tr>
+<tr>
+<td><code>document_render</code></td>
+<td>抖音图文渲染与导出</td>
+<td>多页、可局部重试、文件产物</td>
+<td>复用 HTML 渲染能力</td>
+</tr>
+<tr>
+<td><code>workflow_adapter</code></td>
+<td>数字人口播</td>
+<td>多步骤、人机确认、长任务</td>
+<td>适配现有 <code>IpBroadcastWorkflow</code></td>
+</tr>
+</tbody>
+</table>
+<p>后续可以增加 <code>analysis</code>、<code>batch_transform</code> 等执行器，但不能为单个应用随意增加特殊生命周期。</p>
+<h3 id="531-llm">5.3.1 应用中心 LLM 复用边界<a class="headerlink" href="#531-llm" title="Permanent link">&para;</a></h3>
+<p>P0 四个应用的内容理解、策划或文案生成都复用现有默认 LLM 能力：文案和标题直接使用结构化 LLM；抖音图文的分页策划使用 LLM、渲染仍由 document renderer 完成；数字人口播的脚本和发布文案使用 LLM、数字人与媒体生成仍由既有 workflow 执行。不得因此为每个应用创建新的 provider client 或模型配置。</p>
+<pre class="mermaid"><code>flowchart LR
+    APP["应用 Executor"] --&gt; PORT["AppLLMPort：薄适配层"]
+    PORT --&gt; CORE["PixelleVideoCore.llm"]
+    CORE --&gt; SERVICE["现有 LLMService"]
+    SERVICE --&gt; CONFIG["现有 ConfigManager.llm"]
+    SETTINGS["桌面端：配置 &gt; LLM 设置"] --&gt; DESKTOPAPI["/api/desktop/config"]
+    DESKTOPAPI --&gt; CONFIG</code></pre>
+<p><code>AppLLMPort</code> 不是第二套模型管理器，也不保存 provider、模型或密钥；它只把应用中心统一的结构化调用、错误码和非敏感调用元数据适配到现有 <code>PixelleVideoCore.llm/LLMService</code>。</p>
+<p>P0 权威边界：</p>
+<ul>
+<li><code>PixelleVideoConfig.llm</code> 是 <code>api_key/base_url/model</code> 的唯一配置事实源；</li>
+<li><code>/api/desktop/config</code> 与现有桌面配置页继续负责脱敏读取、保存和就绪检查；</li>
+<li><code>LLMService</code> 在调用时动态读取 <code>config_manager.config.llm</code>，应用中心不得缓存另一份密钥或模型配置；</li>
+<li>所有需要 LLM 的 manifest 只声明 <code>required_capabilities: ["llm"]</code>，不写 <code>api_key</code>、<code>base_url</code>、具体模型名或任意 provider 代码路径；</li>
+<li>P0 所有应用默认使用同一当前模型，不提供按应用选模型、fallback chain、成本路由或 A/B 模型策略；</li>
+<li><code>/api/apps/{app_id}/readiness</code> 使用 <code>config_manager.config.is_llm_configured()</code> 聚合 <code>llm</code> readiness；</li>
+<li>前端执行请求不得提交 model、provider、base URL 或 API key，服务端即使收到也必须忽略；</li>
+<li>AppRun/RunAttempt 只记录 <code>prompt_version</code>、非敏感 <code>model_ref/provider_class</code>、用量和成本估算，不保存 API key、完整 base URL 或配置正文；</li>
+<li>日志、Artifact、Handoff、AppEvent 和诊断复制不得包含模型密钥。</li>
+</ul>
+<p>未来有管理后台时，在不改变 Executor 和结构化输出协议的前提下增加可视化 <code>ModelProfile/ModelRoutingPolicy</code>：管理员配置可用模型、默认模型、按应用/租户/套餐的映射、限额、灰度与回滚；任务只携带版本化 <code>model_profile_ref</code>，Python 执行面解析授权后的 profile 并继续完成实际 LLM 调用。现有桌面默认配置作为 <code>local-default</code> 兼容 profile 保留，不能要求用户迁移后才能打开旧项目。</p>
+<h3 id="54">5.4 运行生命周期<a class="headerlink" href="#54" title="Permanent link">&para;</a></h3>
+<p>统一状态机：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>draft -&gt; queued -&gt; running -&gt; needs_review -&gt; completed
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>                  |             |
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>                  v             v
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>                failed       cancelled
+</span></code></pre></div>
+<p>规则：</p>
+<ul>
+<li>文本生成完成后进入 <code>needs_review</code>，用户保存选定结果后才是 <code>completed</code>；</li>
+<li>纯渲染步骤可直接 <code>completed</code>；</li>
+<li>用户可从 <code>failed</code> 用相同 input/context snapshot 重试；</li>
+<li>重试创建新的 run attempt，不覆盖原错误证据；</li>
+<li><code>cancelled</code>、<code>failed</code> 和 <code>completed</code> 均为终态；</li>
+<li>口播适配器的整体 <code>app_run</code> 状态由 session 聚合，子步骤仍使用现有 task。</li>
+</ul>
+<p>状态词汇冻结（AC-2 Entry）：<code>AppRun</code> 只允许 <code>draft</code>、<code>queued</code>、<code>running</code>、<code>needs_review</code>、<code>completed</code>、<code>failed</code>、<code>cancelled</code>。
+<code>succeeded</code> 是 PublishRun/发布步骤的历史终态，不得写入 AppRun；<code>waiting_user</code>/<code>needs_attention</code> 是发布与通用 Task 的等待态，不属于 AppRun。
+这样 <code>AppRun.completed</code> 与 GenericTask.completed 一一对应，不再通过 <code>succeeded -&gt; completed</code> 猜测业务含义。</p>
+<h3 id="55">5.5 创作上下文<a class="headerlink" href="#55" title="Permanent link">&para;</a></h3>
+<p>统一 <code>CreationContext</code>：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>context_id / schema_version
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>brand_id + brand_revision_id
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>store_name / industry / address / phone
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>product_or_service
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>offer
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>target_audience
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>marketing_goal
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>platform
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>tone
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>required_facts[]
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>forbidden_claims[]
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>source_artifact_ids[]
+</span></code></pre></div>
+<p>原则：</p>
+<ul>
+<li>项目保存 context snapshot，保证旧内容可复现；</li>
+<li>只保存业务字段，不保存 API key、模型密钥和完整系统配置；</li>
+<li>应用输入可覆盖项目默认值，但必须在 UI 中可见；</li>
+<li>品牌包是来源，context snapshot 是本次创作事实，二者不能用同一个对象替代；</li>
+<li>后续品牌包更新时提示“应用到当前项目”，不得自动污染历史产物。</li>
+</ul>
+<h2 id="6">6. 数据模型与持久化<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
+<h3 id="61">6.1 领域对象<a class="headerlink" href="#61" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>用途</th>
+<th>是否长期保存</th>
+<th>与现有系统关系</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ContentProject</code></td>
+<td>一次营销目标的容器</td>
+<td>是</td>
+<td>新增，不等同 task/session</td>
+</tr>
+<tr>
+<td><code>ContextSnapshot</code></td>
+<td>本次品牌和业务事实</td>
+<td>是</td>
+<td>引用品牌 revision</td>
+</tr>
+<tr>
+<td><code>AppRun</code></td>
+<td>一次应用执行</td>
+<td>是</td>
+<td>可关联 task/session</td>
+</tr>
+<tr>
+<td><code>RunAttempt</code></td>
+<td>运行和重试证据</td>
+<td>是</td>
+<td>可关联现有 task_id</td>
+</tr>
+<tr>
+<td><code>Artifact</code></td>
+<td>业务产物身份</td>
+<td>是</td>
+<td>可引用文件或结构化内容</td>
+</tr>
+<tr>
+<td><code>ArtifactVersion</code></td>
+<td>编辑/再生成版本</td>
+<td>是</td>
+<td>不覆盖历史版本</td>
+</tr>
+<tr>
+<td><code>Handoff</code></td>
+<td>跨应用来源与目标</td>
+<td>是</td>
+<td>防止复制粘贴丢失来源</td>
+</tr>
+<tr>
+<td><code>AppEvent</code></td>
+<td>无内容的本地产品事件</td>
+<td>有界保存</td>
+<td>用于灰度分析</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62">6.2 关系<a class="headerlink" href="#62" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>erDiagram
+    CONTENT_PROJECT ||--o{ CONTEXT_SNAPSHOT : has
+    CONTENT_PROJECT ||--o{ APP_RUN : contains
+    CONTENT_PROJECT ||--o{ ARTIFACT : owns
+    APP_RUN ||--o{ RUN_ATTEMPT : retries
+    APP_RUN ||--o{ ARTIFACT : produces
+    ARTIFACT ||--o{ ARTIFACT_VERSION : versions
+    ARTIFACT ||--o{ HANDOFF : source
+    APP_RUN ||--o{ HANDOFF : target</code></pre>
+<h3 id="63">6.3 首期表字段<a class="headerlink" href="#63" title="Permanent link">&para;</a></h3>
+<p><code>content_projects</code></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>project_id TEXT PRIMARY KEY
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>schema_version INTEGER
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>name TEXT
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>status TEXT: active / archived
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>primary_goal TEXT
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>brand_id TEXT NULL
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>current_context_snapshot_id TEXT NULL
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>created_at / updated_at TEXT
+</span></code></pre></div>
+<p><code>context_snapshots</code></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>context_snapshot_id TEXT PRIMARY KEY
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>project_id TEXT
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>schema_version INTEGER
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>payload_json TEXT
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>source_brand_id TEXT NULL
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>source_brand_revision_id TEXT NULL
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>fingerprint TEXT
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>created_at TEXT
+</span></code></pre></div>
+<p><code>app_runs</code></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>app_run_id TEXT PRIMARY KEY
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>project_id TEXT
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>app_id TEXT
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>app_version TEXT
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>state TEXT: draft / queued / running / needs_review / completed / failed / cancelled
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>state_version INTEGER
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>idempotency_key TEXT
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>input_schema_version INTEGER
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>input_json TEXT
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>context_snapshot_id TEXT
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>prompt_version TEXT NULL
+</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>session_id TEXT NULL
+</span><span id="__span-13-13"><a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>output_artifact_ids_json TEXT
+</span><span id="__span-13-14"><a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a>error_code TEXT NULL
+</span><span id="__span-13-15"><a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a>created_at / updated_at / completed_at TEXT NULL
+</span></code></pre></div>
+<p><code>run_attempts</code></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>attempt_id TEXT PRIMARY KEY
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>app_run_id TEXT
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>attempt_number INTEGER
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>task_id TEXT NULL
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>state TEXT: queued / running / needs_review / completed / failed / cancelled
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>context_snapshot_id TEXT NULL
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>error_code TEXT NULL
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>error_message TEXT NULL
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>diagnostic_json TEXT NULL
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>model_ref TEXT NULL
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>provider_class TEXT NULL
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>input_units INTEGER NULL
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>output_units INTEGER NULL
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>estimated_cost_micros INTEGER NULL
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>started_at / completed_at TEXT NULL
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>duration_ms INTEGER NULL
+</span></code></pre></div>
+<p><code>artifacts</code></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>artifact_id TEXT PRIMARY KEY
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>project_id TEXT
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>source_app_run_id TEXT NULL
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>artifact_type TEXT
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>name TEXT
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>status TEXT: draft / ready / archived
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>current_version_id TEXT NULL
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>created_at / updated_at TEXT
+</span></code></pre></div>
+<p><code>artifact_versions</code></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>artifact_version_id TEXT PRIMARY KEY
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>artifact_id TEXT
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>project_id TEXT
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>version_number INTEGER
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>schema_version INTEGER
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>content_json TEXT NULL
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>file_refs_json TEXT NULL
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>source TEXT: generated / edited / imported / rendered
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>content_fingerprint TEXT
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>created_at TEXT
+</span></code></pre></div>
+<p><code>artifact_handoffs</code></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>handoff_id TEXT PRIMARY KEY
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>project_id TEXT
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>source_app_run_id TEXT NULL
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>source_artifact_id TEXT
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>source_artifact_version_id TEXT
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>target_app_id TEXT
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>target_app_version TEXT
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>target_run_id TEXT
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>mapping_version INTEGER
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a>created_at TEXT
+</span></code></pre></div>
+<h3 id="64">6.4 存储策略<a class="headerlink" href="#64" title="Permanent link">&para;</a></h3>
+<ul>
+<li>新增 <code>data/app_center.sqlite</code>，由 <code>AppCenterRepository</code> 独立维护；</li>
+<li>使用显式 schema migration 表，不在启动时靠零散 <code>ALTER TABLE</code> 猜测状态；</li>
+<li>migration runner 必须持有单进程文件锁，在事务前生成数据库备份并记录 migration checksum；实际 schema/seed 在 staging 副本上完成，只有全部校验通过才原子替换可见数据库；检测到未来 schema、checksum 漂移或 SQLite 损坏时只读失败，不自动覆盖或降级；</li>
+<li>每次 migration 先完成内置 Registry 的幂等 seed，再允许写入引用 <code>app_registry</code> 的 AppRun/Handoff；seed 与 schema 迁移同一事务提交；</li>
+<li>结构化内容放 SQLite，图片/视频/ZIP 继续放受控文件目录；</li>
+<li>文件引用保存稳定 artifact path/asset ID，不保存临时 Blob URL；</li>
+<li>数据库事务内先写 version，再更新 <code>current_version_id</code>；</li>
+<li>归档不删除文件；永久清理另做维护命令，不进入首期 UI；</li>
+<li>现有 <code>desktop_tasks.sqlite</code> 保持不变，只通过 <code>task_id</code> 关联；</li>
+<li>现有资产库保持不变，只通过稳定 <code>resource_id/revision_id</code> 关联；</li>
+<li>每个 JSON 字段都带 schema version，并有 Pydantic 模型验证。</li>
+</ul>
+<h3 id="65">6.5 产物类型<a class="headerlink" href="#65" title="Permanent link">&para;</a></h3>
+<p>首期固定：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>brief
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>copywriting
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>title_set
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>selected_title
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>carousel_plan
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>carousel_page
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>carousel_package
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>video
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>cover
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>publish_copy
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>  publish_package_ref
+</span></code></pre></div>
+<p>前端按 <code>artifact_type + schema_version</code> 选择 renderer。未知类型必须显示安全的通用摘要，不能让整个项目页崩溃。</p>
+<h2 id="7">7. 后端设计<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
+<p>本节所有 P0 后端文件和接口均在现有 FastAPI/Python 进程内实施，并遵循 ADR-007。不得把本节解释为新建 Express 网关或全量技术栈迁移。</p>
+<h3 id="71">7.1 建议目录<a class="headerlink" href="#71" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>api/
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>  routers/
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>    apps.py
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>    content_projects.py
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>    app_runs.py
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>    artifacts.py
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>  schemas/
+</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>    apps.py
+</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>    content_projects.py
+</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>    app_runs.py
+</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>    artifacts.py
+</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>pixelle_video/
+</span><span id="__span-19-13"><a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a>  app_center/
+</span><span id="__span-19-14"><a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>    __init__.py
+</span><span id="__span-19-15"><a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a>    registry.py
+</span><span id="__span-19-16"><a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a>    manifests/
+</span><span id="__span-19-17"><a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a>      marketing_copy.json
+</span><span id="__span-19-18"><a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a>      viral_titles.json
+</span><span id="__span-19-19"><a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a>      douyin_carousel.json
+</span><span id="__span-19-20"><a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a>      digital_human_video.json
+</span><span id="__span-19-21"><a id="__codelineno-19-21" name="__codelineno-19-21" href="#__codelineno-19-21"></a>    repository.py
+</span><span id="__span-19-22"><a id="__codelineno-19-22" name="__codelineno-19-22" href="#__codelineno-19-22"></a>    migrations.py
+</span><span id="__span-19-23"><a id="__codelineno-19-23" name="__codelineno-19-23" href="#__codelineno-19-23"></a>    models.py
+</span><span id="__span-19-24"><a id="__codelineno-19-24" name="__codelineno-19-24" href="#__codelineno-19-24"></a>    errors.py
+</span><span id="__span-19-25"><a id="__codelineno-19-25" name="__codelineno-19-25" href="#__codelineno-19-25"></a>    runner.py
+</span><span id="__span-19-26"><a id="__codelineno-19-26" name="__codelineno-19-26" href="#__codelineno-19-26"></a>    llm_port.py
+</span><span id="__span-19-27"><a id="__codelineno-19-27" name="__codelineno-19-27" href="#__codelineno-19-27"></a>    context.py
+</span><span id="__span-19-28"><a id="__codelineno-19-28" name="__codelineno-19-28" href="#__codelineno-19-28"></a>    artifacts.py
+</span><span id="__span-19-29"><a id="__codelineno-19-29" name="__codelineno-19-29" href="#__codelineno-19-29"></a>    handoffs.py
+</span><span id="__span-19-30"><a id="__codelineno-19-30" name="__codelineno-19-30" href="#__codelineno-19-30"></a>    executors/
+</span><span id="__span-19-31"><a id="__codelineno-19-31" name="__codelineno-19-31" href="#__codelineno-19-31"></a>      base.py
+</span><span id="__span-19-32"><a id="__codelineno-19-32" name="__codelineno-19-32" href="#__codelineno-19-32"></a>      structured_llm.py
+</span><span id="__span-19-33"><a id="__codelineno-19-33" name="__codelineno-19-33" href="#__codelineno-19-33"></a>      document_render.py
+</span><span id="__span-19-34"><a id="__codelineno-19-34" name="__codelineno-19-34" href="#__codelineno-19-34"></a>      ip_broadcast_adapter.py
+</span><span id="__span-19-35"><a id="__codelineno-19-35" name="__codelineno-19-35" href="#__codelineno-19-35"></a>  prompts/
+</span><span id="__span-19-36"><a id="__codelineno-19-36" name="__codelineno-19-36" href="#__codelineno-19-36"></a>    app_center/
+</span><span id="__span-19-37"><a id="__codelineno-19-37" name="__codelineno-19-37" href="#__codelineno-19-37"></a>      marketing_copy_v1.py
+</span><span id="__span-19-38"><a id="__codelineno-19-38" name="__codelineno-19-38" href="#__codelineno-19-38"></a>      viral_titles_v1.py
+</span><span id="__span-19-39"><a id="__codelineno-19-39" name="__codelineno-19-39" href="#__codelineno-19-39"></a>      douyin_carousel_v1.py
+</span></code></pre></div>
+<p>路由只做鉴权/校验/序列化；业务逻辑进入 <code>app_center</code> 领域层。禁止在 router 内拼大段 prompt 或直接操作 SQLite。</p>
+<h3 id="72-api">7.2 API 契约<a class="headerlink" href="#72-api" title="Permanent link">&para;</a></h3>
+<p>应用目录：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>GET  /api/apps
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>GET  /api/apps/{app_id}
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>GET  /api/apps/{app_id}/readiness
+</span></code></pre></div>
+<p>项目：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>POST /api/content-projects
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>GET  /api/content-projects?status=active&amp;cursor=...
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>GET  /api/content-projects/{project_id}
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>PATCH /api/content-projects/{project_id}
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>POST /api/content-projects/{project_id}/archive
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>POST /api/content-projects/{project_id}/context-snapshots
+</span></code></pre></div>
+<p>运行：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>POST /api/app-runs
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>GET  /api/app-runs/{run_id}
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>PATCH /api/app-runs/{run_id}/draft
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>POST /api/app-runs/{run_id}/execute
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>POST /api/app-runs/{run_id}/cancel
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>POST /api/app-runs/{run_id}/retry
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>POST /api/app-runs/{run_id}/complete-review
+</span></code></pre></div>
+<p>产物：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>GET  /api/content-projects/{project_id}/artifacts
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>GET  /api/artifacts/{artifact_id}
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>POST /api/artifacts/{artifact_id}/versions
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>POST /api/artifacts/{artifact_id}/archive
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>POST /api/artifacts/{artifact_id}/handoffs
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>GET  /api/artifacts/{artifact_id}/files/{file_key}
+</span></code></pre></div>
+<p>图文局部渲染：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>POST /api/app-runs/{run_id}/carousel/plan
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>POST /api/app-runs/{run_id}/carousel/pages/{page_id}/render
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>POST /api/app-runs/{run_id}/carousel/render-all
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>POST /api/artifacts/{artifact_id}/export
+</span></code></pre></div>
+<h3 id="73">7.3 创建运行请求<a class="headerlink" href="#73" title="Permanent link">&para;</a></h3>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="p">{</span>
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="w">  </span><span class="nt">&quot;app_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;builtin.marketing-copy&quot;</span><span class="p">,</span>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="w">  </span><span class="nt">&quot;app_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span>
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="w">  </span><span class="nt">&quot;project_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;optional-existing-project-id&quot;</span><span class="p">,</span>
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="w">  </span><span class="nt">&quot;project_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;夏季双人套餐推广&quot;</span><span class="p">,</span>
+</span><span id="__span-25-6"><a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="w">  </span><span class="nt">&quot;context&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-25-7"><a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="w">    </span><span class="nt">&quot;brand_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;brand-id&quot;</span><span class="p">,</span>
+</span><span id="__span-25-8"><a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a><span class="w">    </span><span class="nt">&quot;marketing_goal&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;group_buy_conversion&quot;</span><span class="p">,</span>
+</span><span id="__span-25-9"><a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a><span class="w">    </span><span class="nt">&quot;platform&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;douyin&quot;</span>
+</span><span id="__span-25-10"><a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-25-11"><a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a><span class="w">  </span><span class="nt">&quot;inputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-25-12"><a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a><span class="w">    </span><span class="nt">&quot;product_or_service&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;双人火锅套餐&quot;</span><span class="p">,</span>
+</span><span id="__span-25-13"><a id="__codelineno-25-13" name="__codelineno-25-13" href="#__codelineno-25-13"></a><span class="w">    </span><span class="nt">&quot;offer&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;工作日 168 元&quot;</span><span class="p">,</span>
+</span><span id="__span-25-14"><a id="__codelineno-25-14" name="__codelineno-25-14" href="#__codelineno-25-14"></a><span class="w">    </span><span class="nt">&quot;target_audience&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;附近上班族&quot;</span><span class="p">,</span>
+</span><span id="__span-25-15"><a id="__codelineno-25-15" name="__codelineno-25-15" href="#__codelineno-25-15"></a><span class="w">    </span><span class="nt">&quot;duration&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;30s&quot;</span>
+</span><span id="__span-25-16"><a id="__codelineno-25-16" name="__codelineno-25-16" href="#__codelineno-25-16"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-25-17"><a id="__codelineno-25-17" name="__codelineno-25-17" href="#__codelineno-25-17"></a><span class="w">  </span><span class="nt">&quot;source_artifact_ids&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+</span><span id="__span-25-18"><a id="__codelineno-25-18" name="__codelineno-25-18" href="#__codelineno-25-18"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>服务端必须忽略前端提交的 executor、prompt 路径、模型密钥和任意文件路径；这些均由注册表和配置决定。</p>
+<p>模型相关字段同样不属于执行请求契约。P0 不接受前端提交的 <code>model</code>、<code>provider</code>、<code>base_url</code>、<code>api_key</code> 或 <code>model_profile_ref</code>；由 <code>AppLLMPort</code> 在服务端解析当前 <code>local-default</code> 配置。未来只有经过版本化契约和权限校验的控制面才能提供 <code>model_profile_ref</code>，仍不得在任务消息中传输明文密钥。</p>
+<h3 id="74-taskmanager">7.4 运行与 TaskManager 的关系<a class="headerlink" href="#74-taskmanager" title="Permanent link">&para;</a></h3>
+<ul>
+<li>新增 <code>TaskType.APP_RUN</code> 与 <code>TaskType.DOCUMENT_RENDER</code>；</li>
+<li><code>AppRun</code> 是业务记录，Task 是一次后台执行；</li>
+<li>一个 run 可以有多个 attempt/task；</li>
+<li>文案和标题也走统一异步执行，<code>POST execute</code> 返回 <code>202 + run_id + task_id</code>；</li>
+<li>前端优先轮询 <code>GET /app-runs/{run_id}</code>，其中聚合 task progress；</li>
+<li>TaskManager 的清理不删除 app run、artifact 和项目；</li>
+<li>取消调用现有 TaskManager，再更新 attempt/run；</li>
+<li>重试复用 input/context snapshot，不复用已失败的输出；</li>
+<li>口播 adapter 不创建重复子任务，只登记现有 session/task 关联。</li>
+</ul>
+<h3 id="75">7.5 结构化生成<a class="headerlink" href="#75" title="Permanent link">&para;</a></h3>
+<p>每个文本应用必须包含：</p>
+<ol>
+<li>Pydantic input model；</li>
+<li>Pydantic output model；</li>
+<li>prompt builder；</li>
+<li>确定性 validator；</li>
+<li>一次结构修复策略；</li>
+<li>可展示的 error code；</li>
+<li>prompt version；</li>
+<li>fake LLM 测试 fixture。</li>
+</ol>
+<p>所有结构化 LLM Executor 必须依赖 <code>AppLLMPort</code>，由它调用现有 <code>LLMService</code> 的 <code>response_type</code> 能力。Executor 不得导入 OpenAI SDK、读取 <code>config.yaml</code>、访问 <code>config_manager.config.llm.api_key</code> 或自行构造 provider client。<code>AppLLMPort</code> 将现有异常归一化为稳定领域错误，同时保留原异常作为脱敏 diagnostic：</p>
+<p>COORD-0 冻结的最小调用签名为 <code>generate_structured(app_id, prompt_version, input_schema_ref, output_schema_ref, prompt_variables, context, request_id, idempotency_key, timeout_ms, cancel)</code>；<code>prompt_variables</code> 承载门店业务输入，<code>context</code> 仅承载项目/Artifact 的稳定引用和必要业务事实，二者均禁止 provider/model/base_url/api_key/model_profile_ref。返回值必须包含结构化输出、非敏感 <code>local-default:&lt;model&gt;</code> 引用、usage、request_id 和脱敏 diagnostic；实现契约见 <code>docs/contracts/coordination/app-llm-port.contract.json</code>。</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>LLM_CONFIGURATION_MISSING
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>LLM_AUTH_FAILED
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>LLM_RATE_LIMITED
+</span><span id="__span-26-4"><a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a>LLM_TIMEOUT
+</span><span id="__span-26-5"><a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>LLM_PROVIDER_FAILED
+</span><span id="__span-26-6"><a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a>STRUCTURED_OUTPUT_INVALID
+</span></code></pre></div>
+<p>禁止继续扩展通用 <code>/api/llm/chat</code> 来承载产品功能。该接口可保留为基础服务，但应用只能调用领域 executor。</p>
+<p>建议错误码：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>APP_NOT_READY
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>APP_INPUT_INVALID
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>APP_CONTEXT_INVALID
+</span><span id="__span-27-4"><a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>LLM_PROVIDER_FAILED
+</span><span id="__span-27-5"><a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a>STRUCTURED_OUTPUT_INVALID
+</span><span id="__span-27-6"><a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>CONTENT_POLICY_REVIEW_REQUIRED
+</span><span id="__span-27-7"><a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a>ASSET_NOT_FOUND
+</span><span id="__span-27-8"><a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a>ASSET_INCOMPATIBLE
+</span><span id="__span-27-9"><a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a>RENDER_TEXT_OVERFLOW
+</span><span id="__span-27-10"><a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a>RENDER_FAILED
+</span><span id="__span-27-11"><a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a>EXPORT_FAILED
+</span><span id="__span-27-12"><a id="__codelineno-27-12" name="__codelineno-27-12" href="#__codelineno-27-12"></a>RUN_CANCELLED
+</span><span id="__span-27-13"><a id="__codelineno-27-13" name="__codelineno-27-13" href="#__codelineno-27-13"></a>SOURCE_ARTIFACT_CHANGED
+</span></code></pre></div>
+<h3 id="76-prompt">7.6 Prompt 管理<a class="headerlink" href="#76-prompt" title="Permanent link">&para;</a></h3>
+<ul>
+<li>prompt 随代码版本化，不存到前端；</li>
+<li>system 规则、行业知识、品牌上下文、用户输入分层拼装；</li>
+<li>用户输入与参考文案使用明确边界标记，视为数据而非指令；</li>
+<li>品牌事实只能来自 context snapshot，不允许模型编造价格、地址、功效和资质；</li>
+<li>生成结果必须返回 <code>missing_facts</code> 和 <code>risk_flags</code>；</li>
+<li>prompt version 写入 run，便于回归与对比；</li>
+<li>任何 prompt 修改必须用固定 fixtures 做快照/规则回归，不以“肉眼看起来更好”作为唯一门禁。</li>
+</ul>
+<h3 id="77">7.7 安全和隐私<a class="headerlink" href="#77" title="Permanent link">&para;</a></h3>
+<ul>
+<li>继续使用桌面端 token middleware 与受控本地 origin；</li>
+<li>文件 API 继续使用现有上传路径校验与 MIME/大小校验；</li>
+<li>artifact 下载只能通过稳定 ID 解析，禁止接收任意绝对路径；</li>
+<li>数据库与遥测不保存 API key、Cookie、平台登录信息；</li>
+<li>模型配置继续由现有桌面配置接口脱敏读写；应用运行、任务 payload、prompt 和诊断不得复制 <code>api_key</code> 或包含凭证的 URL；</li>
+<li>日志中不记录完整营销文案和客户隐私，默认只记录长度、类型、ID 和错误码；</li>
+<li>品牌电话、地址等业务字段可保存在项目上下文，但“复制诊断信息”必须脱敏；</li>
+<li>外部平台内容抓取类应用在 P2 前必须另做授权与合规评审。</li>
+</ul>
+<h2 id="8">8. 前端设计与迁移<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
+<h3 id="81">8.1 建议目录<a class="headerlink" href="#81" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>desktop/src/
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>  app/
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>    AppShell.tsx
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>    AppRouter.tsx
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>    navigation.ts
+</span><span id="__span-28-6"><a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a>  features/
+</span><span id="__span-28-7"><a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a>    app-center/
+</span><span id="__span-28-8"><a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a>      api.ts
+</span><span id="__span-28-9"><a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a>      model.ts
+</span><span id="__span-28-10"><a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a>      telemetry.ts
+</span><span id="__span-28-11"><a id="__codelineno-28-11" name="__codelineno-28-11" href="#__codelineno-28-11"></a>      components/AppCard.tsx
+</span><span id="__span-28-12"><a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a>      components/AppGrid.tsx
+</span><span id="__span-28-13"><a id="__codelineno-28-13" name="__codelineno-28-13" href="#__codelineno-28-13"></a>      components/AppSearch.tsx
+</span><span id="__span-28-14"><a id="__codelineno-28-14" name="__codelineno-28-14" href="#__codelineno-28-14"></a>      pages/AppCenterPage.tsx
+</span><span id="__span-28-15"><a id="__codelineno-28-15" name="__codelineno-28-15" href="#__codelineno-28-15"></a>    creation/
+</span><span id="__span-28-16"><a id="__codelineno-28-16" name="__codelineno-28-16" href="#__codelineno-28-16"></a>      api.ts
+</span><span id="__span-28-17"><a id="__codelineno-28-17" name="__codelineno-28-17" href="#__codelineno-28-17"></a>      model.ts
+</span><span id="__span-28-18"><a id="__codelineno-28-18" name="__codelineno-28-18" href="#__codelineno-28-18"></a>      components/CreationWorkspace.tsx
+</span><span id="__span-28-19"><a id="__codelineno-28-19" name="__codelineno-28-19" href="#__codelineno-28-19"></a>      components/CreationContextBar.tsx
+</span><span id="__span-28-20"><a id="__codelineno-28-20" name="__codelineno-28-20" href="#__codelineno-28-20"></a>      components/GenerationState.tsx
+</span><span id="__span-28-21"><a id="__codelineno-28-21" name="__codelineno-28-21" href="#__codelineno-28-21"></a>      components/ArtifactActions.tsx
+</span><span id="__span-28-22"><a id="__codelineno-28-22" name="__codelineno-28-22" href="#__codelineno-28-22"></a>      pages/ProjectListPage.tsx
+</span><span id="__span-28-23"><a id="__codelineno-28-23" name="__codelineno-28-23" href="#__codelineno-28-23"></a>      pages/ProjectDetailPage.tsx
+</span><span id="__span-28-24"><a id="__codelineno-28-24" name="__codelineno-28-24" href="#__codelineno-28-24"></a>    marketing-copy/
+</span><span id="__span-28-25"><a id="__codelineno-28-25" name="__codelineno-28-25" href="#__codelineno-28-25"></a>      MarketingCopyWorkspace.tsx
+</span><span id="__span-28-26"><a id="__codelineno-28-26" name="__codelineno-28-26" href="#__codelineno-28-26"></a>      MarketingCopyForm.tsx
+</span><span id="__span-28-27"><a id="__codelineno-28-27" name="__codelineno-28-27" href="#__codelineno-28-27"></a>      MarketingCopyResults.tsx
+</span><span id="__span-28-28"><a id="__codelineno-28-28" name="__codelineno-28-28" href="#__codelineno-28-28"></a>    viral-titles/
+</span><span id="__span-28-29"><a id="__codelineno-28-29" name="__codelineno-28-29" href="#__codelineno-28-29"></a>      ViralTitlesWorkspace.tsx
+</span><span id="__span-28-30"><a id="__codelineno-28-30" name="__codelineno-28-30" href="#__codelineno-28-30"></a>      ViralTitlesForm.tsx
+</span><span id="__span-28-31"><a id="__codelineno-28-31" name="__codelineno-28-31" href="#__codelineno-28-31"></a>      ViralTitleResults.tsx
+</span><span id="__span-28-32"><a id="__codelineno-28-32" name="__codelineno-28-32" href="#__codelineno-28-32"></a>    douyin-carousel/
+</span><span id="__span-28-33"><a id="__codelineno-28-33" name="__codelineno-28-33" href="#__codelineno-28-33"></a>      DouyinCarouselWorkspace.tsx
+</span><span id="__span-28-34"><a id="__codelineno-28-34" name="__codelineno-28-34" href="#__codelineno-28-34"></a>      CarouselPlanEditor.tsx
+</span><span id="__span-28-35"><a id="__codelineno-28-35" name="__codelineno-28-35" href="#__codelineno-28-35"></a>      CarouselPreview.tsx
+</span><span id="__span-28-36"><a id="__codelineno-28-36" name="__codelineno-28-36" href="#__codelineno-28-36"></a>    ip-broadcast/
+</span><span id="__span-28-37"><a id="__codelineno-28-37" name="__codelineno-28-37" href="#__codelineno-28-37"></a>      IpBroadcastAppAdapter.tsx
+</span></code></pre></div>
+<p><code>StudioApp.tsx</code> 在迁移期仍保留口播编排，但新应用不得继续加入该文件。</p>
+<h3 id="82">8.2 路由<a class="headerlink" href="#82" title="Permanent link">&para;</a></h3>
+<p>引入 <code>react-router-dom</code>，桌面端使用 <code>HashRouter</code>，避免 Tauri 自定义协议和刷新路径问题。</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>/#/                         工作台
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>/#/apps                     应用中心
+</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>/#/apps/:appId/new          新建应用运行
+</span><span id="__span-29-4"><a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>/#/projects                 我的创作
+</span><span id="__span-29-5"><a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>/#/projects/:projectId      项目详情
+</span><span id="__span-29-6"><a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a>/#/runs/:runId              恢复应用工作区
+</span><span id="__span-29-7"><a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a>/#/assets                   企业资产库
+</span><span id="__span-29-8"><a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a>/#/publish                  发布中心
+</span><span id="__span-29-9"><a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a>/#/tasks                    任务记录
+</span><span id="__span-29-10"><a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a>/#/settings                 系统设置
+</span></code></pre></div>
+<p>迁移顺序：</p>
+<ol>
+<li>先用 <code>AppShell</code> 包住现有 view；</li>
+<li>将旧 view 映射为路由，不改内部页面；</li>
+<li>新应用只使用新路由；</li>
+<li>口播 adapter 稳定后把旧 <code>view === "ip"</code> 迁到路由页；</li>
+<li>最后删除旧 <code>View/NavKey</code> 条件分发。</li>
+</ol>
+<h3 id="83">8.3 前端状态边界<a class="headerlink" href="#83" title="Permanent link">&para;</a></h3>
+<ul>
+<li>URL：当前页面、appId、projectId、runId；</li>
+<li>服务端：项目、运行、产物、应用 readiness；</li>
+<li>localStorage：界面偏好、最近分类、未提交表单草稿索引、无内容遥测；</li>
+<li>组件 state：当前输入、选中候选、弹窗状态；</li>
+<li>不在全局 context 中保存大段生成结果；</li>
+<li>不复制服务端任务和 artifact 为第二份长期 localStorage 数据。</li>
+</ul>
+<p>首期可使用现有 <code>fetch + useEffect</code> 模式，但必须为 app-center 建立独立 API 模块和统一 <code>ApiError</code>。如果随后应用超过 6 个，再评估引入 TanStack Query；P0 不因状态库选型阻塞。</p>
+<h3 id="84">8.4 共享组件<a class="headerlink" href="#84" title="Permanent link">&para;</a></h3>
+<p>必须共享：</p>
+<ul>
+<li><code>AppCard</code>：只展示和导航，无执行副作用；</li>
+<li><code>CreationWorkspace</code>：标题、上下文、保存状态和布局；</li>
+<li><code>CreationContextBar</code>：品牌与营销目标；</li>
+<li><code>GenerationState</code>：空、运行、失败、成功、取消；</li>
+<li><code>ArtifactActions</code>：保存、复制、导出、继续创作；</li>
+<li><code>VersionSwitcher</code>：生成版本和人工编辑版本；</li>
+<li><code>CapabilityReadiness</code>：未配置时的修复入口；</li>
+<li><code>UnsavedChangesGuard</code>；</li>
+<li><code>SourceArtifactBadge</code>：显示来源，不暴露 ID。</li>
+</ul>
+<p>不能过度抽象：营销文案结果、标题候选、图文页面和口播步骤仍使用各自领域组件，不做一个由几十个条件控制的“万能结果组件”。</p>
+<h3 id="85">8.5 视觉系统<a class="headerlink" href="#85" title="Permanent link">&para;</a></h3>
+<ul>
+<li>继续使用现有 Ant Design、Lucide 与 <code>createAntdTheme</code>；</li>
+<li>继续使用现有 <code>--app-*</code> 主题 token，不创建应用中心专属色板；</li>
+<li>侧栏宽度保持 224px；</li>
+<li>页面外边距 24px，卡片间距 16px；</li>
+<li>应用卡片圆角、阴影、边框遵循现有企业工作台；</li>
+<li>主色只用于当前分类、主动作和焦点；</li>
+<li>类别不要用五套高饱和颜色制造“AI 工具导航站”感；</li>
+<li>应用中心首屏不做营销 Hero，保持工作台信息密度；</li>
+<li>图文预览可以更视觉化，但编辑控件仍沿用同一主题。</li>
+</ul>
+<h2 id="9">9. 跨应用流转协议<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<h3 id="91">9.1 原则<a class="headerlink" href="#91" title="Permanent link">&para;</a></h3>
+<ul>
+<li>来源 artifact 永不被目标应用覆盖；</li>
+<li>handoff 固定来源 version；</li>
+<li>目标应用创建 draft run，先显示带入了什么；</li>
+<li>用户确认后才执行；</li>
+<li>来源后来更新时，目标页面显示“来源已有新版本”，由用户决定是否更新输入；</li>
+<li>自动映射必须版本化。</li>
+</ul>
+<h3 id="92">9.2 首期映射<a class="headerlink" href="#92" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>来源</th>
+<th>目标</th>
+<th>自动带入</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>copywriting</code></td>
+<td>爆款标题</td>
+<td>完整文案、营销目标、品牌上下文、平台</td>
+</tr>
+<tr>
+<td><code>copywriting</code></td>
+<td>抖音图文</td>
+<td>完整文案、钩子、卖点、CTA、品牌上下文</td>
+</tr>
+<tr>
+<td><code>copywriting</code></td>
+<td>数字人口播</td>
+<td>完整文案、建议时长、品牌、目标</td>
+</tr>
+<tr>
+<td><code>selected_title</code></td>
+<td>抖音图文</td>
+<td>封面主标题、平台、来源文案</td>
+</tr>
+<tr>
+<td><code>selected_title</code></td>
+<td>数字人口播</td>
+<td>发布标题/封面标题候选</td>
+</tr>
+<tr>
+<td><code>carousel_package</code></td>
+<td>发布中心</td>
+<td>图片组、标题、描述、标签</td>
+</tr>
+<tr>
+<td><code>video + publish_package_ref</code></td>
+<td>发布中心</td>
+<td>视频、封面、标题、描述、标签</td>
+</tr>
+</tbody>
+</table>
+<h3 id="93">9.3 下一步建议<a class="headerlink" href="#93" title="Permanent link">&para;</a></h3>
+<p>建议由确定性规则生成，不在首期额外调用 LLM：</p>
+<ul>
+<li>只有文案：建议“生成标题 / 做成图文 / 制作口播”；</li>
+<li>有文案和标题：建议“做成图文 / 制作口播”；</li>
+<li>有图文未导出：建议“完成图片渲染”；</li>
+<li>有完整图文包：建议“前往发布中心”；</li>
+<li>有视频未准备发布素材：建议“生成发布素材”；</li>
+<li>有发布包：建议“前往发布中心”。</li>
+</ul>
+<h2 id="10">10. 质量、遥测与商业化预留<a class="headerlink" href="#10" title="Permanent link">&para;</a></h2>
+<h3 id="101">10.1 内容质量门禁<a class="headerlink" href="#101" title="Permanent link">&para;</a></h3>
+<p>文案：</p>
+<ul>
+<li>必填事实是否缺失；</li>
+<li>优惠、地址、电话是否来自上下文；</li>
+<li>是否有开头、正文、CTA；</li>
+<li>估算时长是否在选择范围内；</li>
+<li>多版本是否有明显差异；</li>
+<li>是否出现禁用词或未提供的夸张事实。</li>
+</ul>
+<p>标题：</p>
+<ul>
+<li>长度；</li>
+<li>去重；</li>
+<li>禁用词；</li>
+<li>与正文主题一致性；</li>
+<li>是否包含无法证实的第一、最好、百分百等绝对化表达。</li>
+</ul>
+<p>图文：</p>
+<ul>
+<li>页数与顺序；</li>
+<li>单页文字溢出；</li>
+<li>图片引用有效；</li>
+<li>品牌对比度和 Logo 安全区；</li>
+<li>导出完整性；</li>
+<li>发布标题/描述/标签齐备。</li>
+</ul>
+<h3 id="102">10.2 本地产品事件<a class="headerlink" href="#102" title="Permanent link">&para;</a></h3>
+<p>沿用资产中心“内容无关、本地保存、有界数组”的思路，新增：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>app_center_viewed
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>app_searched
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>app_opened
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>app_readiness_blocked
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>project_created
+</span><span id="__span-30-6"><a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>run_started
+</span><span id="__span-30-7"><a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a>run_succeeded
+</span><span id="__span-30-8"><a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a>run_failed
+</span><span id="__span-30-9"><a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a>run_cancelled
+</span><span id="__span-30-10"><a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a>artifact_saved
+</span><span id="__span-30-11"><a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a>artifact_edited
+</span><span id="__span-30-12"><a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a>handoff_started
+</span><span id="__span-30-13"><a id="__codelineno-30-13" name="__codelineno-30-13" href="#__codelineno-30-13"></a>handoff_completed
+</span><span id="__span-30-14"><a id="__codelineno-30-14" name="__codelineno-30-14" href="#__codelineno-30-14"></a>carousel_render_completed
+</span><span id="__span-30-15"><a id="__codelineno-30-15" name="__codelineno-30-15" href="#__codelineno-30-15"></a>package_exported
+</span><span id="__span-30-16"><a id="__codelineno-30-16" name="__codelineno-30-16" href="#__codelineno-30-16"></a>publish_center_opened
+</span></code></pre></div>
+<p>payload 只允许：<code>app_id</code>、<code>artifact_type</code>、<code>duration_bucket</code>、<code>failure_code</code>、<code>entry</code>、<code>at</code>。不得记录搜索原文、营销文案、门店电话、客户数据和 prompt。</p>
+<p>首期最多保留 1,000 条，遥测失败不得影响创作。</p>
+<h3 id="103">10.3 成本与套餐预留<a class="headerlink" href="#103" title="Permanent link">&para;</a></h3>
+<p><code>RunAttempt</code> 预留：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>model_ref
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>provider_class
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>model_class
+</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a>input_units
+</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>output_units
+</span><span id="__span-31-6"><a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a>media_seconds
+</span><span id="__span-31-7"><a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a>estimated_cost_micros
+</span></code></pre></div>
+<p>P0 的 <code>model_ref</code> 使用不含凭证的 <code>local-default:&lt;model&gt;</code> 或等价稳定引用，不保存完整 base URL。以上字段仅用于本地成本分析和问题定位，不在首期展示给业务用户，也不直接扣套餐。未来可能的价值单位：文本运行次数、图文渲染页数、视频分钟数；现在不提前确定价格。</p>
+<h2 id="11-luna">11. Luna 实施阶段与门禁<a class="headerlink" href="#11-luna" title="Permanent link">&para;</a></h2>
+<p>总原则：契约先行、阶段可回滚、旧口播不回归。任何阶段未通过对应 Gate，不得默认开启下一阶段功能。本方案定义领域 Gate；实际进入顺序、共享契约、文件所有权和进度状态以上位 Program 协调方案及其实时台账为准。</p>
+<h3 id="ac-0adr">阶段 AC-0：基线、ADR 与契约<a class="headerlink" href="#ac-0adr" title="Permanent link">&para;</a></h3>
+<p>目标：在写业务 UI 前锁定边界和回滚方式。</p>
+<p>交付：</p>
+<ol>
+<li>当前工作台、口播、资产、任务、发布页面截图和核心任务录像；</li>
+<li>接受 ADR-007，并补齐应用注册表、项目/任务/产物边界、独立 SQLite、HashRouter 迁移 ADR；</li>
+<li><code>app-manifest.schema.json</code>；</li>
+<li>P0 四个应用 manifest fixture；</li>
+<li>P0 input/output artifact JSON Schema；</li>
+<li>状态机与错误码契约；</li>
+<li>migration dry-run 与 rollback 说明；</li>
+<li>feature flag 矩阵；</li>
+<li>现有模型配置复用契约：<code>AppLLMPort -&gt; PixelleVideoCore.llm -&gt; LLMService -&gt; ConfigManager.llm</code>；</li>
+<li>P0 不建设应用管理员控制台和按应用模型路由的延期决策。</li>
+</ol>
+<p>Gate AC-A：</p>
+<ul>
+<li>schema 能拒绝未知 executor、非法 icon、错误 handoff；</li>
+<li>四个 fixture 全部通过 schema；</li>
+<li>架构评审确认 P0 保留 FastAPI/Python，未引入 Express/NestJS 转发层或重复 AI/媒体实现；</li>
+<li>模型管理评审确认 <code>PixelleVideoConfig.llm</code> 是唯一事实源，manifest、AppRun、Artifact 和前端请求均不保存密钥或第二份模型配置；</li>
+<li><code>AC-ADMIN-CONTROL（P1/P2 Deferred Capability）</code> 的七项启动条件已登记，延期不会破坏未来插入 <code>AppControlPolicy/ModelRoutingPolicy</code> 的边界，且当前不增加 <code>APP-CONTROL</code> 阶段；</li>
+<li>数据和任务契约已保留稳定 ID、schema version、幂等与文件引用，满足 ADR-007 的未来 SaaS 兼容性要求；</li>
+<li>领域边界评审确认 task 不是 project、asset 不是 artifact；</li>
+<li>不修改现有生产数据也能完成 migration dry-run；</li>
+<li>旧口播、资产、发布入口的基线测试通过。</li>
+</ul>
+<h3 id="ac-1">阶段 AC-1：应用目录与路由外壳<a class="headerlink" href="#ac-1" title="Permanent link">&para;</a></h3>
+<p>目标：上线没有生成能力的应用中心骨架，验证导航和发现体验。</p>
+<p>后端：</p>
+<ul>
+<li>实现 registry、manifest loader 和 <code>/api/apps</code>；</li>
+<li>readiness 通过 <code>config_manager.config.is_llm_configured()</code> 聚合现有 LLM 配置，并聚合 RunningHub、模板/品牌等其他能力；</li>
+<li>不执行应用。</li>
+</ul>
+<p>前端：</p>
+<ul>
+<li>引入 HashRouter 与 <code>AppShell</code>；</li>
+<li>现有页面映射到新路由，不改内部业务；</li>
+<li>实现应用中心搜索、分类、卡片、空状态和未就绪状态；</li>
+<li>增加 <code>appCenterShell</code> flag，默认关闭。</li>
+</ul>
+<p>Gate AC-B：</p>
+<ul>
+<li>原有所有导航可达；</li>
+<li>浏览器刷新/桌面重启后路由恢复；</li>
+<li>搜索和分类键盘可用；</li>
+<li>未配置能力不会启动运行；</li>
+<li>修改现有桌面 LLM 配置后，应用 readiness 无需维护第二份配置即可反映最新状态；</li>
+<li><code>npm run build</code>、现有桌面测试和新增 registry contract tests 通过；</li>
+<li>关闭 flag 后 UI 与上线前一致。</li>
+</ul>
+<h3 id="ac-2">阶段 AC-2：创作项目、运行与产物内核<a class="headerlink" href="#ac-2" title="Permanent link">&para;</a></h3>
+<p>目标：建立所有应用共用的领域基础。</p>
+<p>后端：</p>
+<ul>
+<li>实现 migration、repository、projects、runs、attempts、artifacts、versions、handoffs；</li>
+<li>增加 <code>TaskType.APP_RUN</code> 和统一 runner；</li>
+<li>实现不保存配置的 <code>AppLLMPort</code>，通过依赖注入复用现有 <code>PixelleVideoCore.llm/LLMService</code>；</li>
+<li>实现取消、重试、恢复、归档；</li>
+<li>添加假执行器用于契约测试。</li>
+</ul>
+<p>前端：</p>
+<ul>
+<li>实现“我的创作”列表和项目详情基础；</li>
+<li>实现 CreationWorkspace、上下文条、生成状态、保存/版本和未保存提示；</li>
+<li>不上线真实 P0 应用。</li>
+</ul>
+<p>Gate AC-C：</p>
+<ul>
+<li>新建项目、保存草稿、重启恢复、执行、失败、重试、保存 artifact、归档完整闭环；</li>
+<li>Task 被清理后项目和 artifact 仍存在；</li>
+<li>并发保存 artifact version 不产生重复版本号；</li>
+<li>数据库损坏/版本过高给出安全错误，不自动覆盖；</li>
+<li>API contract、repository、migration、前端状态组件测试通过；</li>
+<li>fake LLM 测试证明 Executor 只依赖 <code>AppLLMPort</code>，执行请求不能覆盖 model/provider/key，attempt 不泄露凭证。</li>
+</ul>
+<h3 id="ac-3">阶段 AC-3：门店营销文案与爆款标题<a class="headerlink" href="#ac-3" title="Permanent link">&para;</a></h3>
+<p>目标：用两款低媒体成本应用验证统一内核。</p>
+<p>交付：</p>
+<ul>
+<li>两个结构化输出模型、prompt、validator、repair 和 fixtures；</li>
+<li>两个完整工作区；</li>
+<li>文案到标题 handoff；</li>
+<li>品牌 context snapshot；</li>
+<li>文案和标题的编辑版本；</li>
+<li><code>contentApps</code> flag，默认关闭。</li>
+</ul>
+<p>Gate AC-D：</p>
+<ul>
+<li>至少覆盖火锅、美容、民宿、洗衣店、培训、零售 6 类 fixture；</li>
+<li>缺失价格/地址时模型不得自行补造；</li>
+<li>标题去重、长度和禁用词确定性测试通过；</li>
+<li>LLM 超时、非法 JSON、空返回、部分字段缺失均有明确恢复；</li>
+<li>缺少配置、鉴权失败、限流、超时和 provider 失败映射为稳定错误码，输入与项目不丢失；</li>
+<li>文案、标题和图文策划共享现有 <code>local-default</code> 模型配置，修改桌面配置后下一次调用生效且无需重启应用中心；</li>
+<li>端到端完成“文案 -&gt; 选择版本 -&gt; 标题 -&gt; 保存项目”；</li>
+<li>10 名目标用户或内部模拟任务中，8 人无需解释完成首条文案。</li>
+</ul>
+<h3 id="ac-4">阶段 AC-4：抖音图文<a class="headerlink" href="#ac-4" title="Permanent link">&para;</a></h3>
+<p>目标：完成第一种图文内容包。</p>
+<p>交付：</p>
+<ul>
+<li>carousel plan/page/package schema；</li>
+<li>分页文案编辑器；</li>
+<li>资产、品牌、模板选择；</li>
+<li>单页/全部渲染；</li>
+<li>PNG/ZIP 导出；</li>
+<li>发布文案产物；</li>
+<li><code>douyinCarousel</code> flag，默认关闭。</li>
+</ul>
+<p>Gate AC-E：</p>
+<ul>
+<li>3、5、8 页三种规格均通过；</li>
+<li>单页失败和重试不影响其他已成功页；</li>
+<li>中文长文、英文、数字、电话、emoji 输入不会导致渲染崩溃；</li>
+<li>文本溢出、缺图、缺字体有可见错误；</li>
+<li>导出文件顺序、尺寸、命名和 ZIP 完整性测试通过；</li>
+<li>从文案/标题 handoff 到图文再到发布中心完成桌面 E2E；</li>
+<li>关闭 flag 不影响原模板和成片渲染。</li>
+</ul>
+<h3 id="ac-5">阶段 AC-5：数字人口播应用化<a class="headerlink" href="#ac-5" title="Permanent link">&para;</a></h3>
+<p>目标：把已有最成熟能力纳入统一项目与产物体系。</p>
+<p>交付：</p>
+<ul>
+<li><code>IpBroadcastAppAdapter</code>；</li>
+<li>现有 session 与 app run/project 关联；</li>
+<li>文案/标题 handoff；</li>
+<li>最终视频、封面、发布素材 artifact 登记；</li>
+<li>旧 session 恢复；</li>
+<li><code>digitalHumanInAppCenter</code> flag。</li>
+</ul>
+<p>Gate AC-F：</p>
+<ul>
+<li>原直接入口全回归；</li>
+<li>新入口从空白、文案、标题三种来源启动均通过；</li>
+<li>session/task/run 三者状态映射稳定；</li>
+<li>取消和重试不会创建孤儿项目或重复视频 artifact；</li>
+<li>应用重启后能恢复到正确口播步骤；</li>
+<li>新入口连续灰度一个发布周期无严重回归后，才允许隐藏旧一级入口。</li>
+</ul>
+<h3 id="ac-6">阶段 AC-6：工作台整合、遥测与正式启用<a class="headerlink" href="#ac-6" title="Permanent link">&para;</a></h3>
+<p>目标：完成用户入口迁移和效果验证。</p>
+<p>交付：</p>
+<ul>
+<li>工作台使用业务项目替换最近任务主视图；</li>
+<li>“继续创作”和确定性下一步建议；</li>
+<li>本地遥测汇总/导出；</li>
+<li>应用中心默认开启；</li>
+<li>旧口播一级入口按 AC-F 决策隐藏；</li>
+<li>支持文档、FAQ、回滚手册。</li>
+</ul>
+<p>Gate AC-G：</p>
+<ul>
+<li>北极星与漏斗事件可计算；</li>
+<li>工作台、应用中心、我的创作、资产、发布、任务之间没有死路；</li>
+<li>空项目、100 项目、1,000 产物下性能可接受；</li>
+<li>Windows/macOS 桌面构建和升级迁移通过；</li>
+<li>完整回滚演练不丢项目、资产和旧口播 session；</li>
+<li>产品负责人签署 P0 正式启用结论；</li>
+<li>验收确认 P0 未引入应用管理员页面、独立模型配置库或按应用模型选择器，相关能力仍按延期决策处理。</li>
+</ul>
+<h2 id="12_1">12. 测试矩阵<a class="headerlink" href="#12_1" title="Permanent link">&para;</a></h2>
+<h3 id="121">12.1 后端<a class="headerlink" href="#121" title="Permanent link">&para;</a></h3>
+<ul>
+<li>manifest schema 与 registry 冲突；</li>
+<li>repository CRUD、事务、并发版本号；</li>
+<li>migration 从空库、旧版本、重复执行、版本过高；</li>
+<li>run 状态机非法跳转；</li>
+<li>TaskManager 取消/重试/清理关联；</li>
+<li>input/context snapshot 不变性；</li>
+<li>structured LLM 成功、超时、非法 JSON、修复失败；</li>
+<li>AppLLMPort 复用当前配置、热更新、错误映射、调用元数据脱敏和禁止请求覆盖模型配置；</li>
+<li>handoff 映射与来源版本固定；</li>
+<li>artifact 文件路径越权；</li>
+<li>图文单页、批量、部分失败和导出；</li>
+<li>口播 adapter 的幂等 artifact 登记。</li>
+</ul>
+<h3 id="122">12.2 前端组件<a class="headerlink" href="#122" title="Permanent link">&para;</a></h3>
+<ul>
+<li>应用搜索、分类、排序和 readiness；</li>
+<li>表单必填、草稿恢复、离开保护；</li>
+<li>生成状态与重试；</li>
+<li>文案版本编辑；</li>
+<li>标题候选键盘选择和主标题；</li>
+<li>图文页排序、编辑、换图、单页重渲染；</li>
+<li>项目列表空态、归档和恢复；</li>
+<li>来源版本更新提示；</li>
+<li>所有主流程无鼠标可完成；</li>
+<li>不同主题和 1280/1440/1920 宽度布局。</li>
+</ul>
+<p>建议在新 feature 内正式引入 Vitest + React Testing Library，逐步减少仅依赖 Python 源码字符串断言的做法。现有测试继续保留为构建与兼容门禁。</p>
+<h3 id="123-e2e">12.3 桌面端 E2E<a class="headerlink" href="#123-e2e" title="Permanent link">&para;</a></h3>
+<p>首期最小 E2E 场景：</p>
+<ol>
+<li>首次未配置 -&gt; 应用卡片阻断 -&gt; 去配置 -&gt; 返回可用；</li>
+<li>在现有“配置 &gt; LLM 设置”修改默认模型 -&gt; 保存 -&gt; 下一次应用运行使用新配置，旧项目和产物不变；</li>
+<li>新建项目 -&gt; 生成文案 -&gt; 人工编辑 -&gt; 保存；</li>
+<li>文案 -&gt; 标题 -&gt; 选择主标题；</li>
+<li>文案/标题 -&gt; 5 页图文 -&gt; 替换一张图 -&gt; 导出；</li>
+<li>文案 -&gt; 数字人口播 -&gt; 恢复已有 session -&gt; 最终视频；</li>
+<li>图文/视频 -&gt; 发布中心；</li>
+<li>生成中退出应用 -&gt; 重启 -&gt; 恢复状态；</li>
+<li>失败 -&gt; 重试 -&gt; 保留失败证据且成功产物不重复；</li>
+<li>flag 全关 -&gt; 旧工作台和口播完整可用。</li>
+</ol>
+<h3 id="124">12.4 发布前命令<a class="headerlink" href="#124" title="Permanent link">&para;</a></h3>
+<p>Luna 应根据实际新增测试文件执行，最低包括：</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/app_center_registry_test.py
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/app_center_repository_test.py
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/app_center_api_test.py
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/app_center_executors_test.py
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/app_center_ip_broadcast_adapter_test.py
+</span><span id="__span-32-6"><a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/douyin_carousel_render_test.py
+</span><span id="__span-32-7"><a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a><span class="nb">cd</span><span class="w"> </span>desktop<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npm<span class="w"> </span>run<span class="w"> </span><span class="nb">test</span>
+</span><span id="__span-32-8"><a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a><span class="nb">cd</span><span class="w"> </span>desktop<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npm<span class="w"> </span>run<span class="w"> </span>build
+</span><span id="__span-32-9"><a id="__codelineno-32-9" name="__codelineno-32-9" href="#__codelineno-32-9"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest
+</span></code></pre></div>
+<p>不得只运行新增测试后宣称无回归。</p>
+<h2 id="13-feature-flag">13. Feature flag 与回滚<a class="headerlink" href="#13-feature-flag" title="Permanent link">&para;</a></h2>
+<p>建议开关：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>VITE_APP_CENTER_SHELL
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>VITE_CONTENT_PROJECTS
+</span><span id="__span-33-3"><a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>VITE_CONTENT_APPS
+</span><span id="__span-33-4"><a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a>VITE_DOUYIN_CAROUSEL
+</span><span id="__span-33-5"><a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>VITE_DIGITAL_HUMAN_IN_APP_CENTER
+</span><span id="__span-33-6"><a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>VITE_APP_CENTER_NEW_NAV
+</span></code></pre></div>
+<p>规则：</p>
+<ul>
+<li>每个阶段独立开启，不能只用一个总开关；</li>
+<li>后端 API 可以先存在，但前端入口在 Gate 前关闭；</li>
+<li>关闭新导航时旧 <code>StudioApp</code> 路径保持可用；</li>
+<li>关闭单个应用时既有项目仍可只读查看和导出，不能变成不可访问；</li>
+<li>P0 的 feature flag 是发布与回滚工具，不冒充管理员动态控制面；不开设应用管理 UI，也不允许前端写入 flag；</li>
+<li>回滚不删除 <code>app_center.sqlite</code>；</li>
+<li>数据 schema 升级必须保证旧版看不懂时安全拒绝写入，不静默降级；</li>
+<li>数字人口播旧入口至少保留一个完整发布周期的回滚窗口。</li>
+</ul>
+<h2 id="14_1">14. 风险清单<a class="headerlink" href="#14_1" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>风险</th>
+<th>早期信号</th>
+<th>控制措施</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>应用中心变成工具堆</td>
+<td>卡片快速增加、命名重叠</td>
+<td>P0 只上四个；新增应用必须说明独立 JTBD、输入/输出和 handoff</td>
+</tr>
+<tr>
+<td><code>StudioApp</code> 继续膨胀</td>
+<td>新应用改动集中进入同一文件</td>
+<td>新应用必须在独立 feature；先迁 AppShell/Router</td>
+</tr>
+<tr>
+<td>项目、任务、产物混淆</td>
+<td>UI 用同一个“历史记录”承载全部</td>
+<td>数据模型和导航强制分离，run 只记录执行</td>
+</tr>
+<tr>
+<td>AI 输出不稳定</td>
+<td>UI 大量解析字符串和空字段</td>
+<td>Pydantic 结构化输出、一次修复、确定性 validator、fixtures</td>
+</tr>
+<tr>
+<td>每个应用各自配置模型</td>
+<td>出现重复 API key、模型切换不一致、密钥进入 run</td>
+<td>P0 统一经 AppLLMPort 复用 ConfigManager/LLMService，禁止请求级覆盖配置</td>
+</tr>
+<tr>
+<td>过早建设管理后台</td>
+<td>在单用户 P0 引入动态策略、RBAC 和远程配置</td>
+<td>P0 明确延期，只保留 AppControlPolicy/ModelRoutingPolicy 接入边界</td>
+</tr>
+<tr>
+<td>品牌事实被编造</td>
+<td>文案出现未提供价格/地址/功效</td>
+<td>context snapshot、事实白名单、missing_facts/risk_flags</td>
+</tr>
+<tr>
+<td>图文首期范围失控</td>
+<td>同时做 AI 生图、设计器、全平台模板</td>
+<td>首期固定 3:4、3-8 页、有限模板；高级设计器后置</td>
+</tr>
+<tr>
+<td>口播迁移回归</td>
+<td>旧 session 无法继续、任务重复</td>
+<td>adapter 不重写内核、独立 flag、旧入口回滚窗口</td>
+</tr>
+<tr>
+<td>本地数据升级损坏</td>
+<td>桌面启动失败或旧库被覆盖</td>
+<td>独立 DB、migration dry-run、备份、版本过高拒写</td>
+</tr>
+<tr>
+<td>用户看不懂应用差异</td>
+<td>文案/标题/图文卡片描述相似</td>
+<td>每张卡片只写可交付结果，推荐区按下一步排序</td>
+</tr>
+<tr>
+<td>指标侵犯隐私</td>
+<td>遥测包含文案和门店信息</td>
+<td>事件字段白名单、本地有界保存、禁止正文 payload</td>
+</tr>
+<tr>
+<td>过早迁移 Node/NestJS</td>
+<td>应用中心开发被框架重写阻塞</td>
+<td>P0 强制遵循 ADR-007；只有 SaaS 控制面 Gate 通过后才启动混合架构</td>
+</tr>
+</tbody>
+</table>
+<h2 id="15-luna">15. Luna 工作规范<a class="headerlink" href="#15-luna" title="Permanent link">&para;</a></h2>
+<h3 id="151">15.1 总执行提示词<a class="headerlink" href="#151" title="Permanent link">&para;</a></h3>
+<p>Luna 每个阶段开始时应使用以下约束：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>你正在 pixelle-video 仓库实施《Pixelle Video 应用中心产品规划与实施落地方案》的阶段 AC-X。该阶段受《应用中心与桌面自动发布整体协调实施方案》控制；先读取上位方案和实时进度台账，确认当前 Program Stage 确实映射到 AC-X。
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>
+</span><span id="__span-34-3"><a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>先阅读本方案、CLAUDE.md、当前 git status、相关 ADR/contract、当前实现和上一阶段 Gate 证据。工作区包含用户未提交改动，禁止覆盖、回退或顺手整理不在本阶段范围的文件。
+</span><span id="__span-34-4"><a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a>
+</span><span id="__span-34-5"><a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a>只实施 AC-X 明确范围，不提前实现下一阶段。契约、迁移、失败语义、feature flag、测试和回滚证据属于交付内容，不是可选文档。新应用不得继续加入 StudioApp.tsx；路由只负责接线；业务逻辑不得写在 FastAPI router；所有 LLM 产品能力必须使用结构化 schema、确定性 validator 和 prompt version，并通过 AppLLMPort 复用现有 ConfigManager/PixelleVideoCore.llm/LLMService。不得建立第二套模型配置、在请求或 manifest 中接收模型密钥，也不得提前实现应用管理员控制台或可视化模型路由。遵循 ADR-007：P0 保留 FastAPI/Python，不引入 Express/NestJS；未来 SaaS 混合架构不属于当前阶段授权范围。
+</span><span id="__span-34-6"><a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a>
+</span><span id="__span-34-7"><a id="__codelineno-34-7" name="__codelineno-34-7" href="#__codelineno-34-7"></a>完成后：
+</span><span id="__span-34-8"><a id="__codelineno-34-8" name="__codelineno-34-8" href="#__codelineno-34-8"></a>1. 列出改动文件和产品行为；
+</span><span id="__span-34-9"><a id="__codelineno-34-9" name="__codelineno-34-9" href="#__codelineno-34-9"></a>2. 执行本阶段测试及相关全量回归；
+</span><span id="__span-34-10"><a id="__codelineno-34-10" name="__codelineno-34-10" href="#__codelineno-34-10"></a>3. 产出 Gate AC-X 证据文档；
+</span><span id="__span-34-11"><a id="__codelineno-34-11" name="__codelineno-34-11" href="#__codelineno-34-11"></a>4. 说明已知限制、回滚方式和是否满足进入下一阶段的条件；
+</span><span id="__span-34-12"><a id="__codelineno-34-12" name="__codelineno-34-12" href="#__codelineno-34-12"></a>5. Gate 未通过时不得默认开启 feature flag。
+</span></code></pre></div>
+<h3 id="152">15.2 每阶段开始前检查<a class="headerlink" href="#152" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>git status --short</code>，标记已有用户改动；</li>
+<li>阅读阶段涉及文件，不凭文件名假设；</li>
+<li>确认上一 Gate 已通过；</li>
+<li>确认测试 fixture 不含真实客户数据和密钥；</li>
+<li>写出本阶段允许改动的文件清单；</li>
+<li>先补失败测试，再实现；</li>
+<li>对数据库/文件操作先做临时目录测试；</li>
+<li>对现有口播、资产和发布链路保留兼容测试。</li>
+</ul>
+<h3 id="153-definition-of-done">15.3 Definition of Done<a class="headerlink" href="#153-definition-of-done" title="Permanent link">&para;</a></h3>
+<p>一个阶段只有同时满足以下条件才算完成：</p>
+<ul>
+<li>用户可见行为符合本方案；</li>
+<li>API/schema/状态机有自动测试；</li>
+<li>失败、取消、重试、重启恢复有覆盖；</li>
+<li>输入不丢、成功产物不重复；</li>
+<li>没有泄漏技术字段或敏感信息；</li>
+<li>键盘与窄屏基本可用；</li>
+<li>feature flag 关闭时旧体验不回归；</li>
+<li>构建、阶段测试和相关全量测试通过；</li>
+<li>有可复现 Gate 证据；</li>
+<li>有明确回滚步骤；</li>
+<li>未提前删除旧实现。</li>
+</ul>
+<h2 id="16">16. 产品负责人验收任务<a class="headerlink" href="#16" title="Permanent link">&para;</a></h2>
+<p>每个 P0 应用至少用以下真实门店任务验收：</p>
+<ol>
+<li>火锅店工作日双人套餐引流；</li>
+<li>美容院新项目介绍，不能编造功效；</li>
+<li>民宿周末房型与周边推荐；</li>
+<li>洗衣店衣物护理知识干货；</li>
+<li>零售门店新品到店；</li>
+<li>培训机构真实学员案例，避免夸大承诺。</li>
+</ol>
+<p>观察并记录：</p>
+<ul>
+<li>用户是否理解应该选哪个应用；</li>
+<li>是否能在 1 分钟内开始第一次生成；</li>
+<li>哪些字段需要解释；</li>
+<li>结果是否需要大量重写；</li>
+<li>用户是否发现“继续生成标题/图文/口播”；</li>
+<li>是否能找回昨天的项目；</li>
+<li>是否把任务记录误当作品库；</li>
+<li>最终是否成功导出或进入发布中心。</li>
+</ul>
+<p>不以“页面好看”“模型能返回内容”作为正式验收结论。</p>
+<h2 id="17">17. 最终上线判定<a class="headerlink" href="#17" title="Permanent link">&para;</a></h2>
+<p>P0 正式上线必须同时满足：</p>
+<ol>
+<li>AC-A 至 AC-G 全部门禁有证据；</li>
+<li>四个应用均使用统一 registry、run、artifact 和 project 协议；</li>
+<li>文案可继续到标题、图文和口播；</li>
+<li>图文和视频均可进入发布中心；</li>
+<li>原数字人口播成功率不低于基线；</li>
+<li>关闭全部新 flag 时旧版仍可运行；</li>
+<li>新数据库升级与回滚演练通过；</li>
+<li>至少一轮目标用户任务验收完成；</li>
+<li>没有 P0/P1 级数据丢失、路径越权、密钥泄漏或不可恢复崩溃；</li>
+<li>后台实现符合 ADR-007，当前未发生无授权 Node.js 迁移，未来 SaaS 所需稳定 ID、版本化契约、幂等任务和文件引用边界已保留；</li>
+<li>四个应用需要 LLM 的步骤全部通过 AppLLMPort 复用现有默认模型配置，未出现第二套密钥、provider client 或按应用配置；</li>
+<li>管理员应用控制和可视化模型策略保持延期，但未来 AppControlPolicy/ModelRoutingPolicy 接入点已保留；</li>
+<li>产品负责人确认首期数据足以决定 P1 应用优先级。</li>
+</ol>
+<p>达到以上条件后，Pixelle Video 才算从单一数字人口播工具完成了第一阶段“应用中心化”，而不是仅增加了一个应用卡片页面。</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 21, 2026 23:55:05 UTC">July 21, 2026 23:55:05</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 18, 2026 15:21:09 UTC">July 18, 2026 15:21:09</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Pixelle.AI
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/AIDC-AI/Pixelle-Video" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

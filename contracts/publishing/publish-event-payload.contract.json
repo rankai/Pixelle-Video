@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/publish-event-payload.v1.json",
+  "title": "Redacted PublishRun event payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["allowed_top_level_fields", "forbidden_fields", "sanitizer", "unknown_field_policy"],
+  "properties": {
+    "allowed_top_level_fields": { "type": "array", "items": { "enum": ["step", "error_code", "duration_ms", "adapter_version", "evidence_kind", "retry_attempt", "human_outcome"] }, "uniqueItems": true },
+    "forbidden_fields": { "type": "array", "items": { "enum": ["cookie", "qr_payload", "authorization", "api_key", "absolute_file_path", "request_params", "description", "title", "profile_path"] }, "uniqueItems": true },
+    "sanitizer": { "const": "allowlist_before_json_persist" },
+    "unknown_field_policy": { "const": "reject" }
+  }
+}

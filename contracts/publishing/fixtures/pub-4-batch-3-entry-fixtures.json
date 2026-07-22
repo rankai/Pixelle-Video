@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "fixtures": [
+    {"id": "legacy-step-prepare-forbidden", "valid": false, "error": "LEGACY_ORCHESTRATOR_FORBIDDEN"},
+    {"id": "legacy-secondary-run-forbidden", "valid": false, "error": "SECONDARY_RUN_FORBIDDEN"},
+    {"id": "resolver-missing-artifact", "valid": false, "error": "PUBLISH_PACKAGE_NOT_FOUND"},
+    {"id": "resolver-stale-package", "valid": false, "error": "PUBLISH_PACKAGE_STALE"},
+    {"id": "resolver-ambiguous-candidates", "valid": false, "error": "PUBLISH_PACKAGE_AMBIGUOUS"},
+    {"id": "fallback-absolute-path-forbidden", "valid": false, "error": "SAFE_FALLBACK_REDACTION_REQUIRED"},
+    {"id": "fallback-secret-forbidden", "valid": false, "error": "SAFE_FALLBACK_REDACTION_REQUIRED"},
+    {"id": "flag-off-v2-request-forbidden", "valid": false, "error": "PUBLISH_V2_DISABLED"},
+    {"id": "keyboard-narrow-dead-end-forbidden", "valid": false, "error": "PUBLISH_UI_NOT_REACHABLE"}
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "schema_version": "asset-center-uxc-production-desktop-e2e-v1",
+  "status": "pass",
+  "environment": {
+    "surface": "real Vite + FastAPI desktop web surface",
+    "isolated_data_root": true,
+    "viewport": "1440x1000",
+    "target_user_study": false,
+    "release_device_signoff": false
+  },
+  "picker": {
+    "image_selected_same_slot": true,
+    "video_selected_same_slot": true,
+    "screenshot": "uxc-production-picker-image-video.png",
+    "visual_groups": [
+      {
+        "group_id": "group_1784360520803",
+        "segment_ids": [
+          "1"
+        ],
+        "visual_type": "uploaded_video",
+        "prompt": "",
+        "uploaded_video_path": "/api/v2/media-assets/media-5de328ff274c4da6bd9c13eac2ad22e3/file",
+        "video_asset_id": "media-5de328ff274c4da6bd9c13eac2ad22e3",
+        "uploaded_image_path": "",
+        "image_asset_id": "",
+        "status": "pending"
+      },
+      {
+        "group_id": "group_1784360520915",
+        "segment_ids": [
+          "2"
+        ],
+        "visual_type": "uploaded_image",
+        "prompt": "",
+        "uploaded_video_path": "",
+        "video_asset_id": "",
+        "uploaded_image_path": "/api/v2/media-assets/media-27d97e5dce4248059d987741b21f27ae/file",
+        "image_asset_id": "media-27d97e5dce4248059d987741b21f27ae",
+        "status": "pending"
+      }
+    ]
+  },
+  "voice_picker": {
+    "existing_voice_audition_control_visible": true,
+    "existing_voice_confirmed": true,
+    "uploaded_voice_confirmed": true,
+    "uploaded_voice_resource_id": "voice-8df6334566f2",
+    "screenshot": "uxd-voice-picker-audition-upload.png",
+    "synthetic_audio_fixture_rebound_after_voice_selection": true
+  },
+  "digital_human_picker": {
+    "scene_selected": true,
+    "person_id": "digital-human-a718399b861d",
+    "scene_id": "scene-78f462dcdb6e",
+    "screenshot": "uxd-digital-human-scene-picker.png",
+    "synthetic_video_fixture_rebound_after_scene_selection": true
+  },
+  "render": {
+    "clicked_one_click_render": true,
+    "task_status": "completed",
+    "final_video_path": "/private/var/folders/lt/6g5zql0d37g7pvzj7gny8g4r0000gn/T/asset-center-uxc-production-root-c9ybd7d8/output/ipb_c60639ea_final.mp4",
+    "ffprobe_dimensions": "1080,1920",
+    "artifact_http_status": 200,
+    "screenshot": "uxc-production-rendered-mp4.png"
+  },
+  "usage": {
+    "expected_resource_keys": [
+      [
+        "brand",
+        "brand-9dbef86342d6"
+      ],
+      [
+        "digital_human",
+        "digital-human-a718399b861d"
+      ],
+      [
+        "digital_human_scene",
+        "scene-78f462dcdb6e"
+      ],
+      [
+        "image",
+        "media-27d97e5dce4248059d987741b21f27ae"
+      ],
+      [
+        "template",
+        "template-161328d237e7"
+      ],
+      [
+        "video",
+        "media-5de328ff274c4da6bd9c13eac2ad22e3"
+      ],
+      [
+        "voice",
+        "voice-8df6334566f2"
+      ]
+    ],
+    "observed_resource_keys": [
+      [
+        "brand",
+        "brand-9dbef86342d6"
+      ],
+      [
+        "digital_human",
+        "digital-human-a718399b861d"
+      ],
+      [
+        "digital_human_scene",
+        "scene-78f462dcdb6e"
+      ],
+      [
+        "image",
+        "media-27d97e5dce4248059d987741b21f27ae"
+      ],
+      [
+        "template",
+        "template-161328d237e7"
+      ],
+      [
+        "video",
+        "media-5de328ff274c4da6bd9c13eac2ad22e3"
+      ],
+      [
+        "voice",
+        "voice-8df6334566f2"
+      ]
+    ],
+    "expected_present": true,
+    "snapshot_count": 7
+  },
+  "facet_isolation": {
+    "voice_profile_in_voice_facet": true,
+    "uploaded_voice_in_voice_facet": true,
+    "bgm_asset_not_in_voice_facet": true,
+    "bgm_asset_in_audio_facet": true,
+    "voice_resource_ids": [
+      "uxc-production-voice",
+      "voice-8df6334566f2"
+    ],
+    "audio_resource_ids": [
+      "media-13ef24ba3c0c4e89acc707f32c9e1f04",
+      "media-5b2111daef3a44e6ad4dee8e9e1ebf75",
+      "media-75ed5f72205a43119b43fd9fb70060a4"
+    ]
+  },
+  "recordings": [
+    "18f4999ec665cbf58d2ffa3646e9f28c.webm",
+    "2cf6b87f88185eb070cf79b3d345b070.webm",
+    "4fe7e37f09b8d247285691cb46d89a3f.webm",
+    "533a45dc2e19004e49bef0db94bb4366.webm",
+    "5408690408e273005d8b38166e06bde9.webm",
+    "59b9cf3dd69f4d2343ec62c1aef2cb87.webm",
+    "8392404fdf88f7faa78a57ed4b265f40.webm",
+    "87a3101d807c42d55f8882e6e7061da1.webm",
+    "9e5ce358e2c70317640cb00cc59d4318.webm",
+    "bd79dbb2790506117a8f3060cddd43fb.webm",
+    "c178f4ac1ed4098918e908f80c9b2bdf.webm",
+    "c30a74efb2b92358e4a242e44747f67f.webm",
+    "d5a3a49e55b72135033f63682bcbd1d3.webm",
+    "e873314c7fff2d06406d2356d42a1367.webm",
+    "f2fd57daee12c2875b7a8b69f6d228e5.webm",
+    "f51250eb4bd8be1b9de109943ba6cdd3.webm",
+    "f5432f44bfcfcba0af73a412556f04d1.webm"
+  ],
+  "notes": [
+    "The picker flow uses stable V2 IDs and only writes usage at the render boundary.",
+    "This is a technical desktop E2E evidence run; it does not satisfy the five-person UX-E study or release-device visual sign-off."
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "task": "PUB-A-1-first-scan",
+  "result": "passed",
+  "profile_ref": "isolated-qa-profile-redacted",
+  "sensitive_data_recorded": false,
+  "final_publish_clicked": false,
+  "upload_started": false,
+  "intentional_action_count": 1,
+  "wait_timeout_seconds": 180,
+  "started_at_utc": "2026-07-19T11:08:56.902954+00:00",
+  "url_before_redacted": "https://creator.douyin.com/creator-micro/content/upload",
+  "signed_out_pre": true,
+  "qr_visible": true,
+  "scan_completed_by_user": true,
+  "signed_in_post": true,
+  "url_after_redacted": "https://creator.douyin.com/",
+  "scan_completed_at_utc": "2026-07-19T11:09:29.185682+00:00",
+  "screenshots": [
+    {
+      "name": "COORD-0-first-scan-qr-before-redacted.png",
+      "sha256": "ae9f9ac9c44572fd92b459ca385a3d0a0c7fd3e4b1350b0fa380bbe83ac3fe46"
+    },
+    {
+      "name": "COORD-0-first-scan-signed-in-redacted.png",
+      "sha256": "508448aea3e903ea24d48e61b11611449085a8e5095086da88032075166dbeb9"
+    },
+    {
+      "name": "COORD-0-first-scan-reopen-signed-in-redacted.png",
+      "sha256": "c003b8e1b96a11f56ed8e0f42fc2949bbd6eebef2d67336d233150d780741682"
+    }
+  ],
+  "reopen_signed_in": true,
+  "url_reopen_redacted": "https://creator.douyin.com/creator-micro/content/upload",
+  "reopen_probe_at_utc": "2026-07-19T11:09:40.270756+00:00",
+  "ended_at_utc": "2026-07-19T11:09:42.303903+00:00",
+  "profile_cleanup": "completed",
+  "evidence_root": "/var/folders/lt/6g5zql0d37g7pvzj7gny8g4r0000gn/T/pixelle-douyin-first-scan-evidence-alxudrzu"
+}

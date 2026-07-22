@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/publish-path-token.v1.json",
+  "title": "Managed publish asset path token",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["path_token", "asset_id", "root_kind", "issued_at", "expires_at", "sha256", "size_bytes"],
+  "properties": {
+    "path_token": { "type": "string", "pattern": "^asset_[A-Za-z0-9_-]+$" },
+    "asset_id": { "type": "string", "pattern": "^asset_[A-Za-z0-9_-]+$" },
+    "root_kind": { "enum": ["data", "output", "temp"] },
+    "issued_at": { "type": "string", "minLength": 1 },
+    "expires_at": { "type": "string", "minLength": 1 },
+    "sha256": { "type": "string", "pattern": "^sha256:.+" },
+    "size_bytes": { "type": "integer", "minimum": 1 },
+    "symlink_policy": { "const": "reject" },
+    "toctou_policy": { "const": "re-resolve-and-rehash-before-open" }
+  }
+}

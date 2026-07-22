@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "artifact_id": "artifact_copy_001",
+  "project_id": "project_store_001",
+  "artifact_type": "copywriting",
+  "current_version_id": "artifact_version_copy_001_r1",
+  "versions": [
+    {
+      "artifact_version_id": "artifact_version_copy_001_r1",
+      "revision": 1,
+      "schema_version": 1,
+      "content": {
+        "title": "工作日双人套餐",
+        "body": "下班后到店享受双人套餐。",
+        "missing_facts": [],
+        "risk_flags": []
+      },
+      "created_at": "2026-07-19T00:00:00Z"
+    }
+  ]
+}

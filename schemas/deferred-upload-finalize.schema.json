@@ -1,0 +1,41 @@
+{
+  "$defs": {
+    "DuplicatePolicy": {
+      "enum": [
+        "reuse_existing",
+        "attach_revision",
+        "create_separate"
+      ],
+      "title": "DuplicatePolicy",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "duplicate_policy": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DuplicatePolicy"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "target_asset_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Target Asset Id"
+    }
+  },
+  "title": "FinalizeUploadRequest",
+  "type": "object"
+}

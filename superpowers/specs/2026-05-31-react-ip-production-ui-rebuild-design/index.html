@@ -1,0 +1,3014 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="AI Video Creator - Generate a short video in 3 minutes">
+      
+      
+        <meta name="author" content="Pixelle.AI">
+      
+      
+        <link rel="canonical" href="https://AIDC-AI.github.io/Pixelle-Video/superpowers/specs/2026-05-31-react-ip-production-ui-rebuild-design/">
+      
+      
+      
+      
+        
+          <link rel="alternate" href="./" hreflang="en">
+        
+          <link rel="alternate" href="../../../zh/superpowers/specs/2026-05-31-react-ip-production-ui-rebuild-design/" hreflang="zh">
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>React 短视频生产局部体验优化与发布助手方案 - Pixelle-Video</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#react" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Pixelle-Video" class="md-header__button md-logo" aria-label="Pixelle-Video" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Pixelle-Video
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              React 短视频生产局部体验优化与发布助手方案
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../../zh/superpowers/specs/2026-05-31-react-ip-production-ui-rebuild-design/" hreflang="zh" class="md-select__link">
+              中文
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/AIDC-AI/Pixelle-Video" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AIDC-AI/Pixelle-Video
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../user-guide/web-ui/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../gallery/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Gallery
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../tutorials/your-first-video/" class="md-tabs__link">
+          
+  
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../reference/api-overview/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../development/architecture/" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../troubleshooting/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Troubleshooting
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Pixelle-Video" class="md-nav__button md-logo" aria-label="Pixelle-Video" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Pixelle-Video
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/AIDC-AI/Pixelle-Video" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AIDC-AI/Pixelle-Video
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../user-guide/web-ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web UI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../user-guide/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../user-guide/workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../user-guide/templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../gallery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gallery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorials/your-first-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Your First Video
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorials/custom-style/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Style
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorials/voice-cloning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Voice Cloning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/api-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/config-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../development/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../development/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scope">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#in-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#out-of-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Out of Scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#target-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Target Users
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#product-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Product Principles
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Product Principles">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 业务目标优先
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 默认路径短
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 每一步一个主动作
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 状态只显示一次
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 资产长期复用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 发布结果产品化
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#information-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Information Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Information Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#left-navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Left Navigation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#home" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Home
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#video-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Video Production
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#asset-center" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Asset Center
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-center" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task Center
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagnostics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#production-workflow-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Production Workflow Design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Production Workflow Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1：目标与素材
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2：文案确认
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3：配音制作
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4：数字人出镜
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5：一键成片
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6：发布素材包
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ai-copywriting-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AI Copywriting Optimization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#browser-publishing-assistant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Browser Publishing Assistant
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Browser Publishing Assistant">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#product-positioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Product Positioning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User Flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Boundaries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#technical-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Technical Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloakbrowser-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CloakBrowser Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#web-vs-desktop-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Web vs Desktop Boundary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visual-direction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visual Direction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#component-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Component Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phased-delivery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phased Delivery
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phased Delivery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 1：局部体验和稳定性优化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 2：AI 改写提示词优化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 3：发布素材包局部整理
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-4-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 4：组件化重构，不改 UI 行为
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-5-v1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 5：抖音发布助手 v1
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 6：多平台发布扩展
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 7：资产中心统一
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing Plan
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#risks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Risks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Risks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#product-value-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Product Value Review
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#risk-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Risk 1：一次性重构过大
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#risk-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Risk 2：视觉变好但流程变复杂
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#risk-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Risk 3：发布页展示好看但结果不可用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#risk-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Risk 4：组件拆分后状态混乱
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-Goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#definition-of-done" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Definition of Done
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="react">React 短视频生产局部体验优化与发布助手方案<a class="headerlink" href="#react" title="Permanent link">&para;</a></h1>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<p>本方案用于优化 React 桌面版短视频生产界面，访问入口为 <code>http://127.0.0.1:5173/</code>。本轮只改 React/Tauri 桌面端，不改 Streamlit 旧页面。</p>
+<p>本轮不做大 UI 重构，不采用 A2/A3 新布局。保留当前口播生产主体验，在现有版本上做局部产品打磨、稳定性优化、AI 文案能力优化和桌面端发布助手能力。</p>
+<p>核心判断标准：一个火锅店老板能沿用当前熟悉的 1-6 步流程，更清楚地获得操作反馈、更稳定地生成文案和成片，并能通过桌面端发布助手把视频快速准备到抖音发布页。</p>
+<h2 id="scope">Scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h2>
+<h3 id="in-scope">In Scope<a class="headerlink" href="#in-scope" title="Permanent link">&para;</a></h3>
+<ul>
+<li>React 桌面版局部 UI 打磨和组件化。</li>
+<li>左侧 <code>口播生产</code> 改为 <code>短视频生产</code>。</li>
+<li>保留当前 1-6 步主流程和主界面结构。</li>
+<li>发布页局部整理为更清晰的发布素材包。</li>
+<li>状态提示、loading/error/success 展示统一。</li>
+<li>AI 改写/优化文案提示词升级。</li>
+<li>桌面端浏览器自动化发布助手，首版优先抖音。</li>
+<li>浏览器运行时可插拔：默认 Playwright，预留 CloakBrowser。</li>
+<li><code>desktop/src/App.tsx</code> 逐步拆分，降低维护成本。</li>
+<li>保持现有 FastAPI 接口和 IP 口播核心生产链路不变。</li>
+</ul>
+<h3 id="out-of-scope">Out of Scope<a class="headerlink" href="#out-of-scope" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Streamlit 旧页面。</li>
+<li>大范围 UI 布局重构。</li>
+<li>A2/A3 三栏或向导式新布局。</li>
+<li>改视频目标前台命名。</li>
+<li>官方平台 API 发布优先方案。</li>
+<li>新增复杂运营系统、CRM、团队权限。</li>
+<li>重做音视频生成后端。</li>
+<li>改变当前“整段配音 + 整段数字人 + 第 5 步画面覆盖”的生产策略。</li>
+<li>绕过平台登录、验证码、审核或风控。</li>
+</ul>
+<h2 id="target-users">Target Users<a class="headerlink" href="#target-users" title="Permanent link">&para;</a></h2>
+<p>主要用户：</p>
+<ul>
+<li>本地生活门店老板。</li>
+<li>中小企业主。</li>
+<li>门店运营人员。</li>
+<li>本地生活代运营团队。</li>
+</ul>
+<p>典型场景：</p>
+<ul>
+<li>火锅店老板要发团购套餐口播。</li>
+<li>洗衣店老板要发洗衣避坑干货。</li>
+<li>美容院店长要发项目介绍。</li>
+<li>民宿主理人要发房型/周边推荐。</li>
+<li>代运营团队要帮多个门店批量生产视频。</li>
+</ul>
+<p>用户特点：</p>
+<ul>
+<li>忙于经营，不愿学习复杂软件。</li>
+<li>不理解 workflow、ComfyUI、RunningHub 等技术概念。</li>
+<li>需要直接可用的视频、标题、描述、标签和封面。</li>
+<li>更关心“能不能发、发什么、哪里下载”，而不是参数细节。</li>
+</ul>
+<h2 id="product-principles">Product Principles<a class="headerlink" href="#product-principles" title="Permanent link">&para;</a></h2>
+<h3 id="1">1. 业务目标优先<a class="headerlink" href="#1" title="Permanent link">&para;</a></h3>
+<p>页面首先让用户回答“这条视频要干什么”，而不是先问技术参数。</p>
+<p>推荐目标：</p>
+<ul>
+<li>自由创作。</li>
+<li>团购转化。</li>
+<li>门店探店。</li>
+<li>新品推荐。</li>
+<li>老板人设。</li>
+<li>客户案例。</li>
+</ul>
+<p>业务目标影响：</p>
+<ul>
+<li>文案结构。</li>
+<li>画面规划建议。</li>
+<li>默认模板。</li>
+<li>发布平台建议。</li>
+<li>标签和评论引导。</li>
+</ul>
+<h3 id="2">2. 默认路径短<a class="headerlink" href="#2" title="Permanent link">&para;</a></h3>
+<p>默认路径必须清晰：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>选目标和素材 -&gt; 确认文案 -&gt; 生成配音 -&gt; 生成数字人 -&gt; 一键成片 -&gt; 下载发布素材
+</span></code></pre></div>
+<p>高级参数不默认展开。老板用户只看到必要输入。</p>
+<h3 id="3">3. 每一步一个主动作<a class="headerlink" href="#3" title="Permanent link">&para;</a></h3>
+<p>每一步只有一个最重要按钮。</p>
+<p>示例：</p>
+<ul>
+<li>第 1 步：<code>提取视频口播文案</code> / <code>生成口播文案</code>。</li>
+<li>第 2 步：<code>AI 改写/优化文案</code>。</li>
+<li>第 3 步：<code>生成配音</code>。</li>
+<li>第 4 步：<code>生成出镜视频</code>。</li>
+<li>第 5 步：<code>一键成片</code>。</li>
+<li>第 6 步：<code>下载视频</code> / <code>复制发布素材</code>。</li>
+</ul>
+<p>已完成步骤返回时：</p>
+<ul>
+<li>主按钮：<code>使用当前结果继续</code>。</li>
+<li>次按钮：<code>重新生成</code>。</li>
+<li>不再显示容易误解的“只执行本步骤”。</li>
+</ul>
+<h3 id="4">4. 状态只显示一次<a class="headerlink" href="#4" title="Permanent link">&para;</a></h3>
+<p>错误、loading、成功结果只在当前步骤动作区显示一次。</p>
+<p>禁止：</p>
+<ul>
+<li>顶部、主控台、底部同时出现同一错误。</li>
+<li>技术错误直接暴露给业务用户。</li>
+<li>长任务 loading 只藏在顶部按钮里。</li>
+</ul>
+<h3 id="5">5. 资产长期复用<a class="headerlink" href="#5" title="Permanent link">&para;</a></h3>
+<p>音色、形象、模板、视频素材、品牌包必须独立维护。</p>
+<p>工作台中允许快速添加素材，但完整管理仍在资产中心。</p>
+<h3 id="6">6. 发布结果产品化<a class="headerlink" href="#6" title="Permanent link">&para;</a></h3>
+<p>第 6 步不是普通表单，而是“发布素材包交付台”。</p>
+<p>用户最终应拿到：</p>
+<ul>
+<li>最终视频。</li>
+<li>标题。</li>
+<li>描述。</li>
+<li>标签。</li>
+<li>评论引导。</li>
+<li>封面。</li>
+<li>平台建议。</li>
+</ul>
+<h2 id="information-architecture">Information Architecture<a class="headerlink" href="#information-architecture" title="Permanent link">&para;</a></h2>
+<h3 id="left-navigation">Left Navigation<a class="headerlink" href="#left-navigation" title="Permanent link">&para;</a></h3>
+<p>建议导航：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>首页
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>短视频生产
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>素材资产
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>任务中心
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>系统配置
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>诊断工具
+</span></code></pre></div>
+<p>命名原则：</p>
+<ul>
+<li>使用业务词，不使用技术词。</li>
+<li>“口播生产”升级为“短视频生产”，因为它比“视频生产”更贴近抖音、快手、小红书语境，也比“口播生产”覆盖探店、门店活动、产品种草等更多本地生活视频形态。</li>
+<li>配置和诊断分开，避免普通用户误入诊断页。</li>
+</ul>
+<h3 id="home">Home<a class="headerlink" href="#home" title="Permanent link">&para;</a></h3>
+<p>首页定位：生产入口和系统就绪检查。</p>
+<p>建议模块：</p>
+<ol>
+<li>主视觉区：</li>
+<li>产品名：<code>老板 IP 口播平台</code> 或 <code>门店短视频生产台</code>。</li>
+<li>副文案：<code>为本地生活门店快速生成可发布的口播和探店短视频。</code></li>
+<li>
+<p>主按钮：<code>新建视频</code>。</p>
+</li>
+<li>
+<p>轻量生产建议：</p>
+</li>
+<li>本轮不做复杂选题助手。</li>
+<li>不新增前台视频目标命名体系。</li>
+<li>只显示当前流程可用的轻量入口，例如继续未完成任务或新建一条视频。</li>
+<li>
+<p>点击后进入现有第 1 步，由用户在当前目标体系里选择本条视频目标。</p>
+</li>
+<li>
+<p>生产就绪检查：</p>
+</li>
+<li>LLM 配置。</li>
+<li>云端算力配置。</li>
+<li>音色是否有。</li>
+<li>数字人形象是否有。</li>
+<li>
+<p>模板是否可用。</p>
+</li>
+<li>
+<p>当前任务：</p>
+</li>
+<li>正在执行的任务。</li>
+<li>失败原因。</li>
+<li>
+<p>继续生产入口。</p>
+</li>
+<li>
+<p>最近结果：</p>
+</li>
+<li>最近生成的视频。</li>
+<li>下载/继续编辑入口。</li>
+</ol>
+<p>首页不放复杂运营图表。首版只放和“今天能不能生产视频”“今天可以先做什么视频”直接相关的信息。</p>
+<h3 id="video-production">Video Production<a class="headerlink" href="#video-production" title="Permanent link">&para;</a></h3>
+<p>口播工作台结构：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>顶部：生产主控台
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>中部：1-6 横向步骤条
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>主体：当前步骤工作区
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>底部：固定动作栏
+</span></code></pre></div>
+<p>1-6 步：</p>
+<ol>
+<li>目标与素材。</li>
+<li>文案确认。</li>
+<li>配音制作。</li>
+<li>数字人出镜。</li>
+<li>一键成片。</li>
+<li>发布素材包。</li>
+</ol>
+<h3 id="asset-center">Asset Center<a class="headerlink" href="#asset-center" title="Permanent link">&para;</a></h3>
+<p>资产中心包含：</p>
+<ul>
+<li>音色库。</li>
+<li>数字人形象库。</li>
+<li>画面模板库。</li>
+<li>视频素材库。</li>
+<li>品牌包。</li>
+</ul>
+<p>资产卡片统一结构：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>预览区域
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>名称
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>用途说明
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>状态/类型
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>主动作
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>次动作
+</span></code></pre></div>
+<h3 id="task-center">Task Center<a class="headerlink" href="#task-center" title="Permanent link">&para;</a></h3>
+<p>任务中心定位：后台任务和历史结果。</p>
+<p>展示：</p>
+<ul>
+<li>当前运行任务。</li>
+<li>最近任务。</li>
+<li>成功/失败/取消状态。</li>
+<li>失败原因。</li>
+<li>结果入口。</li>
+</ul>
+<p>任务中心不是生产主流程，不应该承担文案、素材、模板配置。</p>
+<h3 id="config">Config<a class="headerlink" href="#config" title="Permanent link">&para;</a></h3>
+<p>系统配置只放：</p>
+<ul>
+<li>LLM 配置。</li>
+<li>RunningHub / 云端算力配置。</li>
+<li>本地服务配置。</li>
+<li>主题皮肤。</li>
+</ul>
+<p>配置页需要更明确的保存状态和测试连接入口。</p>
+<h3 id="diagnostics">Diagnostics<a class="headerlink" href="#diagnostics" title="Permanent link">&para;</a></h3>
+<p>诊断工具只给技术排查使用。</p>
+<p>展示：</p>
+<ul>
+<li>API 连接。</li>
+<li>依赖状态。</li>
+<li>FFmpeg。</li>
+<li>Playwright。</li>
+<li>配置读取。</li>
+<li>最近错误日志。</li>
+</ul>
+<p>普通生产错误不应该跳到诊断页才能理解。</p>
+<h2 id="production-workflow-design">Production Workflow Design<a class="headerlink" href="#production-workflow-design" title="Permanent link">&para;</a></h2>
+<h3 id="step-1">Step 1：目标与素材<a class="headerlink" href="#step-1" title="Permanent link">&para;</a></h3>
+<p>结构：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>顶部：本条视频目标
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>中部：素材来源
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>底部：当前来源输入区
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>底部动作栏：主按钮
+</span></code></pre></div>
+<p>本条视频目标：</p>
+<ul>
+<li>轻量横向卡片或紧凑选择条。</li>
+<li>默认 <code>自由创作</code>。</li>
+<li>选择目标后显示一行“本目标会影响文案结构、画面建议、发布平台”。</li>
+</ul>
+<p>本轮不改视频目标前台命名。视频目标相关优化只做文案说明和提示词效果，不改用户已经熟悉的目标名称。</p>
+<p>素材来源：</p>
+<ul>
+<li>视频提取。</li>
+<li>粘贴脚本。</li>
+<li>行业+人设。</li>
+<li>IP 学习。</li>
+</ul>
+<p>行业+人设只问业务素材，不再问视频类型/文案类型：</p>
+<ul>
+<li>行业/门店类型与人设身份。</li>
+<li>产品/服务/活动与核心卖点。</li>
+<li>适合什么客户。</li>
+<li>优惠/预约/到店提示。</li>
+<li>补充信息。</li>
+</ul>
+<h3 id="step-2">Step 2：文案确认<a class="headerlink" href="#step-2" title="Permanent link">&para;</a></h3>
+<p>目标：用户必须能检查最终口播稿。</p>
+<p>规则：</p>
+<ul>
+<li>第 1 步完成可自动跳第 2 步。</li>
+<li>第 2 步 AI 改写后不能自动跳第 3 步。</li>
+<li>改写后停留在第 2 步，让用户检查。</li>
+<li>文案必须按自然语义分段，方便第 5 步画面规划。</li>
+</ul>
+<p>UI：</p>
+<ul>
+<li>主体为最终口播文案编辑器。</li>
+<li>右侧或下方显示：</li>
+<li>字数。</li>
+<li>段落数。</li>
+<li>当前视频目标。</li>
+<li>改写设置折叠区。</li>
+</ul>
+<h3 id="step-3">Step 3：配音制作<a class="headerlink" href="#step-3" title="Permanent link">&para;</a></h3>
+<p>目标：用户能选音色、生成配音、试听。</p>
+<p>规则：</p>
+<ul>
+<li>生成后不自动跳第 4 步。</li>
+<li>必须显示音频预览。</li>
+<li>已生成状态下主按钮为 <code>使用当前配音继续</code>。</li>
+<li>次按钮为 <code>重新生成配音</code>。</li>
+</ul>
+<p>UI：</p>
+<ul>
+<li>音色选择卡片。</li>
+<li>工作流/高级参数折叠。</li>
+<li>生成结果音频播放器。</li>
+<li>失败时显示业务化错误。</li>
+</ul>
+<h3 id="step-4">Step 4：数字人出镜<a class="headerlink" href="#step-4" title="Permanent link">&para;</a></h3>
+<p>目标：用户能选择形象、生成数字人视频、预览。</p>
+<p>规则：</p>
+<ul>
+<li>生成后不自动跳第 5 步。</li>
+<li>必须显示视频预览。</li>
+<li>工作流自动过滤支持的形象类型。</li>
+<li>不支持图片的工作流不显示图片形象。</li>
+<li>不支持视频的工作流不显示视频形象。</li>
+</ul>
+<p>UI：</p>
+<ul>
+<li>工作流选择。</li>
+<li>兼容形象卡片。</li>
+<li>快速添加形象入口。</li>
+<li>视频预览区。</li>
+</ul>
+<h3 id="step-5">Step 5：一键成片<a class="headerlink" href="#step-5" title="Permanent link">&para;</a></h3>
+<p>目标：把数字人视频、字幕、模板、画面覆盖、BGM 合成最终视频。</p>
+<p>推荐结构：</p>
+<ol>
+<li>画面模板。</li>
+<li>画面规划。</li>
+<li>高级成片设置。</li>
+<li>成片动作区。</li>
+</ol>
+<p>画面规划需要更业务化：</p>
+<ul>
+<li>显示“哪些段落保持老板出镜”。</li>
+<li>显示“哪些段落用门店/产品视频覆盖”。</li>
+<li>支持勾选连续段落成组。</li>
+<li>视频素材多时用弹窗选择，带搜索。</li>
+</ul>
+<p>合成规则：</p>
+<ul>
+<li>覆盖视频不足时必须循环或补齐，不得导致最终视频变短。</li>
+<li>BGM 长于视频时，最终长度以主视频/配音为准。</li>
+<li>模板必须真正影响标题、字幕位置和样式。</li>
+</ul>
+<h3 id="step-6">Step 6：发布素材包<a class="headerlink" href="#step-6" title="Permanent link">&para;</a></h3>
+<p>目标：像交付一个完整素材包。</p>
+<p>布局：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>左侧：视频预览和下载
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>右侧：发布素材包
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>底部：平台建议和复制动作
+</span></code></pre></div>
+<p>发布素材包包括：</p>
+<ul>
+<li>标题。</li>
+<li>描述。</li>
+<li>标签。</li>
+<li>评论引导。</li>
+<li>封面。</li>
+<li>口播文案。</li>
+</ul>
+<p>交付清单：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>视频      已准备 / 缺失
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>封面      已准备 / 缺失
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>标题      已准备 / 缺失
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>描述      已准备 / 缺失
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>标签      已准备 / 缺失
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>口播文案  已准备 / 缺失
+</span></code></pre></div>
+<p>清单用途：</p>
+<ul>
+<li>给用户明确完成感。</li>
+<li>快速暴露缺失项。</li>
+<li>避免用户不知道“现在能不能发”。</li>
+<li>缺失项旁边提供对应修复入口，例如 <code>重新生成标题</code>、<code>生成封面</code>。</li>
+</ul>
+<p>按钮：</p>
+<ul>
+<li>下载最终视频。</li>
+<li>复制标题。</li>
+<li>复制描述。</li>
+<li>复制标签。</li>
+<li>复制整套发布素材。</li>
+<li>发布到抖音。</li>
+</ul>
+<h2 id="ai-copywriting-optimization">AI Copywriting Optimization<a class="headerlink" href="#ai-copywriting-optimization" title="Permanent link">&para;</a></h2>
+<p>目标：优化第 2 步 <code>AI 改写/优化文案</code>，让输出更像本地生活门店老板真实口播，而不是泛营销文案。</p>
+<p>必须保留：</p>
+<ul>
+<li>分段结构。</li>
+<li>最终文案可编辑。</li>
+<li>视频目标对文案结构的影响。</li>
+<li>不自动跳过用户确认。</li>
+</ul>
+<p>提示词优化方向：</p>
+<ol>
+<li>老板视角：</li>
+<li>使用第一人称或门店经营者视角。</li>
+<li>减少空泛夸张表达。</li>
+<li>
+<p>像老板对镜头自然讲，而不是广告旁白。</p>
+</li>
+<li>
+<p>本地生活语境：</p>
+</li>
+<li>团购：突出优惠、套餐内容、适合人群、到店/下单引导。</li>
+<li>探店：突出场景、环境、体验细节、到店理由。</li>
+<li>新品：突出新品亮点、解决的问题、适合场景。</li>
+<li>老板人设：突出经验、避坑、专业判断。</li>
+<li>
+<p>客户案例：突出前后变化、真实过程、结果可信度。</p>
+</li>
+<li>
+<p>画面规划友好：</p>
+</li>
+<li>按自然语义分成 3-6 段。</li>
+<li>每段适合对应一个画面或覆盖组。</li>
+<li>
+<p>不输出小标题、编号、markdown。</p>
+</li>
+<li>
+<p>发布友好：</p>
+</li>
+<li>结尾给明确行动引导。</li>
+<li>不违规承诺效果。</li>
+<li>不使用绝对化、虚假夸张说法。</li>
+</ol>
+<p>验收标准：</p>
+<ul>
+<li>改写后仍保留换行分段。</li>
+<li>文案读起来像真人口播。</li>
+<li>文案里能体现当前视频目标。</li>
+<li>第 5 步画面规划能基于段落继续使用。</li>
+</ul>
+<h2 id="browser-publishing-assistant">Browser Publishing Assistant<a class="headerlink" href="#browser-publishing-assistant" title="Permanent link">&para;</a></h2>
+<p>本轮自动化发布能力采用桌面端浏览器自动化发布助手，不优先采用官方 API 发布。</p>
+<h3 id="product-positioning">Product Positioning<a class="headerlink" href="#product-positioning" title="Permanent link">&para;</a></h3>
+<p>名称：<code>发布助手</code>。</p>
+<p>定位：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>帮助用户把已生成的视频和发布素材自动准备到平台发布页，默认停在最终发布确认前。
+</span></code></pre></div>
+<p>首版平台：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>抖音
+</span></code></pre></div>
+<p>后续平台：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>快手
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>视频号
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>小红书
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>B站
+</span></code></pre></div>
+<h3 id="user-flow">User Flow<a class="headerlink" href="#user-flow" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>第 6 步生成发布素材包
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>  ↓
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>点击「发布到抖音」
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>  ↓
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>打开发布助手浏览器窗口
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>  ↓
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>用户首次登录抖音创作者后台
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>  ↓
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>系统复用登录态
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>  ↓
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>自动上传视频
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>  ↓
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>自动填写标题、描述、标签
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>  ↓
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>如有封面，尝试上传封面
+</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>  ↓
+</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>停在最终发布确认前
+</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>  ↓
+</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>用户确认后手动点击发布
+</span></code></pre></div>
+<h3 id="boundaries">Boundaries<a class="headerlink" href="#boundaries" title="Permanent link">&para;</a></h3>
+<p>必须遵守：</p>
+<ul>
+<li>不绕过登录。</li>
+<li>不处理或绕过验证码。</li>
+<li>不绕过平台审核。</li>
+<li>不默认点击最终发布。</li>
+<li>不做批量轰炸。</li>
+<li>用户拥有最终确认权。</li>
+<li>平台页面变更时停止并提示用户，而不是盲目点击。</li>
+</ul>
+<h3 id="technical-architecture">Technical Architecture<a class="headerlink" href="#technical-architecture" title="Permanent link">&para;</a></h3>
+<p>发布架构拆成两层：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>PublisherEngine
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>  ├─ BrowserRuntime
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>  └─ PlatformPublisher
+</span></code></pre></div>
+<p>浏览器运行时：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>BrowserRuntime
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>  ├─ PlaywrightRuntime      默认
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>  └─ CloakBrowserRuntime    可选
+</span></code></pre></div>
+<p>平台适配器：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>PlatformPublisher
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>  ├─ DouyinPublisher
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>  ├─ KuaishouPublisher
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>  ├─ WeChatChannelsPublisher
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>  ├─ XiaohongshuPublisher
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>  └─ BilibiliPublisher
+</span></code></pre></div>
+<p>统一发布输入：</p>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kr">type</span><span class="w"> </span><span class="nx">PublishPackage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="nx">sessionId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="nx">videoPath</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span><span class="nx">coverPath?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">  </span><span class="nx">description</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">  </span><span class="nx">hashtags</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">[];</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">  </span><span class="nx">platform</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;douyin&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;kuaishou&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;wechat_channels&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;xiaohongshu&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;bilibili&quot;</span><span class="p">;</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="p">};</span>
+</span></code></pre></div>
+<p>统一发布结果：</p>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kr">type</span><span class="w"> </span><span class="nx">PublishResult</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nx">status</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;login_required&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;uploading&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;draft_ready&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;failed&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;cancelled&quot;</span><span class="p">;</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span><span class="nx">platform</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span><span class="nx">message</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">  </span><span class="nx">screenshotPath?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="p">};</span>
+</span></code></pre></div>
+<p>持久化目录：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>data/publish_browser/douyin/
+</span></code></pre></div>
+<p>任务记录：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>平台：抖音
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>任务：发布助手
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>状态：等待用户确认 / 已准备草稿 / 失败
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>时间
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>失败原因
+</span></code></pre></div>
+<h3 id="cloakbrowser-strategy">CloakBrowser Strategy<a class="headerlink" href="#cloakbrowser-strategy" title="Permanent link">&para;</a></h3>
+<p>CloakBrowser 可以作为可选浏览器运行时纳入架构，但不作为首版唯一依赖。</p>
+<p>使用原则：</p>
+<ul>
+<li>默认运行时仍为 Playwright Chromium。</li>
+<li>CloakBrowser 作为 <code>BrowserRuntime</code> 的可选实现。</li>
+<li>平台发布器不直接依赖 CloakBrowser。</li>
+<li>不把产品定位成规避平台检测或风控的工具。</li>
+<li>只在用户已登录、用户确认、平台规则允许的范围内做发布辅助。</li>
+</ul>
+<p>引入 CloakBrowser 前需要验证：</p>
+<ul>
+<li>license 是否适合项目。</li>
+<li>macOS / Windows 打包体积。</li>
+<li>二进制分发方式。</li>
+<li>Playwright API 兼容程度。</li>
+<li>抖音、快手、视频号发布后台的稳定性。</li>
+</ul>
+<h3 id="web-vs-desktop-boundary">Web vs Desktop Boundary<a class="headerlink" href="#web-vs-desktop-boundary" title="Permanent link">&para;</a></h3>
+<p>纯 Web 形态适合：</p>
+<ul>
+<li>下载视频。</li>
+<li>复制标题/描述/标签。</li>
+<li>打开平台后台链接。</li>
+<li>官方 API 授权发布。</li>
+</ul>
+<p>纯 Web 形态不适合：</p>
+<ul>
+<li>稳定控制抖音/快手/视频号网页后台。</li>
+<li>读取或操作第三方页面 DOM。</li>
+<li>使用用户本机登录态。</li>
+</ul>
+<p>桌面端适合：</p>
+<ul>
+<li>启动受控浏览器。</li>
+<li>保存平台登录态。</li>
+<li>自动上传本地视频文件。</li>
+<li>自动填写发布素材。</li>
+<li>扩展多平台发布助手。</li>
+</ul>
+<h2 id="visual-direction">Visual Direction<a class="headerlink" href="#visual-direction" title="Permanent link">&para;</a></h2>
+<p>默认主题：石墨蓝专业版。</p>
+<p>色彩：</p>
+<ul>
+<li>背景：浅灰蓝。</li>
+<li>主色：石墨蓝。</li>
+<li>强调色：低饱和金橙，用于转化、提醒、主 CTA。</li>
+<li>成功：绿色。</li>
+<li>警告：琥珀色。</li>
+<li>错误：红色。</li>
+</ul>
+<p>布局：</p>
+<ul>
+<li>深色侧栏建立产品识别。</li>
+<li>内容区使用浅背景和白色面板。</li>
+<li>卡片半径保持克制，建议 8-12px。</li>
+<li>不使用大量渐变、大面积装饰图。</li>
+<li>状态和结果比装饰更重要。</li>
+</ul>
+<p>字体：</p>
+<ul>
+<li>中文优先系统字体。</li>
+<li>标题字重更明确。</li>
+<li>表单说明小而清楚。</li>
+<li>不用过大的营销型标题塞进工作区。</li>
+</ul>
+<h2 id="component-architecture">Component Architecture<a class="headerlink" href="#component-architecture" title="Permanent link">&para;</a></h2>
+<p>当前问题：</p>
+<ul>
+<li><code>desktop/src/App.tsx</code> 超过 4200 行。</li>
+<li><code>desktop/src/styles.css</code> 超过 2500 行。</li>
+<li>页面、流程状态、资产管理、弹窗、样式逻辑混杂。</li>
+</ul>
+<p>建议拆分：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>desktop/src/pages/
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>  HomePage.tsx
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>  VideoProductionPage.tsx
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>  AssetsPage.tsx
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>  TasksPage.tsx
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>  ConfigPage.tsx
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>  DiagnosticsPage.tsx
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>desktop/src/features/ip-production/
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>  ProductionController.tsx
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>  ProductionStepBar.tsx
+</span><span id="__span-18-12"><a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>  ProductionActionBar.tsx
+</span><span id="__span-18-13"><a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a>  SourceStep.tsx
+</span><span id="__span-18-14"><a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a>  ScriptStep.tsx
+</span><span id="__span-18-15"><a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>  VoiceStep.tsx
+</span><span id="__span-18-16"><a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a>  PortraitStep.tsx
+</span><span id="__span-18-17"><a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a>  ComposerStep.tsx
+</span><span id="__span-18-18"><a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a>  PublishStep.tsx
+</span><span id="__span-18-19"><a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a>
+</span><span id="__span-18-20"><a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a>desktop/src/features/assets/
+</span><span id="__span-18-21"><a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a>  AssetCenter.tsx
+</span><span id="__span-18-22"><a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a>  VoiceLibrary.tsx
+</span><span id="__span-18-23"><a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a>  PortraitLibrary.tsx
+</span><span id="__span-18-24"><a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a>  TemplateLibrary.tsx
+</span><span id="__span-18-25"><a id="__codelineno-18-25" name="__codelineno-18-25" href="#__codelineno-18-25"></a>  VideoAssetLibrary.tsx
+</span><span id="__span-18-26"><a id="__codelineno-18-26" name="__codelineno-18-26" href="#__codelineno-18-26"></a>  BrandKitLibrary.tsx
+</span><span id="__span-18-27"><a id="__codelineno-18-27" name="__codelineno-18-27" href="#__codelineno-18-27"></a>
+</span><span id="__span-18-28"><a id="__codelineno-18-28" name="__codelineno-18-28" href="#__codelineno-18-28"></a>desktop/src/components/
+</span><span id="__span-18-29"><a id="__codelineno-18-29" name="__codelineno-18-29" href="#__codelineno-18-29"></a>  AppShell.tsx
+</span><span id="__span-18-30"><a id="__codelineno-18-30" name="__codelineno-18-30" href="#__codelineno-18-30"></a>  StatusNotice.tsx
+</span><span id="__span-18-31"><a id="__codelineno-18-31" name="__codelineno-18-31" href="#__codelineno-18-31"></a>  AssetCard.tsx
+</span><span id="__span-18-32"><a id="__codelineno-18-32" name="__codelineno-18-32" href="#__codelineno-18-32"></a>  ResultPreview.tsx
+</span><span id="__span-18-33"><a id="__codelineno-18-33" name="__codelineno-18-33" href="#__codelineno-18-33"></a>  EmptyState.tsx
+</span><span id="__span-18-34"><a id="__codelineno-18-34" name="__codelineno-18-34" href="#__codelineno-18-34"></a>  ConfirmDialog.tsx
+</span><span id="__span-18-35"><a id="__codelineno-18-35" name="__codelineno-18-35" href="#__codelineno-18-35"></a>
+</span><span id="__span-18-36"><a id="__codelineno-18-36" name="__codelineno-18-36" href="#__codelineno-18-36"></a>desktop/src/styles/
+</span><span id="__span-18-37"><a id="__codelineno-18-37" name="__codelineno-18-37" href="#__codelineno-18-37"></a>  tokens.css
+</span><span id="__span-18-38"><a id="__codelineno-18-38" name="__codelineno-18-38" href="#__codelineno-18-38"></a>  layout.css
+</span><span id="__span-18-39"><a id="__codelineno-18-39" name="__codelineno-18-39" href="#__codelineno-18-39"></a>  components.css
+</span><span id="__span-18-40"><a id="__codelineno-18-40" name="__codelineno-18-40" href="#__codelineno-18-40"></a>  production.css
+</span><span id="__span-18-41"><a id="__codelineno-18-41" name="__codelineno-18-41" href="#__codelineno-18-41"></a>  assets.css
+</span></code></pre></div>
+<p>拆分原则：</p>
+<ul>
+<li>先移动代码，不改行为。</li>
+<li>每次拆一个区域。</li>
+<li>每次拆分后跑 <code>npm run build</code>。</li>
+<li>业务函数尽量从组件中抽离，避免 UI 组件承担流程编排。</li>
+</ul>
+<h2 id="phased-delivery">Phased Delivery<a class="headerlink" href="#phased-delivery" title="Permanent link">&para;</a></h2>
+<h3 id="phase-1">Phase 1：局部体验和稳定性优化<a class="headerlink" href="#phase-1" title="Permanent link">&para;</a></h3>
+<p>目标：保留当前主界面结构，只修影响日常使用的反馈和稳定性问题。</p>
+<p>工作：</p>
+<ul>
+<li>左侧 <code>口播生产</code> 改为 <code>短视频生产</code>。</li>
+<li>统一 loading/error/success 展示。</li>
+<li>每一步只保留一个主要状态提示。</li>
+<li>错误不在顶部、主控台、步骤底部重复出现。</li>
+<li>已完成步骤返回时，主按钮为 <code>使用当前结果继续</code>，次按钮为 <code>重新生成</code>。</li>
+<li>统一资产卡片按钮、预览、试听的基础样式。</li>
+<li>不改变当前 1-6 步布局。</li>
+</ul>
+<p>验收：</p>
+<ul>
+<li><code>npm run build</code> 通过。</li>
+<li>第 1-6 步仍可进入。</li>
+<li>任一步失败只显示一个错误提示。</li>
+<li>长任务 loading 在当前动作区可见。</li>
+<li>左侧导航显示 <code>短视频生产</code>。</li>
+</ul>
+<h3 id="phase-2ai">Phase 2：AI 改写提示词优化<a class="headerlink" href="#phase-2ai" title="Permanent link">&para;</a></h3>
+<p>目标：让 <code>AI 改写/优化文案</code> 更适合本地生活门店老板口播。</p>
+<p>工作：</p>
+<ul>
+<li>优化 <code>build_rewrite_prompt()</code>。</li>
+<li>强制自然分段。</li>
+<li>强化本地生活场景和老板口吻。</li>
+<li>保留视频目标对结构的影响。</li>
+<li>增加 prompt 单测。</li>
+</ul>
+<p>验收：</p>
+<ul>
+<li>改写后仍保留 3-6 段自然分段。</li>
+<li>文案不是广告腔、不是小标题堆叠。</li>
+<li>当前视频目标能影响结构。</li>
+<li>第 5 步画面规划仍能读取段落。</li>
+</ul>
+<h3 id="phase-3">Phase 3：发布素材包局部整理<a class="headerlink" href="#phase-3" title="Permanent link">&para;</a></h3>
+<p>目标：第 6 步结果交付清晰。</p>
+<p>工作：</p>
+<ul>
+<li>视频预览和下载区。</li>
+<li>标题/描述/标签/评论引导卡片。</li>
+<li>发布交付清单。</li>
+<li>一键复制整套素材。</li>
+<li>平台建议区。</li>
+</ul>
+<p>验收：</p>
+<ul>
+<li>最终视频可预览。</li>
+<li>下载按钮有效。</li>
+<li>标题/描述/标签可复制。</li>
+<li>用户能一眼看到视频、封面、标题、描述、标签、口播文案是否准备好。</li>
+<li>发布页不再是散乱表单。</li>
+</ul>
+<h3 id="phase-4-ui">Phase 4：组件化重构，不改 UI 行为<a class="headerlink" href="#phase-4-ui" title="Permanent link">&para;</a></h3>
+<p>目标：降低 <code>App.tsx</code> 和 <code>styles.css</code> 后续维护成本。</p>
+<p>工作：</p>
+<ul>
+<li>拆 <code>AppShell</code>。</li>
+<li>拆页面组件。</li>
+<li>拆口播 1-6 步组件。</li>
+<li>拆资产卡片与通用状态提示组件。</li>
+<li>保持视觉和行为基本不变。</li>
+</ul>
+<p>验收：</p>
+<ul>
+<li><code>npm run build</code> 通过。</li>
+<li>页面可正常切换。</li>
+<li>口播 1-6 步能进入。</li>
+<li>无明显 UI 回归。</li>
+</ul>
+<h3 id="phase-5-v1">Phase 5：抖音发布助手 v1<a class="headerlink" href="#phase-5-v1" title="Permanent link">&para;</a></h3>
+<p>目标：在桌面端通过浏览器自动化把发布素材准备到抖音发布页。</p>
+<p>工作：</p>
+<ul>
+<li>新增发布模型和发布服务。</li>
+<li>新增 <code>BrowserRuntime</code> 抽象。</li>
+<li>新增 <code>PlaywrightRuntime</code> 默认实现。</li>
+<li>预留 <code>CloakBrowserRuntime</code> 可选实现。</li>
+<li>新增 <code>DouyinPublisher</code>。</li>
+<li>使用持久化用户数据目录 <code>data/publish_browser/douyin/</code>。</li>
+<li>第 6 步增加 <code>发布到抖音</code>。</li>
+<li>任务中心记录发布助手状态。</li>
+</ul>
+<p>验收：</p>
+<ul>
+<li>首次使用时能打开抖音发布助手窗口。</li>
+<li>未登录时提示用户登录，不绕过登录或验证码。</li>
+<li>登录后能上传最终视频。</li>
+<li>能填写标题、描述、标签。</li>
+<li>默认停在最终发布确认前。</li>
+<li>失败时保留截图或可读错误信息。</li>
+</ul>
+<h3 id="phase-6">Phase 6：多平台发布扩展<a class="headerlink" href="#phase-6" title="Permanent link">&para;</a></h3>
+<p>目标：复用发布助手架构扩展更多平台。</p>
+<p>平台顺序：</p>
+<ol>
+<li>快手。</li>
+<li>视频号。</li>
+<li>小红书。</li>
+<li>B站。</li>
+</ol>
+<p>验收：</p>
+<ul>
+<li>新平台通过 <code>PlatformPublisher</code> 适配器接入。</li>
+<li>不复制发布引擎逻辑。</li>
+<li>各平台登录/验证码/页面变化有明确错误提示。</li>
+</ul>
+<h3 id="phase-7">Phase 7：资产中心统一<a class="headerlink" href="#phase-7" title="Permanent link">&para;</a></h3>
+<p>目标：长期复用素材更清楚。</p>
+<p>工作：</p>
+<ul>
+<li>统一资产卡片。</li>
+<li>音色试听。</li>
+<li>形象预览。</li>
+<li>视频素材搜索。</li>
+<li>模板预览。</li>
+<li>快速添加弹窗风格统一。</li>
+</ul>
+<p>验收：</p>
+<ul>
+<li>每类资产的卡片高度、按钮、预览一致。</li>
+<li>视频素材多时可搜索。</li>
+<li>流程内快速添加体验和资产中心一致。</li>
+</ul>
+<h2 id="testing-plan">Testing Plan<a class="headerlink" href="#testing-plan" title="Permanent link">&para;</a></h2>
+<p>每个阶段必须运行：</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>npm<span class="w"> </span>run<span class="w"> </span>build
+</span></code></pre></div>
+<p>涉及后端状态或 prompt 时运行：</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>uv<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>check<span class="w"> </span>.
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>-q
+</span></code></pre></div>
+<p>关键手动回归：</p>
+<ol>
+<li>新建口播视频。</li>
+<li>选择 <code>团购转化</code>。</li>
+<li>使用 <code>行业+人设</code> 生成火锅店文案。</li>
+<li>检查文案分段。</li>
+<li>生成配音并试听。</li>
+<li>生成数字人并预览。</li>
+<li>一键成片。</li>
+<li>下载视频。</li>
+<li>复制标题、描述、标签。</li>
+</ol>
+<p>测试用户场景：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>我是火锅店老板，要推广 99 元双人套餐，希望生成一条老板本人出镜讲解、可直接发抖音的视频。
+</span></code></pre></div>
+<h2 id="risks">Risks<a class="headerlink" href="#risks" title="Permanent link">&para;</a></h2>
+<h3 id="product-value-review">Product Value Review<a class="headerlink" href="#product-value-review" title="Permanent link">&para;</a></h3>
+<p>按照本方案实施后，预期是提升产品力和使用体验，而不是倒退。判断依据如下。</p>
+<p>产品力提升点：</p>
+<ol>
+<li>当前体验稳定性提升：</li>
+<li>保留用户已经熟悉的主流程。</li>
+<li>loading/error/success 更清楚。</li>
+<li>
+<p>不通过大布局重构增加新的学习成本。</p>
+</li>
+<li>
+<p>AI 文案质量提升：</p>
+</li>
+<li>文案更接近本地生活老板真实口播。</li>
+<li>分段更稳定，便于画面规划。</li>
+<li>
+<p>减少 AI 营销腔和空泛表达。</p>
+</li>
+<li>
+<p>发布素材包增强完成感：</p>
+</li>
+<li>交付清单让用户知道是否可以发布。</li>
+<li>视频、封面、标题、描述、标签、口播文案都可见。</li>
+<li>
+<p>结果从“字段堆叠”升级为“可交付素材包”。</p>
+</li>
+<li>
+<p>桌面端发布助手形成差异化：</p>
+</li>
+<li>自动上传和填写发布内容，减少老板手动搬运。</li>
+<li>用户保留最终确认权。</li>
+<li>
+<p>可扩展到快手、视频号、小红书等平台。</p>
+</li>
+<li>
+<p>流程状态更稳定：</p>
+</li>
+<li>loading/error 只显示一次。</li>
+<li>每一步一个主动作。</li>
+<li>
+<p>第 &#8532;/4 步完成后保留确认机会，符合用户检查文案、试听配音、预览出镜视频的真实习惯。</p>
+</li>
+<li>
+<p>工程可维护性提升：</p>
+</li>
+<li>拆分 <code>App.tsx</code> 和样式文件后，后续迭代成本下降。</li>
+<li>页面、流程步骤、资产卡片、发布素材包能独立演进。</li>
+</ol>
+<p>可能倒退的风险：</p>
+<ol>
+<li>如果把局部优化扩展成大布局重构，会造成学习成本上升。</li>
+<li>
+<p>规避：保留当前主界面结构，只做局部打磨。</p>
+</li>
+<li>
+<p>如果发布助手变成自动绕风控工具，会带来合规和平台风险。</p>
+</li>
+<li>
+<p>规避：默认停在最终发布确认前，不绕过登录、验证码或审核。</p>
+</li>
+<li>
+<p>如果 CloakBrowser 绑定过深，会增加打包和维护风险。</p>
+</li>
+<li>
+<p>规避：CloakBrowser 只作为可选 runtime，默认使用 Playwright。</p>
+</li>
+<li>
+<p>如果发布页只做视觉卡片但下载/复制不可用，会造成产品倒退。</p>
+</li>
+<li>
+<p>规避：发布页验收必须包含预览、下载、复制和交付清单状态。</p>
+</li>
+<li>
+<p>如果 AI 改写强行套结构，会让口播不自然。</p>
+</li>
+<li>规避：提示词要求自然分段，不输出标题、编号或 markdown。</li>
+</ol>
+<p>结论：本方案的价值增益大于风险，但前提是严格按阶段执行。不能先大面积改视觉，也不能把发布助手做成绕平台规则的黑盒。成功标准不是“更好看”，而是火锅店老板能更稳定地生成视频、更容易拿到可发布素材，并能减少手动发布搬运。</p>
+<h3 id="risk-1">Risk 1：一次性重构过大<a class="headerlink" href="#risk-1" title="Permanent link">&para;</a></h3>
+<p>缓解：</p>
+<ul>
+<li>先拆分组件，再改布局。</li>
+<li>每个阶段单独提交。</li>
+<li>每个阶段都能回滚。</li>
+</ul>
+<h3 id="risk-2">Risk 2：视觉变好但流程变复杂<a class="headerlink" href="#risk-2" title="Permanent link">&para;</a></h3>
+<p>缓解：</p>
+<ul>
+<li>每一步只保留一个主动作。</li>
+<li>高级参数折叠。</li>
+<li>用火锅店老板场景做验收。</li>
+</ul>
+<h3 id="risk-3">Risk 3：发布页展示好看但结果不可用<a class="headerlink" href="#risk-3" title="Permanent link">&para;</a></h3>
+<p>缓解：</p>
+<ul>
+<li>下载、复制、预览必须作为验收项。</li>
+<li>不允许只做静态 UI。</li>
+</ul>
+<h3 id="risk-4">Risk 4：组件拆分后状态混乱<a class="headerlink" href="#risk-4" title="Permanent link">&para;</a></h3>
+<p>缓解：</p>
+<ul>
+<li>保留现有 session API。</li>
+<li>先通过 props 传递状态，不提前引入复杂状态库。</li>
+<li>后续如有必要再引入轻量 store。</li>
+</ul>
+<h2 id="non-goals">Non-Goals<a class="headerlink" href="#non-goals" title="Permanent link">&para;</a></h2>
+<ul>
+<li>不做智能运营系统。</li>
+<li>不做复杂数据看板。</li>
+<li>不做多账号团队协作。</li>
+<li>不接真实发布平台。</li>
+<li>不把素材上传变成复杂识别流程。</li>
+<li>不在本轮重构 Streamlit。</li>
+</ul>
+<h2 id="definition-of-done">Definition of Done<a class="headerlink" href="#definition-of-done" title="Permanent link">&para;</a></h2>
+<p>本轮 UI 重构完成时必须满足：</p>
+<ul>
+<li>React 页面结构明显更清晰。</li>
+<li>口播工作台 1-6 步主流程完整可跑。</li>
+<li>发布素材包清晰可用。</li>
+<li>资产选择和预览统一。</li>
+<li>普通老板用户不需要理解技术参数即可完成视频。</li>
+<li><code>desktop/src/App.tsx</code> 明显瘦身。</li>
+<li><code>npm run build</code> 通过。</li>
+<li>关键后端测试通过。</li>
+</ul>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="June 1, 2026 03:37:27 UTC">June 1, 2026 03:37:27</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="June 1, 2026 03:37:27 UTC">June 1, 2026 03:37:27</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Pixelle.AI
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/AIDC-AI/Pixelle-Video" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

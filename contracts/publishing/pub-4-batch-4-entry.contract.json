@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "contract_id": "pub-4-batch-4-entry",
+  "stage": "PUB-INTEGRATION",
+  "batch": "PUB-4-implementation-batch-4",
+  "objective": "Close the remaining local PG-J handoff evidence without enabling external platform actions",
+  "runtime": {
+    "refresh_package_handoff_preserved": true,
+    "leave_return_package_handoff_preserved": true,
+    "restart_package_handoff_preserved": true,
+    "adapter_failure_copy_download_fallback": true,
+    "resolver_unique_runtime_200": true,
+    "resolver_ambiguous_runtime_409": true,
+    "resolver_stale_runtime_409": true,
+    "cross_process_cas_not_claimed": true
+  },
+  "external_actions": {
+    "browser": 0,
+    "authorization": 0,
+    "upload": 0,
+    "publish_run_create": 0,
+    "final_publish": 0
+  },
+  "exit_gate": {
+    "requires_independent_six_dimension_review": true,
+    "p0_p1_must_be_zero": true,
+    "does_not_close_pg_j_alone": true
+  }
+}

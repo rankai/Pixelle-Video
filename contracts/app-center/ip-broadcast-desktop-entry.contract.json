@@ -1,0 +1,255 @@
+{
+  "contract_id": "ip-broadcast-desktop-entry",
+  "schema_version": 1,
+  "stage": "APP-IPB",
+  "batch": "7-entry",
+  "app_id": "builtin.digital-human-video",
+  "app_version": "1.0.0",
+  "feature_flag": "digitalHumanInAppCenter",
+  "desktop_rollout_flag": "VITE_APP_CENTER_DIGITAL_HUMAN",
+  "defaults": {
+    "backend_feature_flag": false,
+    "desktop_rollout_flag": false,
+    "legacy_route": "/ip",
+    "new_route": "/apps/digital-human-video"
+  },
+  "route_ownership": {
+    "legacy_route": {
+      "path": "/ip",
+      "owner": "StudioApp legacy IP workflow",
+      "preserved_when_new_flag_off": true,
+      "may_create_legacy_session": true
+    },
+    "new_route": {
+      "path": "/apps/digital-human-video",
+      "owner": "isolated digital-human application workspace",
+      "requires": [
+        "desktop_rollout_flag=true",
+        "backend_feature_flag=true",
+        "registry.enabled=true",
+        "registry.readiness.status=ready"
+      ],
+      "must_not_alias_legacy_route": true
+    }
+  },
+  "registry_projection": {
+    "source": "GET /api/apps",
+    "card_app_id": "builtin.digital-human-video",
+    "actionable_only_when": [
+      "desktop_rollout_flag=true",
+      "backend_feature_flag=true",
+      "manifest.enabled=true",
+      "manifest.readiness.status=ready"
+    ],
+    "backend_flag_to_manifest_mapping": "manifest.enabled is true only when digitalHumanInAppCenter is true and readiness is ready",
+    "flag_off_behavior": "keep_card_non_actionable_and_keep_legacy_entry",
+    "not_ready_behavior": "show_readiness_boundary_without_any_write",
+    "frontend_must_not_override_backend_readiness": true
+  },
+  "source_projection": {
+    "endpoint": "POST /api/app-center/ip-broadcast/runs",
+    "common_fields": [
+      "project_id",
+      "idempotency_key",
+      "context_snapshot_id"
+    ],
+    "modes": {
+      "blank_project": {
+        "required": ["source_mode", "goal"],
+        "source_artifact_version_ids": [],
+        "selected_variant_index": null
+      },
+      "copywriting": {
+        "required": ["source_mode", "source_artifact_version_ids", "selected_variant_index"],
+        "source_artifact_version_count": 1,
+        "source_artifact_type": "copywriting"
+      },
+      "selected_title": {
+        "required": ["source_mode", "source_artifact_version_ids"],
+        "source_artifact_version_count": 1,
+        "source_artifact_type": "selected_title"
+      }
+    },
+    "exactly_one_source_mode": true,
+    "source_versions_must_belong_to_project": true,
+    "source_revision_is_pinned": true,
+    "frontend_must_not_send": [
+      "api_key",
+      "token",
+      "cookie",
+      "absolute_path",
+      "provider_credentials",
+      "untrusted_session_state"
+    ]
+  },
+  "response_projection": {
+    "endpoint": "GET /api/app-center/ip-broadcast/runs/{app_run_id}?project_id={project_id}",
+    "safe_fields": [
+      "app_run_id",
+      "session_id",
+      "project_id",
+      "app_id",
+      "app_version",
+      "state",
+      "state_version",
+      "session_id",
+      "output_artifact_ids",
+      "error_code",
+      "source_revision",
+      "explicit_claim",
+      "projection",
+      "step_status",
+      "notices",
+      "artifact_keys",
+      "created_at",
+      "updated_at"
+    ],
+    "projection_allowlist": [
+      "when",
+      "session_step_status",
+      "task_status",
+      "app_run_state",
+      "completion_allowed",
+      "current_step"
+    ],
+    "waiting_states": [
+      "waiting_for_login",
+      "waiting_for_human",
+      "needs_attention",
+      "ip_learning_topic_confirmation",
+      "needs_review"
+    ],
+    "waiting_states_never_complete": true,
+    "raw_session_state_exposed": false,
+    "absolute_paths_exposed": false,
+    "secrets_exposed": false
+  },
+  "desktop_persistence": {
+    "storage_namespace": "pixelle_ip_broadcast_app",
+    "persist": [
+      "project_id",
+      "app_run_id",
+      "source_mode",
+      "source_revision",
+      "context_snapshot_id",
+      "route"
+    ],
+    "pending_submission": {
+      "storage_key": "pixelle_ip_broadcast_app_pending_v1",
+      "persist_before_post": true,
+      "fields": ["route", "project_id", "source_mode", "source_artifact_id", "idempotency_key", "input_payload"],
+      "input_payload_must_be_safe": true,
+      "restart_reuses_pending_key_only_on_same_payload": true
+    },
+    "legacy_storage_keys_are_separate": true,
+    "restart_recovery": [
+      "read_existing_app_run_id_before_create",
+      "read_pending_idempotency_before_create",
+      "GET_existing_run_with_same_project",
+      "reuse_existing_session_id_and_app_run_id",
+      "reconcile_projection_without_creating_session_or_run",
+      "clear_stale_local_pointer_only_after_not_found_or_project_mismatch"
+    ],
+    "restart_must_not": [
+      "POST_new_run_for_existing_pointer",
+      "generate_a_new_idempotency_key_after_an_unconfirmed_post",
+      "create_duplicate_session",
+      "overwrite_source_revision",
+      "auto_execute",
+      "auto_accept"
+    ]
+  },
+  "actions": {
+    "create_or_resume": {
+      "method": "POST /api/app-center/ip-broadcast/runs",
+      "idempotency_required": true,
+      "external_actions": []
+    },
+    "execute": {
+      "method": "POST /api/app-center/ip-broadcast/runs/{app_run_id}/execute",
+      "allowed_in_batch": "local_isolated_fixture_only",
+      "production_provider_allowed": false,
+      "auto_execute_on_route_open": false
+    },
+    "cancel": {
+      "method": "POST /api/app-center/ip-broadcast/runs/{app_run_id}/cancel",
+      "idempotent": true,
+      "deletes_session_or_artifacts": false
+    },
+    "retry": {
+      "method": "POST /api/app-center/ip-broadcast/runs/{app_run_id}/retry",
+      "preserves_history": true,
+      "creates_new_attempt": true
+    },
+    "accept": {
+      "method": "POST /api/app-center/ip-broadcast/runs/{app_run_id}/accept",
+      "requires_explicit_user_confirmation": true,
+      "allowed_in_batch": "local_isolated_fixture_only",
+      "final_platform_publish": false
+    }
+  },
+  "gray_cycle_evidence": {
+    "kind": "local_isolated_desktop_gray_cycle",
+    "required_events": [
+      "flag_off_card_non_actionable_legacy_route_reachable",
+      "flag_on_registry_ready_card_actionable",
+      "blank_source_run_created",
+      "copywriting_source_run_created",
+      "selected_title_source_run_created",
+      "projection_contains_no_secret_or_absolute_path",
+      "restart_reuses_same_app_run_and_session",
+      "local_execute_stops_at_needs_review",
+      "accept_requires_explicit_confirmation",
+      "legacy_entry_unchanged",
+      "external_provider_calls=0",
+      "platform_writes=0",
+      "final_publish_clicks=0"
+    ],
+    "must_include": [
+      "flag_values",
+      "project_id",
+      "app_run_id",
+      "session_id",
+      "source_mode",
+      "source_revision",
+      "before_after_restart",
+      "artifact_ids",
+      "external_action_counters",
+      "screenshot_or_dom_snapshot_sha256"
+    ],
+    "does_not_prove": [
+      "real_llm_tts_or_digital_human_provider",
+      "real_browser_or_douyin_authorization",
+      "real_upload_or_final_publish",
+      "continuous_production_gray_period"
+    ]
+  },
+  "error_codes": [
+    "APP_FEATURE_DISABLED",
+    "APP_NOT_READY",
+    "PROJECT_NOT_FOUND",
+    "SOURCE_MODE_REQUIRED",
+    "SOURCE_MODE_EXACTLY_ONE",
+    "SOURCE_VERSION_NOT_FOUND",
+    "SOURCE_VERSION_PROJECT_MISMATCH",
+    "COPYWRITING_VARIANT_REQUIRED",
+    "SELECTED_TITLE_REQUIRED",
+    "IDEMPOTENCY_KEY_REQUIRED",
+    "SESSION_PROJECT_MISMATCH",
+    "SOURCE_REVISION_MISMATCH",
+    "APP_RUN_BINDING_MISMATCH",
+    "APP_EXECUTOR_LOCAL_ONLY",
+    "ARTIFACT_ACCEPT_EXPLICIT_REQUIRED",
+    "FINAL_ACTION_BLOCKED"
+  ],
+  "forbidden_in_batch": [
+    "enable_production_flag_by_default",
+    "delete_or_hide_legacy_studio_entry",
+    "rewrite_ip_broadcast_workflow",
+    "add_second_model_configuration_source",
+    "real_provider_or_browser_action",
+    "douyin_qr_authorization_upload_or_final_publish",
+    "publish_run_or_publish_package_fact_source_change",
+    "admin_rbac_plan_payment_or_multitenant_control_plane"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/v1-rollback-smoke.v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "v2_flag_before", "v2_flag_after", "profile_preserved", "v1_material_copy_available", "duplicate_uploads", "history_readable"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "v2_flag_before": {"const": true},
+    "v2_flag_after": {"const": false},
+    "profile_preserved": {"const": true},
+    "v1_material_copy_available": {"const": true},
+    "duplicate_uploads": {"const": 0},
+    "history_readable": {"const": true},
+    "production_writes": {"const": 0}
+  }
+}

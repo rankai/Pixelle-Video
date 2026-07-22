@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "name": "AppLLMPort.generate_structured",
+  "ownership": "application-center thin adapter; ConfigManager/PixelleVideoCore.llm/LLMService remain the only model configuration source",
+  "request": {
+    "app_id": "string",
+    "prompt_version": "string",
+    "input_schema_ref": "string",
+    "output_schema_ref": "string",
+    "prompt_variables": "JSON object containing validated business input; no provider/model/key fields",
+    "context": "JSON object with redacted project/artifact references; no provider/model/key override",
+    "request_id": "string",
+    "idempotency_key": "string",
+    "timeout_ms": "integer 1000..120000",
+    "cancel": "cooperative cancellation token"
+  },
+  "response": {
+    "parsed_output": "validated JSON object",
+    "model_ref": "local-default:<non-secret-model-ref>",
+    "usage": {"input_units": "integer", "output_units": "integer", "media_seconds": "integer|null"},
+    "diagnostic": "redacted string|null",
+    "request_id": "string"
+  },
+  "error_mapping": {
+    "configuration": "LLM_CONFIGURATION_MISSING",
+    "authentication": "LLM_AUTH_FAILED",
+    "rate_limit": "LLM_RATE_LIMITED",
+    "timeout": "LLM_TIMEOUT",
+    "provider": "LLM_PROVIDER_FAILED",
+    "schema": "STRUCTURED_OUTPUT_INVALID",
+    "cancel": "RUN_CANCELLED"
+  },
+  "forbidden_request_fields": ["provider", "model", "base_url", "api_key", "model_profile_ref"],
+  "forbidden_persisted_fields": ["api_key", "authorization", "cookie", "raw_provider_response"]
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/publish-profile-run-concurrency.v1.json",
+  "title": "Publish profile/run concurrency",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["active_run_key", "browser_lock", "same_profile_policy", "different_profile_policy"],
+  "properties": {
+    "active_run_key": { "const": "account_id+platform" },
+    "browser_lock": { "const": "BrowserProfileManager profile lock acquired before any browser step and released after terminal/attention handoff" },
+    "same_profile_policy": { "const": "at_most_one_active_run" },
+    "different_profile_policy": { "const": "may_run_concurrently_with_global_cap" }
+  }
+}

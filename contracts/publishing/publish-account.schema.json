@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/publish-account.v1.schema.json",
+  "title": "Publish Account Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "account_id", "platform", "display_name", "profile_ref", "verification_state", "enabled", "created_at"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "account_id": { "type": "string", "pattern": "^acct_[A-Za-z0-9_-]+$" },
+    "platform": { "enum": ["douyin", "video_channel", "kuaishou", "xiaohongshu"] },
+    "display_name": { "type": "string", "minLength": 1 },
+    "profile_ref": { "type": "string", "pattern": "^profile_[A-Za-z0-9_-]+$" },
+    "verification_state": { "enum": ["unverified", "verified", "degraded", "revoked"] },
+    "enabled": { "type": "boolean" },
+    "created_at": { "type": "string", "minLength": 1 },
+    "last_verified_at": { "type": ["string", "null"] },
+    "login_state": { "enum": ["not_connected", "connecting", "login_required", "authenticated", "expired", "identity_changed", "degraded", "locked", "revoked"] },
+    "is_default": { "type": "boolean" },
+    "profile_exists": { "type": "boolean" },
+    "platform_release_state": { "enum": ["pilot", "unverified"] },
+    "updated_at": { "type": "string", "minLength": 1 },
+    "last_error_code": { "type": ["string", "null"] },
+    "login_subject_hint": { "type": ["string", "null"] },
+    "archived_at": { "type": ["string", "null"] }
+  }
+}

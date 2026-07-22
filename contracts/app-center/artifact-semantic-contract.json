@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "rules": [
+    "current_version_id must equal exactly one versions[].artifact_version_id",
+    "artifact_version_id is immutable and revisions are unique positive integers starting at 1",
+    "each version belongs to the parent artifact and a new revision appends rather than mutates prior content",
+    "publish_package_ref content must contain package_id, publishing_schema_version=2, package_fingerprint and non-empty source_artifact_version_ids",
+    "source_artifact_version_ids must reference versions in the same project before handoff"
+  ],
+  "validator": "COORD-0 contract test / future app-center domain validator",
+  "error_codes": ["CURRENT_VERSION_NOT_FOUND", "REVISION_NOT_UNIQUE", "REVISION_GAP", "PUBLISH_REF_SOURCE_REQUIRED", "SOURCE_PROJECT_MISMATCH"]
+}

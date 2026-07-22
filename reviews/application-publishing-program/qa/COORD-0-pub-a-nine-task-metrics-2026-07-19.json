@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "result": "complete_with_explicit_bases",
+  "metric_semantics": {
+    "click_count": "可见页面上的实际 UI 点击数；set_input_files、DOM fill、进程启停和扫码不计为 click",
+    "automation_ms": "已归档运行中可由事件时间戳或单次本地预检重算的自动化区间",
+    "human_wait_ms": "用户实际等待/扫码区间；没有人工等待的运行记为 0",
+    "no_blind_retry": true,
+    "task8_failure_is_baseline_outcome": true
+  },
+  "tasks": [
+    {
+      "task_id": 1,
+      "status": "passed",
+      "click_count": 0,
+      "automation_ms": 13118,
+      "human_wait_ms": 32283,
+      "timing_basis": "started_at→scan_completed_at recorded as the observed scan wait window; scan_completed_at→ended_at is post-scan verification/reopen automation; the pre-QR navigation portion is not reclassified as human time",
+      "evidence": [
+        "docs/reviews/application-publishing-program/qa/COORD-0-first-scan-passed-2026-07-19.json",
+        "docs/reviews/application-publishing-program/qa/COORD-0-first-scan-qr-before-redacted.png",
+        "docs/reviews/application-publishing-program/qa/COORD-0-first-scan-signed-in-redacted.png",
+        "docs/reviews/application-publishing-program/qa/COORD-0-first-scan-reopen-signed-in-redacted.png"
+      ]
+    },
+    {
+      "task_id": 2,
+      "status": "passed",
+      "click_count": 0,
+      "automation_ms": 13006,
+      "human_wait_ms": 0,
+      "timing_basis": "first_runtime_created→reopen_context_closed from the archived event chain; no page click and no user wait",
+      "evidence": [
+        "docs/reviews/application-publishing-program/COORD-0-douyin-playwright-reopen-2026-07-19.md",
+        "docs/reviews/application-publishing-program/qa/COORD-0-douyin-reopen-editor-redacted.png"
+      ]
+    },
+    {
+      "task_id": 3,
+      "status": "passed",
+      "click_count": 0,
+      "automation_ms": 84092,
+      "human_wait_ms": 0,
+      "timing_basis": "sum of two Tauri lifecycle spans and two sidecar lifecycle spans already recorded in the restart baseline; no platform action",
+      "evidence": [
+        "docs/reviews/application-publishing-program/COORD-0-tauri-sidecar-restart-2026-07-19.md"
+      ]
+    },
+    {
+      "task_id": 4,
+      "status": "passed",
+      "click_count": 0,
+      "automation_ms": 545,
+      "human_wait_ms": 0,
+      "timing_basis": "one isolated local fixture generation plus ffprobe preflight; no browser or Douyin submission",
+      "evidence": [
+        "docs/reviews/application-publishing-program/qa/COORD-0-invalid-media-preflight-2026-07-19.json",
+        "docs/reviews/application-publishing-program/COORD-0-douyin-invalid-media-2026-07-19.md"
+      ]
+    },
+    {
+      "task_id": 5,
+      "status": "passed",
+      "click_count": 0,
+      "automation_ms": 8922,
+      "human_wait_ms": 0,
+      "timing_basis": "upload-page-open→editor_detected span from the already archived task 8 run; set_input_files is an automation action, not a UI click",
+      "evidence": [
+        "docs/reviews/application-publishing-program/COORD-0-douyin-playwright-upload-2026-07-19.md",
+        "docs/reviews/application-publishing-program/COORD-0-douyin-playwright-midclose-recovery-2026-07-19.md",
+        "docs/reviews/application-publishing-program/qa/COORD-0-douyin-playwright-editor-redacted.png"
+      ]
+    },
+    {
+      "task_id": 6,
+      "status": "passed",
+      "click_count": 0,
+      "automation_ms": 6608,
+      "human_wait_ms": 0,
+      "timing_basis": "set_video_input_files→fill_title_description_hashtags span from the combined live smoke; DOM fill has no pointer click",
+      "evidence": [
+        "docs/reviews/application-publishing-program/COORD-0-douyin-fields-cover-live-2026-07-19.md",
+        "docs/reviews/application-publishing-program/qa/COORD-0-douyin-fields-cover-saved.json",
+        "docs/reviews/application-publishing-program/qa/COORD-0-douyin-fields-cover-saved.png"
+      ]
+    },
+    {
+      "task_id": 7,
+      "status": "passed",
+      "click_count": 1,
+      "automation_ms": 2536,
+      "human_wait_ms": 0,
+      "timing_basis": "set_valid_cover→click_cover_modal_save_only span; exactly one visible modal Save click",
+      "evidence": [
+        "docs/reviews/application-publishing-program/COORD-0-douyin-fields-cover-live-2026-07-19.md",
+        "docs/reviews/application-publishing-program/qa/COORD-0-douyin-fields-cover-saved.json",
+        "docs/reviews/application-publishing-program/qa/COORD-0-douyin-fields-cover-saved.png"
+      ]
+    },
+    {
+      "task_id": 8,
+      "status": "failed",
+      "click_count": 0,
+      "automation_ms": 18129,
+      "human_wait_ms": 0,
+      "timing_basis": "first context open→new context closed from the single archived recovery attempt; failure is a baseline outcome and no retry was performed",
+      "evidence": [
+        "docs/reviews/application-publishing-program/COORD-0-douyin-playwright-midclose-recovery-2026-07-19.md",
+        "docs/reviews/application-publishing-program/qa/COORD-0-douyin-midclose-reopen-redacted.png",
+        "docs/reviews/application-publishing-program/qa/COORD-0-task8-recovery-handoff-2026-07-19.json"
+      ]
+    },
+    {
+      "task_id": 9,
+      "status": "passed",
+      "click_count": 0,
+      "automation_ms": 2437,
+      "human_wait_ms": 0,
+      "timing_basis": "click_cover_modal_save_only→run finished span; final publish was intentionally not clicked",
+      "evidence": [
+        "docs/reviews/application-publishing-program/COORD-0-douyin-fields-cover-live-2026-07-19.md",
+        "docs/reviews/application-publishing-program/qa/COORD-0-douyin-fields-cover-saved.json",
+        "docs/reviews/application-publishing-program/qa/COORD-0-douyin-fields-cover-saved.png"
+      ]
+    }
+  ]
+}

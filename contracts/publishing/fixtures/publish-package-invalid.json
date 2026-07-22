@@ -1,0 +1,7 @@
+[
+  {"case": "artifact_source_without_versions", "source": {"kind": "artifact_versions", "artifact_ids": [], "artifact_version_ids": [], "session_id": null, "source_revision": "r1"}, "expected_error": "SOURCE_ARTIFACT_VERSION_REQUIRED"},
+  {"case": "artifact_source_with_session", "source": {"kind": "artifact_versions", "artifact_ids": ["a"], "artifact_version_ids": ["v"], "session_id": "legacy", "source_revision": "r1"}, "expected_error": "SOURCE_SESSION_MUST_BE_NULL"},
+  {"case": "legacy_source_without_session", "source": {"kind": "legacy_session", "artifact_ids": [], "artifact_version_ids": [], "session_id": null, "source_revision": "r1"}, "expected_error": "LEGACY_SESSION_REQUIRED"},
+  {"case": "legacy_source_with_artifact_versions", "source": {"kind": "legacy_session", "artifact_ids": ["a"], "artifact_version_ids": ["v"], "session_id": "legacy", "source_revision": "r1"}, "expected_error": "LEGACY_ARTIFACT_VERSIONS_FORBIDDEN"},
+  {"case": "artifact_id_version_count_mismatch", "source": {"kind": "artifact_versions", "artifact_ids": ["a"], "artifact_version_ids": ["v1", "v2"], "session_id": null, "source_revision": "r1"}, "expected_error": "SOURCE_ARTIFACT_ID_MISMATCH"}
+]

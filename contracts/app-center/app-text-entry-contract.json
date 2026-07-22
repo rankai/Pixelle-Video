@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "status": "entry_contract",
+  "scope": ["builtin.marketing-copy", "builtin.viral-titles"],
+  "shared_rules": {
+    "model_source": "existing AppLLMPort/local-default",
+    "fact_policy": "only use supplied project/context facts; never invent price, address, efficacy, dates, or guarantees",
+    "missing_facts": "return missing_facts and risk_flags; do not silently fill them",
+    "persisted_secrets": "reject provider/model/base_url/api_key/model_profile_ref/authorization/cookie",
+    "output_validation": "invalid JSON, empty output, missing required fields, duplicate candidates, and banned terms are deterministic failures",
+    "repair_policy": {"max_attempts": 1, "trigger": ["invalid_json", "missing_required_fields", "schema_mismatch"], "on_failure": "emit_original_error_code", "preserve_input": true},
+    "text_normalization_v1": "Unicode NFKC, casefold, remove all Unicode whitespace and Unicode punctuation before comparison; preserve CJK/letters/digits",
+    "banned_terms_v1": ["全网第一", "第一", "最强", "绝对", "100%", "百分百", "保证", "根治", "稳赚", "零风险"]
+  },
+  "marketing_copy": {
+    "input_schema_ref": "marketing-copy-input.v1",
+    "output_schema_ref": "marketing-copy-output.v1",
+    "required_input": ["goal", "product_or_service", "content_format", "length_bucket"],
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "goal": {"type": "string", "minLength": 1, "maxLength": 200},
+        "product_or_service": {"type": "string", "minLength": 1, "maxLength": 200},
+        "content_format": {"enum": ["oral", "carousel", "general"]},
+        "length_bucket": {"enum": ["short_15s", "medium_30s", "long_60s"]},
+        "store_type": {"type": "string", "maxLength": 80},
+        "offer": {"type": "string", "maxLength": 300},
+        "audience": {"type": "string", "maxLength": 200},
+        "facts": {"type": "object"},
+        "tone": {"type": "string", "maxLength": 80},
+        "must_include": {"type": "array", "items": {"type": "string", "maxLength": 100}, "maxItems": 20},
+        "forbidden_expressions": {"type": "array", "items": {"type": "string", "maxLength": 100}, "maxItems": 20},
+        "reference_text": {"type": "string", "maxLength": 3000},
+        "brand_context_ref": {"type": "string", "minLength": 1}
+      }
+    },
+    "optional_input": ["store_type", "offer", "audience", "facts", "tone", "must_include", "forbidden_expressions", "reference_text", "brand_context_ref"],
+    "required_output": ["variants", "missing_facts", "risk_flags"],
+    "variant_fields": ["version_name", "angle", "hook", "body", "cta", "full_text", "word_count", "estimated_seconds"],
+    "required_output_schema": {"type": "object", "required": ["variants", "missing_facts", "risk_flags"], "missing_facts": {"type": "array", "items": {"type": "object", "required": ["field", "reason"], "properties": {"field": {"type": "string", "minLength": 1}, "reason": {"type": "string", "minLength": 1}}}}, "risk_flags": {"type": "array", "items": {"type": "object", "required": ["code", "reason"], "properties": {"code": {"enum": ["夸大", "信息不完整", "可能违规"]}, "reason": {"type": "string", "minLength": 1}}}}},
+    "variant_schema": {"type": "object", "required": ["version_name", "angle", "hook", "body", "cta", "full_text", "word_count", "estimated_seconds"], "properties": {"version_name": {"type": "string", "minLength": 1, "maxLength": 40}, "angle": {"enum": ["利益", "好奇", "冲突", "数字", "场景", "身份"]}, "hook": {"type": "string", "minLength": 1, "maxLength": 200}, "body": {"type": "string", "minLength": 1, "maxLength": 1200}, "cta": {"type": "string", "minLength": 1, "maxLength": 200}, "full_text": {"type": "string", "minLength": 1, "maxLength": 1600}, "word_count": {"type": "integer", "minimum": 0}, "estimated_seconds": {"type": "integer", "minimum": 1}}},
+    "variant_count": {"min": 3, "max": 3},
+    "deterministic_rules": {"angles_must_not_all_match": true, "angle_enum": ["利益", "好奇", "冲突", "数字", "场景", "身份"], "full_text_requires": ["hook", "body", "cta"], "word_count_formula": "Unicode code point length of full_text", "estimated_seconds_formula": "ceil(word_count/4)", "recalculate_word_count_after_edit": true, "recalculate_estimated_seconds_after_edit": true},
+    "artifact_binding": {"artifact_type": "copywriting", "schema_version": 1, "handoff_source": "artifact_version_id", "handoff_targets": ["builtin.viral-titles", "builtin.douyin-carousel", "builtin.digital-human-video"]}
+  },
+  "viral_titles": {
+    "input_schema_ref": "viral-titles-input.v1",
+    "output_schema_ref": "viral-titles-output.v1",
+    "required_input": ["platform", "objective", "count"],
+    "input_schema": {"type": "object", "properties": {"platform": {"enum": ["douyin", "xiaohongshu", "shipinhao", "kuaishou"]}, "objective": {"enum": ["click", "store_visit", "inquiry", "completion", "save"]}, "count": {"type": "integer", "minimum": 5, "maximum": 10, "default": 10}, "source_artifact_version_id": {"type": "string", "minLength": 1}, "source_text": {"type": "string", "minLength": 1, "maxLength": 5000}, "topic": {"type": "string", "minLength": 1, "maxLength": 300}}},
+    "source_requirement": "one of source_artifact_version_id, source_text, or topic",
+    "source_exclusivity": "exactly_one_source; reject zero or multiple sources; no implicit precedence",
+    "required_output": ["candidates", "missing_facts", "risk_flags"],
+    "candidate_fields": ["title", "angle", "objective", "length", "banned_matches", "risk_labels"],
+    "required_output_schema": {"type": "object", "required": ["candidates", "missing_facts", "risk_flags"], "missing_facts": {"type": "array", "items": {"type": "object", "required": ["field", "reason"], "properties": {"field": {"type": "string", "minLength": 1}, "reason": {"type": "string", "minLength": 1}}}}, "risk_flags": {"type": "array", "items": {"type": "object", "required": ["code", "reason"], "properties": {"code": {"enum": ["夸大", "信息不完整", "可能违规"]}, "reason": {"type": "string", "minLength": 1}}}}},
+    "candidate_schema": {"type": "object", "required": ["title", "angle", "objective", "length", "banned_matches", "risk_labels"], "properties": {"title": {"type": "string", "minLength": 1, "maxLength": 30}, "angle": {"type": "string", "minLength": 1, "maxLength": 40}, "objective": {"enum": ["click", "store_visit", "inquiry", "completion", "save"]}, "length": {"type": "integer", "minimum": 0}, "banned_matches": {"type": "array", "items": {"type": "string"}}, "risk_labels": {"type": "array", "items": {"enum": ["夸大", "信息不完整", "可能违规", "无"]}}}},
+    "candidate_count": {"min": 5, "max": 10},
+    "deterministic_rules": {"max_characters": 30, "character_count": "Unicode code points after no normalization; emoji sequences count as their code points", "unique_normalized_titles": true, "normalization_ref": "shared_rules.text_normalization_v1", "banned_terms_rejected": true, "banned_terms_ref": "shared_rules.banned_terms_v1", "dedup_target_ratio": 0.8, "dedup_ratio_denominator": "requested_count; unique_normalized_count/requested_count", "retry_once_when_below_target": true, "no_pseudo_precise_score": true},
+    "artifact_binding": {"artifact_type": "title_set", "schema_version": 1, "handoff_source": "artifact_version_id", "handoff_targets": ["builtin.douyin-carousel", "builtin.digital-human-video"]}
+  },
+  "error_matrix": [
+    {"case": "missing_llm_configuration", "error_code": "LLM_CONFIGURATION_MISSING", "preserve_input": true},
+    {"case": "auth_failure", "error_code": "LLM_AUTH_FAILED", "preserve_input": true},
+    {"case": "rate_limited", "error_code": "LLM_RATE_LIMITED", "preserve_input": true},
+    {"case": "timeout", "error_code": "LLM_TIMEOUT", "preserve_input": true},
+    {"case": "invalid_json_or_missing_fields", "error_code": "STRUCTURED_OUTPUT_INVALID", "preserve_input": true},
+    {"case": "empty_provider_output", "error_code": "STRUCTURED_OUTPUT_INVALID", "preserve_input": true},
+    {"case": "provider_failure", "error_code": "LLM_PROVIDER_FAILED", "preserve_input": true},
+    {"case": "run_cancelled", "error_code": "RUN_CANCELLED", "preserve_input": true}
+  ]
+}

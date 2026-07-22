@@ -1,0 +1,75 @@
+{
+  "evidence_id": "AC-5-batch-7-local-gray-cycle-2026-07-20",
+  "stage": "APP-IPB",
+  "batch": "7",
+  "status": "passed_with_boundary",
+  "kind": "local_isolated_executor_gray_cycle",
+  "test_command": "uv run pytest -q tests/app_center_ip_broadcast_desktop_gray_cycle_test.py",
+  "test_result": "1 passed",
+  "flag_values": {
+    "desktop_rollout_flag": true,
+    "backend_feature_flag": true,
+    "isolated_executor_flag": true,
+    "external_provider_enabled": false,
+    "final_publish_enabled": false
+  },
+  "project_id": "project_gray",
+  "app_run_id": "run_gray",
+  "session_id": "session_gray",
+  "source_revision": "sha256:gray-source",
+  "source_mode": ["blank_project", "copywriting", "selected_title"],
+  "source_modes": ["blank_project", "copywriting", "selected_title"],
+  "before_after_restart": {
+    "before": {
+      "project_id": "project_gray",
+      "app_run_id": "run_gray",
+      "session_id": "session_gray",
+      "source_revision": "sha256:gray-source"
+    },
+    "after": {
+      "project_id": "project_gray",
+      "app_run_id": "run_gray",
+      "session_id": "session_gray",
+      "source_revision": "sha256:gray-source",
+      "new_post_runs": 0,
+      "new_sessions": 0,
+      "auto_execute": false,
+      "auto_accept": false
+    }
+  },
+  "restart": {
+    "same_project": true,
+    "same_app_run": true,
+    "same_session": true,
+    "new_post_runs": 0,
+    "new_sessions": 0,
+    "auto_execute": false,
+    "auto_accept": false
+  },
+  "state_flow": {
+    "before_explicit_accept": "needs_review",
+    "completion_allowed_before_accept": false,
+    "after_explicit_accept": "completed"
+  },
+  "artifacts": {
+    "types": ["video", "cover", "publish_copy"],
+    "artifact_ids": ["artifact_video_gray", "artifact_cover_gray", "artifact_copy_gray"],
+    "source": "local-isolated",
+    "duplicate_success_artifacts": 0
+  },
+  "artifact_ids": ["artifact_video_gray", "artifact_cover_gray", "artifact_copy_gray"],
+  "external_action_counters": {
+    "provider_calls": 0,
+    "browser_actions": 0,
+    "platform_writes": 0,
+    "final_publish_clicks": 0
+  },
+  "screenshot_or_dom_snapshot_sha256": "sha256:b76ac20f48bf023886d2c4e1ab3a5d5f5c615f54d2aeda66859cacec91213ba7",
+  "snapshot_note": "Deterministic local gray-cycle DOM/evidence marker; no browser or external platform was opened.",
+  "boundaries": [
+    "not_real_llm_tts_or_digital_human_provider",
+    "not_real_browser_or_douyin_authorization",
+    "not_real_upload_or_final_publish",
+    "not_continuous_production_gray_period"
+  ]
+}

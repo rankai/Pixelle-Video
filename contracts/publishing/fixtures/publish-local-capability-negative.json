@@ -1,0 +1,6 @@
+[
+  {"case": "missing_token", "status": 403, "error_code": "CAPABILITY_REQUIRED"},
+  {"case": "expired_token", "status": 403, "error_code": "CAPABILITY_REQUIRED"},
+  {"case": "wrong_origin", "status": 403, "error_code": "ORIGIN_NOT_ALLOWED"},
+  {"case": "server_mode_mutation", "status": 403, "error_code": "DESKTOP_LOCAL_ONLY"}
+]

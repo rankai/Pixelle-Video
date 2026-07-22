@@ -1,0 +1,27 @@
+{
+  "status": "passed_local_bounded",
+  "scope": "temporary_sqlite_only",
+  "project_target": 100,
+  "artifact_target": 1000,
+  "projects_created": 100,
+  "artifacts_created": 1000,
+  "projects_read": 100,
+  "artifacts_read": 1000,
+  "active_project_rows": 100,
+  "active_artifact_rows": 1000,
+  "artifacts_per_project": {
+    "min": 10,
+    "max": 10,
+    "distinct_counts": [10]
+  },
+  "create_ms": 1058.107,
+  "read_ms": 59.423,
+  "api_started": false,
+  "browser_actions": 0,
+  "external_actions": 0,
+  "user_database_touched": false,
+  "independent_rerun_global_app_center_db_unchanged": true,
+  "independent_rerun_global_app_center_db_mutations": 0,
+  "product_signoff": "pending",
+  "seven_day_observation": "not_complete"
+}

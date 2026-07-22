@@ -1,0 +1,43 @@
+{
+  "schema_version": "asset-center-uxc-desktop-e2e-v1",
+  "status": "pass",
+  "environment": {
+    "surface": "real Vite + FastAPI desktop web surface",
+    "isolated_data_root": true,
+    "viewport": "1440x1000",
+    "target_user_study": false,
+    "release_device_signoff": false
+  },
+  "batch_10_files": {
+    "files_selected": 10,
+    "content_requests": 11,
+    "synthetic_failed_request_indices": [
+      3,
+      6,
+      9
+    ],
+    "expected_finalized": 7,
+    "expected_failed": 3,
+    "success_items_retried": false,
+    "batch_elapsed_ms": 2101,
+    "click_count": 3,
+    "screenshot": "uxc-batch-10-3-failed.png"
+  },
+  "cancel": {
+    "cancelled_without_finalize": true,
+    "usage_items_for_cancel_session": 0,
+    "screenshot": "uxc-cancelled-no-usage.png"
+  },
+  "restart": {
+    "metadata_persisted_and_reselect_copy_shown": true,
+    "screenshot": "uxc-restart-reselect-original.png"
+  },
+  "recordings": [
+    "16ad9ee504a6bd3cb93fca12c1cf8ea8.webm",
+    "3f6be725d60721982747b438f2997570.webm"
+  ],
+  "notes": [
+    "The 11th upload request is the isolated cancellation scenario; the first batch had exactly 10 content requests.",
+    "This automation evidence does not satisfy the five-person UX-E study or release-device visual sign-off."
+  ]
+}

@@ -1,0 +1,185 @@
+{
+  "schema_version": "template-layout-uxd-gate-v1",
+  "status": "pass",
+  "font_artifact": "/Users/nickfury/projects/pixelle-video/assets/fonts/NotoSansCJKsc-Bold.otf",
+  "font_sha256": "b5f0d1a190a7f9b43c310a8850630af12553df32c4c050543f9059732d9b4c0a",
+  "missing_font_fixture_rejected": true,
+  "samples": [
+    {
+      "sample": "短标题",
+      "theme": "purple",
+      "resolution": [
+        1080,
+        1920
+      ],
+      "preview": "generated during gate run",
+      "mp4": "generated during gate run",
+      "frame": "generated during gate run",
+      "frame_size": [
+        1080,
+        1920
+      ],
+      "frame_non_blank": true,
+      "font": {
+        "contract_font_id": "noto-sans-sc-bold",
+        "resolved_font_id": "noto-sans-sc-bold",
+        "contract_sha256": "b5f0d1a190a7f9b43c310a8850630af12553df32c4c050543f9059732d9b4c0a",
+        "resolved_sha256": "b5f0d1a190a7f9b43c310a8850630af12553df32c4c050543f9059732d9b4c0a",
+        "family": "Noto Sans CJK SC",
+        "weight": 700
+      },
+      "line_count": {
+        "preview_contract": 1,
+        "mp4_input": 1
+      },
+      "coordinate_error_px": 0,
+      "layout_mask_iou": 1.0,
+      "layout_mask_kind": "contract_box",
+      "glyph_mask_iou": null,
+      "subtitle_render_path": "ASS",
+      "subtitle_frame_timestamp_s": 0.5,
+      "force_style": "FontName=Noto Sans CJK SC,Fontsize=48,PrimaryColour=&H00FFFFFF,OutlineColour=&H99000000,BackColour=&H66000000,Bold=0,Outline=2,Shadow=0,Alignment=2,MarginL=72,MarginR=72,MarginV=180,BorderStyle=3"
+    },
+    {
+      "sample": "这是一个较长的门店口播标题，用来验证中文换行和安全区以及最终成片中的第二行字幕",
+      "theme": "purple",
+      "resolution": [
+        1080,
+        1920
+      ],
+      "preview": "generated during gate run",
+      "mp4": "generated during gate run",
+      "frame": "generated during gate run",
+      "frame_size": [
+        1080,
+        1920
+      ],
+      "frame_non_blank": true,
+      "font": {
+        "contract_font_id": "noto-sans-sc-bold",
+        "resolved_font_id": "noto-sans-sc-bold",
+        "contract_sha256": "b5f0d1a190a7f9b43c310a8850630af12553df32c4c050543f9059732d9b4c0a",
+        "resolved_sha256": "b5f0d1a190a7f9b43c310a8850630af12553df32c4c050543f9059732d9b4c0a",
+        "family": "Noto Sans CJK SC",
+        "weight": 700
+      },
+      "line_count": {
+        "preview_contract": 2,
+        "mp4_input": 2
+      },
+      "coordinate_error_px": 0,
+      "layout_mask_iou": 1.0,
+      "layout_mask_kind": "contract_box",
+      "glyph_mask_iou": null,
+      "subtitle_render_path": "ASS",
+      "subtitle_frame_timestamp_s": 0.5,
+      "force_style": "FontName=Noto Sans CJK SC,Fontsize=48,PrimaryColour=&H00FFFFFF,OutlineColour=&H99000000,BackColour=&H66000000,Bold=0,Outline=2,Shadow=0,Alignment=2,MarginL=72,MarginR=72,MarginV=180,BorderStyle=3"
+    },
+    {
+      "sample": "Mixed English 123 / 数字混合",
+      "theme": "coral",
+      "resolution": [
+        1080,
+        1920
+      ],
+      "preview": "generated during gate run",
+      "mp4": "generated during gate run",
+      "frame": "generated during gate run",
+      "frame_size": [
+        1080,
+        1920
+      ],
+      "frame_non_blank": true,
+      "font": {
+        "contract_font_id": "noto-sans-sc-bold",
+        "resolved_font_id": "noto-sans-sc-bold",
+        "contract_sha256": "b5f0d1a190a7f9b43c310a8850630af12553df32c4c050543f9059732d9b4c0a",
+        "resolved_sha256": "b5f0d1a190a7f9b43c310a8850630af12553df32c4c050543f9059732d9b4c0a",
+        "family": "Noto Sans CJK SC",
+        "weight": 700
+      },
+      "line_count": {
+        "preview_contract": 1,
+        "mp4_input": 1
+      },
+      "coordinate_error_px": 0,
+      "layout_mask_iou": 1.0,
+      "layout_mask_kind": "contract_box",
+      "glyph_mask_iou": null,
+      "subtitle_render_path": "ASS",
+      "subtitle_frame_timestamp_s": 0.5,
+      "force_style": "FontName=Noto Sans CJK SC,Fontsize=48,PrimaryColour=&H00FFFFFF,OutlineColour=&H99000000,BackColour=&H66000000,Bold=0,Outline=2,Shadow=0,Alignment=2,MarginL=72,MarginR=72,MarginV=180,BorderStyle=3"
+    },
+    {
+      "sample": "缺失字体不能发布前的校验样本",
+      "theme": "coral",
+      "resolution": [
+        1080,
+        1920
+      ],
+      "preview": "generated during gate run",
+      "mp4": "generated during gate run",
+      "frame": "generated during gate run",
+      "frame_size": [
+        1080,
+        1920
+      ],
+      "frame_non_blank": true,
+      "font": {
+        "contract_font_id": "noto-sans-sc-bold",
+        "resolved_font_id": "noto-sans-sc-bold",
+        "contract_sha256": "b5f0d1a190a7f9b43c310a8850630af12553df32c4c050543f9059732d9b4c0a",
+        "resolved_sha256": "b5f0d1a190a7f9b43c310a8850630af12553df32c4c050543f9059732d9b4c0a",
+        "family": "Noto Sans CJK SC",
+        "weight": 700
+      },
+      "line_count": {
+        "preview_contract": 1,
+        "mp4_input": 1
+      },
+      "coordinate_error_px": 0,
+      "layout_mask_iou": 1.0,
+      "layout_mask_kind": "contract_box",
+      "glyph_mask_iou": null,
+      "subtitle_render_path": "ASS",
+      "subtitle_frame_timestamp_s": 0.5,
+      "force_style": "FontName=Noto Sans CJK SC,Fontsize=48,PrimaryColour=&H00FFFFFF,OutlineColour=&H99000000,BackColour=&H66000000,Bold=0,Outline=2,Shadow=0,Alignment=2,MarginL=72,MarginR=72,MarginV=180,BorderStyle=3"
+    },
+    {
+      "sample": "720×1280 竖屏比例下仍使用同一份布局契约",
+      "theme": "purple",
+      "resolution": [
+        720,
+        1280
+      ],
+      "preview": "generated during gate run",
+      "mp4": "generated during gate run",
+      "frame": "generated during gate run",
+      "frame_size": [
+        720,
+        1280
+      ],
+      "frame_non_blank": true,
+      "font": {
+        "contract_font_id": "noto-sans-sc-bold",
+        "resolved_font_id": "noto-sans-sc-bold",
+        "contract_sha256": "b5f0d1a190a7f9b43c310a8850630af12553df32c4c050543f9059732d9b4c0a",
+        "resolved_sha256": "b5f0d1a190a7f9b43c310a8850630af12553df32c4c050543f9059732d9b4c0a",
+        "family": "Noto Sans CJK SC",
+        "weight": 700
+      },
+      "line_count": {
+        "preview_contract": 2,
+        "mp4_input": 2
+      },
+      "coordinate_error_px": 0,
+      "layout_mask_iou": 1.0,
+      "layout_mask_kind": "contract_box",
+      "glyph_mask_iou": null,
+      "subtitle_render_path": "ASS",
+      "subtitle_frame_timestamp_s": 0.5,
+      "force_style": "FontName=Noto Sans CJK SC,Fontsize=32,PrimaryColour=&H00FFFFFF,OutlineColour=&H99000000,BackColour=&H66000000,Bold=0,Outline=2,Shadow=0,Alignment=2,MarginL=48,MarginR=48,MarginV=120,BorderStyle=3"
+    }
+  ],
+  "note": "This proves the contract/renderer ASS MP4 harness and contract-box IoU only; glyph-mask IoU, target-user and release-device visual acceptance remain separate UX-D/UX-E evidence."
+}

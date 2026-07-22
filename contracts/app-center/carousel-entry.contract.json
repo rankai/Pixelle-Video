@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/app-center/carousel-entry.v1.json",
+  "schema_version": 1,
+  "app_id": "builtin.douyin-carousel",
+  "app_version": "1.0.0",
+  "platform": "douyin",
+  "feature_flag": "douyinCarousel",
+  "feature_flag_default": false,
+  "feature_flag_contract": {
+    "default": false,
+    "unknown_flag_behavior": "false",
+    "frontend_cannot_write": true,
+    "legacy_templates_and_video_rendering_unchanged_when_disabled": true
+  },
+  "scope": "entry_only",
+  "page_spec": {
+    "allowed_counts": [3, 5, 8],
+    "min_pages": 3,
+    "max_pages": 8,
+    "aspect_ratio": "3:4",
+    "width_px": 1080,
+    "height_px": 1440,
+    "ordering": "contiguous_page_index_starting_at_1"
+  },
+  "input_contract": {
+    "required": ["goal", "source_artifact_version_ids"],
+    "optional": ["brand_context", "template_id", "asset_refs", "selected_title_artifact_version_id"],
+    "asset_policy": "only_existing_asset_refs_or_explicit_user_uploads",
+    "ai_image_generation": "deferred",
+    "missing_facts": "must_be_visible_and_must_not_be_invented"
+  },
+  "artifact_contract": {
+    "plan": {
+      "artifact_type": "carousel_plan",
+      "required_fields": ["schema_version", "page_count", "page_outline", "template_id", "source_artifact_version_ids"]
+    },
+    "page": {
+      "artifact_type": "carousel_page",
+      "required_fields": ["schema_version", "page_index", "text", "asset_refs", "render_state", "dimensions"]
+    },
+    "package": {
+      "artifact_type": "carousel_package",
+      "required_fields": ["schema_version", "page_count", "page_artifact_version_ids", "title", "description", "hashtags", "export_manifest"]
+    }
+  },
+  "render_contract": {
+    "single_page_output": "png",
+    "batch_output": "zip",
+    "file_naming": "page-{page_index:02d}.png",
+    "zip_order": "ascending_page_index",
+    "zip_must_contain_exactly_page_count_files": true,
+    "text_overflow": "error_visible_no_silent_truncation",
+    "missing_image": "error_visible_retryable",
+    "missing_font": "error_visible_retryable"
+  },
+  "retry_contract": {
+    "single_page_retry_only": true,
+    "failed_page_must_not_mutate_successful_pages": true,
+    "retry_creates_new_artifact_version": true,
+    "old_publish_package_ref_invalidated_on_source_version_change": true
+  },
+  "handoff_contract": {
+    "target_artifact_type": "publish_package_ref",
+    "source_kind": "artifact_versions",
+    "source_version_ids_fixed": true,
+    "publish_copy_required": true,
+    "publish_v2_compatible": true
+  },
+  "entry_implementation_boundary": {
+    "executor_implemented": false,
+    "renderer_implemented": false,
+    "frontend_ui_implemented": false,
+    "platform_action_enabled": false,
+    "allowed_changes": ["contract", "fixture", "entry_test", "review_evidence"]
+  },
+  "forbidden_in_entry": [
+    "real_carousel_executor",
+    "advanced_design_editor",
+    "ai_image_generation_provider",
+    "platform_upload",
+    "final_publish",
+    "new_model_configuration_source",
+    "admin_rbac_or_entitlement_control"
+  ]
+}

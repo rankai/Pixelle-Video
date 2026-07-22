@@ -1,0 +1,128 @@
+{
+  "$defs": {
+    "DeferredUploadStatus": {
+      "enum": [
+        "created",
+        "uploading",
+        "analyzing",
+        "uploaded",
+        "awaiting_duplicate_decision",
+        "finalized",
+        "expired",
+        "failed",
+        "cancelled"
+      ],
+      "title": "DeferredUploadStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "upload_id": {
+      "minLength": 1,
+      "title": "Upload Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/DeferredUploadStatus"
+    },
+    "filename": {
+      "minLength": 1,
+      "title": "Filename",
+      "type": "string"
+    },
+    "declared_bytes": {
+      "minimum": 0,
+      "title": "Declared Bytes",
+      "type": "integer"
+    },
+    "received_bytes": {
+      "minimum": 0,
+      "title": "Received Bytes",
+      "type": "integer"
+    },
+    "sha256": {
+      "anyOf": [
+        {
+          "maxLength": 64,
+          "minLength": 64,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Sha256"
+    },
+    "duplicate_asset_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Duplicate Asset Id"
+    },
+    "asset_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Asset Id"
+    },
+    "revision_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Revision Id"
+    },
+    "expires_at": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expires At"
+    },
+    "result_key": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Result Key"
+    }
+  },
+  "required": [
+    "upload_id",
+    "status",
+    "filename",
+    "declared_bytes",
+    "received_bytes"
+  ],
+  "title": "DeferredUploadResponse",
+  "type": "object"
+}

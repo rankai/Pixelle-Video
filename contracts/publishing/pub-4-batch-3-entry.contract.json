@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "contract_id": "pub-4-batch-3-entry",
+  "stage": "PUB-INTEGRATION",
+  "batch": "PUB-4-implementation-batch-3",
+  "legacy_step": {
+    "publish_workspace_prepare_calls": 0,
+    "secondary_package_or_run_creation": 0,
+    "canonical_route": "/publish",
+    "legacy_page_remains_reachable": true
+  },
+  "resolver": {
+    "operation_id": "resolvePublishPackageV2",
+    "input": "artifact_id",
+    "missing_artifact_fail_closed": true,
+    "invalidated_package_fail_closed": true,
+    "ambiguous_candidates_fail_closed": true,
+    "openapi_registered": true
+  },
+  "fallback": {
+    "trusted_artifact_refs_only": true,
+    "absolute_paths_exposed": 0,
+    "secrets_exposed": 0,
+    "copy_or_download_available": true
+  },
+  "external_actions": {
+    "browser": 0,
+    "authorization": 0,
+    "upload": 0,
+    "publish_run_create": 0,
+    "final_publish": 0
+  }
+}

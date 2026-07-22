@@ -1,0 +1,3310 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="AI Video Creator - Generate a short video in 3 minutes">
+      
+      
+        <meta name="author" content="Pixelle.AI">
+      
+      
+        <link rel="canonical" href="https://AIDC-AI.github.io/Pixelle-Video/reviews/2026-07-17-enterprise-asset-library-refactor/">
+      
+      
+      
+      
+        
+          <link rel="alternate" href="./" hreflang="en">
+        
+          <link rel="alternate" href="../../zh/reviews/2026-07-17-enterprise-asset-library-refactor/" hreflang="zh">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>企业资产库完整重构调研报告与实施方案 - Pixelle-Video</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Pixelle-Video" class="md-header__button md-logo" aria-label="Pixelle-Video" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Pixelle-Video
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              企业资产库完整重构调研报告与实施方案
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../zh/reviews/2026-07-17-enterprise-asset-library-refactor/" hreflang="zh" class="md-select__link">
+              中文
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/AIDC-AI/Pixelle-Video" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AIDC-AI/Pixelle-Video
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../user-guide/web-ui/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../gallery/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Gallery
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tutorials/your-first-video/" class="md-tabs__link">
+          
+  
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/api-overview/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../development/architecture/" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../troubleshooting/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Troubleshooting
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Pixelle-Video" class="md-nav__button md-logo" aria-label="Pixelle-Video" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Pixelle-Video
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/AIDC-AI/Pixelle-Video" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AIDC-AI/Pixelle-Video
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/web-ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web UI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gallery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gallery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/your-first-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Your First Video
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/custom-style/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Style
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/voice-cloning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Voice Cloning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/api-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 结论先行
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 调研范围、证据与限制
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 调研范围、证据与限制">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 已检查的证据
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 证据限制
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 当前用户流程审计
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 当前用户流程审计">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 当前主流程
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 流程健康度
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 已经做对、应当保留的部分
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 根因分析：为什么“功能有了，但不好用”
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 根因分析：为什么“功能有了，但不好用”">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 六套数据结构导致六套体验
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 主资产库没有真正的检索系统
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-object-fit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 图片展示问题是信息架构问题，不只是 object-fit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 上传弹窗只有文件选择，没有资产入库流程
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 数字人被错误地建模成一个文件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 资产库和生产流是两套产品
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 参考图应该借鉴什么
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 目标产品模型
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. 目标产品模型">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 统一的是资源索引，不是把所有对象塞进一张资产表
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 媒体资产、版本和变体
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 品牌、模板和数字人领域模型
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 集合、使用关系与渲染快照
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.5 持久化选择
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 企业资产库页面重构规格
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. 企业资产库页面重构规格">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 页面信息架构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 搜索与筛选
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 卡片系统
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 图片规范显示
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#75" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.5 上传中心
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#76" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.6 详情与管理
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 数字人管理完整方案
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. 数字人管理完整方案">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 资产库中的数字人页面
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 数字人上传与质量检查
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 数字人在生产流中的选择器
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 视频生产流集成矩阵
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. 视频生产流集成矩阵">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 共享选择器协议
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 自动推荐
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. 前端共享组件与目录方案
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. 后端与 API 方案
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. 后端与 API 方案">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#111" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.1 推荐目录
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#112-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2 API 草案
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#113" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.3 上传传输和任务恢复
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#114" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.4 元数据流水线
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#115" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.5 使用关系、替换和渲染快照
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. 迁移与兼容策略
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. 可访问性与桌面交互要求
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-luna" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. 实施阶段与 Luna 工作包
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14. 实施阶段与 Luna 工作包">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#012" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 0：冻结契约与建立基线（1–2 人日）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#145" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 1：图片/视频后端垂直骨架（4–5 人日）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#245" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 2：第一个端到端用户闭环（4–5 人日）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#334" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 3：扩展媒体管理与音色（3–4 人日）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#445" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 4：数字人档案与场景（4–5 人日）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#534" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 5：品牌、模板和剩余生产流（3–4 人日）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#623" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 6：回归、灰度和清理（2–3 人日）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        工期口径
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. 建议的提交顺序
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. 测试与验收清单
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="16. 测试与验收清单">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#161-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.1 数据与 API
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#162" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.2 组件和视觉
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#163-e2e" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.3 关键 E2E
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#164" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.4 可用性验收指标
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. 风险与防护
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. 本轮明确不做
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19-luna" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19. 给 Luna 的最终实施原则
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20. 修订后开工评审
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="20. 修订后开工评审">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#201" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20.1 评审步骤与健康度
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#202" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20.2 开工结论
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="_1">企业资产库完整重构调研报告与实施方案<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>日期：2026-07-17
+交付对象：Luna（实施）、产品负责人（验收）
+范围：企业视频、图片、数字人、声音、品牌、画面模板资产；视频生产流中的选择、快捷上传、复用和使用追踪
+文档性质：调研与实施蓝图，不包含本轮代码实现</p>
+</blockquote>
+<h2 id="1">1. 结论先行<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<p>当前企业资产库已经具备“上传、列表、预览、删除、在部分生产步骤中选择”的基础能力，但它仍然是六套并列的文件 CRUD 页面，并不是一个可支撑中小企业长期经营视频资产的资产系统。</p>
+<p>这不是单纯换一套卡片样式能解决的问题。需要同时重构四层：</p>
+<ol>
+<li><strong>领域模型</strong>：把视频、图片、声音等媒体统一到媒体资产内核；数字人、品牌和模板保留各自领域模型，再通过统一资源索引提供一致的搜索、分类和使用追踪。</li>
+<li><strong>管理体验</strong>：形成统一的搜索、筛选、排序、网格/列表、详情、编辑、归档、批量管理和上传中心。</li>
+<li><strong>生产流集成</strong>：所有生产步骤使用同一个 <code>AssetPicker</code>，支持“最近使用、收藏、当前任务、快捷上传、选中即回填”，避免在资产库与生产任务之间跳转。</li>
+<li><strong>数字人模型</strong>：从“一个图片或视频文件”升级为“数字人档案 + 可用场景 + 预览片段 + 生成能力/限制”。用户参考图真正优秀的地方不是视觉风格，而是把“浏览、筛选、预览、选场景、使用”放在一个上下文里完成。</li>
+</ol>
+<p>建议以 <strong>统一媒体资产内核 + 领域资源模型 + 共享前端组件 + 旧接口兼容层</strong> 的方式渐进式替换，不要在一次大提交中推倒重来。完整范围的基础工作量约 <strong>21–28 人日</strong>，加入迁移和桌面环境风险缓冲后按 <strong>24–32 人日</strong> 安排，共七个可独立验收的阶段；如先交付 MVP，则建议控制在 <strong>15–20 人日</strong>。</p>
+<hr />
+<h2 id="2">2. 调研范围、证据与限制<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<h3 id="21">2.1 已检查的证据<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
+<ul>
+<li>前端资产中心、上传弹窗、预览弹窗、删除弹窗、视频素材选择器、模板选择器和数字人生产步骤：<code>desktop/src/StudioApp.tsx</code>。</li>
+<li>资产相关样式和不同媒体的缩略图规则：<code>desktop/src/styles.css</code>。</li>
+<li>前端 API 类型与上传/删除接口：<code>desktop/src/api.ts</code>。</li>
+<li>后端六类资产接口：<code>api/routers/assets.py</code>。</li>
+<li>视频、图片、数字人、音色、品牌资产的本地持久化服务和 JSON manifest。</li>
+<li>当前本地数据：2 个视频、2 个图片型数字人、2 个音色、1 个品牌包；图片素材 manifest 当前为空/尚未建立。</li>
+<li>现有资产 API 和桌面端资产操作测试。</li>
+<li>用户提供的数字人管理参考图：<code>/var/folders/lt/6g5zql0d37g7pvzj7gny8g4r0000gn/T/codex-clipboard-2d8b3b5a-e063-4407-b582-a8bab9a51849.png</code>。</li>
+<li>用户提供的竖屏 MP4：1080×1920、25 fps、22.45 秒、H.264 + AAC。该文件很适合作为“数字人场景预览片段”的真实样本，而不应只按一个无元数据的视频文件处理。</li>
+</ul>
+<h3 id="22">2.2 证据限制<a class="headerlink" href="#22" title="Permanent link">&para;</a></h3>
+<p>本次本地应用已启动，API 可用；但用于本轮审计的应用内浏览器连接在宿主运行时初始化阶段触发 <code>Cannot redefine property: process</code>，因此没有把“当前资产库逐屏截图”伪装成已完成的视觉走查。该错误尚未证明属于 Pixelle 产品代码，不能直接作为 Luna 的产品缺陷任务。以下判断以用户的实际操作反馈、源码、CSS、API、现有数据和提供的参考素材为依据。实施阶段应使用稳定的桌面端截图/E2E 手段补齐基线；只有在产品内可复现时再单独修复浏览器问题。</p>
+<p>这项限制不影响结构性结论：缺少统一查询、元数据、使用关系、共享选择器和数字人档案/场景模型，都可以直接由代码和接口确认。</p>
+<hr />
+<h2 id="3">3. 当前用户流程审计<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<h3 id="31">3.1 当前主流程<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
+<ol>
+<li>用户进入“企业资产库”。</li>
+<li>在视频、图片、音色、形象、模板、品牌六个页签之间切换。</li>
+<li>点击当前分类的“添加”按钮，填写一个可选名称并选择一个文件。</li>
+<li>上传成功后刷新列表，以卡片方式查看文件。</li>
+<li>通过卡片上的“预览”打开通用媒体弹窗，或通过“删除”进入二次确认。</li>
+<li>进入视频生产流后，在数字人、画面规划、配音或后期步骤里再次选择部分资产。</li>
+<li>某些步骤允许快捷上传；某些步骤需要跳回资产库管理。</li>
+<li>视频规划对素材的自动匹配主要依赖视频资产名称中的关键词。</li>
+</ol>
+<h3 id="32">3.2 流程健康度<a class="headerlink" href="#32" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>当前状态</th>
+<th>主要问题</th>
+<th>影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>分类浏览</td>
+<td>可用</td>
+<td>六个页签只有切换，没有数量、搜索、筛选、排序和跨类型视图</td>
+<td>资产一多就无法管理</td>
+</tr>
+<tr>
+<td>列表展示</td>
+<td>可用但不友好</td>
+<td>固定高度、不同类型规格不一致、原始文件名占据主信息位</td>
+<td>图片/竖屏视频难判断内容，扫描效率低</td>
+</tr>
+<tr>
+<td>搜索</td>
+<td>局部可用</td>
+<td>主资产库无搜索；只有视频和模板选择弹窗有名称/文件名搜索</td>
+<td>用户必须记住分类和命名</td>
+</tr>
+<tr>
+<td>上传</td>
+<td>基础可用</td>
+<td>单文件、无本地预览、无真实拖放、无进度/取消、无批量、无重复检测</td>
+<td>企业批量导入成本高，失败不透明</td>
+</tr>
+<tr>
+<td>预览</td>
+<td>基础可用</td>
+<td>通用媒体弹窗只播放文件，没有详情、标签、版本、场景和使用入口</td>
+<td>预览和决策割裂</td>
+</tr>
+<tr>
+<td>编辑管理</td>
+<td>不完整</td>
+<td>图片/视频/数字人/音色无法重命名或编辑元数据；删除是卡片常驻主操作</td>
+<td>资产不可维护，误删风险高</td>
+</tr>
+<tr>
+<td>生产流选择</td>
+<td>部分可用</td>
+<td>不同步骤重复实现，能力不一致；图片没有真正进入画面规划</td>
+<td>“资产库可复用”与实际体验不一致</td>
+</tr>
+<tr>
+<td>数字人</td>
+<td>概念过薄</td>
+<td>目前只是图片/视频文件；没有人物档案、场景、姿态、风格、预览片段</td>
+<td>无法达到参考产品的选择体验</td>
+</tr>
+<tr>
+<td>使用关系</td>
+<td>缺失</td>
+<td>不知道资产在哪些任务、镜头、封面中被使用</td>
+<td>无法安全归档、替换或治理</td>
+</tr>
+</tbody>
+</table>
+<h3 id="33">3.3 已经做对、应当保留的部分<a class="headerlink" href="#33" title="Permanent link">&para;</a></h3>
+<ul>
+<li>六类资产都有清晰入口，用户能理解分类。</li>
+<li>图片、视频、音频均已有受保护的预览路径。</li>
+<li>删除已经有确认弹窗和失败反馈，不能回退为直接删除。</li>
+<li>生产流中的数字人快捷上传可以“上传后自动选中”，这个闭环应推广到全部资产类型。</li>
+<li>上传服务有扩展名、文件大小和安全路径校验；新架构应复用这些安全能力。</li>
+<li>现有主题变量已经能承载紫色和珊瑚红主题；资产组件不得引入硬编码品牌主色。</li>
+</ul>
+<hr />
+<h2 id="4">4. 根因分析：为什么“功能有了，但不好用”<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<h3 id="41">4.1 六套数据结构导致六套体验<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
+<p>当前 ID 字段分别是 <code>asset_id</code>、<code>portrait_id</code>、<code>reference_id</code>、<code>brand_id</code>、<code>template_id</code>，文件也分别由不同 service 和 JSON manifest 管理。字段集合非常薄：</p>
+<ul>
+<li>图片：名称、文件名、时间、字节数。</li>
+<li>视频：再多一个时长和第一帧缩略图。</li>
+<li>数字人：名称、文件名、媒体类型。</li>
+<li>音色：名称、文件名、时间。</li>
+<li>品牌包和模板又是完全独立的模型。</li>
+</ul>
+<p>结果是前端不能拥有统一的查询、卡片、详情、收藏、标签、使用记录、批量操作或选择器，只能不断写类型特例。</p>
+<h3 id="42">4.2 主资产库没有真正的检索系统<a class="headerlink" href="#42" title="Permanent link">&para;</a></h3>
+<p>主资产库没有查询输入、标签、日期、比例、时长、来源、状态、收藏、最近使用等筛选。生产流里的视频选择器只按 <code>name + filename</code> 做前端字符串过滤；自动推荐只把视频名称与关键词比较。</p>
+<p>对企业素材而言，“门店”“菜品”“锅底”“团购”“老板口播”“可用于封面”“竖屏”“无版权 BGM”才是检索语言，原始文件名不是。</p>
+<h3 id="43-object-fit">4.3 图片展示问题是信息架构问题，不只是 <code>object-fit</code><a class="headerlink" href="#43-object-fit" title="Permanent link">&para;</a></h3>
+<p>当前图片卡片强制使用约 148px 高的预览区域并以 <code>cover</code> 展示；视频和数字人又分别使用 158px、192px 与 <code>contain</code>。这会造成：</p>
+<ul>
+<li>横图、竖图、透明 PNG 的显示语义不同。</li>
+<li>图片可能被裁切，用户看不到完整构图和安全区。</li>
+<li>卡片高度、信息密度和视觉重心不一致。</li>
+<li>用户只能看到名称与原始文件名，看不到比例、尺寸、格式、用途和状态。</li>
+</ul>
+<p>正确方案是“统一卡片骨架 + 按媒体类型选择预览画布”，而不是让所有图片使用同一裁切方式。</p>
+<h3 id="44">4.4 上传弹窗只有文件选择，没有资产入库流程<a class="headerlink" href="#44" title="Permanent link">&para;</a></h3>
+<p><code>FileDropField</code> 的视觉是拖放区域，但目前没有 <code>dragenter/drop</code> 处理；上传弹窗也没有：</p>
+<ul>
+<li>选中文件后的本地预览和媒体信息。</li>
+<li>上传进度、取消、重试。</li>
+<li>批量队列和逐项错误。</li>
+<li>命名、分类、标签、用途、版权/来源字段。</li>
+<li>重复文件哈希检测和“跳过/替换/另存”选择。</li>
+<li>针对数字人的质量检查结果。</li>
+</ul>
+<p>因此它更像“把一个文件存到目录”，不是“把可复用资产纳入企业资产库”。</p>
+<h3 id="45">4.5 数字人被错误地建模成一个文件<a class="headerlink" href="#45" title="Permanent link">&para;</a></h3>
+<p>参考图中至少存在三层实体：</p>
+<ol>
+<li><strong>数字人档案</strong>：人物身份、外观、性别、风格、姿态、能力和来源。</li>
+<li><strong>场景/造型</strong>：厨房、办公室、近景、全身、服装、手持商品等。</li>
+<li><strong>预览和生产配置</strong>：可播放片段、景别、默认场景、生成方式、支持的分辨率/动作。</li>
+</ol>
+<p>当前 <code>PortraitAsset</code> 只有 <code>portrait_id/name/file/media_type</code>。即使把参考图的布局照搬过来，右侧也没有足够数据展示，所以必须先改领域模型。</p>
+<h3 id="46">4.6 资产库和生产流是两套产品<a class="headerlink" href="#46" title="Permanent link">&para;</a></h3>
+<p>当前存在独立的 <code>VideoAssetPickerModal</code>、<code>TemplatePickerModal</code>、数字人卡片网格、音色选择逻辑和若干快捷上传弹窗。它们的搜索、预览、空状态、选择状态、上传反馈、兼容性校验都不一致。</p>
+<p>图片资产目前虽然写着“可在画面规划和封面制作中复用”，但 <code>VisualGroup</code> 的类型只有 <code>digital_human | ai_video | uploaded_video</code>，图片没有成为正式可选视觉源。这是承诺与能力的直接断层。</p>
+<hr />
+<h2 id="5">5. 参考图应该借鉴什么<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<p>参考图的核心价值不是蓝色，而是以下交互结构：</p>
+<ul>
+<li>左侧把分类、来源、收藏、性别、风格、姿态与人物卡片放在同一浏览区域。</li>
+<li>单击人物后立即显示明确选中态，并在右侧打开可播放的大预览。</li>
+<li>人物与场景分层；选中人物后仍可选择厨房、厨房 1 等场景。</li>
+<li>预览与设置同屏，用户不需要“选中 → 关闭 → 再去另一个页面验证”。</li>
+<li>竖屏人物素材按接近最终成片的画幅展示，决策信息充分。</li>
+</ul>
+<p>不建议照搬的部分：</p>
+<ul>
+<li>中小企业自有数字人通常不多，第一版不必一开始堆满性别、风格、姿态等所有筛选。应只显示有数据的 facets。</li>
+<li>主资产库中的单击应进入预览/详情；生产选择器中的单击可以切换预览，最终“使用此数字人”保持明确按钮，避免误选。</li>
+<li>颜色必须使用系统主题 token，参考图的蓝色不应硬编码进现有紫色/珊瑚红主题系统。</li>
+</ul>
+<hr />
+<h2 id="6">6. 目标产品模型<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
+<h3 id="61">6.1 统一的是资源索引，不是把所有对象塞进一张资产表<a class="headerlink" href="#61" title="Permanent link">&para;</a></h3>
+<p>视频、图片和音频属于媒体资产；品牌包是复合业务配置；模板是版本化渲染契约；数字人是人物档案和场景集合。它们应在资产库界面中统一浏览，但后端不能被迫使用一个充满类型特例的万能表。</p>
+<p>资产库查询返回统一投影：</p>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kr">type</span><span class="w"> </span><span class="nx">LibraryItemKind</span><span class="w"> </span><span class="o">=</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;video&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;image&quot;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;voice&quot;</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;digital_human&quot;</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;template&quot;</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;brand&quot;</span><span class="p">;</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="kr">type</span><span class="w"> </span><span class="nx">LibraryItem</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="nx">resourceId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="nx">kind</span><span class="o">:</span><span class="w"> </span><span class="kt">LibraryItemKind</span><span class="p">;</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="nx">description</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span><span class="nx">status</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;processing&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;ready&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;warning&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;failed&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;archived&quot;</span><span class="p">;</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">  </span><span class="nx">coverUrl?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">  </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">[];</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">  </span><span class="nx">favorite</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">  </span><span class="nx">createdAt</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">  </span><span class="nx">updatedAt</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">  </span><span class="nx">summary</span><span class="o">:</span><span class="w"> </span><span class="kt">Record</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kt">number</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kt">boolean</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="p">};</span>
+</span></code></pre></div>
+<p><code>LibraryItem</code> 是搜索和界面的只读投影，不是所有领域对象的唯一持久化模型。编辑时根据 <code>kind</code> 调用对应领域接口。</p>
+<h3 id="62">6.2 媒体资产、版本和变体<a class="headerlink" href="#62" title="Permanent link">&para;</a></h3>
+<p>图片、视频、音频、字体等文件使用统一媒体内核：</p>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kr">type</span><span class="w"> </span><span class="nx">MediaKind</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;video&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;image&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;audio&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;font&quot;</span><span class="p">;</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kr">type</span><span class="w"> </span><span class="nx">MediaAsset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nx">legacyId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nx">mediaKind</span><span class="o">:</span><span class="w"> </span><span class="kt">MediaKind</span><span class="p">;</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nx">description</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nx">source</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;upload&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;recording&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;generated&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;system&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;imported&quot;</span><span class="p">;</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="nx">currentRevisionId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="nx">status</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;processing&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;ready&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;warning&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;failed&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;archived&quot;</span><span class="p">;</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="nx">createdAt</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="nx">updatedAt</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">  </span><span class="nx">archivedAt?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="p">};</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="kr">type</span><span class="w"> </span><span class="nx">AssetRevision</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">  </span><span class="nx">assetId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">  </span><span class="nx">version</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">  </span><span class="nx">parentRevisionId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">  </span><span class="nx">relativePath</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">  </span><span class="nx">mimeType</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">  </span><span class="nx">bytes</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">  </span><span class="nx">sha256</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">  </span><span class="nx">width?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">  </span><span class="nx">height?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">  </span><span class="nx">aspectRatio?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">  </span><span class="nx">durationMs?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">  </span><span class="nx">frameRate?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="w">  </span><span class="nx">hasAudio?</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="w">  </span><span class="nx">createdAt</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="p">};</span>
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>
+</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="kr">type</span><span class="w"> </span><span class="nx">AssetVariant</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="w">  </span><span class="nx">revisionId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a><span class="w">  </span><span class="nx">role</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;poster&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;thumbnail&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;preview&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;proxy&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;waveform&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;cover_crop&quot;</span><span class="p">;</span>
+</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a><span class="w">  </span><span class="nx">relativePath</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a><span class="w">  </span><span class="nx">mimeType</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a><span class="w">  </span><span class="nx">width?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a><span class="w">  </span><span class="nx">height?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a><span class="w">  </span><span class="nx">durationMs?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a><span class="p">};</span>
+</span></code></pre></div>
+<p>原文件对应不可变的 <code>AssetRevision</code>。用户选择“作为新版本”时创建新 revision 并更新 <code>currentRevisionId</code>；标签、集合和使用历史仍属于逻辑资产。裁切、poster、代理视频和波形属于 revision 的变体，不覆盖原文件。</p>
+<h3 id="63">6.3 品牌、模板和数字人领域模型<a class="headerlink" href="#63" title="Permanent link">&para;</a></h3>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kr">type</span><span class="w"> </span><span class="nx">BrandKitResource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nx">logoAssetId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nx">fontAssetIds</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">[];</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nx">defaultBgmAssetId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nx">primaryColor</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="nx">secondaryColor</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="nx">contact</span><span class="o">:</span><span class="w"> </span><span class="kt">Record</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">string</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="nx">publishDefaults</span><span class="o">:</span><span class="w"> </span><span class="kt">Record</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">unknown</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="p">};</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="kr">type</span><span class="w"> </span><span class="nx">TemplateDefinition</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">  </span><span class="nx">schemaVersion</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">  </span><span class="nx">rendererVersion</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">  </span><span class="nx">revision</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">  </span><span class="nx">previewAssetId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">  </span><span class="nx">coverContract</span><span class="o">:</span><span class="w"> </span><span class="kt">Record</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">unknown</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">  </span><span class="nx">subtitleContract</span><span class="o">:</span><span class="w"> </span><span class="kt">Record</span><span class="o">&lt;</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">unknown</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">  </span><span class="nx">status</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;draft&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;ready&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;archived&quot;</span><span class="p">;</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="p">};</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="kr">type</span><span class="w"> </span><span class="nx">DigitalHumanProfile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="w">  </span><span class="nx">provider</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;local&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;system&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;custom&quot;</span><span class="p">;</span>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="w">  </span><span class="nx">posterAssetId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="w">  </span><span class="nx">gender?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="w">  </span><span class="nx">style?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="w">  </span><span class="nx">posture</span><span class="o">?:</span><span class="w"> </span><span class="s2">&quot;sitting&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;standing&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;mixed&quot;</span><span class="p">;</span>
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="w">  </span><span class="nx">supportedWorkflows</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">[];</span>
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="w">  </span><span class="nx">defaultSceneId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="w">  </span><span class="nx">qualityState</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;unchecked&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;passed&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;warning&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;failed&quot;</span><span class="p">;</span>
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="p">};</span>
+</span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a>
+</span><span id="__span-2-38"><a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a><span class="kr">type</span><span class="w"> </span><span class="nx">DigitalHumanScene</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-39"><a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-40"><a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a><span class="w">  </span><span class="nx">profileId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-41"><a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-42"><a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a><span class="w">  </span><span class="nx">sourceAssetId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-43"><a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a><span class="w">  </span><span class="nx">sourceRevisionId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-44"><a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a><span class="w">  </span><span class="nx">previewVariantId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-45"><a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a><span class="w">  </span><span class="nx">shotSize</span><span class="o">?:</span><span class="w"> </span><span class="s2">&quot;close&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;medium&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;full&quot;</span><span class="p">;</span>
+</span><span id="__span-2-46"><a id="__codelineno-2-46" name="__codelineno-2-46" href="#__codelineno-2-46"></a><span class="w">  </span><span class="nx">location?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-47"><a id="__codelineno-2-47" name="__codelineno-2-47" href="#__codelineno-2-47"></a><span class="w">  </span><span class="nx">outfit?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-48"><a id="__codelineno-2-48" name="__codelineno-2-48" href="#__codelineno-2-48"></a><span class="w">  </span><span class="nx">posture?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-2-49"><a id="__codelineno-2-49" name="__codelineno-2-49" href="#__codelineno-2-49"></a><span class="p">};</span>
+</span></code></pre></div>
+<p>模板 revision 和 renderer version 必须随任务一起锁定，防止模板升级后旧任务的字幕、字体和封面位置发生漂移。用户提供的 1080×1920、22.45 秒 MP4 应先作为 <code>MediaAsset</code> 入库，再由 <code>DigitalHumanScene</code> 引用指定 revision；人物名称和“客厅/门店/办公室”等场景名称由用户确认。</p>
+<h3 id="64">6.4 集合、使用关系与渲染快照<a class="headerlink" href="#64" title="Permanent link">&para;</a></h3>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kr">type</span><span class="w"> </span><span class="nx">AssetCollection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nx">description</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nx">sortOrder</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nx">createdAt</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="nx">updatedAt</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">};</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="kr">type</span><span class="w"> </span><span class="nx">ResourceUsage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">  </span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">  </span><span class="nx">resourceKind</span><span class="o">:</span><span class="w"> </span><span class="kt">LibraryItemKind</span><span class="p">;</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">  </span><span class="nx">resourceId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">  </span><span class="nx">revisionId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">  </span><span class="nx">sessionId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">  </span><span class="nx">step</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;source&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;voice&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;digital_human&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;storyboard&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;cover&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;postproduction&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;publish&quot;</span><span class="p">;</span>
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">  </span><span class="nx">purpose</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">  </span><span class="nx">slotId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">  </span><span class="nx">createdAt</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">  </span><span class="nx">updatedAt</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="p">};</span>
+</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>
+</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="kr">type</span><span class="w"> </span><span class="nx">ResourceSnapshot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="w">  </span><span class="nx">resourceKind</span><span class="o">:</span><span class="w"> </span><span class="kt">LibraryItemKind</span><span class="p">;</span>
+</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="w">  </span><span class="nx">resourceId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="w">  </span><span class="nx">revisionId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="w">  </span><span class="nx">variantId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="w">  </span><span class="nx">sha256?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-29"><a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="w">  </span><span class="nx">resolvedRelativePath?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-30"><a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="w">  </span><span class="nx">templateRevision?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-3-31"><a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="w">  </span><span class="nx">rendererVersion?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-3-32"><a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a><span class="p">};</span>
+</span></code></pre></div>
+<p><code>ResourceUsage</code> 的唯一键为 <code>sessionId + step + slotId + purpose + resourceKind + resourceId</code>。用户替换或移除素材时必须在同一事务中删除旧关系、写入新关系。渲染启动时生成 <code>ResourceSnapshot</code>，锁定具体 revision、hash、模板 revision 和 renderer version，保证后续重命名、归档或模板升级不影响已开始任务。</p>
+<h3 id="65">6.5 持久化选择<a class="headerlink" href="#65" title="Permanent link">&para;</a></h3>
+<p>推荐从多份 JSON manifest 迁移到本地 SQLite：</p>
+<ul>
+<li>SQLite 在单机桌面场景中支持事务、分页、索引和关系查询，不需要引入外部数据库。</li>
+<li>优先检测 FTS5；不可用时回退到普通索引和 <code>LIKE</code> 查询，不能阻塞应用启动。</li>
+<li>原始媒体文件继续存放在数据目录，数据库只存元数据和相对路径。</li>
+<li>删除改为归档；只有“回收站彻底删除”才移除文件。</li>
+<li>收藏和标签统一挂在资源索引层；业务字段保留在各自领域表。</li>
+</ul>
+<p>建议表：<code>media_assets</code>、<code>asset_revisions</code>、<code>asset_variants</code>、<code>library_index</code>、<code>resource_tags</code>、<code>resource_favorites</code>、<code>resource_usages</code>、<code>resource_collections</code>、<code>collection_items</code>、<code>brand_kits</code>、<code>template_definitions</code>、<code>digital_human_profiles</code>、<code>digital_human_scenes</code>、<code>media_jobs</code>、<code>asset_migration_log</code>。</p>
+<hr />
+<h2 id="7">7. 企业资产库页面重构规格<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
+<h3 id="71">7.1 页面信息架构<a class="headerlink" href="#71" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>企业资产库
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>├── 顶部：全库搜索 / 上传资产 / 新建集合
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>├── 分类：全部 / 视频 / 图片 / 数字人 / 声音 / 模板 / 品牌
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>├── 智能入口：最近使用 / 收藏 / 当前任务 / 待处理 / 回收站
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>├── 工具栏：筛选 / 排序 / 网格-列表切换 / 批量选择
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>├── 内容区：统一资产卡片或列表
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>└── 右侧详情抽屉：预览 / 信息 / 标签 / 使用记录 / 版本与变体 / 操作
+</span></code></pre></div>
+<p>默认落在“全部”或用户上次访问的分类。分类页签显示数量，但数量只作为辅助，不做夸张的数据看板。</p>
+<h3 id="72">7.2 搜索与筛选<a class="headerlink" href="#72" title="Permanent link">&para;</a></h3>
+<p>全局搜索至少覆盖：</p>
+<ul>
+<li>名称、描述、原始文件名。</li>
+<li>标签、集合、场景、地点、人物名、品牌名。</li>
+<li>图片/视频的比例、分辨率、时长和方向。</li>
+<li>数字人的性别、风格、姿态、场景、支持的生成方式。</li>
+<li>声音的语言、风格、性别、时长。</li>
+</ul>
+<p>基础筛选：类型、收藏、标签、创建时间、最近使用、来源、状态。进入某一类型后再显示该类型专用筛选，例如视频的横/竖屏和时长、数字人的风格/姿态/场景。</p>
+<p>筛选采用可见 chips，并提供“一键清除”。没有数据的 facet 不显示，避免参考图式的筛选密度在小资产库中显得空洞。</p>
+<h3 id="73">7.3 卡片系统<a class="headerlink" href="#73" title="Permanent link">&para;</a></h3>
+<p>建立统一 <code>AssetCard</code> 骨架，媒体渲染器按类型替换预览区域：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>预览规则</th>
+<th>卡片辅助信息</th>
+<th>快捷操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>图片</td>
+<td>完整图优先 <code>contain</code>；透明图使用棋盘格；可切换“填充预览”</td>
+<td>尺寸、比例、格式、标签</td>
+<td>预览、使用、收藏</td>
+</tr>
+<tr>
+<td>视频</td>
+<td>使用 poster；角标显示时长和横/竖屏；悬停可静音预览</td>
+<td>时长、分辨率、是否有声</td>
+<td>播放、使用、收藏</td>
+</tr>
+<tr>
+<td>数字人</td>
+<td>3:4 或 9:16 人物海报；显示场景数量和质量状态</td>
+<td>人物名、默认场景、支持方式</td>
+<td>预览、使用、收藏</td>
+</tr>
+<tr>
+<td>声音</td>
+<td>行式卡片或波形缩略图；点击试听</td>
+<td>时长、语言、风格</td>
+<td>试听、使用、收藏</td>
+</tr>
+<tr>
+<td>模板</td>
+<td>固定 9:16 安全区预览</td>
+<td>模板风格、字幕/封面能力</td>
+<td>预览、应用</td>
+</tr>
+<tr>
+<td>品牌</td>
+<td>Logo、主辅色和字体组合预览</td>
+<td>品牌名、默认状态</td>
+<td>设为默认、编辑</td>
+</tr>
+</tbody>
+</table>
+<p>卡片底部不再常驻红色“删除”。危险操作放到 <code>…</code> 菜单中，默认动作为“预览/使用”。被生产任务引用的资产只能归档，并展示使用数量。</p>
+<h3 id="74">7.4 图片规范显示<a class="headerlink" href="#74" title="Permanent link">&para;</a></h3>
+<p>针对用户指出的图片不友好，必须达到以下规格：</p>
+<ul>
+<li>网格卡片预览框比例固定，但默认完整展示，不裁掉主体。</li>
+<li>显示原图比例徽标：<code>9:16</code>、<code>16:9</code>、<code>1:1</code>、<code>4:3</code> 或“自定义”。</li>
+<li>显示像素尺寸与透明通道状态；封面/Logo 可显示安全区叠层。</li>
+<li>详情预览支持适应窗口、100%、填充、棋盘格背景和深浅背景切换。</li>
+<li>同一资产可拥有原图、缩略图、封面裁切等变体，裁切不覆盖原文件。</li>
+<li>图片加载失败显示可恢复错误和“重新生成缩略图”，不能只显示破图。</li>
+</ul>
+<h3 id="75">7.5 上传中心<a class="headerlink" href="#75" title="Permanent link">&para;</a></h3>
+<p>上传不再为每一类复制一个弱弹窗，统一为 <code>AssetUploadDialog</code>：</p>
+<ol>
+<li>选择资产类型或由当前上下文预设。</li>
+<li>支持点击、真实拖放、多文件选择。</li>
+<li>立即显示本地缩略图、文件名、大小、比例/时长和格式校验。</li>
+<li>后台计算哈希并检测重复，提供“跳过、作为新版本、仍然新建”。</li>
+<li>批量设置标签、集合、来源；允许逐项修改名称。</li>
+<li>展示逐文件上传/分析进度，支持取消、重试和移除。</li>
+<li>入库后异步生成缩略图、poster、代理预览、波形和质量检查结果。</li>
+<li>从生产流打开时，成功资产自动返回选择器并选中，不丢失当前任务状态。</li>
+</ol>
+<p>“素材规范”必须是可点击帮助，不要再以普通彩色文字伪装成链接。规则应根据类型显示硬限制和建议，并在选择文件后给出具体校验结论。</p>
+<h3 id="76">7.6 详情与管理<a class="headerlink" href="#76" title="Permanent link">&para;</a></h3>
+<p>点击卡片打开右侧详情抽屉；需要沉浸预览时再进入全屏预览。抽屉包含：</p>
+<ul>
+<li>预览及媒体控制。</li>
+<li>可编辑名称、描述、标签、集合。</li>
+<li>自动提取信息和质量状态。</li>
+<li>文件来源、创建/更新时间。</li>
+<li>“用于哪些任务/镜头/封面”的使用记录。</li>
+<li>版本/变体和替换入口。</li>
+<li>归档、恢复、彻底删除等低频操作。</li>
+</ul>
+<p>批量模式支持：加标签、加入集合、收藏、归档、导出信息；第一版不要支持跨类型批量替换。</p>
+<hr />
+<h2 id="8">8. 数字人管理完整方案<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
+<h3 id="81">8.1 资产库中的数字人页面<a class="headerlink" href="#81" title="Permanent link">&para;</a></h3>
+<p>桌面宽屏采用参考图的双栏结构：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>┌ 人物列表与筛选（约 42%） ┬ 大预览与详情（约 58%） ┐
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>│ 官方/自定义、收藏、搜索   │ 9:16 可播放预览          │
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>│ 风格、姿态、场景筛选       │ 人物状态与能力提示        │
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>│ 3 列人物卡片               │ 场景缩略图列表            │
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>│ 上传/新建数字人            │ 编辑、复制、归档、用于生产 │
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>└───────────────────────────┴──────────────────────────┘
+</span></code></pre></div>
+<p>交互规则：</p>
+<ul>
+<li>单击人物卡片：改变选中态并在右侧立即加载预览，不再要求点击卡片底部的小“预览”按钮。</li>
+<li>单击场景：在右侧播放器切换对应场景预览，并更新兼容性信息。</li>
+<li>视频预览默认不自动发声；用户明确点击播放后再播放音频。</li>
+<li>当前选中人物、场景都有边框、勾选和文本状态，不能只依赖颜色。</li>
+<li>管理模式的主按钮为“用于视频生产”；生产选择器中的主按钮为“使用此数字人”。</li>
+<li>图片型与视频型数字人明确标识能力差异，不允许选中后才发现当前工作流不支持。</li>
+</ul>
+<h3 id="82">8.2 数字人上传与质量检查<a class="headerlink" href="#82" title="Permanent link">&para;</a></h3>
+<p>入库时自动检查：</p>
+<ul>
+<li>媒体类型、分辨率、比例、帧率、时长、音轨。</li>
+<li>人脸是否清晰、主体是否过小、是否多人、是否遮挡。</li>
+<li>视频是否存在大幅镜头运动、明显剪切、过强背景噪声。</li>
+<li>与所选生成工作流的分辨率和媒体类型兼容性。</li>
+</ul>
+<p>第一阶段可以只做确定性的媒体检查，把需要模型判断的项目标为“未检查”；不要假装所有 AI 质量判断已可靠完成。</p>
+<h3 id="83">8.3 数字人在生产流中的选择器<a class="headerlink" href="#83" title="Permanent link">&para;</a></h3>
+<p>数字人步骤使用全屏或大尺寸 <code>AssetPickerDialog</code>，复用同一双栏内容，但增加：</p>
+<ul>
+<li>顶部显示当前生成方式及它支持的媒体类型。</li>
+<li>不兼容的人物保留可见但禁用，并说明原因；不要直接过滤到消失。</li>
+<li>选中人物后继续选场景和景别。</li>
+<li>“快捷上传”继承当前工作流约束，上传完成后自动选择。</li>
+<li>确认后一次性回填 <code>profileAssetId + sceneId + workflow + dimensions</code>。</li>
+<li>回到步骤后显示一个完整的“已选数字人摘要卡”，可预览、替换、编辑场景。</li>
+</ul>
+<hr />
+<h2 id="9">9. 视频生产流集成矩阵<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>生产步骤</th>
+<th>可用资产</th>
+<th>集成方式</th>
+<th>应记录的使用关系</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>企业/选题资料</td>
+<td>品牌、产品图片、案例视频</td>
+<td>选择参考资产，作为文案和视觉上下文</td>
+<td><code>source/reference</code></td>
+</tr>
+<tr>
+<td>文案</td>
+<td>品牌包</td>
+<td>自动带入品牌名、地址、电话、优惠语和禁用词</td>
+<td><code>source/brand</code></td>
+</tr>
+<tr>
+<td>配音</td>
+<td>音色</td>
+<td>共享声音选择器，支持试听、最近使用、快捷录制/上传</td>
+<td><code>voice/reference</code></td>
+</tr>
+<tr>
+<td>数字人</td>
+<td>数字人档案、场景</td>
+<td>双栏预览与兼容性选择</td>
+<td><code>digital_human/profile</code>、<code>scene</code></td>
+</tr>
+<tr>
+<td>画面规划</td>
+<td>视频、图片、数字人</td>
+<td>每个镜头 slot 打开同一选择器；支持多选素材池</td>
+<td><code>storyboard/visual</code></td>
+</tr>
+<tr>
+<td>一键成片/后期</td>
+<td>模板、视频、图片、BGM、品牌</td>
+<td>模板与品牌默认项可继承，允许逐项覆盖</td>
+<td><code>postproduction/*</code></td>
+</tr>
+<tr>
+<td>封面</td>
+<td>图片、模板、品牌 Logo/颜色/字体</td>
+<td>从图片库选择底图并显示标题安全区</td>
+<td><code>cover/background</code>、<code>brand</code></td>
+</tr>
+<tr>
+<td>发布准备</td>
+<td>品牌、封面、成片</td>
+<td>自动填充平台标题/描述/话题的品牌默认信息</td>
+<td><code>publish/*</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="91">9.1 共享选择器协议<a class="headerlink" href="#91" title="Permanent link">&para;</a></h3>
+<p>所有步骤只传上下文，不自己实现资产列表：</p>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kr">type</span><span class="w"> </span><span class="nx">AssetPickerRequest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nx">context</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;source&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;voice&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;digital_human&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;storyboard&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;cover&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;postproduction&quot;</span><span class="p">;</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nx">allowedKinds</span><span class="o">:</span><span class="w"> </span><span class="kt">LibraryItemKind</span><span class="p">[];</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nx">selectionMode</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;single&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;multiple&quot;</span><span class="p">;</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="nx">selected</span><span class="o">:</span><span class="w"> </span><span class="kt">Array</span><span class="o">&lt;</span><span class="p">{</span><span class="w"> </span><span class="nx">kind</span><span class="o">:</span><span class="w"> </span><span class="kt">LibraryItemKind</span><span class="p">;</span><span class="w"> </span><span class="nx">resourceId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">}</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="nx">constraints</span><span class="o">?:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="nx">mediaTypes?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">[];</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="nx">orientations?</span><span class="o">:</span><span class="w"> </span><span class="kt">Array</span><span class="o">&lt;</span><span class="s2">&quot;portrait&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;landscape&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;square&quot;</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="nx">minDurationMs?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="nx">maxDurationMs?</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span><span class="nx">workflow?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">  </span><span class="p">};</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="p">};</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="kr">type</span><span class="w"> </span><span class="nx">AssetPickerResult</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">  </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="kt">LibraryItem</span><span class="p">[];</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">  </span><span class="nx">digitalHumanSceneId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="p">};</span>
+</span></code></pre></div>
+<p>共享选择器内固定具备：搜索、筛选、最近使用、收藏、预览、详情、快捷上传、兼容性提示、空状态和失败恢复。选择器只消费统一资源投影；确认选择后，由对应生产步骤把资源引用转换为自己的领域配置和 <code>ResourceSnapshot</code>，避免让模板、品牌和数字人伪装成普通文件。</p>
+<h3 id="92">9.2 自动推荐<a class="headerlink" href="#92" title="Permanent link">&para;</a></h3>
+<p>第一阶段使用可解释的规则评分：</p>
+<ul>
+<li>名称、描述、标签、集合与镜头关键词命中。</li>
+<li>方向/时长/分辨率与 slot 约束匹配。</li>
+<li>最近使用和同一任务已使用可作为轻度加权。</li>
+<li>明确标注“推荐原因”，允许用户关闭推荐筛选。</li>
+</ul>
+<p>语义向量检索放在后续阶段。先把结构化元数据和使用记录做对，否则 AI 搜索只会掩盖数据质量问题。</p>
+<hr />
+<h2 id="10">10. 前端共享组件与目录方案<a class="headerlink" href="#10" title="Permanent link">&para;</a></h2>
+<p>建议把资产功能从超过 6000 行的 <code>StudioApp.tsx</code> 中完整拆出：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>desktop/src/features/assets/
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>├── api/
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>│   ├── assetApi.ts
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>│   └── assetQueries.ts
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>├── model/
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>│   ├── assetTypes.ts
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>│   ├── assetFilters.ts
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>│   └── assetPicker.ts
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>├── components/
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>│   ├── AssetCenterPage.tsx
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>│   ├── AssetCategoryTabs.tsx
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>│   ├── AssetToolbar.tsx
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>│   ├── AssetGrid.tsx
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>│   ├── AssetList.tsx
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>│   ├── AssetCard.tsx
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>│   ├── AssetMediaPreview.tsx
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>│   ├── AssetDetailDrawer.tsx
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>│   ├── AssetPickerDialog.tsx
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>│   ├── AssetUploadDialog.tsx
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>│   ├── AssetUploadQueue.tsx
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>│   ├── AssetUsagePanel.tsx
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>│   └── AssetEmptyState.tsx
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>├── digital-human/
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>│   ├── DigitalHumanBrowser.tsx
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>│   ├── DigitalHumanCard.tsx
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>│   ├── DigitalHumanPreview.tsx
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>│   ├── DigitalHumanSceneList.tsx
+</span><span id="__span-7-28"><a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a>│   └── DigitalHumanQuality.tsx
+</span><span id="__span-7-29"><a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a>├── hooks/
+</span><span id="__span-7-30"><a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a>│   ├── useAssets.ts
+</span><span id="__span-7-31"><a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a>│   ├── useAssetPicker.ts
+</span><span id="__span-7-32"><a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a>│   └── useAssetUpload.ts
+</span><span id="__span-7-33"><a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a>└── index.ts
+</span></code></pre></div>
+<p>关键约束：</p>
+<ul>
+<li><code>AssetCard</code> 只管理共享骨架；媒体差异交给 renderer，不堆满 <code>if (kind === ...)</code>。</li>
+<li>管理页和生产选择器复用查询、卡片、预览、上传、筛选，只在 action 区域不同。</li>
+<li>资产选择状态由选择器内部管理，确认后再提交给生产 session，避免每次点卡片都触发远程 patch。</li>
+<li>数据请求应有缓存和失效策略；上传/编辑后只失效相关分类，不重新请求所有应用数据。</li>
+<li>主题只使用现有 CSS 变量和 Ant Design token，紫色、珊瑚红均需通过同一组件视觉回归。</li>
+</ul>
+<hr />
+<h2 id="11-api">11. 后端与 API 方案<a class="headerlink" href="#11-api" title="Permanent link">&para;</a></h2>
+<h3 id="111">11.1 推荐目录<a class="headerlink" href="#111" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>pixelle_video/services/library/
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>├── models.py
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>├── repository.py
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>├── search.py
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>├── collections.py
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>├── usage.py
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>└── migration.py
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>pixelle_video/services/media/
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>├── upload.py
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>├── metadata.py
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>├── variants.py
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>└── jobs.py
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>api/routers/library_v2.py
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>api/routers/media_assets_v2.py
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>api/routers/digital_humans_v2.py
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>api/routers/brand_kits_v2.py
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>api/routers/templates_v2.py
+</span></code></pre></div>
+<p>现有 <code>video_asset_service.py</code>、<code>image_asset_service.py</code>、<code>portrait_service.py</code>、<code>voice_reference_service.py</code> 和 <code>brand_kit_service.py</code> 暂时保留为兼容适配器，内部逐步转调新 repository；不要立刻删除旧 manifest 读取能力。</p>
+<h3 id="112-api">11.2 API 草案<a class="headerlink" href="#112-api" title="Permanent link">&para;</a></h3>
+<p>统一查询与通用管理：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>GET    /api/v2/library/items?q=&amp;kind=&amp;tags=&amp;status=&amp;favorite=&amp;collection=&amp;sort=&amp;cursor=&amp;limit=
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>GET    /api/v2/library/facets?kind=
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>POST   /api/v2/library/bulk
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>GET    /api/v2/library/{kind}/{resource_id}/usage
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>POST   /api/v2/library/{kind}/{resource_id}/archive
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>POST   /api/v2/library/{kind}/{resource_id}/restore
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>GET    /api/v2/collections
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>POST   /api/v2/collections
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>PATCH  /api/v2/collections/{collection_id}
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>POST   /api/v2/collections/{collection_id}/items
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>DELETE /api/v2/collections/{collection_id}/items/{kind}/{resource_id}
+</span></code></pre></div>
+<p>媒体、版本和上传：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>POST   /api/v2/uploads                         # 创建上传会话并预检大小/磁盘
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>PUT    /api/v2/uploads/{upload_id}/content     # 流式写入 .part 临时文件
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>GET    /api/v2/uploads/{upload_id}             # uploading/analyzing/ready/failed
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>POST   /api/v2/uploads/{upload_id}/cancel
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>GET    /api/v2/media-assets/{asset_id}
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>PATCH  /api/v2/media-assets/{asset_id}
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>GET    /api/v2/media-assets/{asset_id}/revisions
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>POST   /api/v2/media-assets/{asset_id}/revisions
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>POST   /api/v2/media-assets/{asset_id}/revisions/{revision_id}/activate
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>POST   /api/v2/media-assets/{asset_id}/analysis/retry
+</span></code></pre></div>
+<p>数字人、品牌和模板使用各自领域接口。统一列表接口只返回 <code>LibraryItem</code> 投影；编辑和版本操作不通过万能 PATCH。列表接口服务端分页、筛选和排序，返回 <code>items/next_cursor/total/facets</code>。</p>
+<p>v2 接口不返回绝对磁盘路径。旧兼容接口在迁移窗口内可继续返回旧字段；生产流完成资产 ID 和快照迁移后再移除该例外。</p>
+<h3 id="113">11.3 上传传输和任务恢复<a class="headerlink" href="#113" title="Permanent link">&para;</a></h3>
+<p>当前 <code>_read_upload()</code> 会一次性把文件读入内存，不能直接承载批量视频上传。v2 必须采用以下确定方案：</p>
+<ol>
+<li>客户端先创建 upload session，提交文件名、类型、声明大小和目标行为（新建/新版本）。</li>
+<li>服务端检查单文件上限、批次上限和数据目录可用磁盘空间。</li>
+<li>客户端桌面 WebView 使用 <code>XMLHttpRequest.upload.onprogress</code> 展示真实上传进度；若后续切换 Tauri 原生上传，则保持相同 upload session 协议。</li>
+<li>服务端以固定大小 chunk 从 <code>UploadFile</code> 写入同一数据目录下的 <code>.part</code> 文件，不得把完整文件保存在 Python 内存中。</li>
+<li>完成字节数、MIME、哈希和安全校验后，以原子 rename 转为 revision 原文件；取消或失败清理 <code>.part</code>。</li>
+<li>分析任务写入 SQLite <code>media_jobs</code>，使用现有任务管理器或受控 <code>ThreadPoolExecutor</code> 执行；本地桌面版本不引入 Celery/Redis。</li>
+<li>应用启动时把长时间停留在 <code>running</code> 的任务重置为 <code>pending</code> 并继续处理，同时清理超过保留期且没有数据库记录的临时文件。</li>
+<li>客户端轮询或订阅 upload status，分别展示上传与分析阶段；批量上传默认限制并发数，避免同时转码拖垮桌面端。</li>
+</ol>
+<h3 id="114">11.4 元数据流水线<a class="headerlink" href="#114" title="Permanent link">&para;</a></h3>
+<p>文件落盘后立即建立 <code>processing</code> 记录，再异步执行：</p>
+<ol>
+<li>MIME 与扩展名一致性校验。</li>
+<li>SHA-256 哈希和重复检查。</li>
+<li>图片：宽高、比例、透明通道、缩略图。</li>
+<li>视频：宽高、比例、时长、fps、音轨和 poster。</li>
+<li>音频：时长、采样率和声道。</li>
+<li>后续增强项：代理视频、波形图和需要模型参与的数字人质量判断。</li>
+<li>成功标记 <code>ready</code>；可用但有问题为 <code>warning</code>；不可用为 <code>failed</code> 并保留结构化原因。</li>
+</ol>
+<p>媒体分析失败不能让整个列表接口失败。卡片显示状态，详情提供重试分析。第一期不把代理视频、波形或 AI 人脸质量判断作为垂直闭环的阻塞条件。</p>
+<h3 id="115">11.5 使用关系、替换和渲染快照<a class="headerlink" href="#115" title="Permanent link">&para;</a></h3>
+<ul>
+<li>生产 session 新增或替换资源时，在同一业务操作中删除该 slot 的旧 usage 并写入新 usage；取消选择必须删除关系。</li>
+<li>repository 对 <code>session + step + slot + purpose + resource</code> 建立唯一约束，避免重复计数。</li>
+<li>增加 reconciliation 命令，从 session 状态重建 usage，用于迁移和异常恢复。</li>
+<li>渲染开始前由服务端解析资源引用并生成 <code>ResourceSnapshot</code>，锁定媒体 revision/hash、数字人 scene、模板 revision 和 renderer version。</li>
+<li>迁移窗口内 session 双写旧路径与新资源引用；读取优先新引用、缺失时回退旧路径。完成数据核对后才停止路径双写。</li>
+<li>归档前返回引用数量；已引用资源可归档但默认不可彻底删除。只有回收站中的未引用 revision 才允许物理清理。</li>
+</ul>
+<hr />
+<h2 id="12">12. 迁移与兼容策略<a class="headerlink" href="#12" title="Permanent link">&para;</a></h2>
+<p>迁移必须是可重复、可回滚、不会移动原文件的：</p>
+<ol>
+<li>启动时检查 <code>asset_schema_version</code>。</li>
+<li>迁移前备份旧 manifest，并记录文件大小、修改时间和校验值；备份不移动原媒体。</li>
+<li>读取所有旧 manifest，以 <code>resource_kind + legacy_id</code> 生成稳定映射；图片/视频/音频进入媒体表，品牌、模板和数字人进入各自领域表。</li>
+<li>对存在的媒体计算元数据和哈希；缺失文件记入迁移日志，不静默删除记录。</li>
+<li>写入 SQLite 事务，原文件和旧 manifest 保持不动。</li>
+<li>对相同哈希先标记潜在重复，不自动合并不同业务名称。</li>
+<li>新旧 API 做一段时间双读比对；写操作进入新 repository，兼容接口从新模型序列化旧格式。</li>
+<li>session 在迁移窗口内双写旧路径和新资源引用；运行 reconciliation 后核对 usage 与任务状态。</li>
+<li>验证数量、文件可访问、缩略图、资源快照和关键生产任务后，再停止旧 manifest 与旧路径写入。</li>
+<li>至少一个版本后才移除兼容层；回滚时继续使用备份 manifest 和未移动的原文件。</li>
+</ol>
+<p>迁移验收必须输出：每类发现数、迁移成功数、缺失文件数、重复候选数、版本数、usage 对账结果、失败原因和 legacy 映射文件。</p>
+<hr />
+<h2 id="13">13. 可访问性与桌面交互要求<a class="headerlink" href="#13" title="Permanent link">&para;</a></h2>
+<p>当前弹窗普遍是普通 <code>section</code>，页签和选中卡片也缺少完整语义。重构时一次性解决：</p>
+<ul>
+<li>分类使用 <code>role=tablist/tab/tabpanel</code> 或语义等价的 Ant Design 组件。</li>
+<li>弹窗使用 <code>role=dialog</code>、<code>aria-modal</code>、标题关联、初始焦点、焦点锁定、Escape 关闭和关闭后焦点归还。</li>
+<li>可选择卡片使用按钮语义，暴露 <code>aria-selected</code>/<code>aria-pressed</code>；选中态不能只依赖颜色。</li>
+<li>上传进度和处理状态使用 <code>aria-live</code>，错误与具体文件关联。</li>
+<li>所有图像有有意义的 alt；装饰图标隐藏于读屏。</li>
+<li>支持键盘在卡片网格中移动、打开预览、收藏和确认选择。</li>
+<li>播放器默认不自动播放有声媒体，并尊重 <code>prefers-reduced-motion</code>。</li>
+<li>紫色与珊瑚红主题下都检查正文、徽标、边框、禁用态和焦点环对比度。</li>
+</ul>
+<hr />
+<h2 id="14-luna">14. 实施阶段与 Luna 工作包<a class="headerlink" href="#14-luna" title="Permanent link">&para;</a></h2>
+<h3 id="012">阶段 0：冻结契约与建立基线（1–2 人日）<a class="headerlink" href="#012" title="Permanent link">&para;</a></h3>
+<p>目标：让后续重构可测、可回退。</p>
+<p>Luna 任务：</p>
+<ul>
+<li>建立 <code>LibraryItem/MediaAsset/AssetRevision/ResourceUsage/ResourceSnapshot</code> 以及品牌、模板、数字人领域模型 ADR。</li>
+<li>明确上传 session、后台任务恢复、版本、集合和路径双写协议。</li>
+<li>记录旧 manifest 数量、API contract fixture 和关键任务 fixture。</li>
+<li>使用可稳定复现的桌面端或 E2E 工具，为当前列表、上传、预览、删除及生产选择建立基线；审计宿主的浏览器错误不直接归入产品任务。</li>
+<li>增加 <code>asset_center_v2</code> feature flag，默认只在开发环境开启。</li>
+</ul>
+<p>验收：没有改变现有用户行为；旧测试全通过；ADR 覆盖本报告的核心表、接口和回滚策略；能清晰比较 v1/v2。</p>
+<p><strong>门禁 A</strong>：阶段 0 的 ADR 和迁移 fixture 评审通过后，才进入数据库和上传实现。</p>
+<h3 id="145">阶段 1：图片/视频后端垂直骨架（4–5 人日）<a class="headerlink" href="#145" title="Permanent link">&para;</a></h3>
+<p>目标：先用图片和视频证明新内核、迁移和上传链路，不一次迁移全部类型。</p>
+<p>Luna 任务：</p>
+<ul>
+<li>新建 SQLite repository、媒体版本/变体/任务表和迁移日志。</li>
+<li>只先导入旧图片、视频 manifest，生成稳定 legacy 映射和迁移报告。</li>
+<li>实现 upload session、流式临时文件、哈希、重复检测、取消和启动恢复。</li>
+<li>实现图片元数据/缩略图、视频元数据/poster；代理视频暂不作为门禁。</li>
+<li>实现 v2 图片/视频列表、详情、归档接口，并让旧图片/视频 service 转调 repository。</li>
+</ul>
+<p>验收：图片和视频旧数据 100% 对账；上传大文件不整文件进入 Python 内存；异常重启后任务可恢复；旧接口和旧生产流仍能工作。</p>
+<h3 id="245">阶段 2：第一个端到端用户闭环（4–5 人日）<a class="headerlink" href="#245" title="Permanent link">&para;</a></h3>
+<p>目标：尽早交付并验证“管理 → 选择 → 渲染”的真实闭环。</p>
+<p>Luna 任务：</p>
+<ul>
+<li>上线 v2 图片/视频资产中心的搜索、友好卡片、详情、编辑、归档和基础上传队列。</li>
+<li>实现第一版共享 <code>AssetPickerDialog</code>。</li>
+<li>把图片、视频选择器接入画面规划和封面；快捷上传后返回原 slot 并自动选中。</li>
+<li>session 双写旧路径和新资源引用，维护 usage；启动一次真实渲染并生成 snapshot。</li>
+<li>紫色和珊瑚红主题完成同一闭环的视觉回归。</li>
+</ul>
+<p>验收：用户能上传或找到图片/视频，在画面规划或封面使用，并成功渲染；旧任务仍可打开和重跑；替换/取消选择后 usage 正确变化。</p>
+<p><strong>门禁 B</strong>：阶段 2 的真实垂直闭环通过后，才批量扩展其他类型。未通过时不得同时开工数字人、品牌和模板。</p>
+<h3 id="334">阶段 3：扩展媒体管理与音色（3–4 人日）<a class="headerlink" href="#334" title="Permanent link">&para;</a></h3>
+<p>目标：补齐通用资产管理能力并迁移音频/音色。</p>
+<p>Luna 任务：</p>
+<ul>
+<li>完成真实多文件拖放、并发限制、进度、取消、逐项重试和重复文件三种处理方式。</li>
+<li>完成 <code>AssetRevision</code>、收藏、标签、集合及其 API。</li>
+<li>导入音频/音色，接入共享选择器与试听。</li>
+<li>按性能需要生成代理视频和波形；失败不阻塞原媒体可用状态。</li>
+<li>完成服务端分页、facets、排序和 5000 条模拟数据基准。</li>
+</ul>
+<p>验收：版本、集合和重复上传行为可解释；批量失败可逐项恢复；音色可在生产步骤中试听、快捷上传并使用。</p>
+<h3 id="445">阶段 4：数字人档案与场景（4–5 人日）<a class="headerlink" href="#445" title="Permanent link">&para;</a></h3>
+<p>目标：达到参考图的核心效率，而不只是外观相似。</p>
+<p>Luna 任务：</p>
+<ul>
+<li>完成 Profile/Scene 数据模型、API 和旧数字人导入。</li>
+<li>完成左侧人物筛选/卡片、右侧大预览、场景选择、确定性质量与兼容性提示。</li>
+<li>将用户提供的竖屏 MP4 作为测试场景媒体，验证 revision、poster、播放、比例、时长和音轨信息。</li>
+<li>在生产流中一次性回填 profile、scene、workflow 和 dimensions，并生成资源快照。</li>
+<li>AI 人脸/姿态质量判断作为增强项，不阻塞本阶段上线。</li>
+</ul>
+<p>验收：单击任一数字人即可立即预览；切换场景不离开页面；不兼容原因在选择前可见；旧数字人任务仍可回放。</p>
+<h3 id="534">阶段 5：品牌、模板和剩余生产流（3–4 人日）<a class="headerlink" href="#534" title="Permanent link">&para;</a></h3>
+<p>目标：完成领域资源接入并覆盖生产链路。</p>
+<p>Luna 任务：</p>
+<ul>
+<li>迁移品牌包为复合资源，引用 Logo、字体、BGM 等媒体资产。</li>
+<li>迁移模板为版本化 <code>TemplateDefinition</code>，锁定 schema、template revision 和 renderer version。</li>
+<li>将共享选择器接入后期、模板、品牌和发布准备入口。</li>
+<li>品牌包贯通文案、后期、封面与发布准备默认值。</li>
+<li>对模板字幕、字体、封面标题位置增加“预览配置 = 渲染配置”的回归快照。</li>
+</ul>
+<p>验收：品牌与模板不依赖万能 metadata；旧任务锁定旧模板 revision；新任务从统一资产库选择后，预览与最终渲染位置/字体一致。</p>
+<p><strong>门禁 C</strong>：全量迁移数量、usage、模板渲染快照和关键旧任务通过后，才默认开启 v2。</p>
+<h3 id="623">阶段 6：回归、灰度和清理（2–3 人日）<a class="headerlink" href="#623" title="Permanent link">&para;</a></h3>
+<p>目标：安全替换 v1。</p>
+<p>Luna 任务：</p>
+<ul>
+<li>完成关键流程 E2E、视觉回归、键盘/读屏、大数据量和重启恢复测试。</li>
+<li>在 feature flag 下灰度，对比旧/新查询数量、usage 和渲染结果。</li>
+<li>修复迁移差异后默认开启 v2；保留一个版本的回退开关和兼容接口。</li>
+<li>最后才从 <code>StudioApp.tsx</code> 删除旧资产 UI、重复 picker 和路径优先逻辑。</li>
+</ul>
+<p>验收：无资产丢失、无旧任务回归、无模板渲染回归、无主题回归；回退后仍可读取新库数据。</p>
+<h3 id="_2">工期口径<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>阶段基础工作量合计：<strong>21–28 人日</strong>。</li>
+<li>加入旧任务差异、桌面 WebView、媒体格式和迁移问题缓冲后：<strong>24–32 人日</strong>。</li>
+<li>MVP 建议覆盖阶段 0–3，基础工作量 12–16 人日，按风险缓冲后安排 <strong>15–20 人日</strong>。</li>
+<li>工期按一名熟悉当前代码的全栈工程师估算；多人并行不能简单按人数等比例缩短，因为迁移、契约和垂直闭环存在顺序依赖。</li>
+</ul>
+<hr />
+<h2 id="15">15. 建议的提交顺序<a class="headerlink" href="#15" title="Permanent link">&para;</a></h2>
+<p>每个提交都应可运行，不允许一个巨型“完整重构”提交：</p>
+<ol>
+<li><code>docs/assets-v2-contract-and-baseline</code></li>
+<li><code>feat/media-repository-image-video-migration</code></li>
+<li><code>feat/streaming-upload-and-media-jobs</code></li>
+<li><code>feat/library-v2-image-video-api</code></li>
+<li><code>feat/asset-center-image-video-slice</code></li>
+<li><code>feat/storyboard-cover-asset-picker-slice</code></li>
+<li><code>feat/media-revisions-collections-and-voice</code></li>
+<li><code>feat/digital-human-profiles-and-scenes</code></li>
+<li><code>feat/brand-template-domain-resources</code></li>
+<li><code>feat/remaining-production-picker-integration</code></li>
+<li><code>test/assets-v2-e2e-migration-and-visual-regression</code></li>
+<li><code>refactor/remove-legacy-asset-ui-after-rollout</code></li>
+</ol>
+<p>每一步先补测试再迁移下一个入口。提交 2–6 必须形成图片/视频垂直闭环；门禁 B 通过前不要启动提交 8–10。不要同时修改资产内核、所有生产步骤和主题样式，否则回归无法定位。</p>
+<hr />
+<h2 id="16">16. 测试与验收清单<a class="headerlink" href="#16" title="Permanent link">&para;</a></h2>
+<h3 id="161-api">16.1 数据与 API<a class="headerlink" href="#161-api" title="Permanent link">&para;</a></h3>
+<ul>
+<li>旧 manifest 导入幂等，重复运行不生成重复资产。</li>
+<li>上传大视频时进程内存不会随完整文件大小线性增长；空间不足在写入前失败。</li>
+<li>上传取消、进程异常退出和应用重启后，<code>.part</code> 文件与 <code>media_jobs</code> 状态可正确清理或恢复。</li>
+<li>文件缺失、损坏、扩展名伪造、超限和元数据提取失败均有明确状态。</li>
+<li>搜索、复合筛选、排序、游标分页在新增/归档时稳定。</li>
+<li>同哈希重复上传的三种处理路径正确。</li>
+<li>“作为新版本”会创建 revision、保留历史版本并正确切换 current revision。</li>
+<li>资源替换、取消选择和删除 slot 后，usage 会删除旧关系；reconciliation 与 session 状态一致。</li>
+<li>渲染快照锁定媒体 revision/hash、数字人 scene、模板 revision 和 renderer version。</li>
+<li>归档不破坏已有任务；彻底删除会检查引用并明确告警。</li>
+<li>v2 API 不向前端暴露绝对本地文件路径；旧接口仅在兼容窗口保留该字段。</li>
+</ul>
+<h3 id="162">16.2 组件和视觉<a class="headerlink" href="#162" title="Permanent link">&para;</a></h3>
+<ul>
+<li>9:16、16:9、1:1、超宽图、超长图、透明 PNG、低分辨率图片显示正确。</li>
+<li>横屏/竖屏视频 poster、时长、播放和静音状态正确。</li>
+<li>数字人图片档案与视频场景均可即时预览。</li>
+<li>0、1、20、500、5000 条数据的空状态、布局和滚动性能可接受。</li>
+<li>紫色与珊瑚红主题、窗口缩放和 125%/150% 显示比例无错位。</li>
+</ul>
+<h3 id="163-e2e">16.3 关键 E2E<a class="headerlink" href="#163-e2e" title="Permanent link">&para;</a></h3>
+<ol>
+<li>批量上传 10 张产品图片 → 批量打标签 → 搜索 → 加入画面规划。</li>
+<li>上传竖屏数字人视频 → 自动生成 poster → 建立场景 → 在数字人步骤选择并预览。</li>
+<li>从封面步骤快捷上传图片 → 自动选中 → 返回后显示安全区。</li>
+<li>收藏一个音色 → 在新任务的“最近/收藏”中试听并选择。</li>
+<li>归档一个已使用视频 → 旧任务仍能渲染 → 新任务默认不可选。</li>
+<li>切换紫色/珊瑚红主题完成同一套管理和选择流程。</li>
+<li>上传中强制重启应用 → 重开后任务继续或明确失败 → 不出现无主临时文件。</li>
+<li>更新一个模板 → 旧任务继续使用旧 revision → 新任务使用新 revision → 两者预览与成片各自一致。</li>
+</ol>
+<h3 id="164">16.4 可用性验收指标<a class="headerlink" href="#164" title="Permanent link">&para;</a></h3>
+<ul>
+<li>已知名称资产：用户在 10 秒内找到并预览。</li>
+<li>已有资产加入单个生产 slot：不超过 3 次主要操作。</li>
+<li>上传失败时用户能指出失败文件和原因，并可单项重试。</li>
+<li>任何卡片都能在不暴露原始磁盘路径的情况下理解类型、状态、比例/时长和用途。</li>
+<li>数字人首次选择前即可看到人物预览、场景和兼容性。</li>
+</ul>
+<hr />
+<h2 id="17">17. 风险与防护<a class="headerlink" href="#17" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>风险</th>
+<th>防护</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JSON → SQLite 迁移丢数据</td>
+<td>原文件不移动；事务导入；数量/哈希报告；一版双读与回退</td>
+</tr>
+<tr>
+<td>大视频上传占满内存或磁盘</td>
+<td>流式 <code>.part</code> 文件、前置空间检查、单批次限制、取消清理</td>
+</tr>
+<tr>
+<td>视频分析阻塞 UI</td>
+<td>先建 processing 记录；持久化本地任务生成 poster/proxy；列表可渐进更新</td>
+</tr>
+<tr>
+<td>应用重启留下僵尸任务</td>
+<td><code>media_jobs</code> 持久化；启动时重排 running；临时文件保留期清理</td>
+</tr>
+<tr>
+<td>共享组件变成万能巨石</td>
+<td>卡片骨架与类型 renderer 分离；上下文通过 picker request 注入</td>
+</tr>
+<tr>
+<td>品牌/模板被过度资产化</td>
+<td>只统一搜索投影；品牌、模板、数字人保留领域表和类型化接口</td>
+</tr>
+<tr>
+<td>生产任务受重命名/归档影响</td>
+<td>session 保存资源 ID；渲染启动时锁定 revision/hash/renderer version</td>
+</tr>
+<tr>
+<td>usage 与任务状态漂移</td>
+<td>选择操作内同步增删；唯一约束；reconciliation 对账</td>
+</tr>
+<tr>
+<td>数字人筛选字段为空</td>
+<td>只显示有值 facets；允许逐步补元数据</td>
+</tr>
+<tr>
+<td>自动标签不准确</td>
+<td>自动标签标注来源并允许编辑；第一阶段不作为硬约束</td>
+</tr>
+<tr>
+<td>主题回归</td>
+<td>禁止硬编码主色；两套主题纳入视觉测试</td>
+</tr>
+<tr>
+<td>大规模一次重构难回退</td>
+<td>feature flag、兼容接口、阶段性交付、最后删除旧 UI</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="18">18. 本轮明确不做<a class="headerlink" href="#18" title="Permanent link">&para;</a></h2>
+<ul>
+<li>不做跨企业云端多租户、团队权限和远程对象存储；先把本地桌面资产域做稳。</li>
+<li>不做依赖向量数据库的 AI 语义搜索；结构化标签与规则推荐先上线。</li>
+<li>不做数字人市场或第三方供应商商城。</li>
+<li>不把发布改成无人值守自动点击；仍保持自动填充、人工确认最终发布。</li>
+<li>不在迁移阶段覆盖或重编码原始媒体文件。</li>
+</ul>
+<hr />
+<h2 id="19-luna">19. 给 Luna 的最终实施原则<a class="headerlink" href="#19-luna" title="Permanent link">&para;</a></h2>
+<ol>
+<li>先统一数据和契约，再做漂亮页面。</li>
+<li>统一的是资源索引和交互，不是把品牌、模板、数字人强塞进万能媒体表。</li>
+<li>管理页和生产流必须共享同一查询、预览、上传和选择组件。</li>
+<li>数字人必须拆成“档案 + 场景”，不能继续把一个视频文件叫完整数字人。</li>
+<li>图片默认完整展示，裁切是 revision 变体，不覆盖原图。</li>
+<li>删除改为归档，所有资源都要能回答“在哪里被使用”。</li>
+<li>快捷上传必须流式传输，并回到原生产上下文自动选中。</li>
+<li>资源替换、移除、版本切换和渲染快照必须有完整生命周期。</li>
+<li>不兼容资产应展示原因，不应悄悄消失。</li>
+<li>紫色与珊瑚红主题都必须通过同一套视觉与可访问性测试。</li>
+<li>旧接口与旧任务至少保留一个版本的兼容窗口。</li>
+<li>先完成图片/视频垂直闭环，再扩展数字人、品牌和模板。</li>
+<li>每个里程碑独立可运行、可验收、可回退。</li>
+</ol>
+<p>完成这套重构后，企业资产库才会从“文件存放页”升级为贯穿选题、文案、配音、数字人、画面规划、后期、封面和发布准备的生产基础设施。</p>
+<hr />
+<h2 id="20">20. 修订后开工评审<a class="headerlink" href="#20" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>评审日期：2026-07-17
+评审对象：本方案的架构可行性、数据安全、实施顺序、工作量和验收门禁
+证据边界：本轮评审针对实施文档与已检查代码约束，不宣称完成新的逐屏 UI 或无障碍合规审计</p>
+</blockquote>
+<h3 id="201">20.1 评审步骤与健康度<a class="headerlink" href="#201" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>评审内容</th>
+<th>结果</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>领域边界</td>
+<td>通过</td>
+<td>媒体资产、品牌、模板、数字人已分层；统一索引不再等于万能表</td>
+</tr>
+<tr>
+<td>2</td>
+<td>上传与后台任务</td>
+<td>通过</td>
+<td>已明确流式临时文件、进度、磁盘检查、持久化任务和重启恢复</td>
+</tr>
+<tr>
+<td>3</td>
+<td>版本、集合和重复处理</td>
+<td>通过</td>
+<td>已补充 revision、current revision、集合接口和新版本语义</td>
+</tr>
+<tr>
+<td>4</td>
+<td>使用关系和渲染稳定性</td>
+<td>通过</td>
+<td>已覆盖增删 usage、唯一键、reconciliation、双写和不可变快照</td>
+</tr>
+<tr>
+<td>5</td>
+<td>实施顺序</td>
+<td>通过</td>
+<td>阶段 1–2 先交付图片/视频“管理 → 选择 → 渲染”垂直闭环</td>
+</tr>
+<tr>
+<td>6</td>
+<td>迁移与回滚</td>
+<td>通过</td>
+<td>原文件不移动、manifest 备份、事务导入、双读/双写和回滚窗口明确</td>
+</tr>
+<tr>
+<td>7</td>
+<td>工作量</td>
+<td>通过</td>
+<td>完整范围修订为 24–32 人日；MVP 为 15–20 人日；依赖顺序明确</td>
+</tr>
+<tr>
+<td>8</td>
+<td>UX 与主题验收</td>
+<td>通过但需实施验证</td>
+<td>页面规格、数字人双栏、紫色/珊瑚红和可访问性门槛明确，仍需真实截图/E2E 验证</td>
+</tr>
+</tbody>
+</table>
+<h3 id="202">20.2 开工结论<a class="headerlink" href="#202" title="Permanent link">&para;</a></h3>
+<p><strong>评审结果：GO，可以安排 Luna 实施。</strong></p>
+<p>授权边界不是让 Luna 一次性并行重写全部资产库，而是：</p>
+<ol>
+<li>立即安排 Luna 执行阶段 0 和阶段 1。</li>
+<li>阶段 0 的 ADR、迁移 fixture 和回滚方案必须先通过门禁 A。</li>
+<li>阶段 2 必须完成至少一个图片/视频真实渲染闭环，通过门禁 B 后才能扩展数字人、品牌和模板。</li>
+<li>阶段 5 的全量迁移、usage 对账和模板渲染快照通过门禁 C 后，才能默认开启 v2 和清理旧 UI。</li>
+</ol>
+<p>因此，本方案已经达到可实施状态；没有需要产品负责人先回答的阻塞性问题。实施过程中的范围调整应优先延期代理视频、波形和 AI 质量判断，不得削弱迁移回滚、资源快照、使用关系或生产流垂直闭环。</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 18, 2026 15:21:09 UTC">July 18, 2026 15:21:09</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 18, 2026 15:21:09 UTC">July 18, 2026 15:21:09</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Pixelle.AI
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/AIDC-AI/Pixelle-Video" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

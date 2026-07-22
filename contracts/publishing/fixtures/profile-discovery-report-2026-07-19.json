@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-19T00:00:00+08:00",
+  "writes_performed": 0,
+  "candidates": [
+    {
+      "candidate_ref": "relative:data/publish_browser/douyin",
+      "platform": "douyin",
+      "size_kib": 124760,
+      "mtime": "2026-07-18T22:40:05+08:00",
+      "lock_state": "locked",
+      "migration_conclusion": "defer_locked"
+    }
+  ]
+}

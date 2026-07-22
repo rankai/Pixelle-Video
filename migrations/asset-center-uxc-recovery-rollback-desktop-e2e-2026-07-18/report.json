@@ -1,0 +1,38 @@
+{
+  "schema_version": "asset-center-uxc-recovery-rollback-desktop-e2e-v1",
+  "status": "pass",
+  "environment": {
+    "surface": "real Vite + FastAPI desktop web surface",
+    "isolated_data_root": true,
+    "viewport": "1440x900",
+    "target_user_study": false,
+    "release_device_signoff": false
+  },
+  "service_recovery": {
+    "connection_failure_injected": true,
+    "error_shown_without_api_address": true,
+    "retry_recovered_asset_list": true,
+    "screenshot": "uxc-recovery-after-retry.png"
+  },
+  "archive_restore": {
+    "archived_status": "archived",
+    "restored_status": "ready",
+    "screenshot": "uxc-archive-restore-snapshot.png"
+  },
+  "snapshot": {
+    "session_id": "uxc-recovery-snapshot-session",
+    "before_restore_count": 1,
+    "after_restore_count": 1,
+    "resource_id_stable": true
+  },
+  "recordings": [
+    "5a09132929e744415579b8f6a3e5eaf7.webm",
+    "68c18978d1652578235fd065a059f2f3.webm",
+    "88b89f1b484fea7a90eeadb178c6e27d.webm"
+  ],
+  "notes": [
+    "The service failure was injected at the browser network boundary; retry then used the real Vite/FastAPI API.",
+    "Archive/restore was selected through the real detail dialog; the pre-existing resource snapshot remained resolvable.",
+    "This technical evidence does not replace target-user or release-device sign-off."
+  ]
+}

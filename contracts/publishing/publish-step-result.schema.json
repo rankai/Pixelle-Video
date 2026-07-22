@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/publish-step-result.v1.schema.json",
+  "title": "Publish Step Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run_id", "step_id", "step", "state", "evidence", "created_at"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "run_id": { "type": "string", "pattern": "^run_[A-Za-z0-9_-]+$" },
+    "step_id": { "type": "string", "minLength": 1 },
+    "step": { "enum": ["validate_package", "prepare_media", "open_platform", "upload_media", "fill_metadata", "await_human_publish", "verify_result"] },
+    "state": { "enum": ["succeeded", "waiting_for_login", "waiting_for_human", "needs_attention", "failed"] },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "redacted"],
+      "properties": {
+        "kind": { "enum": ["screenshot_ref", "dom_snapshot_ref", "log_ref", "none"] },
+        "ref": { "type": ["string", "null"] },
+        "redacted": { "const": true }
+      }
+    },
+    "error_code": { "type": ["string", "null"] },
+    "created_at": { "type": "string", "minLength": 1 }
+  }
+}

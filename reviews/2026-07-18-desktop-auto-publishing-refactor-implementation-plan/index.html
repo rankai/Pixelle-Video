@@ -1,0 +1,4277 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="AI Video Creator - Generate a short video in 3 minutes">
+      
+      
+        <meta name="author" content="Pixelle.AI">
+      
+      
+        <link rel="canonical" href="https://AIDC-AI.github.io/Pixelle-Video/reviews/2026-07-18-desktop-auto-publishing-refactor-implementation-plan/">
+      
+      
+      
+      
+        
+          <link rel="alternate" href="./" hreflang="en">
+        
+          <link rel="alternate" href="../../zh/reviews/2026-07-18-desktop-auto-publishing-refactor-implementation-plan/" hreflang="zh">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>桌面端自动发布 V2 重构实施方案 - Pixelle-Video</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#v2" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Pixelle-Video" class="md-header__button md-logo" aria-label="Pixelle-Video" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Pixelle-Video
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              桌面端自动发布 V2 重构实施方案
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../zh/reviews/2026-07-18-desktop-auto-publishing-refactor-implementation-plan/" hreflang="zh" class="md-select__link">
+              中文
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/AIDC-AI/Pixelle-Video" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AIDC-AI/Pixelle-Video
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../user-guide/web-ui/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../gallery/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Gallery
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tutorials/your-first-video/" class="md-tabs__link">
+          
+  
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/api-overview/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../development/architecture/" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../troubleshooting/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Troubleshooting
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Pixelle-Video" class="md-nav__button md-logo" aria-label="Pixelle-Video" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Pixelle-Video
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/AIDC-AI/Pixelle-Video" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AIDC-AI/Pixelle-Video
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/web-ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web UI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gallery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gallery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/your-first-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Your First Video
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/custom-style/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Custom Style
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/voice-cloning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Voice Cloning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/api-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. 结论与实施授权
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 证据基线与当前实现判定
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 证据基线与当前实现判定">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 本轮真实抖音验证
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 代码证据
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 当前用户流程健康度
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 产品范围与确定边界
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 产品范围与确定边界">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 本轮默认账号模型
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 浏览器形态
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 支持平台的真实语义
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 最终发布安全边界
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 不可违背的设计原则
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 不可违背的设计原则">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 证据先于绿色状态
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 账号、发布包、发布运行三者分离
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 异步、可暂停、可恢复
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 失败隔离和安全回退
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 性能看端到端任务，不看一个函数耗时
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 目标信息架构与主流程
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 目标信息架构与主流程">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 发布中心信息架构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 目标用户流程
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 三类用户试用任务
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.3 三类用户试用任务">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        用户 A：门店老板，首次发布
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        用户 B：日常运营，重复发布
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        用户 C：运营负责人，故障恢复
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 目标技术架构
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 目标技术架构">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 组件职责
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 建议目录
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 状态模型
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. 状态模型">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 账号登录状态与平台能力状态分离
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 发布运行状态机
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 字段状态
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-generic-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Generic task 映射
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 数据模型与存储契约
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. 数据模型与存储契约">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 存储位置
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-sqlite-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 SQLite schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-publishpackage-v2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 PublishPackage V2
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. API 契约
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. API 契约">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 账号
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 发布包
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 发布运行
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 稳定错误码
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 账号与浏览器 profile 管理
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. 账号与浏览器 profile 管理">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 路径与身份
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 锁与生命周期
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3 登录检测
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#94" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.4 登录持久化验收
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-adapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. 平台 adapter 与证据驱动自动化
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. 平台 adapter 与证据驱动自动化">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#101-adapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1 Adapter 协议
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#102-selector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2 Selector 和页面版本策略
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#103" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3 视频预检与上传
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#104" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.4 标题、描述和话题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#105" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5 封面
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#106" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.6 整体验证和停手
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-finalactionguard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. FinalActionGuard
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. FinalActionGuard">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#111" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.1 运行规则
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#112" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2 安全门禁
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. 生产链路与发布包集成
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. 生产链路与发布包集成">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#121" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.1 生产步骤职责
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#122" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.2 失效与重新生成
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#123-v2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.3 资产中心 V2 关系
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#124-runninghub" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.4 RunningHub 边界
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-ux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. 发布中心 UX 规格
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. 发布中心 UX 规格">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#131" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.1 发布账号
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#132" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.2 准备发布
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#133" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.3 等待登录
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#134" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.4 需要处理
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#135" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.5 等待人工发布
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#136" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.6 发布记录
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. 恢复、幂等和并发
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14. 恢复、幂等和并发">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#141" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.1 幂等
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#142" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.2 恢复策略
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#143" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.3 并发
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. 性能、监控与隐私
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="15. 性能、监控与隐私">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#151" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.1 性能目标
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#152" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.2 事件与指标
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#153" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15.3 诊断包
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. 迁移与兼容
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="16. 迁移与兼容">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#161-profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.1 现有 profile 迁移
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#162" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.2 任务和发布包兼容
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#163-dry-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.3 数据库迁移 dry-run
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-luna" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. Luna 实施阶段与门禁
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="17. Luna 实施阶段与门禁">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pub-012" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 PUB-0：契约、基线和迁移证据（1–2 人日）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pub-1-browserprofilemanager24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 PUB-1：账号领域与 BrowserProfileManager（2–4 人日）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pub-235" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 PUB-2：发布包、异步运行与恢复骨架（3–5 人日）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pub-3-adapter-47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 PUB-3：抖音 adapter 真实加固（4–7 人日）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pub-435" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 PUB-4：发布中心与生产链路整合（3–5 人日）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pub-5-e2e23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 PUB-5：完整成片到人工发布前 E2E（2–3 人日）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pub-6-37" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 PUB-6：逐平台扩展（每个平台 3–7 人日）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pub-723" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        阶段 PUB-7：灰度、性能与发布证据（2–3 人日）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. 测试矩阵
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="18. 测试矩阵">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#181" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18.1 单元与契约测试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#182-adapter-dom-fixture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18.2 Adapter DOM fixture 测试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#183-repositoryapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18.3 Repository/API 集成测试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#184" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18.4 前端组件测试
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#185-harness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18.5 本地浏览器 harness
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#186-smoke" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18.6 真实平台 smoke
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19. 三维验收指标
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="19. 三维验收指标">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#191" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19.1 操作体验
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#192" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19.2 运行效率
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#193" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19.3 验收成果
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#20-feature-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20. Feature flags、灰度与回滚
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#21-luna" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        21. Luna 文件级实施清单
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="21. Luna 文件级实施清单">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#211-0-fixture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        21.1 阶段 0 文档与 fixture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#212" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        21.2 后端主要修改
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#213" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        21.3 前端主要修改
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#214" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        21.4 测试替换
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#22-luna" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22. Luna 提交顺序
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#23-definition-of-done" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        23. Definition of Done
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#24-luna" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        24. Luna 启动指令
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="v2">桌面端自动发布 V2 重构实施方案<a class="headerlink" href="#v2" title="Permanent link">&para;</a></h1>
+<ul>
+<li>日期：2026-07-18</li>
+<li>修订版本：v1.1（纳入应用中心与发布 Program 上位协调）</li>
+<li>交付对象：Luna（产品、前端、后端、自动化、测试均可据此拆任务）</li>
+<li>上位协调方案：<code>docs/superpowers/specs/2026-07-18-application-center-publishing-program-master-plan.md</code></li>
+<li>执行约束：本方案的 PUB 阶段必须按上位方案的严格串行队列和 Program Gate 推进</li>
+<li>方案范围：发布账号管理、登录态持久化、发布中心、短视频生产成片交接、平台自动填充、最终人工发布、任务恢复、监控与回滚</li>
+<li>首个真实放行平台：抖音</li>
+<li>后续平台：快手、视频号、小红书，逐平台单独过门禁</li>
+<li>明确不做：自动点击最终发布、绕过验证码或平台风控、云端同步账号登录态、多人团队账号共享、无人值守批量轰炸</li>
+</ul>
+<h2 id="0">0. 结论与实施授权<a class="headerlink" href="#0" title="Permanent link">&para;</a></h2>
+<p><strong>Luna 只能在上位 Program 的 COORD-0 中联合执行 PUB-0。PUB-A 所要求的 ADR、schema、fixture、迁移 dry-run、当前版基线、人工发布安全证明和回滚证据交齐并评审通过后，才允许进入 PUB-1。</strong></p>
+<p>本轮不是给现有 Playwright 脚本继续补几个 selector，也不是只重画一个发布页面。当前问题横跨五个层次：</p>
+<ol>
+<li>“发布账号”页面使用静态数据把四个平台都标成“可用”，没有真实账号、登录状态或适配器健康度；</li>
+<li>浏览器 profile 虽然能够保存 cookie，但路径、锁、生命周期、账号身份、过期检测和重启恢复没有成为正式领域能力；</li>
+<li>当前同步接口把一次长浏览器操作塞在 HTTP 请求中，缺少可持久化、可暂停、可恢复的发布运行状态；</li>
+<li>当前自动化只证明“调用过 set_input_files/fill”，没有证明平台真正接收视频、字段真实回填或封面已经保存；</li>
+<li>短视频生产只输出一份易变 JSON 和本地路径，没有不可变发布包、媒体指纹、账号绑定、幂等和重新生成后的失效规则。</li>
+</ol>
+<p>目标产品应满足：</p>
+<ul>
+<li>首次扫码后，在平台登录态仍有效时，关闭并重开应用不再要求重复扫码；</li>
+<li>发布中心只展示真实、可解释的账号和平台状态，不展示无法兑现的绿色状态；</li>
+<li>成片完成后生成不可变、可校验、可追溯的发布包，发布运行只引用 <code>package_id + account_id</code>；</li>
+<li>自动化逐步执行并逐字段核验，任何一步不能证明成功时都停在“需要处理”，绝不冒充“草稿已就绪”；</li>
+<li>上传、平台处理、字段填写、封面保存、登录等待均可看到进度、错误和恢复动作；</li>
+<li>自动化最终只到 <code>waiting_for_human</code>，桌面端没有调用最终发布的接口或按钮；</li>
+<li>用户在平台页检查并亲自点击发布，桌面端最多允许用户手动标记结果，不替用户发布；</li>
+<li>一个账号失败不污染其他账号，一个平台页面变更不拖垮生产、下载和复制素材的安全回退。</li>
+</ul>
+<h2 id="1">1. 证据基线与当前实现判定<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<h3 id="11">1.1 本轮真实抖音验证<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
+<p>本方案使用当前代码、用户提供的页面截图和 2026-07-18 的真实可见浏览器验证作为事实基线，不以 fake runtime 单测代替真实平台结果。</p>
+<table>
+<thead>
+<tr>
+<th>验证项</th>
+<th>真实结果</th>
+<th>当前判定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>扫码登录</td>
+<td>用户扫码后，同一 persistent profile 再次打开仍保持登录</td>
+<td>方向可行，但尚未证明打包版、应用重启和 profile 迁移后的稳定性</td>
+</tr>
+<tr>
+<td>无效 MP4</td>
+<td>截断/缺少 <code>moov atom</code> 的文件被当前逻辑交给 file input 后可能被误报为“已上传”</td>
+<td>失败；必须在浏览器前 ffprobe，并等平台真实接收证据</td>
+</tr>
+<tr>
+<td>有效 MP4</td>
+<td>真实 H.264/AAC、1080×1920 MP4 经可见“上传视频”入口进入抖音编辑页</td>
+<td>单点通过；当前生产代码仍未按该证据链实现</td>
+</tr>
+<tr>
+<td>标题</td>
+<td>当前 selector 在真实编辑页成功填入标题</td>
+<td>部分通过；仍需回读和页面版本指纹</td>
+</tr>
+<tr>
+<td>描述</td>
+<td>真实页面使用 contenteditable 类编辑器，当前只找 <code>textarea</code>，未填入</td>
+<td>失败</td>
+</tr>
+<tr>
+<td>话题</td>
+<td>当前实现把话题拼进描述并可能重写描述，未证明生成平台话题实体</td>
+<td>失败</td>
+</tr>
+<tr>
+<td>封面</td>
+<td>图片进入“设置封面”弹窗，但当前实现未点击“保存”却可能返回成功</td>
+<td>失败；只能算 <code>needs_attention</code></td>
+</tr>
+<tr>
+<td>最终发布</td>
+<td>未点击，当前代码也没有最终发布方法</td>
+<td>安全边界方向正确，必须固化成不可回归门禁</td>
+</tr>
+</tbody>
+</table>
+<p>当前页面仍停留在上传入口的用户证据：</p>
+<p><code>/var/folders/lt/6g5zql0d37g7pvzj7gny8g4r0000gn/T/codex-clipboard-63f51eef-5da1-498b-93e1-a08e41a5be4d.png</code></p>
+<p><img alt="当前抖音页面仍停在上传入口" src="/var/folders/lt/6g5zql0d37g7pvzj7gny8g4r0000gn/T/codex-clipboard-63f51eef-5da1-498b-93e1-a08e41a5be4d.png" /></p>
+<p>有效视频进入编辑器并打开封面弹窗的本机证据：</p>
+<p><code>/Volumes/Data/pixelle-live-douyin-after-real-upload.png</code></p>
+<p><img alt="有效视频进入编辑器后打开设置封面弹窗" src="/Volumes/Data/pixelle-live-douyin-after-real-upload.png" /></p>
+<p>这两个路径只能作为本轮调查线索，不是可交付的长期基线。PUB-0 必须把脱敏截图、录像、测试媒体 manifest 和步骤时间复制到仓库外的正式 QA 证据目录，并在评审文档中记录 SHA-256；不得提交用户 cookie、头像、账号标识或完整第三方页面 DOM。</p>
+<h3 id="12">1.2 代码证据<a class="headerlink" href="#12" title="Permanent link">&para;</a></h3>
+<p>当前关键实现：</p>
+<ul>
+<li><code>desktop/src/StudioApp.tsx</code> 中的 <code>PublishAccountsView</code> 是硬编码平台数组，四个平台全部显示“可用”；</li>
+<li><code>desktop/src/features/publishing/PublishWorkspace.tsx</code> 直接同步调用 <code>/api/publish/{platform}/prepare</code>，只接收粗粒度状态和 <code>filled_fields</code>；</li>
+<li><code>desktop/src/StudioApp.tsx</code> 仍保留一套旧发布工作区逻辑，与独立 <code>PublishWorkspace</code> 重复；</li>
+<li><code>pixelle_video/services/publish/browser_runtime.py</code> 使用相对目录 <code>data/publish_browser</code>，通过固定等待和宽泛 selector 判断状态；</li>
+<li><code>upload_video()</code> 在 <code>set_input_files()</code> 后立即返回，<code>upload_cover()</code> 在图片进入 input 后立即返回；</li>
+<li><code>fill_description()</code> 只处理输入框/textarea，真实抖音 contenteditable 未覆盖；</li>
+<li><code>fill_hashtags()</code> 通过重新填写描述实现，字段语义被混合；</li>
+<li><code>wait_until_draft_ready()</code> 只是固定等待 1 秒；</li>
+<li><code>pixelle_video/services/publish/platforms/base.py</code> 对不存在的方法和非 <code>False</code> 返回过于乐观，且多平台类只是空子类；</li>
+<li><code>api/routers/publish.py</code> 在单次 HTTP 请求中同步完成浏览器流程，并把 <code>login_required</code> 等非失败结果也映射成 generic task completed；</li>
+<li><code>api/tasks/persistence.py</code> 使用相对 SQLite 路径，重启后把 pending/running 统一改成失败，不能表达“等待登录/等待人工”；</li>
+<li><code>pixelle_video/services/ip_broadcast_workflow.py</code> 生成的 <code>publish_package</code> 没有 package ID、schema version、媒体 hash、来源 revision 或失效规则；</li>
+<li><code>tests/publish_assistant_test.py</code> 主要验证 fake runtime 调用顺序，无法发现“页面没上传但代码报成功”；</li>
+<li><code>tests/desktop_publish_capability_test.py</code> 主要是源码字符串断言，不是组件交互或真实桌面验收。</li>
+</ul>
+<h3 id="13">1.3 当前用户流程健康度<a class="headerlink" href="#13" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>进入发布中心 — 红色</strong>：能找到入口，但账号与平台状态是静态文案，无法做可靠决策。</li>
+<li><strong>首次连接账号 — 黄色</strong>：可见浏览器中扫码可成功，但产品没有连接任务、身份回读和可恢复流程。</li>
+<li><strong>应用重启后复用登录 — 黄色</strong>：persistent profile 技术方向已证明，同机发布版路径和重启门禁未证明。</li>
+<li><strong>成片交给发布 — 黄色</strong>：生产步骤能产出视频、封面和文案，但发布包不是不可变契约。</li>
+<li><strong>视频上传 — 红色</strong>：有效文件人工触发可进入编辑器；当前实现存在无效文件和未完成上传的假成功。</li>
+<li><strong>填写标题/描述/话题 — 红色</strong>：标题单点成功，描述失败，话题没有平台实体证据。</li>
+<li><strong>上传并保存封面 — 红色</strong>：只打开裁切弹窗，没有保存和回读。</li>
+<li><strong>等待人工发布 — 绿色</strong>：当前未执行最终发布；这一边界需要代码级 guard、测试和审计持续保护。</li>
+<li><strong>失败恢复与历史追踪 — 红色</strong>：无逐步重试、幂等、恢复点和真实账号/运行历史。</li>
+</ol>
+<h2 id="2">2. 产品范围与确定边界<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<h3 id="21">2.1 本轮默认账号模型<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
+<p>本方案按以下边界实施：</p>
+<ul>
+<li>本机单用户；</li>
+<li>每个平台允许建立多个本地账号 profile；</li>
+<li>每个账号有独立 Chromium profile 和独立登录态；</li>
+<li>每个平台可设置一个默认账号，运行前仍必须明确显示本次使用的账号；</li>
+<li>首版可以只展示一个已创建账号，但 schema、API 和锁必须支持多账号；</li>
+<li>不把 cookie、token 或 browser storage 同步到服务端；</li>
+<li>不做团队成员、角色权限、审批流或跨设备接力。</li>
+</ul>
+<p>如果未来产品只保留单账号，前端可以收敛“添加账号”入口，但不得把底层 profile 重新改成按平台唯一目录。</p>
+<h3 id="22">2.2 浏览器形态<a class="headerlink" href="#22" title="Permanent link">&para;</a></h3>
+<p>目标形态是：<strong>由桌面端管理并打开一个独立、可见、持久化的 Chromium 窗口</strong>。</p>
+<p>它不是用户系统默认 Chrome 的任意现有标签页，也不是嵌在 Tauri 页面里的第三方 WebView。原因是第三方创作者后台的登录、文件选择、弹窗、跨域和页面生命周期在独立 persistent context 中更可控。桌面端负责账号状态、任务进度和恢复动作；真实登录与最终发布仍发生在这个可见浏览器窗口中。</p>
+<h3 id="23">2.3 支持平台的真实语义<a class="headerlink" href="#23" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>方案开始时状态</th>
+<th>允许展示的能力</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>抖音</td>
+<td><code>pilot / 部分验证</code></td>
+<td>可连接账号；V2 过 PUB-D 后才能显示“自动填充可用”</td>
+</tr>
+<tr>
+<td>快手</td>
+<td><code>unverified / 待验证</code></td>
+<td>仅显示规划中与复制素材回退；过独立 live gate 后开放自动填充</td>
+</tr>
+<tr>
+<td>视频号</td>
+<td><code>unverified / 待验证</code></td>
+<td>同上</td>
+</tr>
+<tr>
+<td>小红书</td>
+<td><code>unverified / 待验证</code></td>
+<td>同上</td>
+</tr>
+<tr>
+<td>B站</td>
+<td>本轮不接入</td>
+<td>只保留 adapter 扩展点，不在 UI 承诺</td>
+</tr>
+</tbody>
+</table>
+<p>禁止用“代码里有类”“页面里有按钮”“fake runtime 测试通过”作为平台可用依据。每个平台都必须有有效媒体、登录复用、字段回读、封面流程、失败恢复和最终停手的真实证据。</p>
+<h3 id="24">2.4 最终发布安全边界<a class="headerlink" href="#24" title="Permanent link">&para;</a></h3>
+<p>必须遵守：</p>
+<ul>
+<li>不提供 <code>publish() / submit_final() / click_publish()</code> 一类最终动作；</li>
+<li>不调用含“发布、确认发布、立即发布”等最终语义按钮；</li>
+<li>封面弹窗的“保存”、话题选择和普通表单确认可以自动执行，但要在平台 allowlist 中明确列出；</li>
+<li>遇到验证码、滑块、人脸验证、短信验证或风控挑战时转为 <code>waiting_for_user</code>，不得绕过；</li>
+<li>平台页面指纹不匹配时停止，不用坐标或模糊文本盲点；</li>
+<li>自动化达到 <code>waiting_for_human</code> 后停止输入，仅保留浏览器窗口；</li>
+<li>用户在平台页亲自点击最终发布；桌面端允许“我已发布 / 暂不发布”作为人工记录，不把页面跳转推断成权威发布成功；</li>
+<li>任何平台最终发布能力若未来要增加，必须另立方案、授权和安全评审，不属于本方案的“优化”。</li>
+</ul>
+<h2 id="3">3. 不可违背的设计原则<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<h3 id="31">3.1 证据先于绿色状态<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
+<p>状态必须来自可解释 probe：登录身份、视频文件名或编辑器状态、字段回读、话题 chip、封面应用状态。没有证据就是 <code>unknown</code>、<code>needs_attention</code> 或 <code>failed</code>，不能用固定等待换成绿色结果。</p>
+<h3 id="32">3.2 账号、发布包、发布运行三者分离<a class="headerlink" href="#32" title="Permanent link">&para;</a></h3>
+<ul>
+<li>账号回答“用哪个本地登录态”；</li>
+<li>发布包回答“这次要发什么不可变内容”；</li>
+<li>发布运行回答“某个账号把某个发布包准备到哪一步”。</li>
+</ul>
+<p>禁止继续把 session 的当前字段、本地 profile 目录和一次 HTTP 请求混成一个过程。</p>
+<h3 id="33">3.3 异步、可暂停、可恢复<a class="headerlink" href="#33" title="Permanent link">&para;</a></h3>
+<p>创建发布运行必须快速返回 <code>202 + run_id</code>。浏览器工作由本地 orchestrator 执行，UI 读取持久化状态。等待扫码、人工处理封面、平台慢处理和最终人工发布都不是 HTTP 超时，也不是任务失败。</p>
+<h3 id="34">3.4 失败隔离和安全回退<a class="headerlink" href="#34" title="Permanent link">&para;</a></h3>
+<p>平台自动化失败时仍应提供：</p>
+<ul>
+<li>打开平台后台；</li>
+<li>下载/定位最终视频与封面；</li>
+<li>一键复制标题、描述和话题；</li>
+<li>显示具体未完成字段；</li>
+<li>仅重试失败步骤或由用户手工补齐后重新检测。</li>
+</ul>
+<p>生产、资产、下载和其他平台账号不能因一个 adapter 失败而不可用。</p>
+<h3 id="35">3.5 性能看端到端任务，不看一个函数耗时<a class="headerlink" href="#35" title="Permanent link">&para;</a></h3>
+<p>外部平台网络和视频处理耗时不可控，系统必须分别记录：</p>
+<ul>
+<li>本地预检耗时；</li>
+<li>浏览器启动/复用耗时；</li>
+<li>等待登录耗时；</li>
+<li>文件上传耗时；</li>
+<li>平台处理耗时；</li>
+<li>每个字段填写与核验耗时；</li>
+<li>等待人工耗时。</li>
+</ul>
+<p>只对可控的本地开销设硬门禁，对平台耗时采用基线、p50/p95 和超时分层，不用一个总 timeout 粗暴失败。</p>
+<h2 id="4">4. 目标信息架构与主流程<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<h3 id="41">4.1 发布中心信息架构<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
+<p>左侧只保留一个“发布中心”入口，页面内分为三个明确区域：</p>
+<ol>
+<li><code>准备发布</code>：发布包、目标平台、账号选择、预检、运行进度和人工接管；</li>
+<li><code>发布账号</code>：连接、登录状态、默认账号、打开浏览器、重新检测、清除本地登录数据；</li>
+<li><code>发布记录</code>：自动化运行状态、步骤证据、耗时、错误、人工标记结果和安全回退。</li>
+</ol>
+<p>短视频生产第 6 步仍可直接显示发布素材，但点击“准备发布”后进入同一个发布中心并带入 <code>package_id</code>；不得在 <code>StudioApp.tsx</code> 和 <code>PublishWorkspace.tsx</code> 各维护一套发布编排。</p>
+<h3 id="42">4.2 目标用户流程<a class="headerlink" href="#42" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart TD
+    A["短视频生产完成成片"] --&gt; B["生成不可变 PublishPackage V2"]
+    B --&gt; C["选择平台与本地账号"]
+    C --&gt; D["本地媒体与平台规则预检"]
+    D --&gt;|失败| D1["修复素材或复制素材手动发布"]
+    D --&gt;|通过| E["创建 PublishRun，立即返回 run_id"]
+    E --&gt; F["打开或复用账号持久化浏览器"]
+    F --&gt; G{"登录态有效？"}
+    G --&gt;|否| H["等待用户扫码/验证"]
+    H --&gt; I["用户完成登录后自动或手动重新检测"]
+    I --&gt; G
+    G --&gt;|是| J["上传视频并验证平台已接收"]
+    J --&gt; K["等待平台处理和编辑器就绪"]
+    K --&gt; L["逐字段填写并回读"]
+    L --&gt; M["上传封面、处理弹窗并验证保存"]
+    M --&gt; N["整体验证"]
+    N --&gt;|有缺项| O["需要处理：逐项重试/手工补齐/重新检测"]
+    O --&gt; N
+    N --&gt;|通过| P["等待人工：打开浏览器检查"]
+    P --&gt; Q["用户亲自点击平台最终发布"]
+    Q --&gt; R["用户手动标记已发布或暂不发布"]</code></pre>
+<h3 id="43">4.3 三类用户试用任务<a class="headerlink" href="#43" title="Permanent link">&para;</a></h3>
+<h4 id="a">用户 A：门店老板，首次发布<a class="headerlink" href="#a" title="Permanent link">&para;</a></h4>
+<ul>
+<li>从成片结果进入发布；</li>
+<li>选择抖音，发现没有账号；</li>
+<li>点击“连接账号”，可见浏览器打开二维码；</li>
+<li>扫码后账号页自动变成“已登录”，继续原发布运行；</li>
+<li>自动准备到平台编辑页；</li>
+<li>用户核对视频、封面和文案后亲自发布。</li>
+</ul>
+<p>成功标准：用户不需要理解 profile、cookie、selector、任务 ID；登录完成后不用重新开始发布。</p>
+<h4 id="b">用户 B：日常运营，重复发布<a class="headerlink" href="#b" title="Permanent link">&para;</a></h4>
+<ul>
+<li>应用重启后进入发布中心；</li>
+<li>已登录账号显示最近验证时间和默认账号；</li>
+<li>从新成片一键创建发布运行；</li>
+<li>无扫码，直接进入上传和填写；</li>
+<li>可看到每一步耗时与字段核验。</li>
+</ul>
+<p>成功标准：在平台 cookie 未过期时连续 10 次应用重启/发布不重复扫码；重复点击“准备发布”不重复上传。</p>
+<h4 id="c">用户 C：运营负责人，故障恢复<a class="headerlink" href="#c" title="Permanent link">&para;</a></h4>
+<ul>
+<li>发布中遇到登录过期、页面改版、无效视频或封面弹窗异常；</li>
+<li>系统说明失败步骤，不显示“草稿已就绪”；</li>
+<li>用户重新登录、手工补字段或只重试失败步骤；</li>
+<li>若 adapter 暂不可用，可打开平台并复制全部素材手工完成。</li>
+</ul>
+<p>成功标准：成功步骤不被重做，视频不因盲重试重复上传，错误可定位，最终发布安全边界不被突破。</p>
+<h2 id="5">5. 目标技术架构<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart LR
+    UI["Desktop Publishing UI"] --&gt; API["Publish V2 Local API"]
+    API --&gt; PKG["PublishPackageService"]
+    API --&gt; ACC["PublishAccountService"]
+    API --&gt; RUN["PublishRunService"]
+    RUN --&gt; ORCH["PublishOrchestrator"]
+    ORCH --&gt; BPM["BrowserProfileManager"]
+    ORCH --&gt; ADP["PlatformAdapter"]
+    ORCH --&gt; SAFE["FinalActionGuard"]
+    ORCH --&gt; EVD["StepEvidenceRecorder"]
+    PKG --&gt; DB[("publishing.sqlite3")]
+    ACC --&gt; DB
+    RUN --&gt; DB
+    EVD --&gt; DB
+    BPM --&gt; PROFILE["App data / publish_browser/v2"]
+    ADP --&gt; DY["DouyinAdapter"]
+    ADP --&gt; KS["KuaishouAdapter"]
+    ADP --&gt; WX["ShipinhaoAdapter"]
+    ADP --&gt; XHS["XiaohongshuAdapter"]</code></pre>
+<h3 id="51">5.1 组件职责<a class="headerlink" href="#51" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>唯一职责</th>
+<th>禁止承担</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PublishPackageService</code></td>
+<td>从生产 session/资产 revision 生成不可变发布包，探测媒体并计算指纹</td>
+<td>打开浏览器、持有登录态</td>
+</tr>
+<tr>
+<td><code>PublishAccountService</code></td>
+<td>账号元数据、默认账号、登录健康缓存、连接/清理动作</td>
+<td>读取或导出 cookie 内容</td>
+</tr>
+<tr>
+<td><code>BrowserProfileManager</code></td>
+<td>profile 路径、进程/窗口、锁、上下文复用和关闭</td>
+<td>决定平台 DOM selector</td>
+</tr>
+<tr>
+<td><code>PublishRunService</code></td>
+<td>创建运行、幂等、状态查询、人工结果和恢复命令</td>
+<td>在 HTTP 请求内跑完整自动化</td>
+</tr>
+<tr>
+<td><code>PublishOrchestrator</code></td>
+<td>执行有状态步骤、持久化 checkpoint、取消和恢复</td>
+<td>平台特有 DOM 细节</td>
+</tr>
+<tr>
+<td><code>PlatformAdapter</code></td>
+<td>平台页面指纹、登录 probe、上传/字段/封面/核验</td>
+<td>最终发布点击、跨平台通用乐观实现</td>
+</tr>
+<tr>
+<td><code>FinalActionGuard</code></td>
+<td>阻止最终发布语义动作，审计允许点击</td>
+<td>业务字段填写</td>
+</tr>
+<tr>
+<td><code>StepEvidenceRecorder</code></td>
+<td>记录 probe、耗时、脱敏证据和错误码</td>
+<td>保存 cookie、token、用户隐私 DOM</td>
+</tr>
+</tbody>
+</table>
+<h3 id="52">5.2 建议目录<a class="headerlink" href="#52" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pixelle_video/services/publish/
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── models.py
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── package_service.py
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── account_service.py
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── account_repository.py
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── run_service.py
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>├── run_repository.py
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>├── state_machine.py
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>├── orchestrator.py
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>├── browser_profiles.py
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>├── browser_runtime.py
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>├── media_preflight.py
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>├── evidence.py
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>├── errors.py
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>├── safety.py
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>├── migrations/
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>└── adapters/
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    ├── base.py
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    ├── douyin.py
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    ├── kuaishou.py
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    ├── shipinhao.py
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    └── xiaohongshu.py
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>api/routers/
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>├── publish.py                 # V1 兼容/feature flag 路由
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>├── publish_accounts.py
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>├── publish_packages.py
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>└── publish_runs.py
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>desktop/src/features/publishing/
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>├── PublishingCenterPage.tsx
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>├── PublishPreparation.tsx
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>├── PublishAccountList.tsx
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>├── PublishAccountCard.tsx
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>├── PublishRunDetail.tsx
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>├── PublishRunTimeline.tsx
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>├── PublishFieldChecklist.tsx
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>├── PublishHistory.tsx
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>├── PublishingSafetyNotice.tsx
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>├── api.ts
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>├── model.ts
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>└── publishing.css
+</span></code></pre></div>
+<p>拆分时先建立契约和 adapter，再移动 UI。不得在 <code>StudioApp.tsx</code> 中继续增加发布状态或平台 selector。</p>
+<h2 id="6">6. 状态模型<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
+<h3 id="61">6.1 账号登录状态与平台能力状态分离<a class="headerlink" href="#61" title="Permanent link">&para;</a></h3>
+<p>账号 <code>login_state</code>：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>unknown
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>checking
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>signed_out
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>signed_in
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>expired
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>identity_changed
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>challenge_required
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>profile_locked
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>error
+</span></code></pre></div>
+<p>平台 adapter <code>release_state</code>：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>unverified
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>pilot
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>available
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>degraded
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>disabled
+</span></code></pre></div>
+<p>“账号已登录”不等于“该平台自动化可用”；“adapter available”也不等于某个账号当前已登录。UI 必须分别表达。</p>
+<h3 id="62">6.2 发布运行状态机<a class="headerlink" href="#62" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>created
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  -&gt; preflight_running
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  -&gt; preflight_failed | queued
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>queued
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>  -&gt; browser_starting
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>browser_starting
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>  -&gt; waiting_for_login | uploading | failed
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>waiting_for_login
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>  -&gt; browser_starting | cancelled
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>uploading
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>  -&gt; platform_processing | needs_attention | failed | interrupted
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>platform_processing
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>  -&gt; filling_fields | needs_attention | failed | interrupted
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>filling_fields
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>  -&gt; verifying | needs_attention | failed | interrupted
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>verifying
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>  -&gt; waiting_for_human | needs_attention | failed
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>needs_attention
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>  -&gt; verifying | uploading | filling_fields | cancelled
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>waiting_for_human
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>  -&gt; completed_by_user | abandoned_by_user
+</span></code></pre></div>
+<p>约束：</p>
+<ul>
+<li><code>waiting_for_login</code>、<code>needs_attention</code>、<code>waiting_for_human</code> 不是失败；</li>
+<li><code>waiting_for_human</code> 只表示自动化交付完成，不表示平台已发布；</li>
+<li><code>completed_by_user</code> 只由用户在桌面端手动标记，字段名和 UI 必须体现“用户标记”；</li>
+<li>进程崩溃或应用退出产生 <code>interrupted</code>，重启后通过页面 probe 决定恢复点；</li>
+<li>状态转换由一个集中 state machine 校验，repository 不允许任意字符串更新；</li>
+<li>每次转换保存 <code>state_version</code>，使用 optimistic lock 防止双击和并发 worker 覆盖。</li>
+</ul>
+<h3 id="63">6.3 字段状态<a class="headerlink" href="#63" title="Permanent link">&para;</a></h3>
+<p>每个发布运行至少追踪 <code>video/title/description/hashtags/cover</code>：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>not_requested
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>pending
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>applying
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>applied
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>verified
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>needs_attention
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>failed
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>skipped_by_user
+</span></code></pre></div>
+<p><code>filled_fields: string[]</code> 被以下结构替代：</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">&quot;field&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;description&quot;</span><span class="p">,</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;verified&quot;</span><span class="p">,</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="nt">&quot;attempt&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="nt">&quot;expected_fingerprint&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sha256:...&quot;</span><span class="p">,</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="nt">&quot;probe&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;contenteditable.innerText&quot;</span><span class="p">,</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span><span class="nt">&quot;verified_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-07-18T12:00:00+08:00&quot;</span><span class="p">,</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="nt">&quot;error_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;描述已填写并回读一致&quot;</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>证据默认保存 hash、长度、locator 策略名和布尔结果，不在通用日志重复保存完整文案。</p>
+<h3 id="64-generic-task">6.4 Generic task 映射<a class="headerlink" href="#64-generic-task" title="Permanent link">&para;</a></h3>
+<p>发布运行以 <code>publish_runs</code> 为事实源，任务中心只是投影：</p>
+<ul>
+<li>active 状态 → <code>running</code>；</li>
+<li><code>waiting_for_login / needs_attention / waiting_for_human</code> → 新增 <code>waiting_user</code>；</li>
+<li><code>waiting_for_human</code> 的显示文案为“自动填充完成，等待人工发布”，不能显示“已发布”；</li>
+<li><code>completed_by_user</code> → <code>completed</code>，附注“用户标记已发布”；</li>
+<li><code>interrupted</code> → 新增 <code>interrupted</code> 或明确可恢复失败态；</li>
+<li><code>login_required</code> 不再映射为 <code>completed</code>。</li>
+</ul>
+<p>如果 Luna 评审决定不扩展 generic <code>TaskStatus</code>，任务中心也必须使用 publish run 的专属状态组件，不能继续用 completed 掩盖等待状态。</p>
+<h2 id="7">7. 数据模型与存储契约<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
+<h3 id="71">7.1 存储位置<a class="headerlink" href="#71" title="Permanent link">&para;</a></h3>
+<p>所有路径必须由 <code>get_data_path()</code> 或显式 app-data root 解析：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>&lt;PIXELLE_VIDEO_ROOT&gt;/data/publishing/publishing.sqlite3
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>&lt;PIXELLE_VIDEO_ROOT&gt;/data/publish_browser/v2/&lt;platform&gt;/&lt;profile_key&gt;/
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>&lt;PIXELLE_VIDEO_ROOT&gt;/data/publishing/evidence/&lt;run_id&gt;/
+</span></code></pre></div>
+<p>禁止在默认参数中继续使用相对 <code>data/...</code>。Tauri debug 和 release 必须通过同一根目录契约测试；数据库、profile 和 evidence 路径在 API 中不得回传给普通前端视图。</p>
+<h3 id="72-sqlite-schema">7.2 SQLite schema<a class="headerlink" href="#72-sqlite-schema" title="Permanent link">&para;</a></h3>
+<p>PUB-0 必须交付正式 migration 和以下等价 schema；字段名可在 ADR 评审中微调，语义不得弱化。</p>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">publish_accounts</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="n">account_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="n">platform</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="n">display_name</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="n">profile_key</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="n">runtime</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">&#39;playwright&#39;</span><span class="p">,</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="n">is_default</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="n">login_state</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">&#39;unknown&#39;</span><span class="p">,</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">  </span><span class="n">login_subject_hint</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">  </span><span class="n">health_reason</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">  </span><span class="n">last_verified_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">  </span><span class="n">last_login_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">  </span><span class="n">last_used_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">  </span><span class="n">created_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">  </span><span class="n">updated_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">  </span><span class="n">archived_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">  </span><span class="k">UNIQUE</span><span class="p">(</span><span class="n">platform</span><span class="p">,</span><span class="w"> </span><span class="n">profile_key</span><span class="p">)</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="p">);</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">UNIQUE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">ux_publish_account_default</span>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="k">ON</span><span class="w"> </span><span class="n">publish_accounts</span><span class="p">(</span><span class="n">platform</span><span class="p">)</span>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">is_default</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="n">archived_at</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NULL</span><span class="p">;</span>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">publish_packages</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="w">  </span><span class="n">package_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="w">  </span><span class="n">schema_version</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="w">  </span><span class="n">source_kind</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">CHECK</span><span class="w"> </span><span class="p">(</span><span class="n">source_kind</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;artifact_versions&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;legacy_session&#39;</span><span class="p">)),</span>
+</span><span id="__span-7-28"><a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="w">  </span><span class="n">source_project_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-29"><a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="w">  </span><span class="n">source_artifact_ids_json</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">&#39;[]&#39;</span><span class="p">,</span>
+</span><span id="__span-7-30"><a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a><span class="w">  </span><span class="n">source_artifact_version_ids_json</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">&#39;[]&#39;</span><span class="p">,</span>
+</span><span id="__span-7-31"><a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a><span class="w">  </span><span class="n">source_session_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-32"><a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a><span class="w">  </span><span class="n">source_revision</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-33"><a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a><span class="w">  </span><span class="n">package_fingerprint</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-34"><a id="__codelineno-7-34" name="__codelineno-7-34" href="#__codelineno-7-34"></a><span class="w">  </span><span class="n">video_manifest_json</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-35"><a id="__codelineno-7-35" name="__codelineno-7-35" href="#__codelineno-7-35"></a><span class="w">  </span><span class="n">cover_manifest_json</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-36"><a id="__codelineno-7-36" name="__codelineno-7-36" href="#__codelineno-7-36"></a><span class="w">  </span><span class="n">platform_copy_json</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-37"><a id="__codelineno-7-37" name="__codelineno-7-37" href="#__codelineno-7-37"></a><span class="w">  </span><span class="n">policy_json</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-38"><a id="__codelineno-7-38" name="__codelineno-7-38" href="#__codelineno-7-38"></a><span class="w">  </span><span class="n">created_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-39"><a id="__codelineno-7-39" name="__codelineno-7-39" href="#__codelineno-7-39"></a><span class="w">  </span><span class="n">invalidated_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-40"><a id="__codelineno-7-40" name="__codelineno-7-40" href="#__codelineno-7-40"></a><span class="w">  </span><span class="n">invalidation_reason</span><span class="w"> </span><span class="nb">TEXT</span>
+</span><span id="__span-7-41"><a id="__codelineno-7-41" name="__codelineno-7-41" href="#__codelineno-7-41"></a><span class="p">);</span>
+</span><span id="__span-7-42"><a id="__codelineno-7-42" name="__codelineno-7-42" href="#__codelineno-7-42"></a>
+</span><span id="__span-7-43"><a id="__codelineno-7-43" name="__codelineno-7-43" href="#__codelineno-7-43"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">publish_runs</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-7-44"><a id="__codelineno-7-44" name="__codelineno-7-44" href="#__codelineno-7-44"></a><span class="w">  </span><span class="n">run_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+</span><span id="__span-7-45"><a id="__codelineno-7-45" name="__codelineno-7-45" href="#__codelineno-7-45"></a><span class="w">  </span><span class="n">package_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">publish_packages</span><span class="p">(</span><span class="n">package_id</span><span class="p">),</span>
+</span><span id="__span-7-46"><a id="__codelineno-7-46" name="__codelineno-7-46" href="#__codelineno-7-46"></a><span class="w">  </span><span class="n">account_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">publish_accounts</span><span class="p">(</span><span class="n">account_id</span><span class="p">),</span>
+</span><span id="__span-7-47"><a id="__codelineno-7-47" name="__codelineno-7-47" href="#__codelineno-7-47"></a><span class="w">  </span><span class="n">platform</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-48"><a id="__codelineno-7-48" name="__codelineno-7-48" href="#__codelineno-7-48"></a><span class="w">  </span><span class="n">idempotency_key</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">UNIQUE</span><span class="p">,</span>
+</span><span id="__span-7-49"><a id="__codelineno-7-49" name="__codelineno-7-49" href="#__codelineno-7-49"></a><span class="w">  </span><span class="k">state</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-50"><a id="__codelineno-7-50" name="__codelineno-7-50" href="#__codelineno-7-50"></a><span class="w">  </span><span class="n">state_version</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-7-51"><a id="__codelineno-7-51" name="__codelineno-7-51" href="#__codelineno-7-51"></a><span class="w">  </span><span class="n">current_step</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-52"><a id="__codelineno-7-52" name="__codelineno-7-52" href="#__codelineno-7-52"></a><span class="w">  </span><span class="n">attempt</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-7-53"><a id="__codelineno-7-53" name="__codelineno-7-53" href="#__codelineno-7-53"></a><span class="w">  </span><span class="n">editor_url</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-54"><a id="__codelineno-7-54" name="__codelineno-7-54" href="#__codelineno-7-54"></a><span class="w">  </span><span class="n">error_code</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-55"><a id="__codelineno-7-55" name="__codelineno-7-55" href="#__codelineno-7-55"></a><span class="w">  </span><span class="n">error_message</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-56"><a id="__codelineno-7-56" name="__codelineno-7-56" href="#__codelineno-7-56"></a><span class="w">  </span><span class="n">requires_human_confirmation</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-7-57"><a id="__codelineno-7-57" name="__codelineno-7-57" href="#__codelineno-7-57"></a><span class="w">  </span><span class="n">user_marked_outcome</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-58"><a id="__codelineno-7-58" name="__codelineno-7-58" href="#__codelineno-7-58"></a><span class="w">  </span><span class="n">created_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-59"><a id="__codelineno-7-59" name="__codelineno-7-59" href="#__codelineno-7-59"></a><span class="w">  </span><span class="n">updated_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-60"><a id="__codelineno-7-60" name="__codelineno-7-60" href="#__codelineno-7-60"></a><span class="w">  </span><span class="n">started_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-61"><a id="__codelineno-7-61" name="__codelineno-7-61" href="#__codelineno-7-61"></a><span class="w">  </span><span class="n">automation_ready_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-62"><a id="__codelineno-7-62" name="__codelineno-7-62" href="#__codelineno-7-62"></a><span class="w">  </span><span class="n">finished_at</span><span class="w"> </span><span class="nb">TEXT</span>
+</span><span id="__span-7-63"><a id="__codelineno-7-63" name="__codelineno-7-63" href="#__codelineno-7-63"></a><span class="p">);</span>
+</span><span id="__span-7-64"><a id="__codelineno-7-64" name="__codelineno-7-64" href="#__codelineno-7-64"></a>
+</span><span id="__span-7-65"><a id="__codelineno-7-65" name="__codelineno-7-65" href="#__codelineno-7-65"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">publish_run_steps</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-7-66"><a id="__codelineno-7-66" name="__codelineno-7-66" href="#__codelineno-7-66"></a><span class="w">  </span><span class="n">step_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+</span><span id="__span-7-67"><a id="__codelineno-7-67" name="__codelineno-7-67" href="#__codelineno-7-67"></a><span class="w">  </span><span class="n">run_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">publish_runs</span><span class="p">(</span><span class="n">run_id</span><span class="p">),</span>
+</span><span id="__span-7-68"><a id="__codelineno-7-68" name="__codelineno-7-68" href="#__codelineno-7-68"></a><span class="w">  </span><span class="n">step_key</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-69"><a id="__codelineno-7-69" name="__codelineno-7-69" href="#__codelineno-7-69"></a><span class="w">  </span><span class="n">status</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-70"><a id="__codelineno-7-70" name="__codelineno-7-70" href="#__codelineno-7-70"></a><span class="w">  </span><span class="n">attempt</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-71"><a id="__codelineno-7-71" name="__codelineno-7-71" href="#__codelineno-7-71"></a><span class="w">  </span><span class="n">started_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-72"><a id="__codelineno-7-72" name="__codelineno-7-72" href="#__codelineno-7-72"></a><span class="w">  </span><span class="n">finished_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-73"><a id="__codelineno-7-73" name="__codelineno-7-73" href="#__codelineno-7-73"></a><span class="w">  </span><span class="n">duration_ms</span><span class="w"> </span><span class="nb">INTEGER</span><span class="p">,</span>
+</span><span id="__span-7-74"><a id="__codelineno-7-74" name="__codelineno-7-74" href="#__codelineno-7-74"></a><span class="w">  </span><span class="n">probe_name</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-75"><a id="__codelineno-7-75" name="__codelineno-7-75" href="#__codelineno-7-75"></a><span class="w">  </span><span class="n">evidence_json</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-76"><a id="__codelineno-7-76" name="__codelineno-7-76" href="#__codelineno-7-76"></a><span class="w">  </span><span class="n">error_code</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-77"><a id="__codelineno-7-77" name="__codelineno-7-77" href="#__codelineno-7-77"></a><span class="w">  </span><span class="n">error_message</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-78"><a id="__codelineno-7-78" name="__codelineno-7-78" href="#__codelineno-7-78"></a><span class="w">  </span><span class="k">UNIQUE</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span><span class="w"> </span><span class="n">step_key</span><span class="p">,</span><span class="w"> </span><span class="n">attempt</span><span class="p">)</span>
+</span><span id="__span-7-79"><a id="__codelineno-7-79" name="__codelineno-7-79" href="#__codelineno-7-79"></a><span class="p">);</span>
+</span><span id="__span-7-80"><a id="__codelineno-7-80" name="__codelineno-7-80" href="#__codelineno-7-80"></a>
+</span><span id="__span-7-81"><a id="__codelineno-7-81" name="__codelineno-7-81" href="#__codelineno-7-81"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">publish_events</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-7-82"><a id="__codelineno-7-82" name="__codelineno-7-82" href="#__codelineno-7-82"></a><span class="w">  </span><span class="n">event_id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+</span><span id="__span-7-83"><a id="__codelineno-7-83" name="__codelineno-7-83" href="#__codelineno-7-83"></a><span class="w">  </span><span class="n">run_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">publish_runs</span><span class="p">(</span><span class="n">run_id</span><span class="p">),</span>
+</span><span id="__span-7-84"><a id="__codelineno-7-84" name="__codelineno-7-84" href="#__codelineno-7-84"></a><span class="w">  </span><span class="n">event_type</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+</span><span id="__span-7-85"><a id="__codelineno-7-85" name="__codelineno-7-85" href="#__codelineno-7-85"></a><span class="w">  </span><span class="n">payload_json</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+</span><span id="__span-7-86"><a id="__codelineno-7-86" name="__codelineno-7-86" href="#__codelineno-7-86"></a><span class="w">  </span><span class="n">created_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
+</span><span id="__span-7-87"><a id="__codelineno-7-87" name="__codelineno-7-87" href="#__codelineno-7-87"></a><span class="p">);</span>
+</span><span id="__span-7-88"><a id="__codelineno-7-88" name="__codelineno-7-88" href="#__codelineno-7-88"></a>
+</span><span id="__span-7-89"><a id="__codelineno-7-89" name="__codelineno-7-89" href="#__codelineno-7-89"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">ix_publish_runs_account_created</span>
+</span><span id="__span-7-90"><a id="__codelineno-7-90" name="__codelineno-7-90" href="#__codelineno-7-90"></a><span class="k">ON</span><span class="w"> </span><span class="n">publish_runs</span><span class="p">(</span><span class="n">account_id</span><span class="p">,</span><span class="w"> </span><span class="n">created_at</span><span class="w"> </span><span class="k">DESC</span><span class="p">);</span>
+</span><span id="__span-7-91"><a id="__codelineno-7-91" name="__codelineno-7-91" href="#__codelineno-7-91"></a>
+</span><span id="__span-7-92"><a id="__codelineno-7-92" name="__codelineno-7-92" href="#__codelineno-7-92"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">ix_publish_runs_state_updated</span>
+</span><span id="__span-7-93"><a id="__codelineno-7-93" name="__codelineno-7-93" href="#__codelineno-7-93"></a><span class="k">ON</span><span class="w"> </span><span class="n">publish_runs</span><span class="p">(</span><span class="k">state</span><span class="p">,</span><span class="w"> </span><span class="n">updated_at</span><span class="w"> </span><span class="k">DESC</span><span class="p">);</span>
+</span><span id="__span-7-94"><a id="__codelineno-7-94" name="__codelineno-7-94" href="#__codelineno-7-94"></a>
+</span><span id="__span-7-95"><a id="__codelineno-7-95" name="__codelineno-7-95" href="#__codelineno-7-95"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">ix_publish_events_run_id</span>
+</span><span id="__span-7-96"><a id="__codelineno-7-96" name="__codelineno-7-96" href="#__codelineno-7-96"></a><span class="k">ON</span><span class="w"> </span><span class="n">publish_events</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span><span class="w"> </span><span class="n">event_id</span><span class="p">);</span>
+</span></code></pre></div>
+<p>约束：</p>
+<ul>
+<li>cookie、localStorage、refresh token、二维码内容不写 SQLite；</li>
+<li><code>login_subject_hint</code> 只保存脱敏账号提示，例如平台返回的昵称或尾号，禁止保存可复用凭证；</li>
+<li>profile 目录权限收紧为当前 OS 用户可读写；</li>
+<li>evidence 有 TTL，默认 7 天；失败截图可配置保留，日志长期保留时必须脱敏；</li>
+<li>migration 必须带 schema version、事务、备份和重复执行测试。</li>
+</ul>
+<h3 id="73-publishpackage-v2">7.3 PublishPackage V2<a class="headerlink" href="#73-publishpackage-v2" title="Permanent link">&para;</a></h3>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">{</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nt">&quot;package_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pkg_...&quot;</span><span class="p">,</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="nt">&quot;kind&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;artifact_versions&quot;</span><span class="p">,</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="nt">&quot;project_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;project_...&quot;</span><span class="p">,</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="nt">&quot;artifact_ids&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;artifact_...&quot;</span><span class="p">],</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">    </span><span class="nt">&quot;artifact_version_ids&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;artifact_version_...&quot;</span><span class="p">],</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">    </span><span class="nt">&quot;session_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">    </span><span class="nt">&quot;source_revision&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">    </span><span class="nt">&quot;generated_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">  </span><span class="nt">&quot;video&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">    </span><span class="nt">&quot;managed_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">    </span><span class="nt">&quot;sha256&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">    </span><span class="nt">&quot;size_bytes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">    </span><span class="nt">&quot;mime&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;video/mp4&quot;</span><span class="p">,</span>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="w">    </span><span class="nt">&quot;codec&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;h264&quot;</span><span class="p">,</span>
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="w">    </span><span class="nt">&quot;audio_codec&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;aac&quot;</span><span class="p">,</span>
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="w">    </span><span class="nt">&quot;duration_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1200</span><span class="p">,</span>
+</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="w">    </span><span class="nt">&quot;width&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1080</span><span class="p">,</span>
+</span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="w">    </span><span class="nt">&quot;height&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1920</span>
+</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-8-24"><a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a><span class="w">  </span><span class="nt">&quot;cover&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-25"><a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a><span class="w">    </span><span class="nt">&quot;managed_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+</span><span id="__span-8-26"><a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a><span class="w">    </span><span class="nt">&quot;sha256&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+</span><span id="__span-8-27"><a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a><span class="w">    </span><span class="nt">&quot;size_bytes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span>
+</span><span id="__span-8-28"><a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a><span class="w">    </span><span class="nt">&quot;mime&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;image/png&quot;</span><span class="p">,</span>
+</span><span id="__span-8-29"><a id="__codelineno-8-29" name="__codelineno-8-29" href="#__codelineno-8-29"></a><span class="w">    </span><span class="nt">&quot;width&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1080</span><span class="p">,</span>
+</span><span id="__span-8-30"><a id="__codelineno-8-30" name="__codelineno-8-30" href="#__codelineno-8-30"></a><span class="w">    </span><span class="nt">&quot;height&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1920</span>
+</span><span id="__span-8-31"><a id="__codelineno-8-31" name="__codelineno-8-31" href="#__codelineno-8-31"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-8-32"><a id="__codelineno-8-32" name="__codelineno-8-32" href="#__codelineno-8-32"></a><span class="w">  </span><span class="nt">&quot;copy&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-33"><a id="__codelineno-8-33" name="__codelineno-8-33" href="#__codelineno-8-33"></a><span class="w">    </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-34"><a id="__codelineno-8-34" name="__codelineno-8-34" href="#__codelineno-8-34"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+</span><span id="__span-8-35"><a id="__codelineno-8-35" name="__codelineno-8-35" href="#__codelineno-8-35"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+</span><span id="__span-8-36"><a id="__codelineno-8-36" name="__codelineno-8-36" href="#__codelineno-8-36"></a><span class="w">      </span><span class="nt">&quot;hashtags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;...&quot;</span><span class="p">]</span>
+</span><span id="__span-8-37"><a id="__codelineno-8-37" name="__codelineno-8-37" href="#__codelineno-8-37"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-8-38"><a id="__codelineno-8-38" name="__codelineno-8-38" href="#__codelineno-8-38"></a><span class="w">    </span><span class="nt">&quot;platforms&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-39"><a id="__codelineno-8-39" name="__codelineno-8-39" href="#__codelineno-8-39"></a><span class="w">      </span><span class="nt">&quot;douyin&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-40"><a id="__codelineno-8-40" name="__codelineno-8-40" href="#__codelineno-8-40"></a><span class="w">        </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+</span><span id="__span-8-41"><a id="__codelineno-8-41" name="__codelineno-8-41" href="#__codelineno-8-41"></a><span class="w">        </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+</span><span id="__span-8-42"><a id="__codelineno-8-42" name="__codelineno-8-42" href="#__codelineno-8-42"></a><span class="w">        </span><span class="nt">&quot;hashtags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;...&quot;</span><span class="p">]</span>
+</span><span id="__span-8-43"><a id="__codelineno-8-43" name="__codelineno-8-43" href="#__codelineno-8-43"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-8-44"><a id="__codelineno-8-44" name="__codelineno-8-44" href="#__codelineno-8-44"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-8-45"><a id="__codelineno-8-45" name="__codelineno-8-45" href="#__codelineno-8-45"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-8-46"><a id="__codelineno-8-46" name="__codelineno-8-46" href="#__codelineno-8-46"></a><span class="w">  </span><span class="nt">&quot;policy&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-8-47"><a id="__codelineno-8-47" name="__codelineno-8-47" href="#__codelineno-8-47"></a><span class="w">    </span><span class="nt">&quot;final_action&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;human_only&quot;</span><span class="p">,</span>
+</span><span id="__span-8-48"><a id="__codelineno-8-48" name="__codelineno-8-48" href="#__codelineno-8-48"></a><span class="w">    </span><span class="nt">&quot;cover_required&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+</span><span id="__span-8-49"><a id="__codelineno-8-49" name="__codelineno-8-49" href="#__codelineno-8-49"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-8-50"><a id="__codelineno-8-50" name="__codelineno-8-50" href="#__codelineno-8-50"></a><span class="w">  </span><span class="nt">&quot;package_fingerprint&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sha256:...&quot;</span>
+</span><span id="__span-8-51"><a id="__codelineno-8-51" name="__codelineno-8-51" href="#__codelineno-8-51"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>规则：</p>
+<ul>
+<li>package 创建后不可原地修改；文案或成片变化产生新 package；</li>
+<li>新应用默认使用 <code>artifact_versions</code> 来源；现有 IP 口播在 AC-5 前允许使用 <code>legacy_session</code> adapter；<code>source_session_id</code> 只在 legacy 来源时必填；</li>
+<li>生产步骤的依赖失效时，旧 package 标记 invalidated，新运行不得使用；已存在运行保留其快照以便追溯；</li>
+<li><code>source_revision</code> 由生产 session revision、最终视频/封面 hash 和文案 hash 共同确定；</li>
+<li>前端不再把任意本地路径提交给 publish API；后端从可信 session/artifact 创建 package；</li>
+<li>文件使用前再次 <code>resolve()</code> 并校验仍位于受管 output/temp/data 根目录，拒绝 symlink 逃逸；</li>
+<li>运行创建时校验文件 hash/size，避免成片被覆盖后继续发布旧描述；</li>
+<li>导出的 JSON 可以保留业务字段，但内部绝对路径应标注为本机路径，不作为跨机发布包承诺。</li>
+</ul>
+<h2 id="8-api">8. API 契约<a class="headerlink" href="#8-api" title="Permanent link">&para;</a></h2>
+<p>统一使用 <code>/api/publish/v2</code>。PUB-0 输出 OpenAPI snapshot、TypeScript 类型和成功/失败 fixture。</p>
+<h3 id="81">8.1 账号<a class="headerlink" href="#81" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>GET    /api/publish/v2/accounts
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>POST   /api/publish/v2/accounts
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>GET    /api/publish/v2/accounts/{account_id}
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>POST   /api/publish/v2/accounts/{account_id}/connect
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>POST   /api/publish/v2/accounts/{account_id}/verify
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>POST   /api/publish/v2/accounts/{account_id}/open
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>POST   /api/publish/v2/accounts/{account_id}/make-default
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>POST   /api/publish/v2/accounts/{account_id}/archive
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>POST   /api/publish/v2/accounts/{account_id}/clear-profile
+</span></code></pre></div>
+<ul>
+<li><code>connect/verify/open</code> 当前统一复用安全的显式 probe 入口并返回账号投影（HTTP 200）；不得把同步 probe 误报为异步操作 ID 或平台级真实验证；异步连接任务、已打开窗口复用和平台级 challenge/identity 细化留 PUB-3/PUB-4；</li>
+<li><code>clear-profile</code> 是破坏性操作，必须二次确认、profile 未被运行占用、先关闭 context，再删除本地登录数据；</li>
+<li>普通“退出账号”优先引导用户在平台页面退出，不静默删除 profile；</li>
+<li>列表返回缓存健康状态、最近验证时间和 adapter release state，不能为了渲染列表阻塞逐平台网络请求。</li>
+</ul>
+<h3 id="82">8.2 发布包<a class="headerlink" href="#82" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>POST /api/publish/v2/packages/from-session
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>GET  /api/publish/v2/packages/{package_id}
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>POST /api/publish/v2/packages/{package_id}/preflight
+</span></code></pre></div>
+<p><code>from-session</code> 只接受 <code>session_id</code> 和可选目标平台，不接受浏览器传来的文件路径。若 session 未完成成片或 package 已失效，返回稳定业务错误码。</p>
+<h3 id="83">8.3 发布运行<a class="headerlink" href="#83" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>POST /api/publish/v2/runs
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>GET  /api/publish/v2/runs/{run_id}
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>GET  /api/publish/v2/runs/{run_id}/events?after=&lt;event_id&gt;
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>POST /api/publish/v2/runs/{run_id}/resume
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>POST /api/publish/v2/runs/{run_id}/verify
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>POST /api/publish/v2/runs/{run_id}/retry-step
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>POST /api/publish/v2/runs/{run_id}/cancel
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>POST /api/publish/v2/runs/{run_id}/mark-outcome
+</span></code></pre></div>
+<p>创建请求：</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="p">{</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">&quot;package_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pkg_...&quot;</span><span class="p">,</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span><span class="nt">&quot;account_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;acct_...&quot;</span><span class="p">,</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span><span class="nt">&quot;platform&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;douyin&quot;</span><span class="p">,</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">  </span><span class="nt">&quot;idempotency_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;client-generated-or-derived&quot;</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>创建必须在 300ms 本地 p95 目标内返回：</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="p">{</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nt">&quot;run_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;run_...&quot;</span><span class="p">,</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;queued&quot;</span><span class="p">,</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">  </span><span class="nt">&quot;requires_human_confirmation&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>规则：</p>
+<ul>
+<li>同一个 <code>package_fingerprint + account_id + platform</code> 已有 active run 时返回该 run，不创建第二次上传；</li>
+<li><code>retry-step</code> 只接受当前状态允许的步骤，并先 probe 页面，不能盲目重放前置步骤；</li>
+<li><code>mark-outcome</code> 只接受 <code>published_by_user</code> 或 <code>abandoned_by_user</code>，响应始终说明这是人工记录；</li>
+<li>API 中不存在最终发布 endpoint；</li>
+<li>active run 由 UI 轮询事件增量，前台活跃时建议 1 秒、等待人工时 3–5 秒，不返回重复大对象；</li>
+<li>所有变更接口只在 desktop local mode 可用，并使用 Tauri 启动时生成的本地 capability token 与严格 origin allowlist；仅依赖 <code>PIXELLE_DESKTOP_MODE=true</code> 不足以构成安全边界。</li>
+</ul>
+<h3 id="84">8.4 稳定错误码<a class="headerlink" href="#84" title="Permanent link">&para;</a></h3>
+<p>至少包含：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>PUBLISH_PACKAGE_NOT_READY
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>PUBLISH_PACKAGE_STALE
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>MEDIA_PATH_UNTRUSTED
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>MEDIA_MISSING
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>MEDIA_HASH_MISMATCH
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>MEDIA_PROBE_FAILED
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>MEDIA_PLATFORM_UNSUPPORTED
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>ACCOUNT_NOT_FOUND
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>ACCOUNT_LOGIN_REQUIRED
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>ACCOUNT_LOGIN_EXPIRED
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>ACCOUNT_IDENTITY_CHANGED
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>ACCOUNT_CHALLENGE_REQUIRED
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>PROFILE_LOCKED
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>PLATFORM_ADAPTER_UNVERIFIED
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>PLATFORM_PAGE_CHANGED
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>VIDEO_UPLOAD_REJECTED
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>VIDEO_PROCESSING_TIMEOUT
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>FIELD_LOCATOR_NOT_FOUND
+</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>FIELD_VALUE_MISMATCH
+</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>COVER_REQUIRES_MANUAL_CROP
+</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a>COVER_NOT_SAVED
+</span><span id="__span-14-22"><a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a>RUN_STATE_CONFLICT
+</span><span id="__span-14-23"><a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a>RUN_INTERRUPTED
+</span><span id="__span-14-24"><a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a>FINAL_ACTION_BLOCKED
+</span></code></pre></div>
+<p>用户文案与技术诊断分离。UI 默认显示业务动作，诊断区显示 error code、run ID、adapter version 和脱敏 probe。</p>
+<h2 id="9-profile">9. 账号与浏览器 profile 管理<a class="headerlink" href="#9-profile" title="Permanent link">&para;</a></h2>
+<h3 id="91">9.1 路径与身份<a class="headerlink" href="#91" title="Permanent link">&para;</a></h3>
+<ul>
+<li>新账号生成随机 <code>account_id</code> 和不含昵称的 <code>profile_key</code>；</li>
+<li>profile 路径为 app-data 下稳定绝对路径，不依赖 cwd；</li>
+<li>账号昵称可后续通过平台安全 DOM probe 回读，回读失败仍可使用用户自定义名称；</li>
+<li>首次成功登录时保存不可逆的身份指纹；同一 profile 后续检测到另一个平台身份时进入 <code>identity_changed</code>，要求用户确认“更新此账号”或新建账号，不能静默串号；</li>
+<li>不通过复制系统 Chrome 用户目录来“免登录”；</li>
+<li>不导入或导出 cookie；</li>
+<li>profile 目录加入 <code>.gitignore</code>、备份排除建议和诊断脱敏规则。</li>
+</ul>
+<h3 id="92">9.2 锁与生命周期<a class="headerlink" href="#92" title="Permanent link">&para;</a></h3>
+<ul>
+<li>一个 profile 同时只允许一个自动化 run；</li>
+<li>使用跨进程文件锁 + 内存 ownership，锁文件不含凭证；</li>
+<li>同账号重复打开优先聚焦已有窗口；</li>
+<li>不同账号可并行，但默认全局最大 2 个浏览器 context，避免桌面内存失控；</li>
+<li><code>waiting_for_human</code> 时保留窗口并释放自动化输入权，不释放 profile ownership；</li>
+<li>用户关闭窗口时 run 转为 <code>needs_attention</code> 或 <code>interrupted</code>，不直接重开并继续点击；</li>
+<li>应用正常退出关闭 context 但保留 profile；异常退出后下次启动清理 stale lock，并通过页面 probe 恢复；</li>
+<li>profile 清理必须确认没有 active run，并提供目录大小和“将需要重新扫码”的影响说明。</li>
+</ul>
+<h3 id="93">9.3 登录检测<a class="headerlink" href="#93" title="Permanent link">&para;</a></h3>
+<p>禁止使用“URL 不包含 login + 页面没有登录文字”的宽泛判断。每个平台 adapter 提供：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>probe_login_state()
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>  -&gt; signed_in(subject_hint, evidence)
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>  -&gt; signed_out(evidence)
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>  -&gt; identity_changed(previous_fingerprint, current_fingerprint, evidence)
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>  -&gt; challenge_required(evidence)
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>  -&gt; unknown(reason)
+</span></code></pre></div>
+<p>登录成功至少满足一个平台身份元素和一个创作者页面能力元素；页面加载中、骨架屏、网络错误、风控页均不能算登录成功。检测采用条件等待和总超时，不用固定 1500ms。</p>
+<p>连接流程：</p>
+<ol>
+<li>打开该账号 profile 的平台创作者页；</li>
+<li>probe 为 signed_out 时显示“等待扫码/验证”；</li>
+<li>后台低频重新检测，用户也可点击“我已登录，重新检测”；</li>
+<li>signed_in 后保存时间和脱敏身份提示；</li>
+<li>若由发布运行触发，原 run 自动从 checkpoint 继续，不要求用户再次点击开始；</li>
+<li>遇到 challenge 时明确等待用户，禁止自动解决。</li>
+</ol>
+<h3 id="94">9.4 登录持久化验收<a class="headerlink" href="#94" title="Permanent link">&para;</a></h3>
+<p>PUB-B 至少证明：</p>
+<ul>
+<li>首次扫码成功；</li>
+<li>关闭浏览器 context 后重新打开仍登录；</li>
+<li>关闭并重开桌面应用仍登录；</li>
+<li>重启 sidecar 后仍登录；</li>
+<li>连续 10 次打开同一账号不要求重复扫码；</li>
+<li>cookie 正常过期后能检测为 expired，并在重新登录后恢复原 run；</li>
+<li>账号 A/B profile 不串号；</li>
+<li>同一 profile 被用户手工切换成另一个平台账号时能检测身份变化并暂停；</li>
+<li>debug 和打包版均使用预期 app-data 目录；</li>
+<li>profile 被占用时返回可理解错误，不启动第二个冲突 Chromium。</li>
+</ul>
+<h2 id="10-adapter">10. 平台 adapter 与证据驱动自动化<a class="headerlink" href="#10-adapter" title="Permanent link">&para;</a></h2>
+<h3 id="101-adapter">10.1 Adapter 协议<a class="headerlink" href="#101-adapter" title="Permanent link">&para;</a></h3>
+<p>禁止空子类继承一个乐观通用流程。通用 orchestrator 只编排状态，平台 adapter 必须显式实现：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">PlatformAdapter</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>    <span class="n">platform</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>    <span class="n">adapter_version</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">capabilities</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PlatformCapabilities</span><span class="p">:</span> <span class="o">...</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">page_fingerprint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ProbeResult</span><span class="p">:</span> <span class="o">...</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">probe_login_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LoginProbe</span><span class="p">:</span> <span class="o">...</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">open_upload_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StepResult</span><span class="p">:</span> <span class="o">...</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">upload_video</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">,</span> <span class="n">media</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StepResult</span><span class="p">:</span> <span class="o">...</span>
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">wait_video_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">,</span> <span class="n">media</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StepResult</span><span class="p">:</span> <span class="o">...</span>
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">apply_title</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StepResult</span><span class="p">:</span> <span class="o">...</span>
+</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">apply_description</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StepResult</span><span class="p">:</span> <span class="o">...</span>
+</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">apply_hashtags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StepResult</span><span class="p">:</span> <span class="o">...</span>
+</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">apply_cover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">,</span> <span class="n">media</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StepResult</span><span class="p">:</span> <span class="o">...</span>
+</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">verify_draft</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">,</span> <span class="n">expected</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DraftVerification</span><span class="p">:</span> <span class="o">...</span>
+</span></code></pre></div>
+<p>协议中不得出现最终 publish 方法。</p>
+<h3 id="102-selector">10.2 Selector 和页面版本策略<a class="headerlink" href="#102-selector" title="Permanent link">&para;</a></h3>
+<p>优先级：</p>
+<ol>
+<li>可访问性 role、label、placeholder、稳定 form 语义；</li>
+<li>平台稳定属性和与 label 的结构关系；</li>
+<li>adapter 内版本化 fallback；</li>
+<li>精确页面 fingerprint 与失败停手。</li>
+</ol>
+<p>禁止：</p>
+<ul>
+<li>用 <code>textarea</code> 第一个元素或 <code>input[type=file]</code> 第一个元素代表业务字段；</li>
+<li>用屏幕坐标点击；</li>
+<li>用“页面里出现某个常见词”判断成功；</li>
+<li>页面指纹不匹配后继续逐个试所有按钮；</li>
+<li>把 selector 写回通用 browser runtime。</li>
+</ul>
+<p>每个平台维护最小化 DOM fixture，不保存完整第三方页面和用户数据。fixture 要覆盖已登录、未登录、上传入口、上传中、编辑器就绪、字段、封面弹窗、平台错误和页面改版未知态。</p>
+<h3 id="103">10.3 视频预检与上传<a class="headerlink" href="#103" title="Permanent link">&para;</a></h3>
+<p>浏览器前执行：</p>
+<ul>
+<li>文件存在、可读、非 symlink 逃逸；</li>
+<li>SHA-256、大小；</li>
+<li>ffprobe 可解析容器；</li>
+<li>视频 codec、音频 codec、时长、分辨率、帧率、旋转信息；</li>
+<li>平台能力 manifest 的格式/大小/时长/比例约束；</li>
+<li>可选快速 decode 首尾关键帧，防止只有 metadata 可读但媒体损坏。</li>
+</ul>
+<p>无效 MP4 必须在打开上传页前失败。测试中固定加入缺少 <code>moov atom</code>、0 字节、扩展名伪装和 hash 变化 fixture。</p>
+<p>上传证据链：</p>
+<ol>
+<li>定位并点击可见“上传视频”入口；</li>
+<li>监听 file chooser 或定位与该入口关联的 file input；</li>
+<li>选择文件；</li>
+<li>等到页面出现匹配的文件名/时长/预览或明确上传进度；</li>
+<li>等上传完成和平台处理完成；</li>
+<li>等编辑器必需字段可交互；</li>
+<li>检查平台拒绝、格式错误、版权/审核提示；</li>
+<li>只有 4–7 有确定证据后 <code>video=verified</code>。</li>
+</ol>
+<p><code>set_input_files()</code> 本身只能产生 <code>applied</code>，不能产生 <code>verified</code>。</p>
+<h3 id="104">10.4 标题、描述和话题<a class="headerlink" href="#104" title="Permanent link">&para;</a></h3>
+<ul>
+<li>标题填写后从控件 value/innerText 回读，按平台字符规范化后比较；</li>
+<li>描述支持 <code>contenteditable</code>、富文本或 textarea，但 selector 必须由平台 adapter 决定；</li>
+<li>填写富文本时正确触发 input/change/blur，不只改 DOM property；</li>
+<li>描述和话题分开处理，禁止为加话题重新覆盖描述；</li>
+<li>若平台把话题表现为 chip，验证 chip 文本和数量；若平台只接受正文 hashtag，adapter capability 必须明确 <code>hashtags_mode=inline_text</code>；</li>
+<li>字数截断必须在 package 预览中提前展示，不能在自动化中静默截断；</li>
+<li>回读不一致时进入 <code>needs_attention</code>，展示期望长度、实际长度和手工复制按钮。</li>
+</ul>
+<h3 id="105">10.5 封面<a class="headerlink" href="#105" title="Permanent link">&para;</a></h3>
+<ul>
+<li>先验证平台是否支持独立封面及要求；</li>
+<li>图片进入 input 仅为 <code>applied</code>；</li>
+<li>若出现裁切/设置封面弹窗，等待预览加载；</li>
+<li>默认裁切可满足规则时，允许点击 adapter allowlist 中的“保存”；</li>
+<li>需要用户移动裁切框、选帧或平台未给稳定确认元素时，转为 <code>COVER_REQUIRES_MANUAL_CROP</code>；</li>
+<li>保存后必须回到编辑页并验证封面缩略图/状态发生预期变化；</li>
+<li>未验证保存不能把 cover 放进 <code>verified</code>，也不能把整单标为 ready。</li>
+</ul>
+<h3 id="106">10.6 整体验证和停手<a class="headerlink" href="#106" title="Permanent link">&para;</a></h3>
+<p><code>waiting_for_human</code> 的最低条件：</p>
+<ul>
+<li>video <code>verified</code>；</li>
+<li>平台要求的 title/description 已 <code>verified</code>；</li>
+<li>requested hashtags 按 adapter 能力 <code>verified</code>，或由用户明确跳过可选项；</li>
+<li>requested cover <code>verified</code>，或由用户明确接管；</li>
+<li>当前页面 fingerprint 是已知编辑器；</li>
+<li>FinalActionGuard 本运行没有触发违规；</li>
+<li>页面中最终发布按钮存在与否都不点击。</li>
+</ul>
+<p>准备完成后 UI 显示逐项清单和“打开浏览器检查”，不显示桌面端“发布”主按钮。</p>
+<h2 id="11-finalactionguard">11. FinalActionGuard<a class="headerlink" href="#11-finalactionguard" title="Permanent link">&para;</a></h2>
+<p>这是独立安全组件，不是提示文案。</p>
+<h3 id="111">11.1 运行规则<a class="headerlink" href="#111" title="Permanent link">&para;</a></h3>
+<ul>
+<li>所有 adapter click 通过受控 action executor；</li>
+<li>action 声明平台、页面指纹、动作 ID、允许的目标语义；</li>
+<li>adapter 维护 allowlist，例如上传入口、话题选择、封面保存；</li>
+<li>guard 拒绝最终发布语义、未知按钮和页面指纹外动作；</li>
+<li>拒绝时写入 <code>FINAL_ACTION_BLOCKED</code> 并停止运行；</li>
+<li>禁止 adapter 直接调用裸 <code>page.click()</code> 绕过 executor；lint/AST 测试检查；</li>
+<li>PR 评审必须展示新增 click action 的业务用途和 fixture。</li>
+</ul>
+<h3 id="112">11.2 安全门禁<a class="headerlink" href="#112" title="Permanent link">&para;</a></h3>
+<p>PUB-A 和每个平台 live gate 必须证明：</p>
+<ul>
+<li>代码搜索不存在最终 submit 方法；</li>
+<li>对“发布、确认发布、立即发布”等 fixture 按钮调用会被拒绝；</li>
+<li>封面“保存”允许且不会误匹配最终发布；</li>
+<li>模糊 selector、坐标点击和 <code>nth(0)</code> 关键动作被静态检查禁止；</li>
+<li>可见 live 测试始终停在最终发布前；</li>
+<li>测试账号页面没有真实平台发布副作用。</li>
+</ul>
+<h2 id="12_1">12. 生产链路与发布包集成<a class="headerlink" href="#12_1" title="Permanent link">&para;</a></h2>
+<h3 id="121">12.1 生产步骤职责<a class="headerlink" href="#121" title="Permanent link">&para;</a></h3>
+<p><code>_run_publish()</code> 只负责整理并固化发布包，不直接调用平台：</p>
+<ol>
+<li>确认最终视频 artifact 存在；</li>
+<li>对视频/封面执行媒体 probe 和 hash；</li>
+<li>读取生产 session revision、品牌发布字段和平台建议；</li>
+<li>生成 <code>PublishPackage V2</code> 并持久化；</li>
+<li>把 <code>package_id</code> 写回 session state/artifact；</li>
+<li>在第 6 步展示预览、复制、下载和“进入发布中心”；</li>
+<li>用户选择账号后才创建 run。</li>
+</ol>
+<h3 id="122">12.2 失效与重新生成<a class="headerlink" href="#122" title="Permanent link">&para;</a></h3>
+<p>以下变化使旧 package invalidated：</p>
+<ul>
+<li>最终视频或封面变化；</li>
+<li>标题、描述、话题变化；</li>
+<li>平台建议变化；</li>
+<li>品牌发布字段变化；</li>
+<li>production source revision 变化。</li>
+</ul>
+<p>旧运行继续保留旧 package 快照，不被新 session 字段静默覆盖。用户从旧 package 再发时必须明确“这是旧版本”，active run 不允许热替换媒体。</p>
+<h3 id="123-v2">12.3 资产中心 V2 关系<a class="headerlink" href="#123-v2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>若最终视频/封面已有稳定 asset/revision，package 同时记录资源引用和受管路径；</li>
+<li>若只是本次生产临时输出，先记录 artifact manifest，不强迫用户先入资产库；</li>
+<li>发布运行不得改变资产 revision；</li>
+<li>发布成功的人工标记可以记录 usage，但不能把平台发布 ID 冒充资产 revision；</li>
+<li>资产中心 UX-A 与发布 PUB-A 是独立门禁，二者通过稳定 artifact/revision 接口集成，不互相越权。</li>
+</ul>
+<h3 id="124-runninghub">12.4 RunningHub 边界<a class="headerlink" href="#124-runninghub" title="Permanent link">&para;</a></h3>
+<p>发布核心测试使用仓库内可重复生成的有效本地 MP4/PNG fixture，不依赖 RunningHub 余额。完整生产链路门禁另加一条真实成片来源测试：RunningHub 可用时用真实成片；外部余额不足时可先标记该证据阻塞，但不得把本地 fixture 测试伪称为“云生产链路已通过”。</p>
+<h2 id="13-ux">13. 发布中心 UX 规格<a class="headerlink" href="#13-ux" title="Permanent link">&para;</a></h2>
+<h3 id="131">13.1 发布账号<a class="headerlink" href="#131" title="Permanent link">&para;</a></h3>
+<p>账号卡必须显示：</p>
+<ul>
+<li>平台名称和 adapter 状态；</li>
+<li>账号名称/脱敏身份提示；</li>
+<li><code>已登录 / 登录过期 / 账号身份变化 / 未连接 / 检测中 / 需要验证 / 浏览器占用 / 未知</code>；</li>
+<li>最近检测时间、最近成功使用时间；</li>
+<li>是否默认账号；</li>
+<li>主动作：连接、继续登录、打开浏览器、重新检测；</li>
+<li>次动作：设为默认、重命名、归档；</li>
+<li>危险动作：清除本机登录数据，二次确认。</li>
+</ul>
+<p>禁止：</p>
+<ul>
+<li>四个平台静态绿色“可用”；</li>
+<li>只写“本机登录态”但不给真实检测；</li>
+<li>进入账号页就同时拉起四个浏览器；</li>
+<li>把“平台 adapter 可用”和“账号已登录”合成一个标签。</li>
+</ul>
+<h3 id="132">13.2 准备发布<a class="headerlink" href="#132" title="Permanent link">&para;</a></h3>
+<p>页面从上到下：</p>
+<ol>
+<li>发布包摘要：视频预览、封面、版本、生成时间、是否失效；</li>
+<li>平台与账号：只允许选择 release_state 达标的 adapter；未验证平台保留复制素材；</li>
+<li>预检：媒体、文案长度、封面和账号状态；</li>
+<li>运行时间线：登录、上传、处理、标题、描述、话题、封面、验证；</li>
+<li>字段清单：期望、实际状态、错误和逐项动作；</li>
+<li>人工接管：打开/聚焦浏览器、复制未填字段、停止自动化；</li>
+<li>安全说明：最终发布由用户在平台页面点击。</li>
+</ol>
+<p>运行中离开页面不丢状态；重新进入按 <code>run_id</code> 恢复。按钮不能用一个长 loading 覆盖全部过程。</p>
+<h3 id="133">13.3 等待登录<a class="headerlink" href="#133" title="Permanent link">&para;</a></h3>
+<ul>
+<li>桌面端显示“浏览器已打开，请扫码或完成平台验证”；</li>
+<li>显示当前账号，不要求用户猜是哪一个窗口；</li>
+<li>提供“打开/聚焦浏览器”和“我已登录，重新检测”；</li>
+<li>自动低频检测，但不得高频刷新二维码页；</li>
+<li>登录成功后继续原 run；</li>
+<li>用户取消时保留 package，不删除账号 profile。</li>
+</ul>
+<h3 id="134">13.4 需要处理<a class="headerlink" href="#134" title="Permanent link">&para;</a></h3>
+<p>按字段给动作：</p>
+<ul>
+<li>视频失败：查看平台错误、重新选择由 package 校验的原视频、重试上传；</li>
+<li>描述失败：复制描述、在浏览器手工粘贴、重新检测；</li>
+<li>话题失败：复制话题或逐个手工添加、重新检测；</li>
+<li>封面需裁切：聚焦封面弹窗，用户处理后重新检测；</li>
+<li>页面改版：停止自动化，只允许手工回退并生成诊断包。</li>
+</ul>
+<p>不得用“重新打开发布助手再试”作为所有错误的唯一动作。</p>
+<h3 id="135">13.5 等待人工发布<a class="headerlink" href="#135" title="Permanent link">&para;</a></h3>
+<ul>
+<li>显示绿色“自动填充已完成”，而不是“发布成功”；</li>
+<li>展示每项 verified/用户接管状态；</li>
+<li>唯一主动作是“打开浏览器检查”；</li>
+<li>次动作是复制素材和下载文件；</li>
+<li>用户回到桌面后可点“我已发布”或“暂不发布”；</li>
+<li>不自动关闭浏览器，不自动清空文案，不把人工等待计入自动化耗时。</li>
+</ul>
+<h3 id="136">13.6 发布记录<a class="headerlink" href="#136" title="Permanent link">&para;</a></h3>
+<p>列表字段：平台、账号、发布包标题、自动化状态、人工结果、开始时间、自动化耗时、失败步骤。详情显示时间线、字段证据、error code、adapter version 和回退动作。</p>
+<p>默认不展示 cookie、完整本地 profile 路径、完整用户账号标识或第三方敏感 DOM。</p>
+<h2 id="14">14. 恢复、幂等和并发<a class="headerlink" href="#14" title="Permanent link">&para;</a></h2>
+<h3 id="141">14.1 幂等<a class="headerlink" href="#141" title="Permanent link">&para;</a></h3>
+<ul>
+<li>run idempotency key 默认由 <code>package_fingerprint + account_id + platform</code> 派生；</li>
+<li>同键 active run 返回原 run；</li>
+<li>已 <code>completed_by_user</code> 后再次准备必须要求用户创建新运行；</li>
+<li>step 写入使用 <code>(run_id, step_key, attempt)</code> 唯一键；</li>
+<li>API 重试和 UI 双击不得创建两个 browser context 或两次上传。</li>
+</ul>
+<h3 id="142">14.2 恢复策略<a class="headerlink" href="#142" title="Permanent link">&para;</a></h3>
+<p>重启后按 checkpoint + 页面 probe：</p>
+<ul>
+<li>尚未选择文件：从 upload step 继续；</li>
+<li>平台已显示上传中：恢复观察，不再次 set file；</li>
+<li>编辑器已就绪且视频证据一致：跳过上传，从未验证字段继续；</li>
+<li>页面在封面弹窗：恢复 cover step 或等待用户；</li>
+<li>页面身份无法证明属于该 run：进入 <code>needs_attention</code>，禁止猜测并重传；</li>
+<li>profile 窗口已关闭：重新打开后 probe，不能只按 DB state 继续；</li>
+<li>package 文件 hash 变化：停止并要求创建新 package。</li>
+</ul>
+<h3 id="143">14.3 并发<a class="headerlink" href="#143" title="Permanent link">&para;</a></h3>
+<ul>
+<li>同一 profile 串行；</li>
+<li>同一 package 可针对不同平台/账号创建不同 run；</li>
+<li>全局默认最多 2 个自动化 run，超出进入 queued；</li>
+<li>waiting_for_login/waiting_for_human 是否占并发槽由 orchestrator 释放 worker，但 profile 锁仍保留；</li>
+<li>用户手工操作页面时 adapter 不持续覆盖输入；每个 step 完成后停止，检测到值变化时提示冲突。</li>
+</ul>
+<h2 id="15">15. 性能、监控与隐私<a class="headerlink" href="#15" title="Permanent link">&para;</a></h2>
+<h3 id="151">15.1 性能目标<a class="headerlink" href="#151" title="Permanent link">&para;</a></h3>
+<p>PUB-0 先测当前基线，PUB-A 冻结口径。以下是不能下调的本地目标：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>创建 run API</td>
+<td>本机 p95 ≤ 300ms，浏览器任务异步执行</td>
+</tr>
+<tr>
+<td>账号列表读取缓存状态</td>
+<td>本机 p95 ≤ 200ms，不启动浏览器</td>
+</tr>
+<tr>
+<td>active run UI 状态可见延迟</td>
+<td>p95 ≤ 1.5s</td>
+</tr>
+<tr>
+<td>小型标准 fixture 媒体预检</td>
+<td>p95 ≤ 3s</td>
+</tr>
+<tr>
+<td>重复点击创建的额外上传数</td>
+<td>0</td>
+</tr>
+<tr>
+<td>有效登录态下重复扫码次数</td>
+<td>10 次应用重启中 0 次</td>
+</tr>
+<tr>
+<td>自动化额外固定等待</td>
+<td>0 个无条件 sleep；全部改为条件等待</td>
+</tr>
+<tr>
+<td>profile 冲突启动数</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>外部平台上传和处理不设虚假绝对秒数。PUB-0 记录同一网络、同一 1 秒/15 秒/60 秒 fixture 的 p50/p95，分别冻结“本地开销”和“平台等待”目标。新版相对当前可验证基线至少减少 30% 的重复点击，并消除重复扫码和整单重试。</p>
+<h3 id="152">15.2 事件与指标<a class="headerlink" href="#152" title="Permanent link">&para;</a></h3>
+<p>记录：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>publish.account.verify.started/completed
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>publish.account.login_required/signed_in/expired
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>publish.run.created/state_changed/interrupted
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>publish.step.started/verified/needs_attention/failed
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>publish.guard.final_action_blocked
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>publish.run.waiting_for_human
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>publish.run.user_marked_outcome
+</span></code></pre></div>
+<p>维度只含 platform、adapter_version、step、error_code、duration bucket、app version。默认不含标题、描述、话题、账号昵称、cookie、二维码、完整 URL query 或本地绝对路径。</p>
+<h3 id="153">15.3 诊断包<a class="headerlink" href="#153" title="Permanent link">&para;</a></h3>
+<p>用户主动点击“导出诊断”时生成本地 zip：</p>
+<ul>
+<li>run 状态和事件；</li>
+<li>adapter/app/schema version；</li>
+<li>媒体 manifest（hash、codec、尺寸，不含视频文件）；</li>
+<li>selector strategy 名称和 probe 结果；</li>
+<li>可选脱敏截图；</li>
+<li>已自动移除 cookie、authorization、二维码、账号 ID 和 query token。</li>
+</ul>
+<p>诊断包生成前显示内容范围，默认不上传到任何服务器。</p>
+<h2 id="16">16. 迁移与兼容<a class="headerlink" href="#16" title="Permanent link">&para;</a></h2>
+<h3 id="161-profile">16.1 现有 profile 迁移<a class="headerlink" href="#161-profile" title="Permanent link">&para;</a></h3>
+<p>当前可能存在：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>&lt;cwd&gt;/data/publish_browser/&lt;platform&gt;/
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>&lt;PIXELLE_VIDEO_ROOT&gt;/data/publish_browser/&lt;platform&gt;/
+</span></code></pre></div>
+<p>PUB-0 先实现只读 discovery + dry-run，输出：候选目录、平台、目录大小、最后修改时间、锁状态和可迁移结论；禁止读取或输出 cookie 内容。</p>
+<p>迁移策略：</p>
+<ol>
+<li>浏览器全部关闭并取得 profile lock；</li>
+<li>每个旧平台目录创建一个“默认账号（迁移）”；</li>
+<li>灰度期优先原地登记旧可信目录，避免复制导致登录态丢失；</li>
+<li>fresh account 使用 V2 canonical path；</li>
+<li>若后续搬迁，采用 copy → 文件清单/hash 校验 → 新 profile 实际登录验证 → 保留旧目录观察窗口 → 再清理；</li>
+<li>V1/V2 不允许同时打开同一目录；</li>
+<li>rollback 时旧目录仍可由 V1 使用，不做 cookie down-migration。</li>
+</ol>
+<h3 id="162">16.2 任务和发布包兼容<a class="headerlink" href="#162" title="Permanent link">&para;</a></h3>
+<ul>
+<li>旧 generic publish tasks 只作为历史展示，不强行转换成可恢复 run；</li>
+<li>V1 <code>publish_package</code> 通过只读 adapter 可生成 V2 package，缺少 hash 时重新 probe；</li>
+<li>新生产步骤只写 V2 package ID，同时保留导出 JSON；</li>
+<li>V1 <code>/api/publish/{platform}/prepare</code> 在 feature flag 关闭前保留，但 UI 默认不再调用；</li>
+<li>V1 结果必须明确标记 legacy，不允许和 V2 verified 状态混用。</li>
+</ul>
+<h3 id="163-dry-run">16.3 数据库迁移 dry-run<a class="headerlink" href="#163-dry-run" title="Permanent link">&para;</a></h3>
+<p>dry-run 必须证明：</p>
+<ul>
+<li>新装、已有 tasks DB、已有 profile、无 profile、profile 被锁五种情况；</li>
+<li>migration 可重复执行；</li>
+<li>中途失败不留下半个默认账号；</li>
+<li>不删除、移动或修改 profile；</li>
+<li>backup 路径、schema version 和 rollback 命令可复现；</li>
+<li>V2 关闭后当前 V1 页面仍可打开旧 profile；</li>
+<li>敏感文件名和 cookie 内容不进入报告。</li>
+</ul>
+<h2 id="17-luna">17. Luna 实施阶段与门禁<a class="headerlink" href="#17-luna" title="Permanent link">&para;</a></h2>
+<p>本章定义发布领域 Gate；实际进入顺序、与应用中心的共同契约、共享文件所有权和进度状态以上位 Program 协调方案及其实时台账为准。特别是 PUB-0 必须与 AC-0 在 <code>COORD-0</code> 联合冻结 ArtifactVersion、PublishPackage V2、PublishRun 与 Generic Task 投影边界；PUB-4 不得早于 AC-1/AC-2/AC-5 对应 Program Gate。</p>
+<h3 id="pub-012">阶段 PUB-0：契约、基线和迁移证据（1–2 人日）<a class="headerlink" href="#pub-012" title="Permanent link">&para;</a></h3>
+<p>交付：</p>
+<ul>
+<li><code>ADR-PublishV2-Boundaries</code>：账号/发布包/运行边界、独立可见浏览器、最终人工发布；</li>
+<li><code>ADR-PublishAccountProfile</code>：app-data 路径、多账号、锁、登录探测、清理和隐私；</li>
+<li><code>ADR-PublishRunStateMachine</code>：状态、checkpoint、幂等、恢复、generic task 投影；</li>
+<li><code>ADR-PublishPackageV2</code>：schema、媒体 manifest、失效、可信路径和生产集成；</li>
+<li><code>ADR-PlatformAdapterEvidence</code>：adapter 协议、selector/page fingerprint、StepResult 和 FinalActionGuard；</li>
+<li>SQLite schema/migration、JSON schema、OpenAPI snapshot 和 TypeScript contract；</li>
+<li>有效/无效媒体 fixture 生成脚本与 manifest；</li>
+<li>最小平台 DOM fixtures，不含账号隐私；</li>
+<li>当前版 9 项任务的点击数、耗时、结果和截图/录像基线；</li>
+<li>profile discovery 和 migration dry-run；</li>
+<li>V1 feature flag 与回滚 smoke 设计。</li>
+</ul>
+<p>基线任务：</p>
+<ol>
+<li>首次连接抖音并扫码；</li>
+<li>关闭浏览器、重开账号；</li>
+<li>重启应用、验证免扫码；</li>
+<li>无效 MP4 上传；</li>
+<li>有效 MP4 进入编辑器；</li>
+<li>标题、描述和话题填写；</li>
+<li>封面上传、裁切弹窗和保存；</li>
+<li>中途关闭窗口后恢复；</li>
+<li>最终停在人工发布前。</li>
+</ol>
+<p>**门禁 PUB-A：**以下证据缺一不可；未通过不得进入账号和自动化代码重构：</p>
+<ol>
+<li>五份 ADR 经评审，明确本轮多账号/单机/人工最终发布边界；</li>
+<li>PublishPackage、PublishRun、Account、StepResult JSON schema 的有效/无效 fixtures 通过；</li>
+<li>SQLite migration 在空库、旧库、重复执行和故障注入下通过，rollback 方案不删除 profile；</li>
+<li>profile migration dry-run 对当前本机目录输出脱敏报告；</li>
+<li>有效 MP4、缺 <code>moov atom</code>、0 字节、伪扩展名、合法/非法封面 fixtures 可重复生成并有 SHA manifest；</li>
+<li>当前 9 项任务的截图/录像、点击数、自动化时间和人工等待时间分离记录；</li>
+<li>FinalActionGuard 的允许/禁止动作表和测试 fixture 通过；</li>
+<li>V1 回滚开关、旧 profile 可打开和旧发布素材复制回退 smoke 通过；</li>
+<li>四个平台 V2 release state 的目标固定为抖音 pilot、其余 unverified；现有 V1 UI 的“可用”文案在 COORD-0 仅记录为 legacy baseline，不代表 V2 available。PUB-1 首次允许修正文案并由 Gate-E 验证，COORD-0 不修改业务 UI。</li>
+</ol>
+<h3 id="pub-1-browserprofilemanager24">阶段 PUB-1：账号领域与 BrowserProfileManager（2–4 人日）<a class="headerlink" href="#pub-1-browserprofilemanager24" title="Permanent link">&para;</a></h3>
+<p>工作：</p>
+<ul>
+<li>建立 publishing SQLite repository 和 migration；</li>
+<li>实现 account API、默认账号、归档和 clear-profile；</li>
+<li>使用 app-data canonical path；</li>
+<li>实现 profile lock、context registry、聚焦已有窗口和 stale lock 恢复；</li>
+<li>实现抖音 login probe 与连接状态机；</li>
+<li>发布中心账号 tab 接真实 API；</li>
+<li>移除静态绿色账号卡。</li>
+</ul>
+<p>**门禁 PUB-B：**抖音首次扫码、浏览器重开、应用重启、sidecar 重启、连续 10 次复用、过期重登、A/B 账号隔离、profile 锁冲突和打包版 app-data 路径全部通过。任何登录失败不得清空现有 profile。</p>
+<h3 id="pub-235">阶段 PUB-2：发布包、异步运行与恢复骨架（3–5 人日）<a class="headerlink" href="#pub-235" title="Permanent link">&para;</a></h3>
+<p>工作：</p>
+<ul>
+<li>PublishPackage V2 builder、媒体 probe、hash 和失效；</li>
+<li>run/event/step repository；</li>
+<li>orchestrator、状态机、异步 worker、取消、resume、idempotency；</li>
+<li>generic task <code>waiting_user</code> 投影或专属 publish run UI；</li>
+<li>V2 API 与前端轮询；</li>
+<li>Tauri local capability token、origin allowlist 和 path hardening；</li>
+<li>V1 兼容 adapter 和 feature flag。</li>
+</ul>
+<p>**门禁 PUB-C：**run 创建快速返回；重启后状态可恢复；双击不重复 run；同 profile 不并发；任意路径/symlink 被拒；无效媒体不打开浏览器；login_required 不再 completed；关闭 V2 后 V1 回退可用。</p>
+<h3 id="pub-3-adapter-47">阶段 PUB-3：抖音 adapter 真实加固（4–7 人日）<a class="headerlink" href="#pub-3-adapter-47" title="Permanent link">&para;</a></h3>
+<p>工作：</p>
+<ul>
+<li>版本化 page fingerprints 和 DOM fixtures；</li>
+<li>可见上传入口 + file chooser；</li>
+<li>上传进度、平台处理、编辑器就绪和平台错误 probe；</li>
+<li>title 回读；</li>
+<li>contenteditable description；</li>
+<li>平台话题语义；</li>
+<li>cover 弹窗、保存和回读；</li>
+<li>verify_draft；</li>
+<li>FinalActionGuard；</li>
+<li>失败截图与脱敏诊断。</li>
+</ul>
+<p>**门禁 PUB-D：**至少用 1 秒、15 秒和 60 秒三个有效 MP4 完成可见 live smoke；无效 MP4 在本地失败；视频、标题、描述、话题、封面逐项有 verified 证据；页面慢加载、登录过期、封面需人工、关闭窗口、页面指纹未知均正确停手；最终发布从未被点击。只有通过后抖音 adapter 从 pilot 升为 available。</p>
+<h3 id="pub-435">阶段 PUB-4：发布中心与生产链路整合（3–5 人日）<a class="headerlink" href="#pub-435" title="Permanent link">&para;</a></h3>
+<p>工作：</p>
+<ul>
+<li>建立“准备发布 / 发布账号 / 发布记录”统一页面；</li>
+<li><code>PublishWorkspace</code> 只做发布包摘要和跳转；</li>
+<li>删除 <code>StudioApp.tsx</code> 中重复发布编排；</li>
+<li>接入账号选择、package 预检、run timeline、字段清单和人工接管；</li>
+<li>接入生产 package invalidation；</li>
+<li>接入复制/下载安全回退；</li>
+<li>增加组件测试、键盘操作和窄窗口检查。</li>
+</ul>
+<p>**门禁 PUB-E：**门店老板首次发布、运营重复发布、负责人故障恢复三个任务通过；刷新/离开页面不丢 run；UI 不出现“已发布”假状态；生产字段变化能使旧 package 失效；复制/下载在 adapter 失败时仍可用；源码字符串测试被组件/交互测试替代。</p>
+<h3 id="pub-5-e2e23">阶段 PUB-5：完整成片到人工发布前 E2E（2–3 人日）<a class="headerlink" href="#pub-5-e2e23" title="Permanent link">&para;</a></h3>
+<p>工作：</p>
+<ul>
+<li>从短视频生产创建真实 package；</li>
+<li>选择真实抖音账号并运行；</li>
+<li>自动上传成片、填写、封面保存；</li>
+<li>用户检查但不点击最终发布的自动测试终点；</li>
+<li>单独安排人工最终点击的业务验收，由用户决定是否使用测试账号发布；自动化证据不要求真实发出内容；</li>
+<li>记录操作体验、运行效率和验收成果。</li>
+</ul>
+<p>**门禁 PUB-F：**生产 session → package → run → 抖音编辑器 <code>waiting_for_human</code> 全链路通过；package 媒体 hash 与平台上传证据一致；同一发布包不重复上传；应用重启后登录复用；最终按钮未自动点击；若 RunningHub 因余额不可用，云生产来源证据明确标阻塞，不能用本地 fixture 冒充。</p>
+<h3 id="pub-6-37">阶段 PUB-6：逐平台扩展（每个平台 3–7 人日）<a class="headerlink" href="#pub-6-37" title="Permanent link">&para;</a></h3>
+<p>顺序：</p>
+<ol>
+<li>快手；</li>
+<li>视频号；</li>
+<li>小红书。</li>
+</ol>
+<p>每个平台单独完成：账号登录 probe、profile 重启复用、能力 manifest、有效/无效媒体、字段语义、封面、页面错误、人工停手、DOM fixture、live smoke 和回滚。一个平台通过不自动放行其他平台；未通过平台继续提供复制素材手动发布。</p>
+<p>**门禁 PUB-G-<platform>：**与 PUB-D 等价的全套真实证据通过后，该平台才从 unverified/pilot 升为 available。</p>
+<h3 id="pub-723">阶段 PUB-7：灰度、性能与发布证据（2–3 人日）<a class="headerlink" href="#pub-723" title="Permanent link">&para;</a></h3>
+<p>工作：</p>
+<ul>
+<li>打包版 macOS 完整测试；</li>
+<li>10 次应用重启、10 次连续 run、崩溃恢复和 profile 锁 soak；</li>
+<li>1 秒/15 秒/60 秒媒体性能；</li>
+<li>诊断脱敏审计；</li>
+<li>feature flag 灰度；</li>
+<li>V1 回滚和数据前向兼容；</li>
+<li>发布帮助、账号清理和隐私说明。</li>
+</ul>
+<p>**门禁 PUB-H：**所有平台按各自 release state 展示；抖音稳定性、性能、安全、打包、迁移和回滚证据齐全后才能默认开启 V2。V1 代码和旧 profile 清理另开变更，至少保留一个稳定观察窗口。</p>
+<h2 id="18">18. 测试矩阵<a class="headerlink" href="#18" title="Permanent link">&para;</a></h2>
+<h3 id="181">18.1 单元与契约测试<a class="headerlink" href="#181" title="Permanent link">&para;</a></h3>
+<ul>
+<li>PublishPackage hash、失效和 immutable；</li>
+<li>媒体探测：有效、0 字节、缺 moov、伪扩展、无音轨、旋转、超规格；</li>
+<li>账号状态转换和 identity 隔离；</li>
+<li>run 全状态合法/非法转换；</li>
+<li>idempotency 和 optimistic lock；</li>
+<li>error code 到用户文案；</li>
+<li>path root、symlink 和 local capability token；</li>
+<li>FinalActionGuard allowlist/denylist；</li>
+<li>evidence 脱敏；</li>
+<li>migration up、重复执行、故障回滚。</li>
+</ul>
+<h3 id="182-adapter-dom-fixture">18.2 Adapter DOM fixture 测试<a class="headerlink" href="#182-adapter-dom-fixture" title="Permanent link">&para;</a></h3>
+<ul>
+<li>已登录/未登录/验证码/加载中/网络错误；</li>
+<li>上传首页、file chooser、上传进度、平台处理、编辑器就绪；</li>
+<li>title input；</li>
+<li>description contenteditable；</li>
+<li>hashtags chip 或 inline 模式；</li>
+<li>cover input、裁切弹窗、保存、保存失败；</li>
+<li>最终发布按钮存在但 guard 禁止；</li>
+<li>页面结构变化返回 PLATFORM_PAGE_CHANGED。</li>
+</ul>
+<p>fixture 测试必须断言 probe 证据和状态，不只断言某方法被调用。</p>
+<h3 id="183-repositoryapi">18.3 Repository/API 集成测试<a class="headerlink" href="#183-repositoryapi" title="Permanent link">&para;</a></h3>
+<ul>
+<li>account CRUD/default/archive/clear-profile 约束；</li>
+<li>package from-session 不接收任意路径；</li>
+<li>create run 202；</li>
+<li>active run 双击返回同 run；</li>
+<li>polling event 游标无重复/遗漏；</li>
+<li>retry-step 的状态约束；</li>
+<li>restart 后 interrupted/resume；</li>
+<li>generic task waiting_user 映射；</li>
+<li>V1 flag rollback。</li>
+</ul>
+<h3 id="184">18.4 前端组件测试<a class="headerlink" href="#184" title="Permanent link">&para;</a></h3>
+<ul>
+<li>账号状态和 adapter 状态分开展示；</li>
+<li>未验证平台不能触发自动化；</li>
+<li>等待登录、需要处理、等待人工三个非失败态；</li>
+<li>逐字段清单与局部重试；</li>
+<li>package stale；</li>
+<li>复制/下载回退；</li>
+<li>刷新后恢复 run；</li>
+<li>最终页面没有桌面端“发布”动作；</li>
+<li>clear-profile 二次确认；</li>
+<li>键盘焦点、aria-live、颜色非唯一状态；</li>
+<li>1280×800 最小桌面窗口无核心操作遮挡。</li>
+</ul>
+<p>禁止继续只用 <code>assert "某段文案" in SOURCE</code> 证明功能存在。</p>
+<h3 id="185-harness">18.5 本地浏览器 harness<a class="headerlink" href="#185-harness" title="Permanent link">&para;</a></h3>
+<p>建立受控本地模拟创作者页，测试：</p>
+<ul>
+<li>1%、50%、100% 上传进度；</li>
+<li>平台处理 1/10/60 秒；</li>
+<li>字段延迟出现；</li>
+<li>contenteditable 事件；</li>
+<li>cover modal；</li>
+<li>用户手工修改字段与自动化冲突；</li>
+<li>页面关闭/崩溃/重开；</li>
+<li>绝不触发最终发布按钮。</li>
+</ul>
+<h3 id="186-smoke">18.6 真实平台 smoke<a class="headerlink" href="#186-smoke" title="Permanent link">&para;</a></h3>
+<p>真实 smoke 必须：</p>
+<ul>
+<li>visible/headful；</li>
+<li>使用独立测试 profile；</li>
+<li>用户自行登录或扫码；</li>
+<li>使用无敏感内容的测试媒体；</li>
+<li>记录 app/adapter/platform page fingerprint 版本；</li>
+<li>自动化停在最终发布前；</li>
+<li>截图和日志脱敏；</li>
+<li>每次平台页面变化后重跑，不允许 fixture 通过就直接恢复 available。</li>
+</ul>
+<h2 id="19">19. 三维验收指标<a class="headerlink" href="#19" title="Permanent link">&para;</a></h2>
+<h3 id="191">19.1 操作体验<a class="headerlink" href="#191" title="Permanent link">&para;</a></h3>
+<ul>
+<li>首次用户从成片到看到登录二维码不超过 3 个明确动作；</li>
+<li>登录后自动回到原运行，不重新选择视频、账号或平台；</li>
+<li>重复用户在有效登录态下不扫码；</li>
+<li>任一失败都指出平台、步骤、原因和下一步；</li>
+<li>字段状态逐项可见，不能只显示一个总成功；</li>
+<li>自动化失败仍可在同页复制/下载并手工完成；</li>
+<li>最终人工发布边界在准备页、等待页和记录页一致表达。</li>
+</ul>
+<h3 id="192">19.2 运行效率<a class="headerlink" href="#192" title="Permanent link">&para;</a></h3>
+<ul>
+<li>HTTP 不等待浏览器长任务；</li>
+<li>不使用固定 sleep 代表完成；</li>
+<li>不重复启动已打开 profile；</li>
+<li>不重复 probe/hash 未变化的 package；</li>
+<li>不因单字段失败整单重传视频；</li>
+<li>active run 双击和网络重试不重复上传；</li>
+<li>外部等待和本地耗时分开，能识别瓶颈来自浏览器、网络还是平台处理；</li>
+<li>浏览器 context 和锁在取消、退出、崩溃后可预测回收。</li>
+</ul>
+<h3 id="193">19.3 验收成果<a class="headerlink" href="#193" title="Permanent link">&para;</a></h3>
+<ul>
+<li>登录持久化有应用重启与打包版证据；</li>
+<li>有效视频成功进入编辑器，无效视频不出现假成功；</li>
+<li>标题、描述、话题、封面逐项回读；</li>
+<li><code>waiting_for_human</code> 不等于 published；</li>
+<li>最终发布按钮从未被自动点击；</li>
+<li>生产成片、package hash、run 和平台上传证据可追溯；</li>
+<li>live smoke、fixture、迁移、性能、诊断脱敏和回滚证据齐全；</li>
+<li>只有通过平台 gate 的 adapter 才显示 available。</li>
+</ul>
+<h2 id="20-feature-flags">20. Feature flags、灰度与回滚<a class="headerlink" href="#20-feature-flags" title="Permanent link">&para;</a></h2>
+<p>建议开关：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>PIXELLE_PUBLISH_V2_ENABLED
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>VITE_PUBLISH_V2_ENABLED
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>PIXELLE_PUBLISH_PLATFORM_DOUYIN
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>PIXELLE_PUBLISH_PLATFORM_KUAISHOU
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>PIXELLE_PUBLISH_PLATFORM_SHIPINHAO
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>PIXELLE_PUBLISH_PLATFORM_XIAOHONGSHU
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>PIXELLE_PUBLISH_EVIDENCE_SCREENSHOTS
+</span></code></pre></div>
+<p>规则：</p>
+<ul>
+<li>总开关关闭后回到 V1 发布素材复制/打开平台能力，不删除 V2 DB 或 profile；</li>
+<li>平台开关独立，某 adapter 降级不影响其他平台；</li>
+<li>adapter 页面指纹异常可运行时标记 degraded，并立即停止新自动化 run；</li>
+<li>rollback 不回退 Chromium profile 内容，不清 cookie；</li>
+<li>新 package/run 数据保持只读可查看；</li>
+<li>V1/V2 不能同时控制同一 profile；</li>
+<li>每个门禁都保留一条打包版 rollback smoke；</li>
+<li>V1 清理必须在 V2 默认开启并稳定观察至少一个版本窗口后单独审批。</li>
+</ul>
+<p>回滚 smoke：</p>
+<ol>
+<li>创建 V2 账号并验证登录；</li>
+<li>创建但不完成一个 V2 run；</li>
+<li>关闭 V2 flag；</li>
+<li>应用可启动、生产可用、素材可复制/下载；</li>
+<li>旧 profile 可打开且登录态未被删除；</li>
+<li>重新开启 V2，账号和 run 历史仍可读取；</li>
+<li>不发生重复上传或自动发布。</li>
+</ol>
+<h2 id="21-luna">21. Luna 文件级实施清单<a class="headerlink" href="#21-luna" title="Permanent link">&para;</a></h2>
+<h3 id="211-0-fixture">21.1 阶段 0 文档与 fixture<a class="headerlink" href="#211-0-fixture" title="Permanent link">&para;</a></h3>
+<p>建议新增：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>docs/adr/ADR-PublishV2-Boundaries.md
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>docs/adr/ADR-PublishAccountProfile.md
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>docs/adr/ADR-PublishRunStateMachine.md
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>docs/adr/ADR-PublishPackageV2.md
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>docs/adr/ADR-PlatformAdapterEvidence.md
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>docs/contracts/publishing/publish-package-v2.schema.json
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a>docs/contracts/publishing/publish-run.schema.json
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>docs/contracts/publishing/publish-account.schema.json
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a>docs/contracts/publishing/step-result.schema.json
+</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a>docs/migrations/publish-v2-profile-migration.md
+</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a>docs/reviews/publish-v2-pub0-baseline.md
+</span><span id="__span-20-12"><a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>tests/fixtures/publishing/manifest.json
+</span><span id="__span-20-13"><a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a>tests/fixtures/publishing/dom/douyin/*.html
+</span><span id="__span-20-14"><a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a>scripts/publish_v2_fixture_media.py
+</span><span id="__span-20-15"><a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a>scripts/publish_v2_migration_dry_run.py
+</span><span id="__span-20-16"><a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a>scripts/publish_v2_gate.py
+</span></code></pre></div>
+<h3 id="212">21.2 后端主要修改<a class="headerlink" href="#212" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>pixelle_video/services/publish/models.py
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>pixelle_video/services/publish/browser_runtime.py
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>pixelle_video/services/publish/platforms/*      # 迁移到 adapters 后删除空子类
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>pixelle_video/services/ip_broadcast_workflow.py
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>api/routers/publish.py
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>api/routers/tasks.py
+</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>api/tasks/models.py
+</span><span id="__span-21-8"><a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>api/tasks/manager.py
+</span><span id="__span-21-9"><a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>api/tasks/persistence.py
+</span><span id="__span-21-10"><a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a>api/app.py
+</span></code></pre></div>
+<p>新增 repository、orchestrator、account、package、adapter、safety、evidence 和 migrations 模块，避免继续把逻辑塞入 router 或 runtime。</p>
+<h3 id="213">21.3 前端主要修改<a class="headerlink" href="#213" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>desktop/src/features/publishing/PublishWorkspace.tsx
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>desktop/src/StudioApp.tsx
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>desktop/src/api.ts
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>desktop/src/features/publishing/*
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>desktop/src/styles.css
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>desktop/src/featureFlags.ts
+</span></code></pre></div>
+<p>先让新组件接入现有主题 token 和 Ant Design，不另造一套发布主题。删除重复逻辑前先用组件测试证明行为迁移完成。</p>
+<h3 id="214">21.4 测试替换<a class="headerlink" href="#214" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>tests/publish_assistant_test.py
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>tests/desktop_publish_capability_test.py
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>tests/desktop_task_ui_test.py
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>tests/ip_broadcast_productization_test.py
+</span></code></pre></div>
+<p>保留必要契约单测，新增 state machine、repository、migration、security、adapter fixtures、前端组件、本地 harness 和真实 smoke gate。源码字符串断言只可用于极少量安全静态规则，不能作为用户能力验收。</p>
+<h2 id="22-luna">22. Luna 提交顺序<a class="headerlink" href="#22-luna" title="Permanent link">&para;</a></h2>
+<p>建议每个提交都可独立评审和回滚：</p>
+<ol>
+<li><code>test(publish): capture PUB-0 baselines and deterministic media fixtures</code></li>
+<li><code>docs(publish): lock account package run adapter and safety ADRs</code></li>
+<li><code>feat(publish): add publishing sqlite schema and migration dry-run</code></li>
+<li><code>feat(publish): add account repository and browser profile manager</code></li>
+<li><code>feat(publish): add login probes and persistent account APIs</code></li>
+<li><code>feat(publish): add immutable package v2 and media preflight</code></li>
+<li><code>feat(publish): add run state machine events and async orchestrator</code></li>
+<li><code>security(publish): add local capability token path guards and final action guard</code></li>
+<li><code>feat(publish): harden douyin upload and processing evidence</code></li>
+<li><code>feat(publish): verify douyin title description hashtags and cover</code></li>
+<li><code>refactor(desktop): build unified publishing center and remove duplicate flow</code></li>
+<li><code>feat(production): hand off immutable package from final video workflow</code></li>
+<li><code>test(publish): add desktop e2e live gate restart and rollback evidence</code></li>
+<li><code>feat(publish): add kuaishou adapter behind unverified flag</code></li>
+<li><code>feat(publish): add shipinhao adapter behind unverified flag</code></li>
+<li><code>feat(publish): add xiaohongshu adapter behind unverified flag</code></li>
+</ol>
+<p>每个提交必须：</p>
+<ul>
+<li>只覆盖一个清晰边界；</li>
+<li>附新增/更新测试；</li>
+<li>不修改或清理用户现有 profile；</li>
+<li>不把未过 gate 的平台标为 available；</li>
+<li>不新增最终发布动作；</li>
+<li>更新对应门禁证据和回滚说明。</li>
+</ul>
+<h2 id="23-definition-of-done">23. Definition of Done<a class="headerlink" href="#23-definition-of-done" title="Permanent link">&para;</a></h2>
+<p>以下全部满足，才可称“桌面自动发布 V2 完成”：</p>
+<ul>
+<li>发布账号来自真实持久化数据，状态来自 login probe；</li>
+<li>同平台支持独立多账号 profile，默认账号明确，账号不串号；</li>
+<li>平台登录态有效时，应用/sidecar/浏览器重启不重复扫码；</li>
+<li>profile 使用 app-data 绝对路径，有锁、清理、迁移和回滚；</li>
+<li>生产链路生成不可变 PublishPackage V2，媒体 hash、规格和来源 revision 可追溯；</li>
+<li>发布 API 异步返回，运行状态、步骤、事件和恢复点持久化；</li>
+<li>无效 MP4 在本地失败，不再出现 set_input_files 假成功；</li>
+<li>抖音视频、标题、描述、话题和封面均有真实页面回读证据；</li>
+<li>单字段失败不重传整单，双击不重复上传；</li>
+<li>页面改版、登录过期、验证码、窗口关闭和进程重启均安全停手并可恢复；</li>
+<li>发布中心、生产步骤和任务记录共用 package/run/account 事实源；</li>
+<li>自动化最终状态是 <code>waiting_for_human</code>，不冒充 published；</li>
+<li>代码、测试和 live evidence 证明最终发布从未被自动点击；</li>
+<li>未通过 live gate 的平台只显示待验证或手工回退；</li>
+<li>组件、契约、迁移、性能、隐私、打包和回滚门禁全部通过；</li>
+<li>V1 保留一个稳定观察窗口，清理另行审批。</li>
+</ul>
+<h2 id="24-luna">24. Luna 启动指令<a class="headerlink" href="#24-luna" title="Permanent link">&para;</a></h2>
+<p>Luna 不再独立从 PUB-0 启动，而是从上位 Program 的 <code>COORD-0</code> 开始，将 PUB-0 与 AC-0 联合执行。当前 Program Stage 未映射到 PUB-X 时，不得提前实施该发布阶段。PUB-0 只交付基线、五份 ADR、schema/OpenAPI/TypeScript 契约、媒体与 DOM fixtures、profile 与数据库迁移 dry-run、FinalActionGuard 规则、feature flag 和回滚 smoke。<strong>在 PUB-A 与 Program Gate PG-A 正式评审通过前，不进入账号 UI 重构，不改平台 selector，不把任何平台标成 available。</strong></p>
+<p>发布领域内部的依赖顺序仍是 PUB-1 → PUB-2 → PUB-3 → PUB-4 → PUB-5，但不得据此连续开工；实际日历执行必须服从上位 Program 队列，在 PUB-3 与 PUB-4 之间完成 AC-4、AC-5 及其 Program Gate。先让抖音完成真实证据闭环，再逐个平台复制架构而不是复制 selector。每个阶段提交证据、耗时、失败样例和回滚结果。任何无法回读证明的动作都停在 <code>needs_attention</code>，任何最终发布语义动作都由 guard 拒绝。</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 21, 2026 23:56:47 UTC">July 21, 2026 23:56:47</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 18, 2026 15:21:09 UTC">July 18, 2026 15:21:09</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Pixelle.AI
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/AIDC-AI/Pixelle-Video" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/douyin-adapter-entry.v1.json",
+  "schema_version": 1,
+  "platform": "douyin",
+  "adapter_version": "douyin-entry@1",
+  "browser_runtime": "playwright",
+  "page_fingerprint": "fixture_sha256_plus_semantic_markers",
+  "fixture_manifest": "tests/fixtures/publishing/manifest.json",
+  "state_mapping": {
+    "signed_in": "ready",
+    "signed_out": "waiting_for_login",
+    "captcha": "waiting_for_human",
+    "loading": "needs_attention",
+    "network_error": "needs_attention",
+    "upload_entry": "ready_for_upload",
+    "uploading": "running",
+    "processing": "running",
+    "editor_ready": "ready_for_fields",
+    "cover_modal": "ready_for_cover",
+    "cover_error": "needs_attention",
+    "waiting_for_human": "waiting_for_human",
+    "unknown": "needs_attention",
+    "window_closed": "needs_attention"
+  },
+  "allowed_actions": ["upload_media", "fill_title", "fill_description", "select_topic", "save_cover"],
+  "denied_actions": ["publish", "confirm_publish", "submit", "unknown", "coordinate_click"],
+  "final_action_guard": {
+    "default": "deny",
+    "deny_error_code": "FINAL_ACTION_BLOCKED",
+    "stop_state": "waiting_for_human"
+  },
+  "external_action_policy": {
+    "real_qr_scan": "pause_and_notify_user",
+    "third_party_authorization": "pause_and_notify_user",
+    "real_upload": "pause_and_notify_user",
+    "final_publish": "never_automated"
+  }
+}

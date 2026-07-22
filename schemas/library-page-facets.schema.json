@@ -1,0 +1,197 @@
+{
+  "$defs": {
+    "AssetViewKind": {
+      "enum": [
+        "image",
+        "video",
+        "audio",
+        "voice",
+        "digital_human",
+        "template",
+        "brand"
+      ],
+      "title": "AssetViewKind",
+      "type": "string"
+    },
+    "AssetViewModelContract": {
+      "additionalProperties": false,
+      "description": "Stable fields shared by the seven typed UI projections.",
+      "properties": {
+        "resource_id": {
+          "minLength": 1,
+          "title": "Resource Id",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/AssetViewKind"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/ResourceStatus"
+        },
+        "cover_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cover Url"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "favorite": {
+          "default": false,
+          "title": "Favorite",
+          "type": "boolean"
+        },
+        "last_used_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Used At"
+        },
+        "display": {
+          "additionalProperties": true,
+          "title": "Display",
+          "type": "object"
+        },
+        "capabilities": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Capabilities",
+          "type": "array"
+        }
+      },
+      "required": [
+        "resource_id",
+        "kind",
+        "name",
+        "status"
+      ],
+      "title": "AssetViewModelContract",
+      "type": "object"
+    },
+    "LibraryQueryFacets": {
+      "additionalProperties": false,
+      "properties": {
+        "generation": {
+          "minimum": 1,
+          "title": "Generation",
+          "type": "integer"
+        },
+        "kinds": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Kinds",
+          "type": "object"
+        },
+        "statuses": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Statuses",
+          "type": "object"
+        },
+        "tags": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Tags",
+          "type": "object"
+        }
+      },
+      "required": [
+        "generation"
+      ],
+      "title": "LibraryQueryFacets",
+      "type": "object"
+    },
+    "ResourceStatus": {
+      "enum": [
+        "processing",
+        "ready",
+        "warning",
+        "failed",
+        "archived"
+      ],
+      "title": "ResourceStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/$defs/AssetViewModelContract"
+      },
+      "title": "Items",
+      "type": "array"
+    },
+    "total": {
+      "minimum": 0,
+      "title": "Total",
+      "type": "integer"
+    },
+    "next_cursor": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Next Cursor"
+    },
+    "index_generation": {
+      "minimum": 1,
+      "title": "Index Generation",
+      "type": "integer"
+    },
+    "filter_hash": {
+      "maxLength": 64,
+      "minLength": 64,
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Filter Hash",
+      "type": "string"
+    },
+    "facets": {
+      "$ref": "#/$defs/LibraryQueryFacets"
+    }
+  },
+  "required": [
+    "total",
+    "index_generation",
+    "filter_hash",
+    "facets"
+  ],
+  "title": "LibraryPageContract",
+  "type": "object"
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "state_owner": "AppRun",
+  "states": ["draft", "queued", "running", "needs_review", "completed", "failed", "cancelled"],
+  "terminal_states": ["completed", "failed", "cancelled"],
+  "allowed_transitions": {
+    "draft": ["queued", "cancelled"],
+    "queued": ["running", "cancelled"],
+    "running": ["needs_review", "completed", "failed", "cancelled"],
+    "needs_review": ["completed", "failed", "cancelled"],
+    "completed": [],
+    "failed": ["queued", "cancelled"],
+    "cancelled": []
+  },
+  "retry_rule": "failed -> queued creates a new RunAttempt and preserves prior error evidence",
+  "forbidden_external_states": ["succeeded", "waiting_user", "waiting_for_login", "waiting_for_human", "needs_attention"],
+  "forbidden_reason": "these belong to PublishRun or GenericTask compatibility and are not AppRun business states"
+}

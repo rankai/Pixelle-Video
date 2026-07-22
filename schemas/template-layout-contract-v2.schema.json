@@ -1,0 +1,328 @@
+{
+  "$defs": {
+    "TemplateCanvas": {
+      "additionalProperties": false,
+      "properties": {
+        "width": {
+          "minimum": 1,
+          "title": "Width",
+          "type": "integer"
+        },
+        "height": {
+          "minimum": 1,
+          "title": "Height",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "width",
+        "height"
+      ],
+      "title": "TemplateCanvas",
+      "type": "object"
+    },
+    "TemplateCoverContract": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "$ref": "#/$defs/TemplateTextBox"
+        },
+        "subtitle": {
+          "$ref": "#/$defs/TemplateTextBox"
+        },
+        "safe_area": {
+          "$ref": "#/$defs/TemplateSafeArea"
+        }
+      },
+      "required": [
+        "title",
+        "subtitle",
+        "safe_area"
+      ],
+      "title": "TemplateCoverContract",
+      "type": "object"
+    },
+    "TemplateFontIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "token": {
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Token",
+          "type": "string"
+        },
+        "font_id": {
+          "minLength": 1,
+          "title": "Font Id",
+          "type": "string"
+        },
+        "family": {
+          "minLength": 1,
+          "title": "Family",
+          "type": "string"
+        },
+        "weight": {
+          "maximum": 900,
+          "minimum": 100,
+          "title": "Weight",
+          "type": "integer"
+        },
+        "style": {
+          "default": "normal",
+          "enum": [
+            "normal",
+            "italic"
+          ],
+          "title": "Style",
+          "type": "string"
+        },
+        "font_sha256": {
+          "maxLength": 64,
+          "minLength": 64,
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Font Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "token",
+        "font_id",
+        "family",
+        "weight",
+        "font_sha256"
+      ],
+      "title": "TemplateFontIdentity",
+      "type": "object"
+    },
+    "TemplateSafeArea": {
+      "additionalProperties": false,
+      "properties": {
+        "top": {
+          "minimum": 0,
+          "title": "Top",
+          "type": "integer"
+        },
+        "right": {
+          "minimum": 0,
+          "title": "Right",
+          "type": "integer"
+        },
+        "bottom": {
+          "minimum": 0,
+          "title": "Bottom",
+          "type": "integer"
+        },
+        "left": {
+          "minimum": 0,
+          "title": "Left",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "top",
+        "right",
+        "bottom",
+        "left"
+      ],
+      "title": "TemplateSafeArea",
+      "type": "object"
+    },
+    "TemplateTextBox": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "minimum": 0,
+          "title": "X",
+          "type": "integer"
+        },
+        "y": {
+          "minimum": 0,
+          "title": "Y",
+          "type": "integer"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "title": "Width",
+          "type": "integer"
+        },
+        "height": {
+          "exclusiveMinimum": 0,
+          "title": "Height",
+          "type": "integer"
+        },
+        "font_token": {
+          "minLength": 1,
+          "title": "Font Token",
+          "type": "string"
+        },
+        "font_size": {
+          "exclusiveMinimum": 0,
+          "title": "Font Size",
+          "type": "integer"
+        },
+        "line_height": {
+          "exclusiveMinimum": 0,
+          "title": "Line Height",
+          "type": "number"
+        },
+        "max_lines": {
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Max Lines",
+          "type": "integer"
+        },
+        "align": {
+          "default": "left",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "title": "Align",
+          "type": "string"
+        },
+        "vertical_align": {
+          "default": "top",
+          "enum": [
+            "top",
+            "middle",
+            "bottom"
+          ],
+          "title": "Vertical Align",
+          "type": "string"
+        },
+        "overflow": {
+          "default": "shrink",
+          "enum": [
+            "shrink",
+            "clip",
+            "reject"
+          ],
+          "title": "Overflow",
+          "type": "string"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height",
+        "font_token",
+        "font_size",
+        "line_height",
+        "max_lines"
+      ],
+      "title": "TemplateTextBox",
+      "type": "object"
+    },
+    "TemplateVideoSubtitleContract": {
+      "additionalProperties": false,
+      "properties": {
+        "font_token": {
+          "minLength": 1,
+          "title": "Font Token",
+          "type": "string"
+        },
+        "font_size": {
+          "exclusiveMinimum": 0,
+          "title": "Font Size",
+          "type": "integer"
+        },
+        "alignment": {
+          "maximum": 9,
+          "minimum": 1,
+          "title": "Alignment",
+          "type": "integer"
+        },
+        "margin_l": {
+          "minimum": 0,
+          "title": "Margin L",
+          "type": "integer"
+        },
+        "margin_r": {
+          "minimum": 0,
+          "title": "Margin R",
+          "type": "integer"
+        },
+        "margin_v": {
+          "minimum": 0,
+          "title": "Margin V",
+          "type": "integer"
+        },
+        "outline": {
+          "minimum": 0,
+          "title": "Outline",
+          "type": "integer"
+        },
+        "shadow": {
+          "minimum": 0,
+          "title": "Shadow",
+          "type": "integer"
+        },
+        "max_lines": {
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Max Lines",
+          "type": "integer"
+        },
+        "safe_area": {
+          "$ref": "#/$defs/TemplateSafeArea"
+        }
+      },
+      "required": [
+        "font_token",
+        "font_size",
+        "alignment",
+        "margin_l",
+        "margin_r",
+        "margin_v",
+        "outline",
+        "shadow",
+        "max_lines",
+        "safe_area"
+      ],
+      "title": "TemplateVideoSubtitleContract",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 2,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "canvas": {
+      "$ref": "#/$defs/TemplateCanvas"
+    },
+    "base_template_id": {
+      "minLength": 1,
+      "title": "Base Template Id",
+      "type": "string"
+    },
+    "fonts": {
+      "items": {
+        "$ref": "#/$defs/TemplateFontIdentity"
+      },
+      "minItems": 1,
+      "title": "Fonts",
+      "type": "array"
+    },
+    "cover": {
+      "$ref": "#/$defs/TemplateCoverContract"
+    },
+    "video_subtitle": {
+      "$ref": "#/$defs/TemplateVideoSubtitleContract"
+    }
+  },
+  "required": [
+    "schema_version",
+    "canvas",
+    "base_template_id",
+    "fonts",
+    "cover",
+    "video_subtitle"
+  ],
+  "title": "TemplateLayoutContract",
+  "type": "object"
+}

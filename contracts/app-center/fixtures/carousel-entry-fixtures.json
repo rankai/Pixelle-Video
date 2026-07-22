@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "case_id": "valid_3_pages",
+      "valid": true,
+      "page_count": 3,
+      "pages": [
+        {"page_index": 1, "text": "第一页", "asset_refs": ["asset:cover-1"], "render_state": "ready", "dimensions": {"width_px": 1080, "height_px": 1440}},
+        {"page_index": 2, "text": "第二页", "asset_refs": ["asset:cover-2"], "render_state": "ready", "dimensions": {"width_px": 1080, "height_px": 1440}},
+        {"page_index": 3, "text": "第三页", "asset_refs": ["asset:cover-3"], "render_state": "ready", "dimensions": {"width_px": 1080, "height_px": 1440}}
+      ]
+    },
+    {"case_id": "valid_5_pages", "valid": true, "page_count": 5, "pages": "generated_contiguous_pages"},
+    {"case_id": "valid_8_pages", "valid": true, "page_count": 8, "pages": "generated_contiguous_pages"},
+    {"case_id": "invalid_4_pages", "valid": false, "page_count": 4, "pages": "generated_contiguous_pages", "expected_error": "PAGE_COUNT_NOT_ALLOWED"},
+    {"case_id": "invalid_duplicate_index", "valid": false, "page_count": 3, "pages": [1, 1, 3], "expected_error": "PAGE_INDEX_NOT_CONTIGUOUS"},
+    {"case_id": "invalid_dimensions", "valid": false, "page_count": 3, "pages": "generated_contiguous_pages", "dimensions": {"width_px": 1000, "height_px": 1000}, "expected_error": "DIMENSIONS_NOT_3_4"},
+    {"case_id": "invalid_missing_asset", "valid": false, "page_count": 3, "pages": "generated_contiguous_pages", "missing_asset_on_page": 2, "expected_error": "ASSET_REF_REQUIRED"},
+    {"case_id": "invalid_text_overflow", "valid": false, "page_count": 3, "pages": "generated_contiguous_pages", "render_state": "text_overflow", "expected_error": "TEXT_OVERFLOW"},
+    {"case_id": "invalid_missing_font", "valid": false, "page_count": 3, "pages": "generated_contiguous_pages", "render_state": "missing_font", "expected_error": "FONT_MISSING"}
+  ],
+  "artifact_cases": [
+    {
+      "case_id": "valid_plan",
+      "artifact_type": "carousel_plan",
+      "content": {
+        "schema_version": 1,
+        "page_count": 3,
+        "page_outline": [{"page_index": 1, "purpose": "hook"}, {"page_index": 2, "purpose": "benefit"}, {"page_index": 3, "purpose": "cta"}],
+        "template_id": "template:clean-01",
+        "source_artifact_version_ids": ["av-copy-1", "av-title-1"]
+      },
+      "valid": true
+    },
+    {
+      "case_id": "valid_page",
+      "artifact_type": "carousel_page",
+      "content": {
+        "schema_version": 1,
+        "page_index": 1,
+        "text": "门店亮点",
+        "asset_refs": ["asset:page-1"],
+        "render_state": "ready",
+        "dimensions": {"width_px": 1080, "height_px": 1440},
+        "source_plan_artifact_version_id": "av-plan-1"
+      },
+      "valid": true
+    },
+    {
+      "case_id": "valid_package",
+      "artifact_type": "carousel_package",
+      "content": {
+        "schema_version": 1,
+        "page_count": 3,
+        "page_artifact_version_ids": ["av-page-1", "av-page-2", "av-page-3"],
+        "title": "门店亮点",
+        "description": "到店了解",
+        "hashtags": ["#门店营销"],
+        "export_manifest": {"files": ["page-01.png", "page-02.png", "page-03.png"], "zip_name": "carousel-package.zip"},
+        "source_plan_artifact_version_id": "av-plan-1"
+      },
+      "valid": true
+    },
+    {"case_id": "invalid_plan_missing_source", "artifact_type": "carousel_plan", "content": {"schema_version": 1, "page_count": 3, "page_outline": [], "template_id": "template:clean-01", "source_artifact_version_ids": []}, "valid": false, "expected_error": "SOURCE_VERSION_REQUIRED"},
+    {"case_id": "invalid_package_page_count", "artifact_type": "carousel_package", "content": {"schema_version": 1, "page_count": 3, "page_artifact_version_ids": ["av-page-1"], "title": "标题", "description": "描述", "hashtags": [], "export_manifest": {"files": ["page-01.png"]}, "source_plan_artifact_version_id": "av-plan-1"}, "valid": false, "expected_error": "PAGE_VERSION_COUNT_MISMATCH"}
+  ],
+  "retry_cases": [
+    {"case_id": "missing_image_existing_ref", "failure": "missing_image", "failed_page": 2, "asset_ref_present": true, "asset_exists": false, "expected_error": "ASSET_NOT_FOUND"},
+    {"case_id": "missing_font", "failure": "missing_font", "failed_page": 1, "asset_ref_present": true, "asset_exists": true, "expected_error": "FONT_MISSING"},
+    {"case_id": "text_overflow", "failure": "text_overflow", "failed_page": 3, "asset_ref_present": true, "asset_exists": true, "expected_error": "TEXT_OVERFLOW"}
+  ],
+  "zip_handoff": {
+    "page_count": 3,
+    "files": ["page-01.png", "page-02.png", "page-03.png"],
+    "file_format": "png",
+    "dimensions": {"width_px": 1080, "height_px": 1440},
+    "zip_order": ["page-01.png", "page-02.png", "page-03.png"],
+    "publish_package_ref": {
+      "source_artifact_version_ids": ["av-page-1", "av-page-2", "av-page-3"],
+      "publish_copy_required": true,
+      "publish_v2_compatible": true
+    },
+    "source_change": {
+      "old_source_artifact_version_ids": ["av-page-1", "av-page-2", "av-page-3"],
+      "new_source_artifact_version_ids": ["av-page-1", "av-page-2-r2", "av-page-3"],
+      "old_ref_invalidated": true
+    }
+  }
+}
