@@ -2,7 +2,7 @@ name: Windows Desktop Build
 
 on:
   push:
-    branches: [dev, main]
+    branches: [dev, main, "codex/**"]
     paths:
       - ".github/workflows/windows-desktop-build.yml"
       - "api/**"
@@ -12,6 +12,21 @@ on:
       - "uv.lock"
       - "templates/**"
       - "workflows/**"
+      - "scripts/**"
+      - "tests/windows_*_test.py"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/windows-desktop-build.yml"
+      - "api/**"
+      - "desktop/**"
+      - "pixelle_video/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "templates/**"
+      - "workflows/**"
+      - "scripts/**"
+      - "tests/windows_*_test.py"
   workflow_dispatch:
     inputs:
       run_frontend_tests:
@@ -98,12 +113,33 @@ jobs:
             --sidecar "desktop/src-tauri/bin/pixelle-api-x86_64-pc-windows-msvc.exe" `
             --output windows-artifact-manifest.json
 
+      - name: Install and smoke-test Windows package
+        run: |
+          $bundleDir = "desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis"
+          $installer = Get-ChildItem -LiteralPath $bundleDir -Filter "*.exe" -File | Select-Object -First 1
+          if ($null -eq $installer) {
+            throw "No Windows NSIS installer found for smoke test"
+          }
+          pwsh -NoProfile -File scripts/windows_installer_smoke.ps1 `
+            -Installer $installer.FullName `
+            -Output windows-installer-smoke.json
+
+      - name: Upload Windows installer smoke evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixelle-video-windows-installer-smoke-${{ github.sha }}
+          if-no-files-found: warn
+          path: windows-installer-smoke.json
+
       - name: Upload Windows installer artifact
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: pixelle-video-windows-${{ github.sha }}
-          if-no-files-found: error
+          if-no-files-found: warn
           path: |
             desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
             desktop/src-tauri/bin/pixelle-api-x86_64-pc-windows-msvc.exe
             windows-artifact-manifest.json
+            windows-installer-smoke.json

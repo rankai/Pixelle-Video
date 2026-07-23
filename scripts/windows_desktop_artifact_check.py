@@ -20,7 +20,7 @@ def _file_record(path: Path, *, expected_suffix: str | None = None) -> dict[str,
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return {
-        "path": str(path),
+        "name": path.name,
         "size_bytes": path.stat().st_size,
         "sha256": digest.hexdigest(),
     }
