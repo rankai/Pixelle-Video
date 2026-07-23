@@ -20,6 +20,11 @@ def test_windows_ci_uses_a_windows_runner_and_builds_both_targets():
 def test_windows_ci_is_manual_or_scoped_to_desktop_changes():
     source = WORKFLOW.read_text(encoding="utf-8")
     assert "workflow_dispatch:" in source
+    assert "pull_request:" in source
+    assert "branches: [main]" in source
+    assert 'branches: [dev, main, "codex/**"]' in source
+    assert '"scripts/**"' in source
+    assert '"tests/windows_*_test.py"' in source
     assert '"desktop/**"' in source
     assert '"pyproject.toml"' in source
     assert '"uv.lock"' in source
@@ -43,3 +48,5 @@ def test_artifact_manifest_requires_windows_executables_and_marks_install_pendin
     assert 'expected_suffix=".exe"' in source
     assert "x86_64-pc-windows-msvc" in source
     assert '"install_test": "pending_windows_manual_install"' in source
+    assert '"name": path.name' in source
+    assert '"path": str(path)' not in source

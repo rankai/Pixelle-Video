@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "stage": "PROGRAM-ROLLOUT",
+  "gate": "PG-L",
+  "batch": "windows-installer-smoke",
+  "workflow_run_id": 30028402812,
+  "job_id": 89278574897,
+  "status": "passed_with_boundary",
+  "installer_artifact_id": 8572611983,
+  "installer_smoke_artifact_id": 8572608418,
+  "sidecar_smoke_artifact_id": 8572367050,
+  "installer": {
+    "name": "Pixelle Video_0.1.0_x64-setup.exe",
+    "size_bytes": 134242602,
+    "sha256": "11665ccfffadddf6166526a42bd61d40224565d208b5e889c97a1f7873061264"
+  },
+  "install": {
+    "status": "passed",
+    "mode": "nsis_silent",
+    "exit_code": 0,
+    "app_executable": "pixelle-video-desktop.exe"
+  },
+  "cycles": [
+    {
+      "cycle": 1,
+      "health": "passed",
+      "listener_owner": "pixelle-api.exe",
+      "close": "graceful",
+      "port_released": true
+    },
+    {
+      "cycle": 2,
+      "health": "passed",
+      "listener_owner": "pixelle-api.exe",
+      "close": "graceful",
+      "port_released": true
+    }
+  ],
+  "external_actions": 0,
+  "final_publish_clicks": 0,
+  "manual_windows_install": "pending_user_device",
+  "product_signoff": "pending_external",
+  "real_platform_rollback_and_webview_sla": "not_executed"
+}

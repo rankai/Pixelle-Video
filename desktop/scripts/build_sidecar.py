@@ -31,6 +31,12 @@ def executable_name() -> str:
     return f"pixelle-api-{target_triple()}{suffix}"
 
 
+def data_separator() -> str:
+    """Return PyInstaller's platform-specific ``source:destination`` separator."""
+
+    return ";" if platform.system().lower() == "windows" else ":"
+
+
 def main() -> int:
     pyinstaller = shutil.which("pyinstaller")
     if not pyinstaller:
@@ -50,6 +56,12 @@ def main() -> int:
         str(dist_dir),
         "--workpath",
         str(build_dir),
+        # The frozen API constructs local repositories during startup.  Those
+        # repositories load their SQLite schemas from the contracts directory
+        # at runtime, so it must be present inside PyInstaller's extraction
+        # root rather than only in the source checkout.
+        "--add-data",
+        f"{ROOT / 'docs' / 'contracts'}{data_separator()}docs/contracts",
         str(ROOT / "api" / "app.py"),
     ]
     subprocess.run(command, check=True, cwd=ROOT)
