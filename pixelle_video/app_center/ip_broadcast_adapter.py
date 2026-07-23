@@ -1,10 +1,11 @@
 """Application-center adapter for the existing IP broadcast workflow.
 
-This module is deliberately a small integration seam.  It owns the identity
-and recovery facts needed by an AppRun, while the legacy
-``IpBroadcastSessionStore`` remains the source of step state until a later
-implementation batch moves the actual workflow execution behind this
-adapter.  No provider, browser, or platform side effect is performed here.
+This module is deliberately a small integration seam.  It owns the identity,
+recovery and AppRun binding facts while the legacy
+``IpBroadcastSessionStore`` remains the source of step state.  The production
+``execute_provider`` path delegates media generation to the existing TTS,
+digital-human and postproduction services; platform publishing is intentionally
+not performed here and remains a human-confirmed downstream action.
 """
 
 from __future__ import annotations
@@ -32,7 +33,11 @@ from pixelle_video.app_center.repository import (
 from pixelle_video.app_center.runner import AppRunner, ExecutorOutput, RelatedArtifactOutput
 from pixelle_video.app_center.state_machine import InvalidAppRunTransition
 from pixelle_video.app_center.validation import validate_business_payload
-from pixelle_video.services.ip_broadcast_workflow import IpBroadcastSession, IpBroadcastSessionStore
+from pixelle_video.services.ip_broadcast_workflow import (
+    IpBroadcastSession,
+    IpBroadcastSessionStore,
+    run_ip_broadcast_step,
+)
 from pixelle_video.utils.os_util import get_data_path, get_output_path, get_temp_path
 
 APP_ID = "builtin.digital-human-video"
@@ -297,7 +302,7 @@ class IpBroadcastBindingStore:
 
 
 class IpBroadcastAppAdapter:
-    """Bind the legacy IP workflow to an AppRun without enabling providers."""
+    """Bind the legacy IP workflow to an AppRun with a gated provider path."""
 
     app_id = APP_ID
     app_version = APP_VERSION
@@ -407,6 +412,7 @@ class IpBroadcastAppAdapter:
                 "session_id": session_reference,
                 "source_mode": mode,
                 "goal": goal,
+                "source_text": goal,
                 "source_artifact_version_ids": [],
                 "source_revision": _fingerprint({"mode": mode, "goal": goal}),
             }
@@ -432,6 +438,7 @@ class IpBroadcastAppAdapter:
                 "source_mode": mode,
                 "source_artifact_version_ids": [version.artifact_version_id],
                 "selected_variant_index": index,
+                "source_text": full_text,
                 "source_revision": revision,
             }
         title = str(content.get("title") or "").strip()
@@ -442,6 +449,7 @@ class IpBroadcastAppAdapter:
             "session_id": session_reference,
             "source_mode": mode,
             "source_artifact_version_ids": [version.artifact_version_id],
+            "source_text": title,
             "source_revision": _fingerprint({"version_id": version.artifact_version_id, "fingerprint": version.content_fingerprint, "title": title}),
         }
 
@@ -463,6 +471,15 @@ class IpBroadcastAppAdapter:
         except ValueError as exc:
             raise IpBroadcastInputError("INPUT_PAYLOAD_INVALID", str(exc)) from exc
         normalized = self.validate_input(project_id, input_payload)
+        if normalized.get("resume_mode") != "resume_existing":
+            normalized["source_revision"] = _fingerprint(
+                {
+                    "source_revision": normalized["source_revision"],
+                    "portrait_id": input_payload.get("portrait_id"),
+                    "digital_human_scene_id": input_payload.get("digital_human_scene_id"),
+                    "tts_ref_audio_id": input_payload.get("tts_ref_audio_id"),
+                }
+            )
         resume_mode = normalized["resume_mode"]
         existing = next((run for run in self.repository.list_app_runs() if run.idempotency_key == idempotency_key), None)
         if existing is not None:
@@ -513,6 +530,8 @@ class IpBroadcastAppAdapter:
         else:
             session = self.session_store.create_session()
 
+        self._apply_input_to_session(session, normalized, input_payload)
+
         run_payload = {
             **dict(input_payload),
             **normalized,
@@ -552,6 +571,149 @@ class IpBroadcastAppAdapter:
             # second run; surface the binding failure for operator repair.
             raise
         return self._handle(run, binding)
+
+    @staticmethod
+    def _apply_input_to_session(session: IpBroadcastSession, normalized: dict[str, Any], input_payload: dict[str, Any]) -> None:
+        """Pin App Center inputs into the legacy workflow state before execution.
+
+        The legacy workflow remains the single media execution implementation;
+        this bridge only supplies its source script and selected V2 assets.
+        """
+
+        source_text = str(normalized.get("source_text") or input_payload.get("goal") or "").strip()
+        if source_text:
+            session.state["source_text"] = source_text
+            session.state["final_script"] = source_text
+            session.state["source_label"] = "应用中心来源"
+            session.state["copywriting_confirmed"] = True
+            session.state["business_goal_name"] = str(input_payload.get("goal") or source_text)[:200]
+        source_mode = normalized.get("source_mode")
+        if source_mode:
+            session.state["source_mode"] = str(source_mode)
+        for key in (
+            "portrait_id",
+            "digital_human_scene_id",
+            "digital_human_workflow",
+            "digital_human_prompt",
+            "digital_human_duration",
+            "digital_human_width",
+            "digital_human_height",
+            "tts_ref_audio_id",
+            "tts_inference_mode",
+            "tts_voice",
+            "tts_speed",
+            "tts_pitch",
+            "tts_volume",
+        ):
+            if key in input_payload and input_payload[key] not in (None, ""):
+                session.state[key] = input_payload[key]
+        session.step_status[1] = "done"
+        session.step_status[2] = "done"
+        session.step_status[3] = "pending"
+        session.step_status[4] = "pending"
+        session.step_status[5] = "pending"
+        session.step_status[6] = "pending"
+        session.notices = {}
+        session.refresh_readiness()
+
+    async def execute_provider(self, app_run_id: str, pixelle_video: Any, *, context_snapshot_id: str | None = None) -> IpBroadcastRunHandle:
+        """Run the existing TTS → digital-human → postproduction pipeline.
+
+        Unlike ``execute_local``, this method deliberately calls configured
+        providers and writes real media artifacts. Final platform publishing
+        remains outside this method and still requires human confirmation.
+        """
+
+        self._ensure_entry_enabled()
+        with _legacy_registration_lock(app_run_id):
+            binding = self.binding_store.get_by_app_run(app_run_id)
+            if binding is None:
+                raise IpBroadcastSessionError("BINDING_MISSING", app_run_id)
+            run = self.repository.get_app_run(app_run_id)
+            self._assert_execution_binding(run, binding, context_snapshot_id=context_snapshot_id)
+            if run.state in {"needs_review", "completed", "cancelled"}:
+                return self._handle(run, binding)
+            if run.state == "running":
+                # A provider run observed after a sidecar restart cannot be
+                # resumed safely because the external TTS/digital-human job
+                # may have been lost. Mark it retryable instead of leaving a
+                # permanently stuck AppRun or issuing a duplicate job.
+                attempts = self.repository.list_attempts(app_run_id)
+                if attempts and attempts[-1].state == "running":
+                    self.repository.update_attempt(
+                        attempts[-1].attempt_id,
+                        state="failed",
+                        error_code="APP_EXECUTOR_INTERRUPTED",
+                        error_message="provider executor was interrupted before restart",
+                        diagnostic_json={"type": "APP_EXECUTOR_INTERRUPTED"},
+                        completed_at=run.updated_at,
+                    )
+                failed = self.repository.transition_app_run(app_run_id, "failed")
+                failed = self.repository.set_app_run_error(app_run_id, "APP_EXECUTOR_INTERRUPTED")
+                session = self.session_store.get_session(binding.session_id)
+                if session is not None:
+                    session.step_status[6] = "error"
+                    self.session_store.save_session(session)
+                return self._handle(failed, binding)
+            session = self.session_store.get_session(binding.session_id)
+            if session is None:
+                raise IpBroadcastSessionError("SESSION_NOT_FOUND", binding.session_id)
+            self._apply_input_to_session(session, run.input_payload, run.input_payload)
+            self.session_store.save_session(session)
+
+            adapter = self
+
+            class _ProviderExecutor:
+                async def execute(self, _run: AppRun) -> ExecutorOutput:
+                    for step_key in ("voice", "digital_human", "postproduction"):
+                        ok = await run_ip_broadcast_step(pixelle_video, session, step_key)
+                        if not ok:
+                            notice = session.notices.get({"voice": 3, "digital_human": 4, "postproduction": 5}[step_key], {})
+                            raise RuntimeError(str(notice.get("message") or f"口播步骤失败: {step_key}"))
+                        adapter.session_store.save_session(session)
+                    video_path = str(session.artifacts.get("final_video") or session.state.get("final_video_path") or "")
+                    cover_path = str(session.artifacts.get("cover") or session.state.get("cover_path") or "")
+                    if not video_path or not cover_path:
+                        raise RuntimeError("口播成片或封面未生成")
+                    video_ref = adapter._validate_legacy_file(video_path, artifact_type="video")
+                    cover_ref = adapter._validate_legacy_file(cover_path, artifact_type="cover")
+                    publish_copy = adapter._legacy_publish_copy(session)
+                    return ExecutorOutput(
+                        artifact_type="video",
+                        name="数字人口播视频",
+                        content={"schema_version": 1, "artifact_type": "video", "source_session_id": session.session_id, "generated_by": "ip-broadcast-v1"},
+                        file_refs=[video_ref],
+                        provider_class="ip-broadcast-digital-human",
+                        model_ref="configured-digital-human",
+                        related_artifacts=[
+                            RelatedArtifactOutput("cover", "cover", "数字人口播封面", file_refs=[cover_ref]),
+                            RelatedArtifactOutput("publish_copy", "publish_copy", "数字人口播发布文案", content=publish_copy),
+                        ],
+                    )
+
+            runner = AppRunner(self.repository, executors={self.app_id: _ProviderExecutor()}, task_projector=self.task_projector, enforce_readiness=False)
+            result = await runner.run(app_run_id)
+            refreshed = self.session_store.get_session(binding.session_id)
+            if refreshed is None:
+                raise IpBroadcastSessionError("SESSION_NOT_FOUND", binding.session_id)
+            if result.state == "needs_review":
+                attempts = self.repository.list_attempts(app_run_id)
+                if attempts and attempts[-1].state == "needs_review":
+                    self.repository.update_attempt(
+                        attempts[-1].attempt_id,
+                        diagnostic_json={"generated_output_fingerprint": self._local_output_fingerprint(result)},
+                    )
+                for artifact_id in result.output_artifact_ids:
+                    artifact = self.repository.get_artifact(artifact_id)
+                    refreshed.artifacts[artifact.artifact_type] = artifact_id
+                refreshed.step_status[3] = "done"
+                refreshed.step_status[4] = "done"
+                refreshed.step_status[5] = "done"
+                refreshed.step_status[6] = "ready"
+            elif result.state == "failed":
+                refreshed.step_status[4] = "error"
+            self.session_store.save_session(refreshed)
+            return self._handle(result, binding)
 
     def reconcile(self, session_id: str, *, project_id: str, app_run_id: str | None = None) -> IpBroadcastRunHandle:
         session = self.session_store.get_session(session_id)
@@ -715,6 +877,50 @@ class IpBroadcastAppAdapter:
             session.step_status[6] = "ready" if result.state == "needs_review" else ("error" if result.state in {"failed", "cancelled"} else session.step_status.get(6, "pending"))
             self.session_store.save_session(session)
             return self._handle(result, binding)
+
+    def accept_generated_outputs(self, app_run_id: str) -> IpBroadcastRunHandle:
+        """Accept provider-generated artifacts after explicit human review.
+
+        Provider execution creates ``generated`` ArtifactVersions directly,
+        unlike the legacy import path which expects ``imported`` versions.
+        Keep the same exact-output and fingerprint checks, but use the
+        generated-output review contract so a real provider run can complete.
+        """
+
+        self._ensure_entry_enabled()
+        with _legacy_registration_lock(app_run_id):
+            binding = self.binding_store.get_by_app_run(app_run_id)
+            if binding is None:
+                raise IpBroadcastSessionError("BINDING_MISSING", app_run_id)
+            run = self.repository.get_app_run(app_run_id)
+            self._assert_accept_binding(run, binding)
+            if run.state not in {"needs_review", "completed"}:
+                raise IpBroadcastSessionError("ARTIFACT_OUTPUT_STATE_INVALID", run.state)
+            fingerprint = self._local_output_fingerprint(run)
+            attempts = self.repository.list_attempts(app_run_id)
+            if not attempts or attempts[-1].state not in {"needs_review", "completed"}:
+                raise IpBroadcastSessionError("ARTIFACT_REVIEW_ATTEMPT_REQUIRED", app_run_id)
+            diagnostic = attempts[-1].diagnostic or {}
+            if diagnostic.get("generated_output_fingerprint") != fingerprint:
+                raise IpBroadcastSessionError("ARTIFACT_FINGERPRINT_MISMATCH", app_run_id)
+            if run.state == "completed":
+                session = self.session_store.get_session(binding.session_id)
+                if session is None:
+                    raise IpBroadcastSessionError("SESSION_NOT_FOUND", binding.session_id)
+                if session.step_status.get(6) != "done":
+                    session.step_status[6] = "done"
+                    self.session_store.save_session(session)
+                return self._handle(run, binding)
+            try:
+                completed = AppRunner(self.repository, enforce_readiness=False).accept_output(app_run_id)
+            except Exception as exc:
+                raise IpBroadcastSessionError("ARTIFACT_ACCEPT_INVALID", str(exc)) from exc
+            session = self.session_store.get_session(binding.session_id)
+            if session is None:
+                raise IpBroadcastSessionError("SESSION_NOT_FOUND", binding.session_id)
+            session.step_status[6] = "done"
+            self.session_store.save_session(session)
+            return self._handle(completed, binding)
 
     @staticmethod
     def _local_executor_output(run: AppRun) -> ExecutorOutput:

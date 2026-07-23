@@ -226,3 +226,63 @@ def test_ip_broadcast_app_api_isolated_execute_and_accept(monkeypatch, tmp_path)
     assert accepted.status_code == 200
     assert accepted.json()["state"] == "completed"
     assert "input_payload" not in accepted.text
+
+
+def test_ip_broadcast_app_api_accepts_generated_provider_outputs(monkeypatch, tmp_path):
+    monkeypatch.setenv("PIXELLE_APP_CENTER_DB", str(tmp_path / "generated-api.sqlite"))
+    monkeypatch.setenv("PIXELLE_VIDEO_ROOT", str(tmp_path))
+    get_app_center_repository.cache_clear()
+    repository = get_app_center_repository()
+    sessions = IpBroadcastSessionStore(tmp_path / "sessions")
+    bindings = IpBroadcastBindingStore(tmp_path / "bindings.json")
+    adapter = IpBroadcastAppAdapter(
+        repository,
+        session_store=sessions,
+        binding_store=bindings,
+        enforce_feature_flag=True,
+        trusted_roots=[tmp_path],
+    )
+    # Keep this API test provider-free while exercising the production
+    # acceptance branch selected by generated ArtifactVersions.
+    monkeypatch.setattr(adapter, "_ensure_entry_enabled", lambda: None)
+    monkeypatch.setattr("api.routers.ip_broadcast_app.get_ip_broadcast_app_adapter", lambda: adapter)
+    video = tmp_path / "generated.mp4"
+    video.write_bytes(b"\x00\x00\x00\x18ftypmp42\x00\x00\x00\x00isommp42")
+    cover = tmp_path / "generated.png"
+    cover.write_bytes(b"\x89PNG\r\n\x1a\ngenerated-cover")
+
+    async def fake_step(_core, session, step_key):
+        if step_key == "postproduction":
+            session.artifacts["final_video"] = str(video)
+            session.artifacts["cover"] = str(cover)
+            session.state["publish_package"] = {
+                "title": "生成标题",
+                "description": "生成描述",
+                "hashtags": ["门店"],
+            }
+        return True
+
+    monkeypatch.setattr("pixelle_video.app_center.ip_broadcast_adapter.run_ip_broadcast_step", fake_step)
+    client = TestClient(app)
+    project = client.post("/api/content-projects", json={"name": "生成 API", "primary_goal": "生成并确认"}).json()
+    created = adapter.create_or_resume(
+        project["project_id"],
+        {"source_mode": "blank_project", "goal": "生成并确认", "source_artifact_version_ids": []},
+        idempotency_key="ip-api-generated-accept-1",
+    )
+    import asyncio
+
+    reviewed = asyncio.run(adapter.execute_provider(created.run.app_run_id, object()))
+    assert reviewed.run.state == "needs_review"
+    accepted = client.post(f"/api/app-center/ip-broadcast/runs/{created.run.app_run_id}/accept")
+    assert accepted.status_code == 200
+    assert accepted.json()["state"] == "completed"
+    video_artifact = next(
+        repository.get_artifact(item)
+        for item in reviewed.run.output_artifact_ids
+        if repository.get_artifact(item).artifact_type == "video"
+    )
+    repository.append_artifact_version(video_artifact.artifact_id, content={"tampered": True}, source="generated")
+    tampered = client.post(f"/api/app-center/ip-broadcast/runs/{created.run.app_run_id}/accept")
+    assert tampered.status_code == 409
+    assert tampered.json()["detail"]["code"] == "ARTIFACT_FINGERPRINT_MISMATCH"

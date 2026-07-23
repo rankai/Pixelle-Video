@@ -124,10 +124,16 @@ class DouyinCarouselRenderer:
             raise CarouselRenderError("FONT_MISSING", f"字体加载失败：{font_id}", page_index=page_index) from exc
 
         image = Image.new("RGB", (CAROUSEL_WIDTH, CAROUSEL_HEIGHT), (248, 245, 238))
-        draw = ImageDraw.Draw(image)
         self._draw_asset(image, page, page_index)
+        # The asset canvas is RGB; passing a 4-tuple to ImageDraw on it ignores
+        # alpha and paints an opaque rectangle over the source image. Composite
+        # a translucent tint explicitly so the selected enterprise asset remains
+        # visible while the copy remains readable.
+        overlay = Image.new("RGBA", image.size, (0, 0, 0, 0))
+        overlay_draw = ImageDraw.Draw(overlay)
+        overlay_draw.rectangle((0, 155, CAROUSEL_WIDTH, 775), fill=(248, 245, 238, 120))
+        image = Image.alpha_composite(image.convert("RGBA"), overlay).convert("RGB")
         draw = ImageDraw.Draw(image)
-        draw.rectangle((0, 0, CAROUSEL_WIDTH, CAROUSEL_HEIGHT), fill=(248, 245, 238, 205))
         draw.rectangle((0, 0, CAROUSEL_WIDTH, 155), fill=(31, 41, 55))
         draw.text((72, 52), "抖音图文", fill=(255, 255, 255), font=font)
 
