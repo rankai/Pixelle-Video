@@ -1743,7 +1743,7 @@ gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user</p>
 <li>启动审查结论：<code>conditional_go_for_coord_0_only</code></li>
 <li>当前 Stage：<code>PROGRAM-ROLLOUT</code></li>
 <li>当前 Stage 状态：<code>waiting_user</code>（PLATFORM-EXPANSION 已按边界 Gate 收口；PG-L 当前等待 Windows 实机人工闭环，PG-L 仍保持 open）</li>
-<li>最后更新时间：2026-07-23（平台 release/rollback 边界复审通过；Windows 人工安装证据尚未回传；最终发布自动点击继续关闭）</li>
+<li>最后更新时间：2026-07-24（PR #5 已合并并完成本地/远端同步；Windows 人工安装证据、产品签字和真实 rollback/WebView 证据仍未回传；最终发布自动点击继续关闭）</li>
 <li>更新人：主线程 + 独立严格审查线程 <code>/root/pg_a_closure_reviewer_v3</code>、<code>/root/platform_expansion_foundation_reviewer</code></li>
 </ul>
 <h2 id="1">1. 使用规则<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
@@ -3806,7 +3806,15 @@ gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user</p>
 <td>Windows sidecar 直接 health、NSIS 安装、Tauri 应用启动/关闭/重开两轮和端口释放真实通过；修复 Windows cp1252 stdout Unicode banner 导致的 sidecar_exit_1，并将 docs/contracts 随 PyInstaller 打包；最终发布点击=0、外部动作=0</td>
 <td><a href="../application-publishing-program/PROGRAM-ROLLOUT-windows-installer-smoke-2026-07-23/"><code>PROGRAM-ROLLOUT-windows-installer-smoke-2026-07-23.md</code></a>；<a href="../application-publishing-program/PROGRAM-ROLLOUT-windows-installer-smoke-review-2026-07-23/"><code>PROGRAM-ROLLOUT-windows-installer-smoke-review-2026-07-23.md</code></a>；<a href="../../../reviews/application-publishing-program/qa/PROGRAM-ROLLOUT-windows-installer-smoke-2026-07-23.json"><code>qa/PROGRAM-ROLLOUT-windows-installer-smoke-2026-07-23.json</code></a>；Run 30028402812 / job 89278574897；13 定向测试、Ruff、YAML、diff clean；独立复审 <code>implementation_pass_with_boundary</code>，P0/P1/实质性 P2=0</td>
 <td>这是 hosted Windows Runner 自动 smoke，不等价真实 Windows 用户设备安装/产品签字；PG-L-10 仍 pending_external，PG-L-11 仍 not_executed；默认 Publish V2、抖音灰度和最终发布保持关闭</td>
-<td>PR #5 已创建并可在必需检查通过后合并；合并后台账仍保持 PROGRAM-ROLLOUT/PG-L_waiting_user，等待人工 Windows 设备证据</td>
+<td>PR #5 已合并为 <code>c4f879158034f53c0767e913296a95077c86541b</code>；当前台账仍保持 PROGRAM-ROLLOUT/PG-L_waiting_user，等待人工 Windows 设备证据</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>PROGRAM-ROLLOUT/PG-L 合并后事实源同步审计</td>
+<td>核对 GitHub PR #5 已 <code>merged=true</code>，合并提交 <code>c4f879158034f53c0767e913296a95077c86541b</code>；本地 <code>main</code> 与 <code>origin/main</code> 一致，feature 分支与远端一致；未发现新的 Windows 实机、产品签字或真实 rollback/WebView 证据；未修改业务代码、默认 rollout 或最终发布安全边界</td>
+<td>PR <a href="https://github.com/rankai/Pixelle-Video/pull/5">#5</a>；<code>git status --short --branch</code> clean；<code>main=origin/main=c4f8791</code>；Windows smoke QA JSON 与双独立复审记录</td>
+<td><code>manual_windows_install=pending_user_device</code>；PG-L-10=<code>pending_external</code>；PG-L-11=<code>not_executed</code>；不把 hosted Runner smoke 当作实机验收，不开启默认 Publish V2</td>
+<td>当前唯一入口仍为 PROGRAM-ROLLOUT/PG-L_waiting_user；等待 Windows 实机回传、产品签字和真实 rollback/WebView 结论后，再执行 PG-L closure review</td>
 </tr>
 </tbody>
 </table>
@@ -3832,7 +3840,7 @@ gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user</p>
     <span class="md-icon" title="最后更新">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 23, 2026 18:04:14 UTC">July 23, 2026 18:04:14</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 23, 2026 18:32:52 UTC">July 23, 2026 18:32:52</span>
   </span>
 
     
