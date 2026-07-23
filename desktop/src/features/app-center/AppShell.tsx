@@ -11,6 +11,9 @@ const LAST_ROUTE_STORAGE_KEY = "pixelle_app_center_last_route";
 const LAST_PUBLISH_HANDOFF_STORAGE_KEY = "pixelle_app_center_last_publish_handoff";
 const ROUTES = new Set([
   "/apps",
+  "/apps/marketing-copy",
+  "/apps/viral-titles",
+  "/apps/douyin-carousel",
   "/apps/digital-human-video",
   "/home",
   "/ip",

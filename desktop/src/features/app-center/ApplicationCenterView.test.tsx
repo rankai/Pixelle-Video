@@ -51,6 +51,12 @@ describe("ApplicationCenterView", () => {
 
     expect(await screen.findByText("爆款标题")).toBeInTheDocument();
     expect(screen.getByText("数字人口播视频")).toBeInTheDocument();
+    expect(screen.getByText("可试用")).toBeInTheDocument();
+    expect(screen.getByText("未开启")).toBeInTheDocument();
+    const titleCard = screen.getByText("爆款标题").closest("article");
+    expect(titleCard).not.toBeNull();
+    expect(titleCard?.querySelector(".app-center-card-tags")).toHaveTextContent("文案创作");
+    expect(titleCard?.querySelector(".app-center-card-footer")).not.toHaveTextContent("文案创作");
 
     fireEvent.click(screen.getByRole("tab", { name: "文案创作" }));
     expect(screen.getByText("爆款标题")).toBeInTheDocument();

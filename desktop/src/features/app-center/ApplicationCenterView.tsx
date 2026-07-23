@@ -11,8 +11,9 @@ export type Application = {
   description: string;
   status: ApplicationManifest["readiness"]["status"];
   statusLabel: string;
+  statusTone: "success" | "processing" | "warning" | "default";
   enabled: boolean;
-  routeView?: "ip" | "digital_human_app";
+  routePath?: string;
   actionable: boolean;
   keywords: string[];
   icon: typeof AppstoreOutlined;
@@ -39,13 +40,28 @@ function toApplication(manifest: ApplicationManifest): Application {
   const isDigitalHuman = manifest.app_id === "builtin.digital-human-video";
   const desktopReady = !isDigitalHuman || featureFlags.digitalHumanInAppCenter;
   const ready = backendReady && desktopReady;
-  const statusLabel = isDigitalHuman && backendReady && !desktopReady
-    ? "灰度未开启"
-    : !manifest.enabled
+  const statusLabel = !manifest.enabled
     ? "未开启"
-    : backendReady
-      ? manifest.app_id === "builtin.digital-human-video" ? "可进入新流程" : "可用"
-      : manifest.readiness.status === "not_ready" ? "需先完善配置" : "即将上线";
+    : manifest.readiness.status === "not_ready"
+      ? "需先配置"
+      : isDigitalHuman
+        ? desktopReady && backendReady ? "灰度中" : "灰度未开启"
+        : manifest.app_id === "builtin.douyin-carousel" && backendReady
+          ? "本地可导出"
+          : backendReady ? "可试用" : "即将上线";
+  const statusTone = !manifest.enabled || manifest.readiness.status === "disabled"
+    ? "default"
+    : manifest.readiness.status === "not_ready"
+      ? "warning"
+      : isDigitalHuman
+        ? "processing"
+        : backendReady ? "success" : "warning";
+  const routePath = {
+    "builtin.marketing-copy": "/apps/marketing-copy",
+    "builtin.viral-titles": "/apps/viral-titles",
+    "builtin.douyin-carousel": "/apps/douyin-carousel",
+    "builtin.digital-human-video": "/apps/digital-human-video",
+  }[manifest.app_id];
   return {
     appId: manifest.app_id,
     name: manifest.name,
@@ -53,8 +69,9 @@ function toApplication(manifest: ApplicationManifest): Application {
     description: manifest.description,
     status: manifest.readiness.status,
     statusLabel,
+    statusTone,
     enabled: manifest.enabled,
-    routeView: isDigitalHuman ? "digital_human_app" : undefined,
+    routePath,
     actionable: ready,
     keywords: [manifest.app_id, manifest.feature_flag, manifest.category, ...manifest.required_capabilities],
     icon: iconMap[manifest.icon] || AppstoreOutlined,
@@ -106,7 +123,7 @@ export function ApplicationCenterView({ onOpenApp }: { onOpenApp: (application: 
           <Typography.Text className="app-center-eyebrow">PIXELLE APPLICATION CENTER</Typography.Text>
           <Typography.Title level={2}>应用中心</Typography.Title>
           <Typography.Paragraph type="secondary">
-            按任务发现文案、标题、图文和视频能力。目录和 readiness 由后端 Registry 提供，文案与标题应用已接入统一运行与版本链路。
+            按任务发现文案、标题、图文和视频能力。状态会区分可试用、本地可导出和灰度中；最终平台发布始终保留人工确认。
           </Typography.Paragraph>
         </div>
         <Tag icon={<AppstoreOutlined />} color="processing">
@@ -146,17 +163,21 @@ export function ApplicationCenterView({ onOpenApp }: { onOpenApp: (application: 
             const ready = application.actionable;
             return (
               <article className="app-center-card" key={application.appId}>
-                <div className="app-center-card-icon"><Icon /></div>
                 <div className="app-center-card-main">
-                  <div className="app-center-card-heading">
-                    <Typography.Title level={4}>{application.name}</Typography.Title>
-                    <Tag color={ready ? "success" : application.status === "disabled" ? "default" : "warning"}>
-                      {application.statusLabel}
-                    </Tag>
+                  <div className="app-center-card-copy-row">
+                    <div className="app-center-card-icon"><Icon /></div>
+                    <div className="app-center-card-copy">
+                      <div className="app-center-card-heading">
+                        <Typography.Title level={4}>{application.name}</Typography.Title>
+                        <div className="app-center-card-tags">
+                          <Tag color="default">{application.category}</Tag>
+                          <Tag color={application.statusTone}>{application.statusLabel}</Tag>
+                        </div>
+                      </div>
+                      <Typography.Paragraph className="app-center-card-description" type="secondary">{application.description}</Typography.Paragraph>
+                    </div>
                   </div>
-                  <Typography.Paragraph type="secondary">{application.description}</Typography.Paragraph>
                   <div className="app-center-card-footer">
-                    <Typography.Text type="secondary">{application.category}</Typography.Text>
                     <Button type={ready ? "primary" : "default"} disabled={!application.actionable} onClick={() => onOpenApp(application)}>
                       {ready ? "打开流程" : "查看规划"}
                     </Button>

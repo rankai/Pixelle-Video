@@ -1,5 +1,5 @@
 import { Image as ImageIcon, LayoutTemplate, Mic2, Package, Search, Upload, UserRound, Video, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { assetBlobUrl, createVoiceProfileV2, LibraryItemV2, listLibraryItemsV2, uploadMediaAssetV2 } from "../../../api";
 import type { PickerContext } from "../model/ux0Contracts";
 import { AssetUploadQueue } from "./AssetUploadQueue";
@@ -53,6 +53,7 @@ export function AssetPickerDialog({
   const [pendingItem, setPendingItem] = useState<LibraryItemV2 | null>(null);
   const [pendingScene, setPendingScene] = useState<string>("");
   const [queueOpen, setQueueOpen] = useState(false);
+  const multiSelectionInitialized = useRef(false);
   const selectedIdsKey = selectedIds.join("|");
 
   useEffect(() => {
@@ -67,7 +68,20 @@ export function AssetPickerDialog({
           setItems(result.items);
           if (selectionMode === "multiple") {
             const selectedKeys = new Set(selectedIdsKey.split("|").filter(Boolean));
-            setMultiSelected(result.items.filter((item) => selectedKeys.has(item.resource_id)));
+            const visibleKeys = new Set(result.items.map((item) => item.resource_id));
+            setMultiSelected((current) => {
+              if (!multiSelectionInitialized.current) {
+                multiSelectionInitialized.current = true;
+                return result.items.filter((item) => selectedKeys.has(item.resource_id));
+              }
+              // Keep selections that are outside the current search result;
+              // changing the query must not silently drop already selected
+              // assets from the final multi-select confirmation.
+              return [
+                ...current.filter((item) => !visibleKeys.has(item.resource_id)),
+                ...result.items.filter((item) => current.some((selected) => selected.resource_id === item.resource_id)),
+              ];
+            });
           }
         }
       })
@@ -86,6 +100,7 @@ export function AssetPickerDialog({
     if (!open) return;
     setActiveItem(null);
     setMultiSelected([]);
+    multiSelectionInitialized.current = false;
     setPendingItem(null);
     setPendingScene("");
     setError("");

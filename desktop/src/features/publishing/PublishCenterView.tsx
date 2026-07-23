@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   getPublishPackageV2,
   getPublishRunV2,
+  createPublishRunV2,
   listPublishAccountsV2,
   listPublishRunEventsV2,
   preflightPublishPackageV2,
@@ -59,13 +60,14 @@ function readPublishRefs(): PublishRefs {
 }
 
 function EnabledPublishCenter({ refs }: { refs: PublishRefs }) {
-  const [tab, setTab] = useState<PublishCenterTab>("runs");
+  const [tab, setTab] = useState<PublishCenterTab>(() => (refs.packageId || refs.artifactId) && !refs.runId ? "accounts" : "runs");
   const [accounts, setAccounts] = useState<PublishAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [packageData, setPackageData] = useState<PublishPackageV2 | null>(null);
   const [runData, setRunData] = useState<PublishRunV2 | null>(null);
   const [events, setEvents] = useState<PublishRunEvent[]>([]);
+  const [startingAccountId, setStartingAccountId] = useState<string | null>(null);
 
   async function reloadAccounts() {
     setLoading(true);
@@ -143,33 +145,58 @@ function EnabledPublishCenter({ refs }: { refs: PublishRefs }) {
     return [...grouped.entries()];
   }, [accounts]);
 
+  async function startRun(account: PublishAccount) {
+    if (!packageData) return;
+    setStartingAccountId(account.account_id);
+    setError("");
+    try {
+      const accepted = await createPublishRunV2({
+        package_id: packageData.package_id,
+        account_id: account.account_id,
+        platform: account.platform,
+        idempotency_key: `publish-center:${packageData.package_id}:${account.account_id}`,
+      });
+      const [runResponse, eventResponse] = await Promise.all([
+        getPublishRunV2(accepted.run_id),
+        listPublishRunEventsV2(accepted.run_id),
+      ]);
+      setRunData(runResponse.run);
+      setEvents(eventResponse.items);
+      setTab("runs");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : String(reason));
+    } finally {
+      setStartingAccountId(null);
+    }
+  }
+
   return (
     <section className="publish-center-v2" aria-label="发布中心">
       <div className="publish-center-v2-heading">
         <div>
-          <Typography.Text type="secondary">PUBLISH CENTER · V2</Typography.Text>
-          <Typography.Title level={2}>发布中心</Typography.Title>
-          <Typography.Paragraph type="secondary">
-            统一查看真实 package、账号和发布运行状态。当前批次只接入安全只读投影，最终发布始终由人工确认。
+          <Typography.Text className="publish-center-v2-eyebrow" type="secondary">PUBLISH CENTER · V2</Typography.Text>
+          <Typography.Title className="publish-center-v2-title" level={2}>发布中心</Typography.Title>
+          <Typography.Paragraph className="publish-center-v2-description" type="secondary">
+            统一查看真实 package、账号和发布运行状态；选择账号后可启动一次受控的发布前填充，最终发布始终由人工确认。
           </Typography.Paragraph>
         </div>
-        <Tag color="processing">人工确认边界</Tag>
+        <Tag className="publish-center-v2-boundary-tag" color="processing">人工确认边界</Tag>
       </div>
 
       {error ? (
         <>
-          <Alert type="warning" showIcon title="发布中心数据暂时不可用" description={error} />
+          <Alert className="publish-center-v2-alert" type="warning" showIcon title="发布中心数据暂时不可用" description={error} />
           <PublishFallbackActions />
         </>
       ) : null}
       <div className="publish-center-v2-tabs" role="tablist" aria-label="发布中心分区">
-        <button type="button" role="tab" aria-selected={tab === "runs"} onClick={() => setTab("runs")}>发布运行</button>
-        <button type="button" role="tab" aria-selected={tab === "accounts"} onClick={() => setTab("accounts")}>发布账号</button>
+        <button className="publish-center-v2-tab" type="button" role="tab" aria-selected={tab === "runs"} onClick={() => setTab("runs")}>发布运行</button>
+        <button className="publish-center-v2-tab" type="button" role="tab" aria-selected={tab === "accounts"} onClick={() => setTab("accounts")}>发布账号</button>
       </div>
 
       {tab === "runs" ? (
         packageData || runData ? <PublishRunProjection packageData={packageData} runData={runData} events={events} /> : <PublishRunEmptyState />
-      ) : <PublishAccountSummary accounts={accounts} groups={accountSummary} loading={loading} onReload={() => void reloadAccounts()} />}
+      ) : <PublishAccountSummary accounts={accounts} groups={accountSummary} loading={loading} onReload={() => void reloadAccounts()} packageReady={Boolean(packageData)} startingAccountId={startingAccountId} onStartRun={(account) => void startRun(account)} />}
     </section>
   );
 }
@@ -180,11 +207,11 @@ function PublishFallbackActions() {
   }
 
   return (
-    <Card className="publish-center-v2-fallback-actions" title="安全回退">
+    <Card className="publish-center-v2-card publish-center-v2-fallback-actions" title="安全回退">
       <Typography.Paragraph type="secondary">
         发布适配器暂时不可用。你仍可以回到生产工作区复制文案、预览或下载已生成素材；这里不会暴露本地路径，也不会自动发布。
       </Typography.Paragraph>
-      <Button onClick={openLegacyWorkspace}>返回工作区复制/下载素材</Button>
+      <Button className="publish-center-v2-action" onClick={openLegacyWorkspace}>返回工作区复制/下载素材</Button>
     </Card>
   );
 }
@@ -192,7 +219,7 @@ function PublishFallbackActions() {
 function PublishRunProjection({ packageData, runData, events }: { packageData: PublishPackageV2 | null; runData: PublishRunV2 | null; events: PublishRunEvent[] }) {
   const state = runData?.state || "package_ready";
   return (
-    <Card className="publish-center-v2-card" title="发布运行">
+    <Card className="publish-center-v2-card publish-center-v2-run-card" title="发布运行">
       <Space direction="vertical" size="middle" style={{ width: "100%" }}>
         <Space wrap>
           <Tag color="processing">{state}</Tag>
@@ -210,7 +237,7 @@ function PublishRunProjection({ packageData, runData, events }: { packageData: P
 
 function PublishRunEmptyState() {
   return (
-    <Card className="publish-center-v2-card" title="发布运行">
+    <Card className="publish-center-v2-card publish-center-v2-run-card" title="发布运行">
       <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="尚未选择发布包或运行" />
       <Typography.Paragraph type="secondary" style={{ textAlign: "center" }}>
         从项目或应用产物进入发布中心后，这里会显示真实的 PublishPackage、账号、字段清单和 run timeline；当前不会伪造已发布状态。
@@ -224,17 +251,23 @@ function PublishAccountSummary({
   groups,
   loading,
   onReload,
+  packageReady,
+  startingAccountId,
+  onStartRun,
 }: {
   accounts: PublishAccount[];
   groups: Array<[string, PublishAccount[]]>;
   loading: boolean;
   onReload: () => void;
+  packageReady: boolean;
+  startingAccountId: string | null;
+  onStartRun: (account: PublishAccount) => void;
 }) {
   return (
     <Card
-      className="publish-center-v2-card"
+      className="publish-center-v2-card publish-center-v2-account-card"
       title="发布账号"
-      extra={<Button onClick={onReload} loading={loading}>刷新状态</Button>}
+      extra={<Button className="publish-center-v2-action" onClick={onReload} loading={loading}>刷新状态</Button>}
     >
       {!loading && !accounts.length ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无本机发布账号" /> : null}
       <div className="publish-center-v2-account-grid">
@@ -244,7 +277,7 @@ function PublishAccountSummary({
               <Typography.Title level={4}>{platformLabel(platform)}</Typography.Title>
               <Tag color="default">{platformAccounts.length} 个账号</Tag>
             </Space>
-            {platformAccounts.map((account) => <AccountProjection key={account.account_id} account={account} />)}
+            {platformAccounts.map((account) => <AccountProjection key={account.account_id} account={account} packageReady={packageReady} starting={startingAccountId === account.account_id} onStartRun={onStartRun} />)}
           </section>
         ))}
       </div>
@@ -252,7 +285,7 @@ function PublishAccountSummary({
   );
 }
 
-function AccountProjection({ account }: { account: PublishAccount }) {
+function AccountProjection({ account, packageReady, starting, onStartRun }: { account: PublishAccount; packageReady: boolean; starting: boolean; onStartRun: (account: PublishAccount) => void }) {
   const status = account.login_state === "authenticated" ? "已登录" : account.login_state === "login_required" ? "需要登录" : account.login_state === "expired" ? "登录过期" : "未连接";
   const color = account.login_state === "authenticated" ? "success" : account.login_state === "degraded" || account.login_state === "locked" ? "warning" : "default";
   return (
@@ -264,6 +297,11 @@ function AccountProjection({ account }: { account: PublishAccount }) {
         <Tag color={account.platform_release_state === "pilot" ? "processing" : "default"}>{account.platform_release_state === "pilot" ? "试点" : "未验证"}</Tag>
       </Space>
       {account.last_error_code ? <Typography.Text type="secondary">诊断：{account.last_error_code}</Typography.Text> : null}
+      {packageReady && account.platform_release_state === "pilot" ? (
+            <Button className="publish-center-v2-action" size="small" type="primary" loading={starting} onClick={() => onStartRun(account)}>开始填充草稿</Button>
+      ) : packageReady ? (
+        <Typography.Text type="secondary">待独立 live gate；当前仅支持复制素材回退</Typography.Text>
+      ) : null}
     </div>
   );
 }
