@@ -25,6 +25,7 @@ from .execution_protocol import (
     parse_checkpoint,
 )
 from .package_service import PublishPackageBuildError
+from .platform_profiles import canonical_platform
 from .profile_manager import BrowserProfileManager, ProfileLockError
 
 
@@ -77,6 +78,12 @@ class PublishRunService:
             raise PublishRunConflict("ACCOUNT_NOT_FOUND") from exc
         if account.platform != platform:
             raise PublishRunConflict("ACCOUNT_PLATFORM_MISMATCH")
+        # Non-Douyin adapters are implementation-ready but remain behind the
+        # independent live-gate/release boundary.  Keep the durable run API
+        # from opening a browser for an unverified platform; copy/download
+        # fallback stays available in the desktop workbench.
+        if account.platform is not PublishPlatform.DOUYIN and account.platform_release_state != "pilot":
+            raise PublishRunConflict("PLATFORM_RELEASE_NOT_READY")
         run, replay = self.core_repository.create_run(package_id, account_id, platform, idempotency_key)
         if run.task_id is None:
             task = self.manager.create_task(
@@ -281,7 +288,7 @@ class PublishRunService:
         account = self.account_repository.get_account(current.account_id)
         if checkpoint.package_fingerprint != package.package_fingerprint:
             raise PublishRunServiceError("CHECKPOINT_PACKAGE_MISMATCH")
-        if checkpoint.account_id != current.account_id or checkpoint.platform != current.platform.value:
+        if checkpoint.account_id != current.account_id or canonical_platform(checkpoint.platform) != canonical_platform(current.platform.value):
             raise PublishRunServiceError("CHECKPOINT_RUN_BINDING_MISMATCH")
         if checkpoint.attempt != current.attempt:
             raise PublishRunServiceError("CHECKPOINT_ATTEMPT_MISMATCH")

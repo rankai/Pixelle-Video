@@ -24,6 +24,9 @@ PLATFORM_LABELS = {
     PublishPlatform.KUAISHOU.value: "快手",
     PublishPlatform.XIAOHONGSHU.value: "小红书",
 }
+PLATFORM_RELEASE_STATES = frozenset(
+    {"unverified", "pilot", "stable", "maintenance", "disabled", "retired"}
+)
 
 
 def utc_now() -> str:
@@ -103,9 +106,20 @@ class PublishAccountRepository:
                   created_at TEXT NOT NULL,
                   updated_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS publish_platform_release (
+                  platform TEXT PRIMARY KEY CHECK (platform IN ('douyin', 'video_channel', 'kuaishou', 'xiaohongshu')),
+                  release_state TEXT NOT NULL CHECK (release_state IN ('unverified', 'pilot', 'stable', 'maintenance', 'disabled', 'retired')),
+                  evidence_ref TEXT,
+                  updated_at TEXT NOT NULL
+                );
                 """
             )
             now = utc_now()
+            for platform in PublishPlatform:
+                connection.execute(
+                    "INSERT OR IGNORE INTO publish_platform_release(platform, release_state, evidence_ref, updated_at) VALUES (?, ?, ?, ?)",
+                    (platform.value, "pilot" if platform is PublishPlatform.DOUYIN else "unverified", "PG-G/PG-K" if platform is PublishPlatform.DOUYIN else None, now),
+                )
             rows = connection.execute(
                 "SELECT account_id, platform FROM publish_accounts"
             ).fetchall()
@@ -166,9 +180,10 @@ class PublishAccountRepository:
                 f"""
                 SELECT a.*, s.login_state, s.is_default, s.profile_exists,
                        s.login_subject_hint, s.last_error_code, s.archived_at,
-                       s.updated_at
+                       s.updated_at, r.release_state AS platform_release_state
                 FROM publish_accounts a
                 LEFT JOIN publish_account_state s ON s.account_id = a.account_id
+                LEFT JOIN publish_platform_release r ON r.platform = a.platform
                 {where}
                 ORDER BY a.platform, a.created_at, a.account_id
                 """
@@ -181,9 +196,10 @@ class PublishAccountRepository:
                 """
                 SELECT a.*, s.login_state, s.is_default, s.profile_exists,
                        s.login_subject_hint, s.last_error_code, s.archived_at,
-                       s.updated_at
+                       s.updated_at, r.release_state AS platform_release_state
                 FROM publish_accounts a
                 LEFT JOIN publish_account_state s ON s.account_id = a.account_id
+                LEFT JOIN publish_platform_release r ON r.platform = a.platform
                 WHERE a.account_id = ?
                 """,
                 (account_id,),
@@ -198,14 +214,74 @@ class PublishAccountRepository:
                 """
                 SELECT a.*, s.login_state, s.is_default, s.profile_exists,
                        s.login_subject_hint, s.last_error_code, s.archived_at,
-                       s.updated_at
+                       s.updated_at, r.release_state AS platform_release_state
                 FROM publish_accounts a
                 LEFT JOIN publish_account_state s ON s.account_id = a.account_id
+                LEFT JOIN publish_platform_release r ON r.platform = a.platform
                 WHERE a.profile_ref = ?
                 """,
                 (profile_ref,),
             ).fetchone()
         return self._row_to_model(row) if row else None
+
+    def get_platform_release_state(self, platform: PublishPlatform | str) -> str:
+        platform_value = str(platform)
+        if platform_value not in PLATFORM_LABELS:
+            raise ValueError("不支持的发布平台")
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT release_state FROM publish_platform_release WHERE platform = ?",
+                (platform_value,),
+            ).fetchone()
+        return str(row["release_state"]) if row else "unverified"
+
+    def promote_platform_release(self, platform: PublishPlatform | str, *, evidence_ref: str) -> str:
+        """Advance one platform only after an independently reviewed gate.
+
+        This is intentionally a repository-only operation.  It is not exposed
+        as an admin endpoint and rejects paths/secrets so a future release
+        workflow must provide a redacted evidence reference.
+        """
+
+        platform_value = str(platform)
+        evidence = str(evidence_ref or "").strip()
+        if platform_value not in PLATFORM_LABELS:
+            raise ValueError("不支持的发布平台")
+        if not evidence or evidence.startswith(("/", "~")) or "\\" in evidence or len(evidence) > 240:
+            raise PublishAccountConflict("RELEASE_EVIDENCE_REF_INVALID")
+        lowered = evidence.lower()
+        if any(marker in lowered for marker in ("cookie", "qr", "token", "secret", "authorization")):
+            raise PublishAccountConflict("RELEASE_EVIDENCE_REF_INVALID")
+        with self._transaction() as connection:
+            row = connection.execute(
+                "SELECT release_state FROM publish_platform_release WHERE platform = ?",
+                (platform_value,),
+            ).fetchone()
+            if row is None:
+                raise PublishAccountConflict("RELEASE_STATE_NOT_FOUND")
+            if row["release_state"] != "unverified":
+                raise PublishAccountConflict("RELEASE_STATE_ALREADY_PROMOTED")
+            connection.execute(
+                "UPDATE publish_platform_release SET release_state = 'pilot', evidence_ref = ?, updated_at = ? WHERE platform = ? AND release_state = 'unverified'",
+                (evidence, utc_now(), platform_value),
+            )
+        return "pilot"
+
+    def revoke_platform_release(self, platform: PublishPlatform | str, *, reason_ref: str) -> str:
+        """Fail closed a platform release without touching account profiles."""
+
+        platform_value = str(platform)
+        reason = str(reason_ref or "").strip()
+        if platform_value not in PLATFORM_LABELS or not reason or len(reason) > 240 or reason.startswith(("/", "~")) or "\\" in reason:
+            raise PublishAccountConflict("RELEASE_EVIDENCE_REF_INVALID")
+        with self._transaction() as connection:
+            if connection.execute("SELECT 1 FROM publish_platform_release WHERE platform = ?", (platform_value,)).fetchone() is None:
+                raise PublishAccountConflict("RELEASE_STATE_NOT_FOUND")
+            connection.execute(
+                "UPDATE publish_platform_release SET release_state = 'unverified', evidence_ref = ?, updated_at = ? WHERE platform = ?",
+                (reason, utc_now(), platform_value),
+            )
+        return "unverified"
 
     def set_default(self, account_id: str) -> PublishAccount:
         with self._transaction() as connection:
@@ -452,7 +528,11 @@ class PublishAccountRepository:
             enabled=bool(row["enabled"]),
             is_default=bool(row["is_default"]),
             profile_exists=bool(row["profile_exists"]),
-            platform_release_state="pilot" if platform == PublishPlatform.DOUYIN.value else "unverified",
+            platform_release_state=(
+                str(row["platform_release_state"])
+                if "platform_release_state" in row.keys() and row["platform_release_state"]
+                else ("pilot" if platform == PublishPlatform.DOUYIN.value else "unverified")
+            ),
             created_at=row["created_at"],
             updated_at=row["updated_at"] or row["created_at"],
             last_verified_at=row["last_verified_at"],

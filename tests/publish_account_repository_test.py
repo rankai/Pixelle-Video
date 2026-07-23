@@ -77,3 +77,24 @@ def test_open_contexts_are_marked_stale_on_recovery(tmp_path):
     assert repository.mark_open_contexts_stale() == 1
     assert repository.list_contexts(account.account_id) == []
     repository.close_context(context["context_id"], stale=False)
+
+
+def test_platform_release_gate_is_persisted_fail_closed_and_requires_evidence_ref(tmp_path):
+    repository = PublishAccountRepository(tmp_path / "publishing.sqlite3")
+    assert repository.get_platform_release_state(PublishPlatform.KUAISHOU) == "unverified"
+    assert repository.get_platform_release_state(PublishPlatform.DOUYIN) == "pilot"
+    with pytest.raises(PublishAccountConflict, match="RELEASE_EVIDENCE_REF_INVALID"):
+        repository.promote_platform_release(PublishPlatform.KUAISHOU, evidence_ref="/tmp/live.json")
+    with pytest.raises(PublishAccountConflict, match="RELEASE_EVIDENCE_REF_INVALID"):
+        repository.promote_platform_release(PublishPlatform.KUAISHOU, evidence_ref="live-cookie-evidence")
+    assert repository.promote_platform_release(
+        PublishPlatform.KUAISHOU,
+        evidence_ref="docs/reviews/application-publishing-program/PG-M-kuaishou.md",
+    ) == "pilot"
+    assert repository.get_platform_release_state(PublishPlatform.KUAISHOU) == "pilot"
+    account = repository.create_account(PublishPlatform.KUAISHOU, "快手试点账号", "profile_kuaishou_gate")
+    assert account.platform_release_state == "pilot"
+    with pytest.raises(PublishAccountConflict, match="RELEASE_STATE_ALREADY_PROMOTED"):
+        repository.promote_platform_release(PublishPlatform.KUAISHOU, evidence_ref="second-review.md")
+    assert repository.revoke_platform_release(PublishPlatform.KUAISHOU, reason_ref="rollback:live-gate") == "unverified"
+    assert repository.get_platform_release_state(PublishPlatform.KUAISHOU) == "unverified"

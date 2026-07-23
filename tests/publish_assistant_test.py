@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -155,6 +157,8 @@ async def test_douyin_publisher_prepares_draft_with_fake_runtime():
 
 
 async def test_multiplatform_publisher_always_requires_human_confirmation():
+    Path("/tmp/final.mp4").write_bytes(b"video-fixture")
+    Path("/tmp/cover.png").write_bytes(b"cover-fixture")
     class FakeRuntime:
         async def launch_persistent_context(self, platform: str):
             self.platform = platform
@@ -169,6 +173,9 @@ async def test_multiplatform_publisher_always_requires_human_confirmation():
         async def upload_video(self, _path: str):
             return True
 
+        async def upload_cover(self, _path: str):
+            return True
+
         async def fill_title(self, _title: str):
             return True
 
@@ -181,6 +188,33 @@ async def test_multiplatform_publisher_always_requires_human_confirmation():
         async def wait_until_draft_ready(self):
             return None
 
+        async def wait_for_interactive_state(self):
+            return "editor_ready"
+
+        async def page_fingerprint(self):
+            return "sha256:" + "a" * 64
+
+        async def task_space_identity(self):
+            return {"id": 1, "name": "xiaohongshu:editor"}
+
+        async def verify_field(self, _field: str, _expected):
+            return True
+
+        async def request_final_action(self):
+            return False
+
+        async def final_action_guard_armed(self):
+            return True
+
+        async def platform_fallback_boundaries(self):
+            return ["HASHTAGS_TEXT_FALLBACK"]
+
+        async def read_cover_receipt(self, _path: str):
+            return {"accepted_url": "https://cdn.example/cover.png", "before_urls": [], "task_space_id": 1}
+
+        async def current_url(self):
+            return "https://creator.xiaohongshu.com/publish/publish"
+
     package = PublishPackage(
         session_id="s1",
         platform="xiaohongshu",
@@ -188,12 +222,13 @@ async def test_multiplatform_publisher_always_requires_human_confirmation():
         title="夏季新品",
         description="今天到店",
         hashtags=["新品"],
+        cover_path="/tmp/cover.png",
     )
     result = await XiaohongshuPublisher(FakeRuntime()).prepare_draft(package)
 
     assert result.status is PublishStatus.DRAFT_READY
     assert result.requires_human_confirmation is True
-    assert result.filled_fields == ["video", "title", "description", "hashtags"]
+    assert result.filled_fields == ["video", "title", "description", "hashtags", "cover"]
     assert "亲自点击最终发布" in result.message
 
 
@@ -230,6 +265,21 @@ def test_prepare_douyin_publish_endpoint_returns_publish_result(monkeypatch):
     assert task.display_name == "抖音发布助手"
     assert task.flow_name == "短视频发布"
     assert task.status == "completed"
+
+
+def test_legacy_prepare_route_blocks_non_douyin_platforms(monkeypatch):
+    monkeypatch.setenv("PIXELLE_DESKTOP_MODE", "true")
+    response = _publish_client().post(
+        "/api/publish/xiaohongshu/prepare",
+        json={
+            "session_id": "s1",
+            "platform": "xiaohongshu",
+            "video_path": "/tmp/final.mp4",
+            "title": "夏季新品",
+        },
+    )
+    assert response.status_code == 409
+    assert response.json()["detail"] == "PLATFORM_RELEASE_NOT_READY"
 
 
 def test_prepare_douyin_publish_rejects_untrusted_local_paths(monkeypatch):

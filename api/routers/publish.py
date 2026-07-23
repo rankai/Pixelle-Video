@@ -110,6 +110,7 @@ def get_platform_publisher(platform: str) -> HumanConfirmedPublisher:
         "douyin": DouyinPublisher,
         "xiaohongshu": XiaohongshuPublisher,
         "shipinhao": ShipinhaoPublisher,
+        "video_channel": ShipinhaoPublisher,
         "kuaishou": KuaishouPublisher,
     }
     publisher_type = publisher_types.get(platform)
@@ -129,6 +130,11 @@ async def prepare_douyin_publish(package: PublishPackage):
 async def prepare_platform_publish(platform: str, package: PublishPackage):
     if platform != package.platform:
         raise HTTPException(status_code=400, detail="发布平台与接口不匹配。")
+    # V1 remains a compatibility route for Douyin only.  All other platforms
+    # must enter through the V2 run gate so an unverified adapter cannot open a
+    # browser or bypass the platform-release state check.
+    if platform != "douyin":
+        raise HTTPException(status_code=409, detail="PLATFORM_RELEASE_NOT_READY")
     return await _prepare_platform_publish(package, publisher=get_platform_publisher(platform))
 
 

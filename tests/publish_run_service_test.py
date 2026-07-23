@@ -69,6 +69,17 @@ def test_run_service_stops_at_login_or_human_boundary_and_projects_generic_task(
     assert accounts.list_profile_locks(account.account_id)
 
 
+def test_run_service_keeps_unverified_non_douyin_platforms_on_copy_fallback(tmp_path):
+    db = tmp_path / "release-gate.sqlite"
+    accounts = PublishAccountRepository(db)
+    account = accounts.create_account(PublishPlatform.KUAISHOU, "快手账号", "profile_kuaishou")
+    core = PublishCoreRepository(db)
+    package = core.create_package(_package())
+    service = PublishRunService(core, accounts, manager=TaskManager())
+    with pytest.raises(PublishRunConflict, match="PLATFORM_RELEASE_NOT_READY"):
+        service.create_run(package.package_id, account.account_id, PublishPlatform.KUAISHOU, "release-gate-1")
+
+
 def test_restart_recovery_downgrades_only_inflight_runs(tmp_path):
     db = tmp_path / "restart-recovery.sqlite"
     accounts = PublishAccountRepository(db)
