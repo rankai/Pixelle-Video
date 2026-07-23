@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "stage": "PLATFORM-EXPANSION",
+  "platform": "kuaishou",
+  "result": "passed_with_explicit_boundaries",
+  "runtime": "project_playwright_persistent_context",
+  "visible_headful": true,
+  "authorization": {
+    "human_qr_scan_completed": true,
+    "credentials_read": false,
+    "cookies_or_storage_read": false,
+    "login_probe": true,
+    "entry_url": "https://cp.kuaishou.com/article/publish/video?tabType=1",
+    "regular_video_mode_confirmed": true
+  },
+  "media": {
+    "video_sha256": "sha256:330911c2312fad5a6d278b73703f6d60c917438afbcc9dfe5d4ca1e379e42c0b",
+    "cover_sha256": "sha256:fe17a98ac3261b0fe0f45fa618c1f1cd5e9d7a48e52c24d897dd74e2cd62b9ec",
+    "video_injection_count": 1,
+    "duplicate_video_injection_count": 0,
+    "video_preview_readback": true
+  },
+  "field_readback": {
+    "title": false,
+    "description": true,
+    "hashtags": true,
+    "cover_ui_confirmed": true,
+    "cover_readback": true,
+    "fallback_boundaries": [
+      "HASHTAGS_TEXT_FALLBACK",
+      "FIELD_UNSUPPORTED:TITLE",
+      "KUAISHOU_LOCAL_BLOB_PREVIEW_ONLY"
+    ]
+  },
+  "restart_recovery": {
+    "context_closed": true,
+    "context_reopened": true,
+    "continued_existing_draft": true,
+    "reopened_url": "https://cp.kuaishou.com/article/publish/video?tabType=1",
+    "reopened_fingerprint": "sha256:77e86433120b258bb192edbf2e0fbaa66983f21039618e3dc39d230920c2d913",
+    "video_preview_readback": true,
+    "description_readback": true,
+    "hashtags_readback": true,
+    "cover_readback": true,
+    "upload_calls_after_restart": 0,
+    "duplicate_video_injection_count": 0
+  },
+  "final_action_guard": {
+    "request_final_action_result": false,
+    "final_publish_click_count": 0,
+    "final_publish_button_clicked": false,
+    "release_state_promoted": false
+  },
+  "release_gate": {
+    "release_state": "unverified",
+    "release_state_promoted": false,
+    "overall_gate_passed": false
+  },
+  "cover_receipt_boundary": {
+    "receipt_present": false,
+    "accepted_preview_token": "blob:accepted-preview",
+    "policy": "local_ui_preview_only; no durable public HTTPS receipt; checkpointed resume must remain blocked"
+  },
+  "evidence_boundary": "One real Kuaishou draft was uploaded and revalidated through the project adapter. Subsequent adapter runs reused the existing draft and did not inject the video again. This does not promote Kuaishou release state or authorize final publishing."
+}

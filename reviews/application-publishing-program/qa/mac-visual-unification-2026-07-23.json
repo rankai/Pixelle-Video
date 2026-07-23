@@ -1,0 +1,55 @@
+{
+  "stage": "PROGRAM-ROLLOUT/PG-L_waiting_user",
+  "scope": "publish-center-v2-visual-unification",
+  "status": "passed_with_boundary",
+  "date": "2026-07-23",
+  "baseline": "应用中心（App Center）现有容器、标题层级、胶囊 Tab、Tag、按钮和 16px 卡片 tokens",
+  "implementation": {
+    "files": [
+      "desktop/src/features/publishing/PublishCenterView.tsx",
+      "desktop/src/styles.css"
+    ],
+    "business_logic_changed": false,
+    "diff_scope_note": "本批新增/核验内容仅为视觉 class 与 CSS；工作树中同时保留先前 PUB-2 的 createPublishRunV2/startRun 逻辑变更，该逻辑不属于本批视觉 diff。",
+    "aligned_elements": ["page-container", "heading-hierarchy", "tabs", "tags", "buttons", "status-cards"]
+  },
+  "browser_smoke": {
+    "url": "http://127.0.0.1:1420/#/publish",
+    "viewports": ["1280x800", "1440x900"],
+    "checks": [
+      "发布运行页面可渲染",
+      "发布账号页面可渲染",
+      "发布运行与发布账号 Tab 可交互切换",
+      "人工确认边界 Tag 可见",
+      "账号状态卡片与刷新按钮可见"
+    ]
+  },
+  "automated": {
+    "vitest": "10 files / 55 tests passed",
+    "build": "npm run build passed",
+    "diff_check": "git diff --check passed"
+  },
+  "screenshots": [
+    {
+      "path": "qa/mac-visual-unification-2026-07-23/01-publish-run-1280x800.jpg",
+      "sha256": "2b4004bf85fb12a5a5e6d26ce9bd10c458c4b0d97eaaacb210fc86a102457089"
+    },
+    {
+      "path": "qa/mac-visual-unification-2026-07-23/02-publish-accounts-1280x800.jpg",
+      "sha256": "4b44aebadba2cd19dd66fabf67a4436522560250179b0e4ee68b7baa3c2ecd41"
+    },
+    {
+      "path": "qa/mac-visual-unification-2026-07-23/03-publish-run-1440x900.jpg",
+      "sha256": "d043631d6d7b2a68a38fb27f02ccf4ca66f7245cdb4b11430f548a224996709c"
+    },
+    {
+      "path": "qa/mac-visual-unification-2026-07-23/04-publish-accounts-1440x900.jpg",
+      "sha256": "d2199e2563a426830439289bde7d860567d69827db97aa90140c70f89c1f6640"
+    }
+  ],
+  "boundaries": [
+    "未执行 Tauri 打包产物视觉验收",
+    "未新增视频号空平台入口；本批只统一发布中心视觉基线",
+    "旧版账号管理页面与口播工作台不在本批改造范围"
+  ]
+}

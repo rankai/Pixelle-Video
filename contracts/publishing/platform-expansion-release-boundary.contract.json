@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/platform-expansion-release-boundary.v1.contract.json",
+  "schema_version": 1,
+  "stage": "PLATFORM-EXPANSION",
+  "batch": "release-rollback-boundary",
+  "purpose": "Close the local release and rollback boundary after the three platform pre-publish adapter batches without promoting a platform or enabling final publish.",
+  "platforms": {
+    "kuaishou": {
+      "release_state": "unverified",
+      "live_gate_result": "passed_with_explicit_boundaries",
+      "evidence_ref": "qa/PG-M-kuaishou-live-gate-2026-07-22.json"
+    },
+    "shipinhao": {
+      "release_state": "unverified",
+      "live_gate_result": "blocked_with_explicit_boundary",
+      "evidence_ref": "qa/PG-M-shipinhao-live-gate-fix-2026-07-22.json"
+    },
+    "xiaohongshu": {
+      "release_state": "unverified",
+      "live_gate_result": "blocked_with_explicit_boundary",
+      "evidence_ref": "qa/PG-M-xiaohongshu-live-gate-2026-07-22.json"
+    }
+  },
+  "invariants": {
+    "douyin_release_state_unchanged": "pilot",
+    "unverified_create_run_error": "PLATFORM_RELEASE_NOT_READY",
+    "unverified_browser_start_allowed": false,
+    "copy_download_fallback_available": true,
+    "allow_final_publish": false,
+    "final_publish_click_count": 0,
+    "external_actions": 0,
+    "production_database_mutation": false
+  },
+  "rollback_rehearsal": {
+    "scope": "temporary_sqlite_only",
+    "promotion_requires_redacted_evidence_ref": true,
+    "revoke_target_state": "unverified",
+    "account_profile_preserved": true,
+    "login_state_preserved": true,
+    "browser_profile_touched": false,
+    "production_release_state_changed": false
+  },
+  "exit_rule": "The stage may hand off to PROGRAM-ROLLOUT/PG-L only after these local invariants and the existing three platform evidence records are machine-asserted; blocked live-platform boundaries remain explicit and no platform is promoted."
+}

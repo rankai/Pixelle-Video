@@ -2747,6 +2747,7 @@
 <li>测试环境不可用：保留失败日志，不能用源码字符串断言替代 E2E；</li>
 <li>外部证据确实长期不可得：由用户决定是否调整串行顺序，不由 Luna 自行跳过。</li>
 </ul>
+<p>已批准例外：CR-PLATFORM-ORDER-001（2026-07-22）。当用户明确要求先完成平台适配时，可以暂停 PROGRAM-ROLLOUT 的外部证据闭环，进入 PLATFORM-EXPANSION 的“发布前适配”子阶段；该子阶段不得改变 PG-L 结论、不得打开默认 rollout、不得执行最终发布点击。平台适配收口后必须返回 PROGRAM-ROLLOUT 完成 Windows/签字/rollback 外部闭环，再进入平台正式灰度。</p>
 <h3 id="73-top-program">7.3 Top Program 风险<a class="headerlink" href="#73-top-program" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2909,7 +2910,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 21, 2026 23:55:05 UTC">July 21, 2026 23:55:05</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 23, 2026 09:44:26 UTC">July 23, 2026 09:44:26</span>
   </span>
 
     
