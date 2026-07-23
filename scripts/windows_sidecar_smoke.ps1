@@ -190,6 +190,9 @@ try {
     if ($result.error_code) {
         Write-Output "::error title=Packaged Windows sidecar smoke::$($result.error_code)"
     }
+    if ($result.stderr_tail) {
+        Write-Output "::error title=Packaged Windows sidecar stderr::$($result.stderr_tail)"
+    }
     if ($env:GITHUB_STEP_SUMMARY) {
         "### Packaged Windows sidecar smoke$([Environment]::NewLine)$([Environment]::NewLine)- status: $($result.status)$([Environment]::NewLine)- error_code: $($result.error_code)$([Environment]::NewLine)- health: $($result.health)$([Environment]::NewLine)- stderr: $($result.stderr_tail)$([Environment]::NewLine)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
     }

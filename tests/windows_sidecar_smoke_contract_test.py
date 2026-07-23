@@ -27,4 +27,5 @@ def test_windows_sidecar_smoke_is_bounded_and_never_publishes():
     assert "stderr_present" in source
     assert "stderr_tail" in source
     assert "GITHUB_STEP_SUMMARY" in source
+    assert "Packaged Windows sidecar stderr" in source
     assert "sidecar_exit_" in source
