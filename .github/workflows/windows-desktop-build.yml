@@ -90,6 +90,21 @@ jobs:
             throw "Windows sidecar is empty: $sidecar"
           }
 
+      - name: Diagnose packaged Windows sidecar
+        continue-on-error: true
+        run: |
+          pwsh -NoProfile -File scripts/windows_sidecar_smoke.ps1 `
+            -Sidecar "desktop/src-tauri/bin/pixelle-api-x86_64-pc-windows-msvc.exe" `
+            -Output windows-sidecar-smoke.json
+
+      - name: Upload Windows sidecar smoke evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixelle-video-windows-sidecar-smoke-${{ github.sha }}
+          if-no-files-found: warn
+          path: windows-sidecar-smoke.json
+
       - name: Install desktop dependencies
         working-directory: desktop
         run: npm ci
