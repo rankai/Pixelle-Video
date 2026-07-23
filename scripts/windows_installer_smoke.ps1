@@ -70,10 +70,29 @@ function Get-ListeningProcessRecords {
 }
 
 function Wait-Health {
-    param([int]$TargetPort, [int]$Seconds)
+    param(
+        [int]$TargetPort,
+        [int]$Seconds,
+        [System.Diagnostics.Process]$Process
+    )
 
     $deadline = (Get-Date).AddSeconds($Seconds)
     do {
+        if ($null -ne $Process) {
+            try {
+                $Process.Refresh()
+                if ($Process.HasExited) {
+                    return [ordered]@{
+                        passed = $false
+                        listeners = @()
+                        process_exited = $true
+                        process_exit_code = [int]$Process.ExitCode
+                    }
+                }
+            } catch {
+                throw "process_query_failed"
+            }
+        }
         try {
             $health = Invoke-RestMethod -Uri "http://127.0.0.1:$TargetPort/health" -TimeoutSec 3
             if ($health.status -eq "healthy") {
@@ -102,6 +121,8 @@ function Wait-Health {
     return [ordered]@{
         passed = $false
         listeners = @()
+        process_exited = $false
+        process_exit_code = $null
     }
 }
 
@@ -209,6 +230,7 @@ function Get-SafeErrorCode {
         "process_query_failed",
         "health_owner_invalid",
         "process_tree_stop_failed"
+        "app_start_failed"
     )
     foreach ($code in $known) {
         if ($message -eq $code) {
@@ -219,6 +241,9 @@ function Get-SafeErrorCode {
         return "installer_exit_$($Matches[1])"
     }
     if ($message -match "^(health_timeout|port_not_released)_cycle_[12]$") {
+        return $message
+    }
+    if ($message -match "^app_exit_before_health_-?\d+$") {
         return $message
     }
     return "smoke_failed"
@@ -292,8 +317,12 @@ try {
     }
 
     foreach ($cycle in 1..2) {
-        $appProcess = Start-Process -FilePath $appPath -PassThru
-        $healthProbe = Wait-Health -TargetPort $Port -Seconds $TimeoutSeconds
+        try {
+            $appProcess = Start-Process -FilePath $appPath -PassThru
+        } catch {
+            throw "app_start_failed"
+        }
+        $healthProbe = Wait-Health -TargetPort $Port -Seconds $TimeoutSeconds -Process $appProcess
         $healthPassed = [bool]$healthProbe.passed
         $cycleRecord = [ordered]@{
             cycle = $cycle
@@ -301,11 +330,16 @@ try {
             health = if ($healthPassed) { "passed" } else { "failed" }
             listener_processes = Redact-ListenerRecords -Records $healthProbe.listeners
             listener_owner_verified = $healthPassed
+            process_exited = [bool]$healthProbe.process_exited
+            process_exit_code = $healthProbe.process_exit_code
             close = "not_run"
             port_released = $false
         }
         if (-not $healthPassed) {
             $result.cycles += ,$cycleRecord
+            if ($healthProbe.process_exited) {
+                throw "app_exit_before_health_$($healthProbe.process_exit_code)"
+            }
             throw "health_timeout_cycle_$cycle"
         }
         $cycleRecord.close = Stop-AppTree -Process $appProcess

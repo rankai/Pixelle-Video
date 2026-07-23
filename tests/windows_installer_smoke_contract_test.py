@@ -31,6 +31,8 @@ def test_windows_smoke_script_has_bounded_install_health_and_port_release_contra
         '"port_query_failed"',
         '"process_query_failed"',
         '"pixelle-video-desktop.exe"',
+        "process_exit_code",
+        '"app_exit_before_health_',
         '"smoke_failed"',
     )
     for fragment in required_fragments:

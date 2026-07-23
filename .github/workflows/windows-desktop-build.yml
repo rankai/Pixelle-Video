@@ -149,6 +149,16 @@ jobs:
           if-no-files-found: warn
           path: windows-installer-smoke.json
 
+      - name: Print Windows smoke summaries
+        if: ${{ always() }}
+        run: |
+          if (Test-Path -LiteralPath windows-sidecar-smoke.json) {
+            Get-Content -LiteralPath windows-sidecar-smoke.json
+          }
+          if (Test-Path -LiteralPath windows-installer-smoke.json) {
+            Get-Content -LiteralPath windows-installer-smoke.json
+          }
+
       - name: Upload Windows installer artifact
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
