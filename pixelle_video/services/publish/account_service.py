@@ -94,7 +94,7 @@ class PublishAccountService:
                 PublishPlatformCapability(
                     platform=platform,
                     display_name=PLATFORM_LABELS[platform.value],
-                    release_state="pilot" if platform == PublishPlatform.DOUYIN else "unverified",
+                    release_state=self.repository.get_platform_release_state(platform),
                     account_count=len(platform_accounts),
                     default_account_id=default.account_id if default else None,
                 )

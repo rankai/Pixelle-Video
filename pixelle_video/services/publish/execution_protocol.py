@@ -128,6 +128,7 @@ class PublishExecutionCheckpoint(BaseModel):
     media_sha256: str | None = Field(default=None, pattern=r"^sha256:[0-9a-f]{64}$")
     topic_entities: list[TopicEntityEvidence] = Field(default_factory=list, max_length=5)
     cover_receipts: list[CoverReceipt] = Field(default_factory=list, max_length=2)
+    platform_fallback_boundaries: list[str] = Field(default_factory=list, max_length=5)
     blocker_code: PublishBlockerCode | None = None
     final_publish_clicked: bool = False
     final_publish_click_count: int = Field(default=0, ge=0)

@@ -18,12 +18,42 @@ import {
   type IpBroadcastAppRun,
 } from "../../api";
 import { featureFlags } from "../../featureFlags";
+import { AssetPickerDialog } from "../assets/components/AssetPickerDialog";
+import type { LibraryItemV2 } from "../../api";
 
 const STORAGE_KEY = "pixelle_ip_broadcast_app_state_v1";
 const PENDING_STORAGE_KEY = "pixelle_ip_broadcast_app_pending_v1";
 const APP_ID = "builtin.digital-human-video";
 const APP_VERSION = "1.0.0";
 type SourceMode = "blank_project" | "copywriting" | "selected_title";
+
+const runStateLabels: Record<string, string> = {
+  draft: "草稿",
+  queued: "排队中",
+  running: "生成中",
+  needs_review: "待人工确认",
+  completed: "已完成",
+  failed: "失败",
+  cancelled: "已取消",
+};
+
+const projectionLabels: Record<string, string> = {
+  new_or_not_enqueued: "尚未执行",
+  queued_for_execution: "等待执行",
+  step_running: "正在生成",
+  user_must_edit_or_confirm: "等待人工确认",
+  waiting_for_login: "等待登录",
+  waiting_for_human: "等待人工处理",
+};
+
+const taskStatusLabels: Record<string, string> = {
+  pending: "待执行",
+  running: "执行中",
+  needs_review: "待确认",
+  completed: "已完成",
+  failed: "失败",
+  cancelled: "已取消",
+};
 
 type StoredPointer = {
   route: "/apps/digital-human-video";
@@ -33,6 +63,12 @@ type StoredPointer = {
   source_mode: SourceMode;
   source_revision: string;
   context_snapshot_id: string | null;
+  source_artifact_id?: string;
+  source_version_id?: string;
+  selected_variant_index?: number;
+  goal?: string;
+  portrait_id?: string;
+  digital_human_scene_id?: string;
 };
 
 type StoredPending = {
@@ -59,13 +95,20 @@ function readStoredPointer(): StoredPointer | null {
       source_mode: value.source_mode,
       source_revision: value.source_revision,
       context_snapshot_id: value.context_snapshot_id || null,
+      source_artifact_id: typeof value.source_artifact_id === "string" ? value.source_artifact_id : undefined,
+      source_version_id: typeof value.source_version_id === "string" ? value.source_version_id : undefined,
+      selected_variant_index: typeof value.selected_variant_index === "number" ? value.selected_variant_index : undefined,
+      goal: typeof value.goal === "string" ? value.goal : undefined,
+      portrait_id: typeof value.portrait_id === "string" ? value.portrait_id : undefined,
+      digital_human_scene_id: typeof value.digital_human_scene_id === "string" ? value.digital_human_scene_id : undefined,
     } as StoredPointer;
   } catch {
     return null;
   }
 }
 
-function writeStoredPointer(run: IpBroadcastAppRun, sourceMode: SourceMode) {
+function writeStoredPointer(run: IpBroadcastAppRun, sourceMode: SourceMode, inputPayload?: Record<string, unknown>) {
+  const sourceVersionIds = Array.isArray(inputPayload?.source_artifact_version_ids) ? inputPayload.source_artifact_version_ids : [];
   const pointer: StoredPointer = {
     route: "/apps/digital-human-video",
     project_id: run.project_id,
@@ -74,6 +117,12 @@ function writeStoredPointer(run: IpBroadcastAppRun, sourceMode: SourceMode) {
     source_mode: sourceMode,
     source_revision: run.source_revision,
     context_snapshot_id: run.context_snapshot_id || null,
+    ...(typeof inputPayload?.source_artifact_id === "string" && inputPayload.source_artifact_id ? { source_artifact_id: inputPayload.source_artifact_id } : {}),
+    ...(typeof sourceVersionIds[0] === "string" && sourceVersionIds[0] ? { source_version_id: sourceVersionIds[0] } : {}),
+    ...(typeof inputPayload?.selected_variant_index === "number" ? { selected_variant_index: inputPayload.selected_variant_index } : {}),
+    ...(typeof inputPayload?.goal === "string" && inputPayload.goal ? { goal: inputPayload.goal } : {}),
+    ...(typeof inputPayload?.portrait_id === "string" && inputPayload.portrait_id ? { portrait_id: inputPayload.portrait_id } : {}),
+    ...(typeof inputPayload?.digital_human_scene_id === "string" && inputPayload.digital_human_scene_id ? { digital_human_scene_id: inputPayload.digital_human_scene_id } : {}),
   };
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(pointer));
 }
@@ -88,7 +137,7 @@ function readStoredPending(): StoredPending | null {
     if (!raw) return null;
     const value = JSON.parse(raw) as Partial<StoredPending>;
     if (value.route !== "/apps/digital-human-video" || !value.project_id || !value.source_mode || !value.idempotency_key || !value.input_payload || typeof value.input_payload !== "object") return null;
-    if (!(Object.keys(value.input_payload).every((key) => ["project_id", "source_mode", "goal", "source_artifact_version_ids", "selected_variant_index"].includes(key)))) return null;
+    if (!(Object.keys(value.input_payload).every((key) => ["project_id", "source_mode", "goal", "source_artifact_version_ids", "selected_variant_index", "portrait_id", "digital_human_scene_id"].includes(key)))) return null;
     if (value.input_payload.project_id !== value.project_id || value.input_payload.source_mode !== value.source_mode) return null;
     if (value.source_artifact_id !== null && typeof value.source_artifact_id !== "string") return null;
     return value as StoredPending;
@@ -148,8 +197,15 @@ export function DigitalHumanApplicationView({
   const [sourceMode, setSourceMode] = useState<SourceMode>("blank_project");
   const [goal, setGoal] = useState("");
   const [artifactId, setArtifactId] = useState("");
+  const [pinnedSourceArtifactId, setPinnedSourceArtifactId] = useState("");
+  const [pinnedSourceVersionId, setPinnedSourceVersionId] = useState("");
+  const [sourceRecoveryBlocked, setSourceRecoveryBlocked] = useState(false);
   const [versionId, setVersionId] = useState("");
   const [variantIndex, setVariantIndex] = useState(0);
+  const [portraitId, setPortraitId] = useState("");
+  const [portraitSceneId, setPortraitSceneId] = useState("");
+  const [portraitName, setPortraitName] = useState("");
+  const [portraitPickerOpen, setPortraitPickerOpen] = useState(false);
   const [run, setRun] = useState<IpBroadcastAppRun | null>(null);
   const [pending, setPending] = useState<StoredPending | null>(null);
   const [loading, setLoading] = useState(true);
@@ -198,6 +254,21 @@ export function DigitalHumanApplicationView({
         if (pointer) {
           setProjectId(pointer.project_id);
           setSourceMode(pointer.source_mode);
+          if (pointer.goal) setGoal(pointer.goal);
+          if (pointer.source_artifact_id) {
+            setArtifactId(pointer.source_artifact_id);
+            setPinnedSourceArtifactId(pointer.source_artifact_id);
+          }
+          if (pointer.source_version_id) setVersionId(pointer.source_version_id);
+          if (pointer.source_version_id) setPinnedSourceVersionId(pointer.source_version_id);
+          if (typeof pointer.selected_variant_index === "number" && Number.isInteger(pointer.selected_variant_index) && pointer.selected_variant_index >= 0) {
+            setVariantIndex(pointer.selected_variant_index);
+          }
+          if (pointer.portrait_id) {
+            setPortraitId(pointer.portrait_id);
+            setPortraitName("已选择数字人");
+          }
+          if (pointer.digital_human_scene_id) setPortraitSceneId(pointer.digital_human_scene_id);
           try {
             const restored = await getIpBroadcastAppRun(pointer.app_run_id, pointer.project_id);
             if (!active) return;
@@ -229,6 +300,11 @@ export function DigitalHumanApplicationView({
           if (typeof payload.selected_variant_index === "number" && Number.isInteger(payload.selected_variant_index) && payload.selected_variant_index >= 0) {
             setVariantIndex(payload.selected_variant_index);
           }
+          if (typeof payload.portrait_id === "string") {
+            setPortraitId(payload.portrait_id);
+            setPortraitName("已选择数字人");
+          }
+          if (typeof payload.digital_human_scene_id === "string") setPortraitSceneId(payload.digital_human_scene_id);
           if (pendingSubmission.source_artifact_id) setArtifactId(pendingSubmission.source_artifact_id);
           setNotice("上次提交尚未收到确认；点击创建应用运行将复用同一幂等键，不会随机创建第二个运行。 ");
         } else if (loadedProjects[0]) {
@@ -282,7 +358,8 @@ export function DigitalHumanApplicationView({
 
   useEffect(() => {
     if (!desktopEnabled) return;
-    if (!artifacts.length) return;
+    if (sourceRecoveryBlocked) return;
+    if (!artifacts.length && !pinnedSourceArtifactId) return;
     const pendingArtifact = pending?.source_artifact_id
       ? sourceArtifacts.find((artifact) => artifact.artifact_id === pending.source_artifact_id)
       : null;
@@ -293,9 +370,23 @@ export function DigitalHumanApplicationView({
       setError("待确认提交引用的来源产物不存在或已归档；已安全停手，请重新选择来源后创建。 ");
       return;
     }
-    const selected = pendingArtifact && !artifactId
+    const pinnedArtifact = pinnedSourceArtifactId
+      ? sourceArtifacts.find((artifact) => artifact.artifact_id === pinnedSourceArtifactId)
+      : null;
+    if (pinnedSourceArtifactId && !pinnedArtifact) {
+      clearStoredPointer();
+      setPinnedSourceArtifactId("");
+      setRun(null);
+      setArtifactId("");
+      setVersionId("");
+      setVersions([]);
+      setSourceRecoveryBlocked(true);
+      setError("历史运行引用的来源产物不存在或已归档；已安全停手，请重新选择来源。 ");
+      return;
+    }
+    const selected = pinnedArtifact || (pendingArtifact && !artifactId
       ? pendingArtifact
-      : sourceArtifacts.find((artifact) => artifact.artifact_id === artifactId) || sourceArtifacts[0];
+      : sourceArtifacts.find((artifact) => artifact.artifact_id === artifactId) || sourceArtifacts[0]);
     if (!selected) {
       setArtifactId("");
       setVersionId("");
@@ -309,12 +400,33 @@ export function DigitalHumanApplicationView({
     listArtifactVersions(selected.artifact_id)
       .then((items) => {
         if (!active) return;
+        if (sourceRecoveryBlocked) return;
         setVersions(items);
         const pendingVersion = pending?.project_id === projectId && pending.source_mode === sourceMode && Array.isArray(pending.input_payload.source_artifact_version_ids)
           ? pending.input_payload.source_artifact_version_ids[0]
           : null;
+        if (pendingVersion && !items.some((item) => item.artifact_version_id === pendingVersion)) {
+          clearStoredPending();
+          setPending(null);
+          setVersionId("");
+          setSourceRecoveryBlocked(true);
+          setError("待确认提交引用的来源版本不存在或已归档；已安全停手，请重新选择来源后创建。 ");
+          return;
+        }
+        if (pinnedSourceVersionId && !items.some((item) => item.artifact_version_id === pinnedSourceVersionId)) {
+          clearStoredPointer();
+          setPinnedSourceVersionId("");
+          setRun(null);
+          setVersionId("");
+          setSourceRecoveryBlocked(true);
+          setError("历史运行引用的来源版本不存在或已归档；已安全停手，请重新选择来源。 ");
+          return;
+        }
+        const pinnedVersion = items.some((item) => item.artifact_version_id === pinnedSourceVersionId) ? pinnedSourceVersionId : null;
         setVersionId(typeof pendingVersion === "string" && items.some((item) => item.artifact_version_id === pendingVersion)
           ? pendingVersion
+          : pinnedVersion
+          ? pinnedVersion
           : selected.current_version_id && items.some((item) => item.artifact_version_id === selected.current_version_id)
           ? selected.current_version_id
           : latestVersion(items)?.artifact_version_id || "");
@@ -325,7 +437,7 @@ export function DigitalHumanApplicationView({
     return () => {
       active = false;
     };
-  }, [artifactId, artifacts, desktopEnabled, pending, projectId, sourceMode, sourceArtifacts]);
+  }, [artifactId, artifacts, desktopEnabled, pending, pinnedSourceArtifactId, pinnedSourceVersionId, projectId, sourceMode, sourceArtifacts, sourceRecoveryBlocked]);
 
   async function createProject() {
     const name = window.prompt("项目名称", "数字人口播灰度项目")?.trim();
@@ -354,6 +466,8 @@ export function DigitalHumanApplicationView({
       inputPayload.source_artifact_version_ids = [versionId];
       if (sourceMode === "copywriting") inputPayload.selected_variant_index = variantIndex;
     }
+    if (portraitId) inputPayload.portrait_id = portraitId;
+    if (portraitSceneId) inputPayload.digital_human_scene_id = portraitSceneId;
     const pendingMatches = pending && pending.project_id === projectId && pending.source_mode === sourceMode && JSON.stringify(pending.input_payload) === JSON.stringify(inputPayload);
     if (!canStart && !pendingMatches) return;
     const idempotencyKey = pendingMatches ? pending.idempotency_key : randomIdempotencyKey(projectId);
@@ -371,10 +485,10 @@ export function DigitalHumanApplicationView({
         idempotency_key: idempotencyKey,
       });
       setRun(created);
-      writeStoredPointer(created, sourceMode);
+      writeStoredPointer(created, sourceMode, { ...inputPayload, source_artifact_id: artifactId || pending?.source_artifact_id || "" });
       clearStoredPending();
       setPending(null);
-      setNotice("应用运行已创建；当前只等待本地隔离执行或人工确认，不会自动触发外部平台动作。 ");
+      setNotice("应用运行已创建；点击“生成数字人视频”会调用已配置的 TTS/数字人能力，最终发布仍需人工确认。 ");
     } catch (createError) {
       setError(errorMessage(createError));
     } finally {
@@ -388,7 +502,14 @@ export function DigitalHumanApplicationView({
     try {
       const refreshed = await getIpBroadcastAppRun(run.app_run_id, run.project_id);
       setRun(refreshed);
-      writeStoredPointer(refreshed, sourceMode);
+      writeStoredPointer(refreshed, sourceMode, {
+        goal,
+        source_artifact_id: artifactId,
+        source_artifact_version_ids: versionId ? [versionId] : [],
+        selected_variant_index: variantIndex,
+        portrait_id: portraitId,
+        digital_human_scene_id: portraitSceneId,
+      });
     } catch (refreshError) {
       setError(errorMessage(refreshError));
     } finally {
@@ -398,8 +519,8 @@ export function DigitalHumanApplicationView({
 
   async function mutateRun(action: "execute" | "cancel" | "retry" | "accept") {
     if (!run) return;
-    if (action === "execute" && !allowLocalExecute) {
-      setError("当前桌面入口不允许执行隔离 seam；请使用受控测试证据。 ");
+    if (action === "execute" && !portraitId) {
+      setError("请先选择数字人形象，再生成真实视频。 ");
       return;
     }
     setBusy(true);
@@ -413,7 +534,14 @@ export function DigitalHumanApplicationView({
             ? await retryIpBroadcastAppRun(run.app_run_id)
             : await acceptIpBroadcastAppRun(run.app_run_id);
       setRun(next);
-      writeStoredPointer(next, sourceMode);
+      writeStoredPointer(next, sourceMode, {
+        goal,
+        source_artifact_id: artifactId,
+        source_artifact_version_ids: versionId ? [versionId] : [],
+        selected_variant_index: variantIndex,
+        portrait_id: portraitId,
+        digital_human_scene_id: portraitSceneId,
+      });
       setNotice(action === "accept" ? "已显式接收当前结果；未触发最终平台发布。 " : "运行状态已更新。 ");
     } catch (actionError) {
       setError(errorMessage(actionError));
@@ -424,6 +552,9 @@ export function DigitalHumanApplicationView({
 
   function changeSourceMode(next: SourceMode) {
     setSourceMode(next);
+    setSourceRecoveryBlocked(false);
+    setPinnedSourceArtifactId("");
+    setPinnedSourceVersionId("");
     setArtifactId("");
     setVersionId("");
     setVersions([]);
@@ -439,6 +570,9 @@ export function DigitalHumanApplicationView({
   function changeProject(nextProjectId: string) {
     if (nextProjectId === projectId) return;
     setProjectId(nextProjectId);
+    setSourceRecoveryBlocked(false);
+    setPinnedSourceArtifactId("");
+    setPinnedSourceVersionId("");
     setArtifactId("");
     setVersionId("");
     setVersions([]);
@@ -454,6 +588,9 @@ export function DigitalHumanApplicationView({
   }
 
   function changeArtifact(nextArtifactId: string) {
+    setSourceRecoveryBlocked(false);
+    setPinnedSourceArtifactId("");
+    setPinnedSourceVersionId("");
     setArtifactId(nextArtifactId);
     setVersionId("");
     setVersions([]);
@@ -489,7 +626,7 @@ export function DigitalHumanApplicationView({
           <Typography.Text type="secondary">APPLICATION · {APP_ID}</Typography.Text>
           <Typography.Title level={2}>数字人口播视频</Typography.Title>
           <Typography.Paragraph type="secondary">
-            从项目、可信文案或选定标题进入统一运行链路。当前桌面灰度只负责本地状态与人工确认，不会自动发布。
+            从项目、可信文案或选定标题进入统一运行链路；选择数字人形象后可调用已配置的 TTS/数字人服务生成真实视频，最终发布仍由人工确认。
           </Typography.Paragraph>
         </div>
         <SpaceButtons onBack={onBack} />
@@ -531,10 +668,47 @@ export function DigitalHumanApplicationView({
             ) : null}
           </div>
         )}
+        <div className="digital-human-app-field">
+          <label>数字人形象</label>
+          <div className="digital-human-app-inline">
+            <Button onClick={() => setPortraitPickerOpen(true)} disabled={!projectId || busy}>
+              {portraitName || (portraitId ? "已选择数字人" : "选择数字人形象")}
+            </Button>
+            {portraitSceneId ? <Tag color="processing">已选场景</Tag> : null}
+          </div>
+          <Typography.Text type="secondary">生成前必须选择已登记的数字人形象；本地 TTS 默认使用系统配置的中文音色。</Typography.Text>
+        </div>
         <div className="digital-human-app-actions">
           <Button type="primary" onClick={() => void createRun()} disabled={!canStart || busy} loading={busy}>创建应用运行</Button>
           <Tag color="default">v{APP_VERSION}</Tag>
         </div>
+        <AssetPickerDialog
+          open={portraitPickerOpen}
+          kind="digital_human"
+          selectedId={portraitId}
+          onClose={() => setPortraitPickerOpen(false)}
+          onSelect={(item: LibraryItemV2) => {
+            setPortraitId(item.resource_id);
+            setPortraitName(item.name);
+            setPortraitSceneId("");
+            setPortraitPickerOpen(false);
+          }}
+          onSelectScene={(item: LibraryItemV2, sceneId: string) => {
+            setPortraitId(item.resource_id);
+            setPortraitName(item.name);
+            setPortraitSceneId(sceneId);
+            setPortraitPickerOpen(false);
+          }}
+          context={{
+            session_id: projectId || "app-center",
+            step: "digital_human",
+            purpose: "数字人口播形象",
+            slot_id: "digital-human",
+            allowed_kinds: ["digital_human"],
+            required_capabilities: ["digital_human"],
+            selection_mode: "single",
+          }}
+        />
       </Card>
 
       <Card title="2 · 运行状态与安全停手" className="digital-human-app-card">
@@ -543,18 +717,18 @@ export function DigitalHumanApplicationView({
             <div className="digital-human-app-run-meta">
               <span>AppRun：<code>{run.app_run_id}</code></span>
               <span>Session：<code>{run.session_id}</code></span>
-              <Tag color={run.state === "completed" ? "success" : run.state === "needs_review" ? "warning" : "processing"}>{run.state}</Tag>
+              <Tag color={run.state === "completed" ? "success" : run.state === "needs_review" ? "warning" : run.state === "failed" ? "error" : "processing"}>{runStateLabels[run.state] || run.state}</Tag>
             </div>
-            <Typography.Paragraph type="secondary">{run.projection.when || "状态已读取"} · {run.projection.task_status || "pending"}</Typography.Paragraph>
+            <Typography.Paragraph type="secondary">{projectionLabels[run.projection.when || ""] || "状态已读取"} · {taskStatusLabels[run.projection.task_status || "pending"] || run.projection.task_status || "待执行"}</Typography.Paragraph>
             {run.error_code ? <Alert type="warning" showIcon message={run.error_code} /> : null}
             <div className="digital-human-app-actions">
               <Button onClick={() => void refreshRun()} disabled={busy}>刷新状态</Button>
               <Button onClick={() => void mutateRun("cancel")} disabled={busy || ["completed", "cancelled"].includes(run.state)}>取消</Button>
               <Button onClick={() => void mutateRun("retry")} disabled={busy || !["failed", "cancelled"].includes(run.state)}>重试</Button>
-              {allowLocalExecute ? <Button onClick={() => void mutateRun("execute")} disabled={busy || ["completed", "cancelled"].includes(run.state)}>运行本地隔离 seam</Button> : null}
+              {allowLocalExecute || ["draft", "queued", "running", "failed"].includes(run.state) ? <Button onClick={() => void mutateRun("execute")} disabled={busy || ["completed", "cancelled", "needs_review"].includes(run.state)}>生成数字人视频</Button> : null}
               <Button type="primary" onClick={() => void mutateRun("accept")} disabled={busy || run.state !== "needs_review"}>确认接收结果</Button>
             </div>
-            <Typography.Text type="secondary">确认接收只完成本地人工交接，不代表抖音发布。</Typography.Text>
+          <Typography.Text type="secondary">确认接收只完成本地人工交接，不代表抖音发布。</Typography.Text>
           </div>
         ) : (
           <Typography.Text type="secondary">尚未创建运行。创建后将持久化安全指针，并在重启时优先读取已有运行。</Typography.Text>

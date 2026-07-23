@@ -363,6 +363,69 @@ def test_batch5_local_executor_reuses_run_session_task_and_outputs(harness):
     assert manager.list_tasks()[0].source_fact_id == created.run.app_run_id
 
 
+def test_provider_executor_runs_real_media_boundary_and_stops_for_human_review(harness, tmp_path, monkeypatch):
+    repository, project, _, _, sessions, bindings, _ = harness
+    video_path = tmp_path / "generated.mp4"
+    cover_path = tmp_path / "cover.png"
+    video_path.write_bytes(b"\x00\x00\x00\x18ftypisom\x00\x00\x00\x00")
+    cover_path.write_bytes(b"\x89PNG\r\n\x1a\nprovider-cover")
+
+    async def fake_step(_core, session, step_key):
+        if step_key == "postproduction":
+            session.artifacts["final_video"] = str(video_path)
+            session.artifacts["cover"] = str(cover_path)
+            session.state["publish_package"] = {
+                "title": "到店前先看这件事",
+                "description": "门店活动介绍",
+                "hashtags": ["门店营销"],
+            }
+        return True
+
+    monkeypatch.setattr("pixelle_video.app_center.ip_broadcast_adapter.run_ip_broadcast_step", fake_step)
+    adapter = IpBroadcastAppAdapter(
+        repository,
+        session_store=sessions,
+        binding_store=bindings,
+        enforce_feature_flag=False,
+        trusted_roots=[tmp_path],
+    )
+    created = adapter.create_or_resume(
+        project.project_id,
+        {"source_mode": "blank_project", "goal": "到店咨询", "source_artifact_version_ids": []},
+        idempotency_key="ip-provider-boundary-1",
+    )
+    reviewed = asyncio.run(adapter.execute_provider(created.run.app_run_id, object()))
+    assert reviewed.run.state == "needs_review"
+    assert {repository.get_artifact(item).artifact_type for item in reviewed.run.output_artifact_ids} == {"video", "cover", "publish_copy"}
+    assert reviewed.session.step_status[6] == "ready"
+    accepted = adapter.accept_generated_outputs(reviewed.run.app_run_id)
+    assert accepted.run.state == "completed"
+    assert accepted.session.step_status[6] == "done"
+    replay = adapter.accept_generated_outputs(reviewed.run.app_run_id)
+    assert replay.run.state == "completed"
+
+
+def test_provider_executor_repairs_orphaned_running_attempt_after_restart(harness):
+    repository, project, _, _, sessions, _, adapter = harness
+    created = adapter.create_or_resume(
+        project.project_id,
+        {"source_mode": "blank_project", "goal": "恢复 provider running", "source_artifact_version_ids": []},
+        idempotency_key="ip-provider-restart-running-1",
+    )
+    repository.transition_app_run(created.run.app_run_id, "queued")
+    running = repository.transition_app_run(created.run.app_run_id, "running")
+    attempt = repository.create_attempt(running.app_run_id)
+    repository.update_attempt(attempt.attempt_id, state="running", started_at=running.updated_at)
+
+    recovered = asyncio.run(adapter.execute_provider(created.run.app_run_id, object()))
+
+    assert recovered.run.state == "failed"
+    assert recovered.run.error_code == "APP_EXECUTOR_INTERRUPTED"
+    assert repository.list_attempts(created.run.app_run_id)[-1].state == "failed"
+    session = sessions.get_session(created.binding.session_id)
+    assert session is not None and session.step_status[6] == "error"
+
+
 def test_batch5_local_executor_enforces_context_and_source_binding(harness):
     repository, project, _, _, _, _, adapter = harness
     snapshot = repository.save_context_snapshot(project.project_id, {"store_name": "隔离店"})

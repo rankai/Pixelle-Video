@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "stage": "PLATFORM-EXPANSION",
+  "platform": "shipinhao",
+  "result": "blocked_with_explicit_boundary",
+  "runtime": "project_playwright_persistent_context",
+  "visible_headful": true,
+  "authorization": {
+    "human_qr_scan_completed": true,
+    "credentials_read": false,
+    "cookies_or_storage_read": false,
+    "login_probe": true,
+    "entry_url": "https://channels.weixin.qq.com/platform/post/create",
+    "reopened_login_probe": true
+  },
+  "platform_shell": {
+    "editor_ready_probe": true,
+    "wujie_subapp_frame": "https://channels.weixin.qq.com/micro/content/post/create",
+    "subapp_dom_state": "empty_after_unmount",
+    "browser_boundary": "WUJIE_CONTENT_SUBAPP_UNMOUNTED"
+  },
+  "bounded_adapter_attempt": {
+    "video_sha256": "sha256:330911c2312fad5a6d278b73703f6d60c917438afbcc9dfe5d4ca1e379e42c0b",
+    "cover_sha256": "sha256:27e264830011581d9481a8c34f4275f397730ac5c67fe28ab21ff70c42b3f4a8",
+    "video_injection_attempt_count": 1,
+    "video_preview_readback": false,
+    "adapter_status": "failed",
+    "adapter_message": "VIDEO_PLATFORM_READBACK_UNAVAILABLE",
+    "filled_fields": [],
+    "readback_fields": [],
+    "cover_ui_confirmed": false,
+    "cover_readback": false,
+    "final_publish_click_count": 0
+  },
+  "restart_readback": {
+    "context_closed": true,
+    "context_reopened": true,
+    "login_probe": true,
+    "video_elements": 0,
+    "video_preview_readback": false,
+    "upload_calls_after_restart": 0,
+    "final_publish_click_count": 0
+  },
+  "release_gate": {
+    "release_state_promoted": false,
+    "release_state": "unverified"
+  },
+  "evidence_boundary": "The user completed one real QR authorization. The project Playwright shell is authenticated, but the Wujie content subapp unmounts to empty.html in this runtime, so no accepted media or field readback can be claimed. The single bounded adapter attempt failed closed after one video injection attempt; no retry, cover upload, or final publish action was performed."
+}

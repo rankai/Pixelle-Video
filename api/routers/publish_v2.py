@@ -60,7 +60,8 @@ from pixelle_video.services.publish.package_service import (
     PublishPackageBuildError,
     PublishPackageService,
 )
-from pixelle_video.services.publish.platforms.douyin import DouyinPublisher
+from pixelle_video.services.publish.platform_profiles import canonical_platform
+from pixelle_video.services.publish.platforms.factory import create_platform_publisher
 from pixelle_video.services.publish.profile_manager import BrowserProfileManager, ProfileLockError
 from pixelle_video.services.publish.run_service import PublishRunService, PublishRunServiceError
 
@@ -219,6 +220,7 @@ def _append_adapter_result_event(run_id: str, result, adapter_version: str) -> N
 
     repository = get_publish_core_repository()
     current = repository.get_run(run_id)
+    platform = getattr(result, "platform", "douyin")
     repository.append_event(
         run_id,
         "adapter_result",
@@ -227,9 +229,19 @@ def _append_adapter_result_event(run_id: str, result, adapter_version: str) -> N
         payload={
             "step": "adapter_prepare",
             "adapter_version": adapter_version,
-            "evidence_kind": "live_douyin_dom_readback"
+            "evidence_kind": f"live_{platform}_dom_readback"
             if result.status.value == "draft_ready"
-            else "live_douyin_blocker",
+            else f"live_{platform}_blocker",
+            "adapter_state": getattr(result, "adapter_state", None),
+            "filled_fields": list(getattr(result, "filled_fields", []) or []),
+            "readback_fields": list(getattr(result, "readback_fields", []) or []),
+            "platform_fallback_boundaries": list(
+                getattr(result, "platform_fallback_boundaries", []) or []
+            ),
+            "media_readback": bool(getattr(result, "media_readback", False)),
+            "cover_readback": bool(getattr(result, "cover_readback", False)),
+            "cover_receipt_present": bool(getattr(result, "cover_receipt_present", False)),
+            "final_publish_click_count": int(getattr(result, "final_publish_click_count", 0)),
         },
     )
 
@@ -237,8 +249,7 @@ def _append_adapter_result_event(run_id: str, result, adapter_version: str) -> N
 async def _execute_publish_run(run) -> None:
     """Run the selected platform adapter and stop before final publish."""
 
-    if run.platform.value != "douyin":
-        raise PublishRunServiceError("PLATFORM_ADAPTER_UNAVAILABLE")
+    adapter_platform = canonical_platform(run.platform.value)
     package = get_publish_core_repository().get_package(run.package_id)
     account = get_publish_account_repository().get_account(run.account_id)
     package_service = get_publish_package_service()
@@ -262,7 +273,7 @@ async def _execute_publish_run(run) -> None:
     checkpoint_data = previous.model_dump(mode="json") if previous is not None else {
         "package_fingerprint": package.package_fingerprint,
         "account_id": account.account_id,
-        "platform": run.platform.value,
+        "platform": adapter_platform,
         "attempt": run.attempt,
         "runtime_kind": "playwright",
         "completed_stages": [],
@@ -277,7 +288,7 @@ async def _execute_publish_run(run) -> None:
     checkpoint_data.update(
         package_fingerprint=package.package_fingerprint,
         account_id=account.account_id,
-        platform=run.platform.value,
+        platform=adapter_platform,
         attempt=run.attempt,
         runtime_kind="playwright",
         blocker_code=None,
@@ -298,17 +309,22 @@ async def _execute_publish_run(run) -> None:
             blocker=blocker,
         )
 
-    publisher = DouyinPublisher(
-        runtime,
-        profile_path=profile_path,
-        account_id=account.account_id,
-        profile_ref=safe_profile_ref,
-        checkpoint=checkpoint,
-        checkpoint_callback=checkpoint_callback,
-    )
+    try:
+        publisher = create_platform_publisher(
+            run.platform.value,
+            runtime,
+            profile_path=profile_path,
+            account_id=account.account_id,
+            profile_ref=safe_profile_ref,
+            checkpoint=checkpoint,
+            checkpoint_callback=checkpoint_callback,
+        )
+    except ValueError as exc:
+        await _close_v2_runtime(run.run_id)
+        raise PublishRunServiceError("PLATFORM_ADAPTER_UNAVAILABLE") from exc
     adapter_package = PublishPackage(
         session_id=f"publish_run:{run.run_id}",
-        platform="douyin",
+        platform=adapter_platform,
         video_path=str(video_path),
         title=package.platform_copy.title,
         description=package.platform_copy.description,
@@ -317,13 +333,13 @@ async def _execute_publish_run(run) -> None:
     )
     try:
         result = await publisher.prepare_draft(adapter_package)
-        _append_adapter_result_event(run.run_id, result, publisher.adapter_version)
+        _append_adapter_result_event(run.run_id, result, getattr(publisher, "adapter_version", "platform-adapter@1"))
     except Exception:
         await _close_v2_runtime(run.run_id)
         raise
     if result.status.value != "draft_ready" or result.adapter_state != "waiting_for_human":
         await _close_v2_runtime(run.run_id)
-        raise PublishRunServiceError(result.message or "DOUYIN_ADAPTER_NOT_READY")
+        raise PublishRunServiceError(result.message or f"{adapter_platform.upper()}_ADAPTER_NOT_READY")
 
 
 @router.post("/packages", response_model=PublishPackageV2, status_code=status.HTTP_201_CREATED)

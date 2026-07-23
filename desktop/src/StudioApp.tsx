@@ -59,7 +59,6 @@ import {
   listTasks,
   listVideoAssets,
   listVoiceAssets,
-  preparePlatformPublish,
   PortraitAsset,
   ImageAsset,
   BrandKit,
@@ -107,7 +106,7 @@ import { useHashRouter } from "./features/app-center/AppShell";
 const PublishWorkspace = lazy(() => import("./features/publishing/PublishWorkspace"));
 const DashboardView = lazy(() => import("./features/dashboard/DashboardView"));
 
-type View = "apps" | "home" | "ip" | "digital_human_app" | "assets" | "publish_accounts" | "tasks" | "config" | "diagnostics";
+type View = "apps" | "home" | "application_workflow" | "ip" | "digital_human_app" | "assets" | "publish_accounts" | "tasks" | "config" | "diagnostics";
 type AssetTab = "videos" | "images" | "voices" | "portraits" | "templates" | "brands";
 type NavKey =
   | "apps"
@@ -350,6 +349,7 @@ const navItems: MenuProps["items"] = [
 
 function viewTitle(view: View, assetTab: AssetTab) {
   if (view === "apps") return "应用中心";
+  if (view === "application_workflow") return "应用流程";
   if (view === "ip") return "口播剪辑";
   if (view === "digital_human_app") return "数字人口播视频";
   if (view === "assets") return `企业资产库 · ${{ videos: "视频", images: "图片", voices: "音色", portraits: "数字人", templates: "模板", brands: "品牌" }[assetTab]}`;
@@ -358,6 +358,7 @@ function viewTitle(view: View, assetTab: AssetTab) {
 
 function viewDescription(view: View) {
   if (view === "apps") return "发现可扩展的文案、标题、图文和视频应用。";
+  if (view === "application_workflow") return "按应用完成输入、生成、审核和交接。";
   if (view === "ip") return "文案、配音、出镜、成片和发布，一条生产线完成。";
   if (view === "digital_human_app") return "从项目或可信内容进入数字人口播应用，发布前保留人工确认。";
   if (view === "assets") return "集中管理可在不同项目中复用的企业视频资产。";
@@ -395,6 +396,7 @@ function uiStepForTask(stepKey: string) {
 function viewForPath(pathname: string): View {
   const basePath = pathname.split("?", 1)[0];
   if (basePath === "/" || basePath === "/apps") return "apps";
+  if (["/apps/marketing-copy", "/apps/viral-titles", "/apps/douyin-carousel"].includes(basePath)) return "application_workflow";
   if (basePath === "/ip") return "ip";
   if (basePath === "/apps/digital-human-video") return "digital_human_app";
   if (basePath === "/assets") return "assets";
@@ -411,6 +413,7 @@ function pathForView(view: View): string {
   return {
     apps: "/apps",
     home: "/home",
+    application_workflow: "/apps",
     ip: "/ip",
     digital_human_app: "/apps/digital-human-video",
     assets: "/assets",
@@ -436,18 +439,30 @@ export function StudioApp() {
   const [appRecovering, setAppRecovering] = useState(false);
   const [workflowError, setWorkflowError] = useState("");
   const [storyboardOpen, setStoryboardOpen] = useState(false);
-  const [creationAppId, setCreationAppId] = useState("builtin.marketing-copy");
+  const [creationAppId, setCreationAppId] = useState(() => appIdForPath(router?.pathname || "") || "builtin.marketing-copy");
+  const [creationSourceArtifactVersionId, setCreationSourceArtifactVersionId] = useState("");
+
+  function appIdForPath(pathname: string): string | null {
+    const basePath = pathname.split("?", 1)[0];
+    return {
+      "/apps/marketing-copy": "builtin.marketing-copy",
+      "/apps/viral-titles": "builtin.viral-titles",
+      "/apps/douyin-carousel": "builtin.douyin-carousel",
+    }[basePath] || null;
+  }
 
   useEffect(() => {
     if (!router) return;
     setView(viewForPath(router.pathname));
+    const routedAppId = appIdForPath(router.pathname);
+    if (routedAppId) setCreationAppId(routedAppId);
   }, [router?.pathname]);
 
   useEffect(() => {
     // The application-center route must not create a legacy IP session as a
     // side effect. Legacy recovery remains explicit when the old workflow is
     // opened, preserving the historical StudioApp behavior there.
-    if (view === "apps" || view === "digital_human_app") return;
+    if (view === "apps" || view === "application_workflow" || view === "digital_human_app") return;
     recoverAppState().catch((err) => setAppError(formatUiError(err)));
   }, [view]);
 
@@ -679,7 +694,7 @@ export function StudioApp() {
   }
 
   function selectedNavKey(): string {
-    if (view === "digital_human_app") return "apps";
+    if (view === "digital_human_app" || view === "application_workflow") return "apps";
     if (view === "assets") return "assets";
     return view;
   }
@@ -758,15 +773,11 @@ export function StudioApp() {
             ) : null}
 
             {view === "apps" ? (
-              <ApplicationCenterView
-                onOpenApp={(application) => {
-                  if (application.routeView) navigateToView(application.routeView);
-                  else {
-                    setCreationAppId(application.appId);
-                    navigateToView("home");
-                  }
-                }}
-              />
+              <ApplicationCenterView onOpenApp={(application) => {
+                setCreationAppId(application.appId);
+                if (application.routePath && router) router.navigate(application.routePath);
+                else navigateToView("home");
+              }} />
             ) : null}
 
             {view === "digital_human_app" ? (
@@ -823,6 +834,22 @@ export function StudioApp() {
                 ) : null}
               </section>
             ) : null}
+
+      {view === "application_workflow" ? (
+        <Suspense fallback={<div className="workspace-loading">正在加载应用流程…</div>}>
+          <CreationWorkspace
+            appId={creationAppId}
+            focused
+            initialSourceArtifactVersionId={creationSourceArtifactVersionId}
+            onBack={() => { setCreationSourceArtifactVersionId(""); navigateToView("apps"); }}
+            onOpenApp={(nextAppId, sourceVersionId) => {
+              setCreationAppId(nextAppId);
+              setCreationSourceArtifactVersionId(sourceVersionId || "");
+              router?.navigate(nextAppId === "builtin.douyin-carousel" ? "/apps/douyin-carousel" : "/apps");
+            }}
+          />
+        </Suspense>
+      ) : null}
 
       {view === "home" ? (
         <Suspense fallback={<div className="workspace-loading">正在加载企业视频工作台…</div>}>
@@ -3745,8 +3772,6 @@ function PublishStep({
   const coverReady = Boolean(session.artifacts.cover || session.state.cover_path);
   const finalVideoPath = (session.state.final_video_path as string) || "";
   const coverPath = (session.state.cover_path as string) || "";
-  const hashtagList =
-    ((publishPackage.hashtags as string[]) || (session.state.hashtags as string[]) || []).filter(Boolean);
   const fullPackageText = [
     coverTitle ? `封面大字：${coverTitle}` : "",
     title ? `标题：${title}` : "",
@@ -3798,7 +3823,7 @@ function PublishStep({
         <p>{String(value.description || "") || "暂无描述建议"}</p>
         <small>{publishCapabilityDescription(platform)}</small>
         <Space wrap>
-          {isPublishPlatform(platform) ? (
+          {platform === "douyin" ? (
             <Button
               type="primary"
               disabled={!publishReady || !finalVideoPath}
@@ -3817,26 +3842,13 @@ function PublishStep({
     if (!finalVideoPath) return;
     setPublishLoadingPlatform(platform);
     setPublishResult(null);
-    try {
-      const result = await preparePlatformPublish({
-        session_id: session.session_id,
-        platform,
-        video_path: finalVideoPath,
-        title,
-        description,
-        hashtags: hashtagList,
-        cover_path: coverPath,
-      });
-      setPublishResult(result);
-    } catch (err) {
-      setPublishResult({
-        status: "failed",
-        platform,
-        message: formatUiError(err),
-      });
-    } finally {
-      setPublishLoadingPlatform(null);
-    }
+    setPublishResult({
+      status: "failed",
+      platform,
+      message: "旧发布入口已停用，请从统一发布中心选择账号；当前平台未通过独立 live gate 时仅支持复制素材回退。",
+      requires_human_confirmation: true,
+    });
+    setPublishLoadingPlatform(null);
   }
   return (
     <div className="publish-workbench">
@@ -3962,7 +3974,7 @@ function PublishStep({
               <Button
                 type="primary"
                 block
-                disabled={!publishReady || !finalVideoPath}
+                disabled={!publishReady || !finalVideoPath || primaryPlatform !== "douyin"}
                 loading={publishLoadingPlatform === primaryPlatform}
                 onClick={() => preparePlatformDraft(primaryPlatform)}
               >
@@ -4078,11 +4090,11 @@ function platformLabel(platform: string) {
 }
 
 function publishCapabilityLabel(platform: string) {
-  return isPublishPlatform(platform) ? `${platformLabel(platform)}发布助手` : "复制素材手动发布";
+  return platform === "douyin" ? "抖音发布助手" : "复制素材手动发布";
 }
 
 function publishCapabilityDescription(platform: string) {
-  return isPublishPlatform(platform)
+  return platform === "douyin"
     ? "自动填充视频、标题、描述和标签，最终发布按钮必须人工点击。"
     : "请复制标题、描述、标签和视频素材到平台后台手动发布。";
 }

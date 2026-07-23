@@ -6,6 +6,7 @@ import re
 
 from fastapi import APIRouter, HTTPException, Query, status
 
+from api.dependencies import get_pixelle_video
 from api.routers.app_center import get_app_center_repository
 from api.schemas.app_center import IpBroadcastAppRunCreateRequest, IpBroadcastAppRunResponse
 from pixelle_video.app_center.ip_broadcast_adapter import (
@@ -125,23 +126,24 @@ def retry_app_run(app_run_id: str):
 
 @router.post("/runs/{app_run_id}/execute", response_model=IpBroadcastAppRunResponse)
 async def execute_app_run(app_run_id: str):
-    """Run only the explicitly isolated local executor seam.
+    """Run the configured TTS, digital-human and media pipeline.
 
-    The production adapter remains feature/readiness gated and rejects this
-    local-only executor when the flag is enabled; callers never reach a
-    provider or generic completion runner through this route.
+    The final platform publish action is not part of this endpoint; the
+    resulting AppRun remains in ``needs_review`` until a human accepts it.
     """
 
     try:
         adapter = get_ip_broadcast_app_adapter()
-        return _response(await adapter.execute_local(app_run_id))
+        if not adapter.enforce_feature_flag:
+            return _response(await adapter.execute_local(app_run_id))
+        return _response(await adapter.execute_provider(app_run_id, await get_pixelle_video()))
     except Exception as exc:
         _raise_adapter_error(exc)
 
 
 @router.post("/runs/{app_run_id}/accept", response_model=IpBroadcastAppRunResponse)
 def accept_legacy_outputs(app_run_id: str):
-    """Explicit human confirmation for an already-imported legacy output set."""
+    """Explicit human confirmation for generated or imported output sets."""
 
     try:
         adapter = get_ip_broadcast_app_adapter()
@@ -154,6 +156,15 @@ def accept_legacy_outputs(app_run_id: str):
                     sources.append(get_app_center_repository().get_artifact_version(artifact.current_version_id).source)
             if sources and all(source == "generated" for source in sources):
                 return _response(adapter.accept_local_outputs(app_run_id))
+        run = get_app_center_repository().get_app_run(app_run_id)
+        if run.output_artifact_ids:
+            sources = []
+            for artifact_id in run.output_artifact_ids:
+                artifact = get_app_center_repository().get_artifact(artifact_id)
+                if artifact.current_version_id:
+                    sources.append(get_app_center_repository().get_artifact_version(artifact.current_version_id).source)
+            if sources and all(source == "generated" for source in sources):
+                return _response(adapter.accept_generated_outputs(app_run_id))
         return _response(adapter.accept_legacy_outputs(app_run_id))
     except Exception as exc:
         _raise_adapter_error(exc)

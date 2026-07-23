@@ -705,6 +705,18 @@ export function getPublishRunV2(runId: string) {
   return apiFetch<{ run: PublishRunV2 }>(`/api/publish/v2/runs/${encodeURIComponent(runId)}`);
 }
 
+export function createPublishRunV2(values: {
+  package_id: string;
+  account_id: string;
+  platform: PublishAccountPlatform;
+  idempotency_key: string;
+}) {
+  return apiFetch<{ run_id: string; task_id: string | null; state: PublishRunV2["state"]; requires_human_confirmation: true; idempotent_replay: boolean }>(
+    "/api/publish/v2/runs",
+    { method: "POST", body: JSON.stringify(values) },
+  );
+}
+
 export function listPublishRunEventsV2(runId: string, after = 0) {
   return apiFetch<{ items: PublishRunEvent[]; next_after: number }>(`/api/publish/v2/runs/${encodeURIComponent(runId)}/events?after=${after}`);
 }

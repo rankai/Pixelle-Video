@@ -55,11 +55,19 @@ def test_adapter_result_event_uses_latest_checkpoint_state_version(monkeypatch):
             "adapter_result",
             PublishRunState.RUNNING,
             99,
-            {
-                "step": "adapter_prepare",
-                "adapter_version": "douyin-entry@1",
-                "evidence_kind": "live_douyin_dom_readback",
-            },
+                {
+                    "step": "adapter_prepare",
+                    "adapter_version": "douyin-entry@1",
+                    "evidence_kind": "live_douyin_dom_readback",
+                    "adapter_state": None,
+                    "filled_fields": [],
+                    "readback_fields": [],
+                    "platform_fallback_boundaries": [],
+                        "media_readback": False,
+                        "cover_readback": False,
+                        "cover_receipt_present": False,
+                        "final_publish_click_count": 0,
+                },
         )
     ]
 

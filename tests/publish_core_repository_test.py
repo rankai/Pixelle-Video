@@ -88,6 +88,45 @@ def test_event_sanitizer_rejects_unknown_secrets_and_business_copy():
     for payload in ({"cookie": "secret"}, {"unknown": "x"}, {"step": "/Users/nickfury/video.mp4"}, {"title": "业务标题"}):
         with pytest.raises(ValueError):
             sanitize_event_payload(payload)
+    for payload in (
+        {"filled_fields": ["authorization"]},
+        {"readback_fields": ["arbitrary"]},
+        {"platform_fallback_boundaries": ["secret-boundary"]},
+        {"step": {"title": "业务文案"}},
+        {"step": ["description", "业务文案"]},
+        {"adapter_version": {"cookie": "secret"}},
+        {"media_readback": {"authorization": "secret"}},
+        {"duration_ms": True},
+    ):
+        with pytest.raises(ValueError, match="EVENT_PAYLOAD_FIELD_FORBIDDEN"):
+            sanitize_event_payload(payload)
+    assert sanitize_event_payload({"error_code": "DOUYIN_DESCRIPTION_READBACK_FAILED"})["error_code"] == "DOUYIN_DESCRIPTION_READBACK_FAILED"
+
+
+def test_adapter_result_payload_is_accepted_by_real_sqlite_event_sanitizer(tmp_path):
+    db = tmp_path / "adapter-event.sqlite"
+    accounts = PublishAccountRepository(db)
+    account = accounts.create_account(PublishPlatform.DOUYIN, "门店", "profile_douyin")
+    repository = PublishCoreRepository(db)
+    package = repository.create_package(_package("pkg_adapter_event"))
+    run, _ = repository.create_run(package.package_id, account.account_id, PublishPlatform.DOUYIN, "adapter-event-1")
+    running = repository.transition_run(run.run_id, PublishRunState.RUNNING, expected_version=run.state_version, current_step="adapter_prepare")
+    payload = {
+        "step": "adapter_prepare",
+        "adapter_version": "douyin-entry@1",
+        "evidence_kind": "live_douyin_dom_readback",
+        "adapter_state": "waiting_for_human",
+        "filled_fields": ["video", "title"],
+        "readback_fields": ["video", "title"],
+        "platform_fallback_boundaries": [],
+        "media_readback": True,
+        "cover_readback": True,
+        "cover_receipt_present": True,
+        "final_publish_click_count": 0,
+    }
+    event = repository.append_event(run.run_id, "adapter_result", state=running.state, state_version=running.state_version, payload=payload)
+    assert event.payload["cover_receipt_present"] is True
+    assert event.payload["final_publish_click_count"] == 0
 
 
 def test_invalidated_package_round_trips_and_cannot_create_run(tmp_path):

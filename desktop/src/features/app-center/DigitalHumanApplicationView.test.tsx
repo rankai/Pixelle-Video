@@ -171,6 +171,83 @@ describe("DigitalHumanApplicationView", () => {
     expect(mocks.createIpBroadcastAppRun).not.toHaveBeenCalled();
   });
 
+  it("restores the selected digital-human asset with the AppRun pointer after restart", async () => {
+    window.localStorage.setItem("pixelle_ip_broadcast_app_state_v1", JSON.stringify({
+      route: "/apps/digital-human-video",
+      project_id: "project-1",
+      app_run_id: "run-1",
+      session_id: "session-1",
+      source_mode: "blank_project",
+      source_revision: "sha256:source",
+      context_snapshot_id: null,
+      portrait_id: "portrait-1",
+      digital_human_scene_id: "scene-1",
+    }));
+    render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} />);
+
+    expect(await screen.findByRole("button", { name: "已选择数字人" })).toBeInTheDocument();
+    expect(screen.getByText("已选场景")).toBeInTheDocument();
+    expect(mocks.createIpBroadcastAppRun).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when a restored source artifact has been archived", async () => {
+    mocks.listProjectArtifacts.mockResolvedValue([
+      { artifact_id: "archived-title", project_id: "project-1", source_app_run_id: null, artifact_type: "selected_title", name: "已归档标题", status: "archived", current_version_id: "version-archived", created_at: "now", updated_at: "now" },
+      { artifact_id: "active-title", project_id: "project-1", source_app_run_id: null, artifact_type: "selected_title", name: "当前标题", status: "draft", current_version_id: "version-active", created_at: "now", updated_at: "now" },
+    ]);
+    window.localStorage.setItem("pixelle_ip_broadcast_app_state_v1", JSON.stringify({
+      route: "/apps/digital-human-video",
+      project_id: "project-1",
+      app_run_id: "run-1",
+      session_id: "session-1",
+      source_mode: "selected_title",
+      source_revision: "sha256:source",
+      context_snapshot_id: null,
+      source_artifact_id: "archived-title",
+      source_version_id: "version-archived",
+    }));
+    render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} />);
+
+    expect(await screen.findByText(/历史运行引用的来源产物不存在或已归档/)).toBeInTheDocument();
+    expect(window.localStorage.getItem("pixelle_ip_broadcast_app_state_v1")).toBeNull();
+    expect(screen.getByRole("combobox", { name: "来源产物" })).toHaveValue("");
+    expect(screen.queryByText("run-1")).not.toBeInTheDocument();
+  });
+
+  it("fails closed when a restored source version has been archived", async () => {
+    mocks.listProjectArtifacts.mockResolvedValue([
+      { artifact_id: "active-title", project_id: "project-1", source_app_run_id: null, artifact_type: "selected_title", name: "当前标题", status: "draft", current_version_id: "version-active", created_at: "now", updated_at: "now" },
+    ]);
+    mocks.listArtifactVersions.mockResolvedValue([{
+      artifact_version_id: "version-active",
+      artifact_id: "active-title",
+      project_id: "project-1",
+      version_number: 1,
+      schema_version: 1,
+      content: { artifact_type: "selected_title", title: "当前标题" },
+      file_refs: [],
+      source: "generated",
+      content_fingerprint: "sha",
+      created_at: "now",
+    }]);
+    window.localStorage.setItem("pixelle_ip_broadcast_app_state_v1", JSON.stringify({
+      route: "/apps/digital-human-video",
+      project_id: "project-1",
+      app_run_id: "run-1",
+      session_id: "session-1",
+      source_mode: "selected_title",
+      source_revision: "sha256:source",
+      context_snapshot_id: null,
+      source_artifact_id: "active-title",
+      source_version_id: "version-archived",
+    }));
+    render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} />);
+
+    expect(await screen.findByText(/历史运行引用的来源版本不存在或已归档/)).toBeInTheDocument();
+    expect(window.localStorage.getItem("pixelle_ip_broadcast_app_state_v1")).toBeNull();
+    expect(screen.queryByText("run-1")).not.toBeInTheDocument();
+  });
+
   it("fails closed when the restored source revision does not match the server binding", async () => {
     window.localStorage.setItem("pixelle_ip_broadcast_app_state_v1", JSON.stringify({
       route: "/apps/digital-human-video",

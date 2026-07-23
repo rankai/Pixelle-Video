@@ -695,6 +695,51 @@ async def test_playwright_context_reads_selected_douyin_topic_with_captured_cid(
 
 
 @pytest.mark.asyncio
+async def test_playwright_context_challenge_overlay_overrides_editor_state():
+    class Body:
+        first = None
+
+        async def get_attribute(self, name):
+            return {"data-state": "editor_ready", "data-auth-state": "signed_in"}.get(name)
+
+    Body.first = Body()
+
+    class Locator:
+        async def count(self):
+            return 0
+
+    class VisibleChallengeLocator:
+        def nth(self, _index):
+            return self
+
+        async def count(self):
+            return 1
+
+        async def is_visible(self):
+            return True
+
+    class ChallengePage:
+        url = "https://creator.douyin.com/creator-micro/content/post/video"
+
+        def is_closed(self):
+            return False
+
+        def locator(self, selector):
+            return Body.first if selector == "body" else Locator()
+
+        def get_by_text(self, _text, *, exact=False):
+            del exact
+            return VisibleChallengeLocator()
+
+        async def content(self):
+            return "<main data-state='editor_ready'>风险验证</main>"
+
+    context = PlaywrightPublishContext(object(), "douyin")
+    context.page = ChallengePage()
+    assert await context.detect_state() == "captcha"
+
+
+@pytest.mark.asyncio
 async def test_shared_playwright_context_keeps_non_douyin_legacy_actions_available():
     class LegacyPage:
         @property

@@ -88,6 +88,18 @@ def test_renderer_zip_bytes_are_reproducible_for_same_inputs(tmp_path):
     assert first_refs[-1]["sha256"] == second_refs[-1]["sha256"]
 
 
+def test_renderer_keeps_selected_asset_visible_under_copy_overlay(tmp_path):
+    asset_path = _asset(tmp_path)
+    renderer = DouyinCarouselRenderer(tmp_path / "exports", asset_root=tmp_path)
+    renderer.render_package(_pages(asset_path, 3), run_ref="asset-visible")
+
+    with Image.open(tmp_path / "exports" / "asset-visible" / "pages" / "page-01.png") as image:
+        # The source image occupies y=155..775. A previous RGB draw call used a
+        # 4-tuple and made this whole region flat beige, hiding the asset.
+        assert image.getpixel((540, 300)) != (248, 245, 238)
+        assert image.getpixel((540, 300))[0] < 245
+
+
 def test_renderer_fails_closed_for_page_set_asset_font_and_overflow(tmp_path):
     renderer = DouyinCarouselRenderer(tmp_path / "exports", asset_root=tmp_path)
     asset_path = _asset(tmp_path)

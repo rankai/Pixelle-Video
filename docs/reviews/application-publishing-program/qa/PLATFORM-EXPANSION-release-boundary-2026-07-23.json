@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "stage": "PLATFORM-EXPANSION",
+  "batch": "release-rollback-boundary",
+  "result": "passed_with_explicit_boundaries",
+  "scope": "temporary_sqlite_only",
+  "platform_release_states": {
+    "douyin": "pilot",
+    "kuaishou": "unverified",
+    "shipinhao": "unverified",
+    "xiaohongshu": "unverified"
+  },
+  "unverified_platform_run_gate": {
+    "kuaishou": "PLATFORM_RELEASE_NOT_READY",
+    "shipinhao": "PLATFORM_RELEASE_NOT_READY",
+    "xiaohongshu": "PLATFORM_RELEASE_NOT_READY"
+  },
+  "browser_start_count": 0,
+  "copy_download_fallback_available": true,
+  "rollback_rehearsal": {
+    "platforms": ["kuaishou", "shipinhao", "xiaohongshu"],
+    "promotion_evidence_refs_redacted": true,
+    "promoted_then_revoked": true,
+    "final_state_all_unverified": true,
+    "account_profile_preserved": true,
+    "login_state_preserved": true,
+    "production_database_touched": false,
+    "browser_profile_touched": false
+  },
+  "existing_live_evidence": {
+    "kuaishou": {
+      "result": "passed_with_explicit_boundaries",
+      "release_state": "unverified",
+      "release_state_promoted": false,
+      "final_publish_click_count": 0
+    },
+    "shipinhao": {
+      "result": "blocked_with_explicit_boundary",
+      "release_state": "unverified",
+      "release_state_promoted": false,
+      "final_publish_click_count": 0
+    },
+    "xiaohongshu": {
+      "result": "blocked_with_explicit_boundary",
+      "release_state": "unverified",
+      "release_state_promoted": false,
+      "final_publish_click_count": 0
+    }
+  },
+  "safety": {
+    "allow_final_publish": false,
+    "final_publish_click_count": 0,
+    "external_actions": 0,
+    "credentials_or_cookies_read": false
+  },
+  "verification": {
+    "targeted_tests": "79 passed, 12 existing Pydantic warnings",
+    "aggregated_publish_platform_desktop_tests": "178 passed",
+    "desktop_tests": "Vitest 10 files / 55 passed",
+    "build": "desktop npm run build passed",
+    "ruff": "scoped publish/platform tests passed",
+    "json_validation": "contract and evidence parsed",
+    "diff_check": "passed",
+    "independent_review": {
+      "reviewer": "/root/platform_expansion_foundation_reviewer",
+      "result": "passed_with_explicit_boundaries",
+      "p0": 0,
+      "p1": 0,
+      "substantive_p2": 0
+    }
+  },
+  "boundary": "This closes only the local release/rollback gate. It does not promote Kuaishou, Shipinhao or Xiaohongshu, does not claim platform publish success, and does not close PG-L Windows installation, product signoff, real platform rollback or WebView SLA."
+}

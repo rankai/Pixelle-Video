@@ -76,10 +76,53 @@ class PublishRunConcurrencyConflict(PublishRunConflict):
 
 
 ALLOWED_EVENT_FIELDS = frozenset(
-    {"step", "error_code", "duration_ms", "adapter_version", "evidence_kind", "retry_attempt", "human_outcome"}
+    {
+        "step",
+        "error_code",
+        "duration_ms",
+        "adapter_version",
+        "evidence_kind",
+        "retry_attempt",
+        "human_outcome",
+        "adapter_state",
+        "filled_fields",
+        "readback_fields",
+        "platform_fallback_boundaries",
+        "media_readback",
+        "cover_readback",
+        "cover_receipt_present",
+        "final_publish_click_count",
+    }
 )
 FORBIDDEN_EVENT_FIELDS = frozenset(
     {"cookie", "qr_payload", "authorization", "api_key", "absolute_file_path", "request_params", "description", "title", "profile_path"}
+)
+EVENT_FIELD_TOKENS = frozenset({"video", "title", "description", "hashtags", "cover"})
+EVENT_FALLBACK_TOKENS = frozenset({"HASHTAGS_TEXT_FALLBACK"})
+EVENT_SCALAR_TYPES: dict[str, tuple[type, ...]] = {
+    "step": (str,),
+    "error_code": (str,),
+    "duration_ms": (int,),
+    "adapter_version": (str,),
+    "evidence_kind": (str,),
+    "retry_attempt": (int,),
+    "human_outcome": (str,),
+    "adapter_state": (str, type(None)),
+    "media_readback": (bool,),
+    "cover_readback": (bool,),
+    "cover_receipt_present": (bool,),
+    "final_publish_click_count": (int,),
+}
+EVENT_STRING_PATTERNS = {
+    "step": re.compile(r"^[a-z][a-z0-9_]{0,63}$"),
+    "error_code": re.compile(r"^[A-Z][A-Z0-9_]{0,127}$"),
+    "adapter_version": re.compile(r"^[a-z][a-z0-9.@_-]{0,127}$"),
+    "evidence_kind": re.compile(r"^[a-z][a-z0-9_]{0,127}$"),
+    "human_outcome": re.compile(r"^[a-z][a-z0-9_]{0,63}$"),
+    "adapter_state": re.compile(r"^[a-z][a-z0-9_]{0,63}$"),
+}
+EVENT_FORBIDDEN_STRING_MARKERS = frozenset(
+    {"cookie", "qr_payload", "authorization", "api_key", "absolute_file_path", "request_params", "profile_path"}
 )
 
 
@@ -583,9 +626,45 @@ def sanitize_event_payload(payload: dict[str, Any]) -> dict[str, Any]:
     forbidden = {key for key in payload if key.lower() in FORBIDDEN_EVENT_FIELDS}
     if unknown or forbidden:
         raise ValueError("EVENT_PAYLOAD_FIELD_FORBIDDEN")
+    for key, value in payload.items():
+        expected_types = EVENT_SCALAR_TYPES.get(key)
+        if expected_types is None:
+            continue
+        # ``bool`` is an ``int`` subclass; require exact integer types for
+        # counters so a malformed JSON value cannot masquerade as a number.
+        if key in {"duration_ms", "retry_attempt", "final_publish_click_count"}:
+            valid_type = type(value) is int
+        else:
+            valid_type = isinstance(value, expected_types)
+        if not valid_type:
+            raise ValueError("EVENT_PAYLOAD_FIELD_FORBIDDEN")
+        if isinstance(value, str):
+            pattern = EVENT_STRING_PATTERNS.get(key)
+            if pattern is None or not pattern.fullmatch(value):
+                raise ValueError("EVENT_PAYLOAD_FIELD_FORBIDDEN")
+            lowered = value.lower()
+            if any(marker in lowered for marker in EVENT_FORBIDDEN_STRING_MARKERS):
+                raise ValueError("EVENT_PAYLOAD_SECRET_OR_BUSINESS_DATA")
+        if key in {"duration_ms", "retry_attempt", "final_publish_click_count"} and value < 0:
+            raise ValueError("EVENT_PAYLOAD_FIELD_FORBIDDEN")
+    for key in ("filled_fields", "readback_fields"):
+        if key in payload:
+            values = payload[key]
+            if (
+                not isinstance(values, list)
+                or len(values) > len(EVENT_FIELD_TOKENS)
+                or any(not isinstance(value, str) or value not in EVENT_FIELD_TOKENS for value in values)
+            ):
+                raise ValueError("EVENT_PAYLOAD_FIELD_FORBIDDEN")
+    if "platform_fallback_boundaries" in payload:
+        values = payload["platform_fallback_boundaries"]
+        if (
+            not isinstance(values, list)
+            or len(values) > len(EVENT_FALLBACK_TOKENS)
+            or any(not isinstance(value, str) or value not in EVENT_FALLBACK_TOKENS for value in values)
+        ):
+            raise ValueError("EVENT_PAYLOAD_FIELD_FORBIDDEN")
     serialized = _dump(payload).lower()
-    if any(marker in serialized for marker in FORBIDDEN_EVENT_FIELDS):
-        raise ValueError("EVENT_PAYLOAD_SECRET_OR_BUSINESS_DATA")
     if re.search(r"(?:^|[\s\"':])/(?:users|private|tmp|var|home|volumes)/|[a-z]:[\\/]", serialized):
         raise ValueError("EVENT_PAYLOAD_ABSOLUTE_PATH")
     return json.loads(_dump(payload))
