@@ -29,6 +29,24 @@ CREATE TABLE IF NOT EXISTS publish_accounts (
   last_verified_at TEXT
 );
 
+-- Platform release state is a gate fact, not an administrator setting.  It is
+-- only advanced by a trusted local evidence workflow after the platform's
+-- independent live gate; default rollout remains closed for every platform
+-- except the already-approved Douyin pilot.
+CREATE TABLE IF NOT EXISTS publish_platform_release (
+  platform TEXT PRIMARY KEY CHECK (platform IN ('douyin', 'video_channel', 'kuaishou', 'xiaohongshu')),
+  release_state TEXT NOT NULL CHECK (release_state IN ('unverified', 'pilot', 'stable', 'maintenance', 'disabled', 'retired')),
+  evidence_ref TEXT,
+  updated_at TEXT NOT NULL
+);
+
+INSERT OR IGNORE INTO publish_platform_release(platform, release_state, evidence_ref, updated_at)
+VALUES
+  ('douyin', 'pilot', 'PG-G/PG-K', CURRENT_TIMESTAMP),
+  ('video_channel', 'unverified', NULL, CURRENT_TIMESTAMP),
+  ('kuaishou', 'unverified', NULL, CURRENT_TIMESTAMP),
+  ('xiaohongshu', 'unverified', NULL, CURRENT_TIMESTAMP);
+
 CREATE TABLE IF NOT EXISTS publish_packages_v2 (
   package_id TEXT PRIMARY KEY,
   schema_version INTEGER NOT NULL DEFAULT 2,

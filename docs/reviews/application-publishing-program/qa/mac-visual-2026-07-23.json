@@ -1,0 +1,78 @@
+{
+  "stage": "MAC-VISUAL-AC-PUB",
+  "date": "2026-07-23",
+  "status": "partial_pass_with_findings",
+  "independent_review": {
+    "reviewer": "/root/platform_expansion_foundation_reviewer",
+    "result": "P0=0, P1=0, substantive_P2=2",
+    "findings": [
+      "V2 account summary does not render an empty video-channel platform entry",
+      "Legacy account row reuses the outer platform-card grid and is visibly cramped at 1280/1440"
+    ]
+  },
+  "scope": "Current desktop application center and publishing account-management visual evaluation on macOS host",
+  "runtime": {
+    "frontend": "Vite development server",
+    "backend": "FastAPI local server",
+    "browser": "Codex in-app browser via Playwright",
+    "packaged_tauri": "not_run_boundary",
+    "packaged_tauri_build_attempt": {
+      "command": "VITE_APP_CENTER_SHELL=true VITE_CONTENT_APPS=true VITE_APP_CENTER_DIGITAL_HUMAN=true VITE_APP_CENTER_NEW_NAV=true VITE_PUBLISH_CENTER_V2=true VITE_ASSET_CENTER_V2=true npm run tauri:build -- --bundles app",
+      "result": "blocked",
+      "reason": "cargo metadata failed because cargo is not available in the Mac execution PATH"
+    }
+  },
+  "viewports": ["1280x800", "1440x900"],
+  "checks": {
+    "application_center_ready": {
+      "result": "passed_with_boundary",
+      "observed": ["4 registry cards rendered", "ready labels rendered", "open-flow buttons enabled", "search and category controls visible"],
+      "button_check": {"open_flow_count": 4, "first_open_flow_enabled": true}
+    },
+    "application_center_disabled": {
+      "result": "passed_with_boundary",
+      "observed": ["4 cards rendered as 未开启", "planning buttons remain visible but disabled"],
+      "button_check": {"planning_button_count": 4, "first_planning_button_enabled": false}
+    },
+    "application_center_backend_error": {
+      "result": "passed_with_boundary",
+      "observed": ["连接错误提示", "应用目录暂时不可用", "重试连接/关闭 controls", "empty-result fallback" ]
+    },
+    "publish_center_v2_account_summary": {
+      "result": "passed_with_boundary",
+      "observed": ["抖音已登录/试点", "快手未连接/未验证", "小红书未连接/未验证", "刷新状态 enabled", "人工确认边界 visible"],
+      "button_check": {"refresh_count": 1, "refresh_enabled": true},
+      "finding": "当前 V2 账号分组按已有账号渲染；暂无账号的视频号不会显示为可添加平台。"
+    },
+    "publish_center_backend_error": {
+      "result": "passed_with_boundary",
+      "observed": ["全局连接错误提示", "发布中心数据暂时不可用", "安全回退卡片", "不会伪造已发布状态"]
+    },
+    "legacy_account_management_fallback": {
+      "result": "visual_findings",
+      "observed": ["抖音/视频号/快手/小红书四个平台均显示", "添加本机账号可见", "检测登录/清理登录态/归档 controls 可见", "视频号空账号态可见"],
+      "finding": "账号行复用了外层 publish-account-card 三列布局，导致 1280/1440 视口下名称和按钮明显拥挤、纵向折行；1280x800 下下方平台卡片需要滚动才能看到。"
+    },
+    "automated_checks": {
+      "desktop_vitest": "10 files / 55 tests passed",
+      "targeted_python": "25 passed, 12 existing Pydantic deprecation warnings",
+      "desktop_build": "passed; existing Vite chunk-size warning only"
+    }
+  },
+  "evidence": {
+    "directory": "docs/reviews/application-publishing-program/qa/mac-visual-2026-07-23",
+    "screenshots": [
+      {"file": "app-center-ready-1280x800.jpg", "sha256": "171e8a383c1c28247714ab3628c78771f84194da31c067b1fd61ae1544d4cfe4"},
+      {"file": "app-center-ready-1440x900.jpg", "sha256": "9118371118efb8850bfb47c40e7f6ae6ad01c1a2c4ab89d63de8af701060c138"},
+      {"file": "app-center-disabled-1280x800.jpg", "sha256": "3263b5b5b4e9ca2bda243d412f525487bd547e55d252b669ddaff036f616851a"},
+      {"file": "app-center-error-1440x900.jpg", "sha256": "285cda8abfebdb27c984faba5f95042c3475359c16a002c2ddb068b001c389d8"},
+      {"file": "publish-accounts-ready-1280x800.jpg", "sha256": "6eac88cb0c26d89a846810ad18c9d87c2896bccd364daae12d63284973cc8791"},
+      {"file": "publish-accounts-ready-1440x900.jpg", "sha256": "0b36ffce8ff82a2bcd820aa3354457c4738905487a191d1863c06e264fab9a5e"},
+      {"file": "publish-accounts-error-1440x900.jpg", "sha256": "d02d171722c8a59175b451be668092fd05dcbf3fe092ad9b629cf98c3b22ab67"},
+      {"file": "publish-accounts-empty-1440x900.jpg", "sha256": "cb6f78cd7ad4fd966acae0541817b421f7c2bc07b25241e8f16a06b5dd547310", "note": "empty placeholder observed together with transient backend error; not a pure empty-backend proof"},
+      {"file": "publish-accounts-management-legacy-1280x800.jpg", "sha256": "c78265aa65ee79660f4921766d09ca289f4fdb3fd1465a831b0f9f01f6d170d5"},
+      {"file": "publish-accounts-management-legacy-1440x900.jpg", "sha256": "a55546209ccfb201a80c0349e5dbc2922f2572742cd7a42842c5269096a5abf2"}
+    ]
+  },
+  "conclusion": "Mac development-rendered visual evidence is complete with explicit boundaries. Do not mark packaged Tauri visual acceptance complete until a Mac Rust/Cargo toolchain is available and the packaged app is launched. Account-management layout and V2 empty-platform behavior require a follow-up UI decision/fix."
+}

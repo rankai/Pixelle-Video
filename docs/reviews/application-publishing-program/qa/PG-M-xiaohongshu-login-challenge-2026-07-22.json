@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "stage": "PLATFORM-EXPANSION",
+  "platform": "xiaohongshu",
+  "result": "blocked_challenge_required",
+  "runtime": "project_playwright_persistent_context",
+  "visible_headful": true,
+  "authorization": {
+    "human_qr_scan_completed": true,
+    "human_login_detected": true,
+    "credentials_read": false,
+    "cookies_or_storage_read": false,
+    "login_probe": true,
+    "entry_url": "https://creator.xiaohongshu.com/publish/publish?source=official"
+  },
+  "challenge": {
+    "state": "captcha",
+    "manual_resolution_required": true,
+    "automation_bypass_attempted": false
+  },
+  "mutation_policy": {
+    "upload_count": 0,
+    "field_mutation_count": 0,
+    "cover_mutation_count": 0,
+    "final_publish_click_count": 0
+  },
+  "release_gate": {
+    "release_state": "unverified",
+    "release_state_promoted": false
+  }
+}

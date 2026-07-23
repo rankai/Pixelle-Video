@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "stage": "PLATFORM-EXPANSION",
+  "platform": "xiaohongshu",
+  "result": "blocked_with_explicit_boundary",
+  "runtime": "project_playwright_persistent_context",
+  "visible_headful": true,
+  "authorization": {
+    "human_qr_scan_completed": true,
+    "human_login_detected": true,
+    "credentials_read": false,
+    "cookies_or_storage_read": false,
+    "login_probe": true,
+    "entry_url": "https://creator.xiaohongshu.com/publish/publish?source=official"
+  },
+  "bounded_main_attempt": {
+    "adapter_status": "draft_ready",
+    "video_sha256": "sha256:330911c2312fad5a6d278b73703f6d60c917438afbcc9dfe5d4ca1e379e42c0b",
+    "cover_sha256": "sha256:27e264830011581d9481a8c34f4275f397730ac5c67fe28ab21ff70c42b3f4a8",
+    "video_injection_count": 1,
+    "duplicate_video_injection_count": 0,
+    "video_preview_readback": true,
+    "filled_fields": ["video", "title", "description", "hashtags", "cover"],
+    "readback_fields": ["video", "title", "description", "hashtags", "cover"],
+    "cover_receipt_present": false,
+    "cover_receipt_policy": "ui_confirmed_local_blob_preview_boundary_no_remote_url",
+    "final_publish_click_count": 0
+  },
+  "platform_boundaries": [
+    "HASHTAGS_TEXT_FALLBACK",
+    "XIAOHONGSHU_NO_STABLE_REMOTE_MEDIA_ID",
+    "XIAOHONGSHU_LOCAL_BLOB_PREVIEW_ONLY"
+  ],
+  "restart_recovery": {
+    "context_closed": true,
+    "context_reopened": true,
+    "login_probe_after_restart": true,
+    "adapter_status": "failed",
+    "adapter_message": "STATE_AMBIGUOUS",
+    "draft_persisted_by_platform": false,
+    "upload_calls_after_restart": 0,
+    "duplicate_video_injection_count": 0,
+    "final_publish_click_count": 0,
+    "boundary": "XIAOHONGSHU_DRAFT_NOT_PERSISTED_AFTER_RUNTIME_RESTART"
+  },
+  "final_action_guard": {
+    "request_final_action_result": false,
+    "final_publish_click_count": 0,
+    "final_publish_button_clicked": false,
+    "release_state_promoted": false
+  },
+  "release_gate": {
+    "release_state": "unverified",
+    "release_state_promoted": false,
+    "overall_gate_passed": false
+  },
+  "evidence_boundary": "The authenticated project Playwright adapter filled and read back the Xiaohongshu video, title, description, text hashtags and cover exactly once. Hashtags remain a text fallback; the cover is confirmed only as a local blob preview and no stable remote media id is exposed. The platform does not persist this unsaved draft across a browser-context restart; the checkpoint fails closed with STATE_AMBIGUOUS and performs zero upload calls after restart. No final publish action was attempted."
+}

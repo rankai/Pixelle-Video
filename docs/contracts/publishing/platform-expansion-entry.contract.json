@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/platform-expansion-entry.v1.contract.json",
+  "schema_version": 1,
+  "stage": "PLATFORM-EXPANSION",
+  "entry_status": "entry_in_progress",
+  "objective": "Implement conservative pre-publish adapters for Kuaishou, WeChat Channels and Xiaohongshu without enabling default rollout or final publish clicks.",
+  "platforms": {
+    "kuaishou": {
+      "label": "快手",
+      "entry_url": "https://cp.kuaishou.com/article/publish/video?tabType=1",
+      "adapter_id": "kuaishou-video@1",
+      "required_fields": ["video", "description", "hashtags", "cover"],
+      "unsupported_fields": ["title"],
+      "unsupported_field_policy": "record_explicit_boundary_and_never_fabricate_readback",
+      "cover_receipt_policy": "ui_confirmed_local_blob_preview_boundary_no_remote_url"
+    },
+    "shipinhao": {
+      "label": "视频号",
+      "entry_url": "https://channels.weixin.qq.com/platform/post/create",
+      "adapter_id": "shipinhao-video@1",
+      "required_fields": ["video", "title", "description", "cover"],
+      "media_identity_policy": "explicit_boundary_allowed_no_fake_remote_id",
+      "media_identity_boundary": "SHIPINHAO_NO_STABLE_REMOTE_MEDIA_ID",
+      "cover_receipt_policy": "ui_confirmed_https_receipt"
+    },
+    "xiaohongshu": {
+      "label": "小红书",
+      "entry_url": "https://creator.xiaohongshu.com/publish/publish?source=official",
+      "adapter_id": "xiaohongshu-video@1",
+      "required_fields": ["video", "title", "description", "hashtags", "cover"],
+      "cover_receipt_policy": "ui_confirmed_local_blob_preview_boundary_no_remote_url",
+      "cover_receipt_boundary": "XIAOHONGSHU_LOCAL_BLOB_PREVIEW_ONLY",
+      "media_identity_policy": "explicit_boundary_allowed_no_fake_remote_id",
+      "media_identity_boundary": "XIAOHONGSHU_NO_STABLE_REMOTE_MEDIA_ID"
+    }
+  },
+  "common_invariants": {
+    "runtime": "playwright",
+    "visible_headful": true,
+    "human_confirmation_required": true,
+    "allow_final_publish": false,
+    "final_publish_click_count_expected": 0,
+    "release_state_unchanged": true,
+    "publish_v2_default_on": false,
+    "credentials_in_api_or_events": false,
+    "profile_path_in_api_or_events": false,
+    "release_gate_authority": "repository_only_evidence_ref",
+    "default_platform_release_states": {
+      "douyin": "pilot",
+      "kuaishou": "unverified",
+      "shipinhao": "unverified",
+      "xiaohongshu": "unverified"
+    }
+  },
+  "required_evidence": [
+    "entry_url_and_platform_identity",
+    "login_or_manual_handoff_state",
+    "single_video_upload_and_readback",
+    "title_description_readback",
+    "title_readback_or_explicit_platform_boundary",
+    "hashtag_entity_or_explicit_platform_fallback_readback",
+    "cover_readback_or_explicit_platform_unsupported_boundary",
+    "final_action_guard_armed",
+    "final_publish_click_count"
+  ],
+  "external_boundaries": [
+    "qr_scan",
+    "third_party_authorization",
+    "captcha_or_challenge",
+    "final_publish_button",
+    "platform_release_rollout"
+  ],
+  "exit_rule": "Every platform has implementation evidence, targeted tests, build evidence and independent six-dimensional review; any missing real login or platform receipt remains an explicit boundary and never becomes a success claim."
+}

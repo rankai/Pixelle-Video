@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/platform-expansion-failure-matrix.v1.contract.json",
+  "schema_version": 1,
+  "stage": "PLATFORM-EXPANSION",
+  "platforms": ["kuaishou", "shipinhao", "xiaohongshu"],
+  "cases": [
+    {"id":"signed_out","expected_result":"login_required","mutations_allowed":false,"video_injections":0,"final_publish_click_count":0},
+    {"id":"captcha","expected_result":"challenge_blocked","mutations_allowed":false,"video_injections":0,"final_publish_click_count":0},
+    {"id":"unknown","expected_result":"unsafe_state_blocked","mutations_allowed":false,"video_injections":0,"final_publish_click_count":0},
+    {"id":"window_closed","expected_result":"unsafe_state_blocked","mutations_allowed":false,"video_injections":0,"final_publish_click_count":0},
+    {"id":"video_upload_failure","expected_result":"VIDEO_UPLOAD_FAILED","mutations_allowed":false,"video_injections":1,"final_publish_click_count":0},
+    {"id":"video_readback_failure","expected_result":"VIDEO_READBACK_FAILED","mutations_allowed":false,"video_injections":1,"final_publish_click_count":0},
+    {"id":"cover_receipt_missing","expected_result":"COVER_RECEIPT_READBACK_FAILED","mutations_allowed":false,"video_injections":1,"final_publish_click_count":0},
+    {"id":"hashtag_fallback_missing","expected_result":"HASHTAGS_FALLBACK_BOUNDARY_MISSING","mutations_allowed":false,"video_injections":1,"final_publish_click_count":0},
+    {"id":"final_action_attempt","expected_result":"FINAL_ACTION_BLOCKED","mutations_allowed":true,"video_injections":1,"final_publish_click_count":0},
+    {"id":"resume_identity_mismatch","expected_result":"VIDEO_MEDIA_IDENTITY_MISMATCH","mutations_allowed":false,"video_injections":0,"final_publish_click_count":0}
+  ],
+  "invariants": {
+    "retry_same_video_after_failure": false,
+    "final_action_default": "deny",
+    "release_state_default": "unverified"
+  }
+}

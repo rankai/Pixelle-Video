@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "stage": "PLATFORM-EXPANSION",
+  "probe_kind": "read_only_headful_entry_probe",
+  "captured_at": "2026-07-22",
+  "browser_surface": "Codex In-app Browser",
+  "mutation_policy": {
+    "navigation_only": true,
+    "upload_count": 0,
+    "field_fill_count": 0,
+    "final_publish_click_count": 0,
+    "credentials_read": false,
+    "qr_or_captcha_interaction": false
+  },
+  "follow_up_probes": [
+    {
+      "captured_at": "2026-07-22T03:38:22Z",
+      "platform": "kuaishou",
+      "purpose": "open_login_entry_once_after_signed_out_probe",
+      "navigation_count": 1,
+      "credentials_entered": false,
+      "qr_visible": true,
+      "qr_or_captcha_interaction": false,
+      "upload_count": 0,
+      "field_fill_count": 0,
+      "final_publish_click_count": 0,
+      "observed_login_controls": ["请输入手机号", "请输入密码", "登录"],
+      "result": "manual_login_required"
+    },
+    {
+      "captured_at": "2026-07-22T03:46:26Z",
+      "platform": "kuaishou",
+      "purpose": "refresh_expired_qr_once",
+      "navigation_count": 0,
+      "credentials_entered": false,
+      "qr_visible": true,
+      "qr_or_captcha_interaction": false,
+      "upload_count": 0,
+      "field_fill_count": 0,
+      "final_publish_click_count": 0,
+      "result": "new_qr_handoff"
+    },
+    {
+      "captured_at": "2026-07-22T03:47:48Z",
+      "platform": "kuaishou",
+      "purpose": "read_qr_state_after_handoff",
+      "navigation_count": 0,
+      "credentials_entered": false,
+      "qr_visible": false,
+      "qr_or_captcha_interaction": false,
+      "upload_count": 0,
+      "field_fill_count": 0,
+      "final_publish_click_count": 0,
+      "observed_state": "signed_out_qr_expired",
+      "result": "manual_login_still_required"
+    }
+  ],
+  "platforms": {
+    "kuaishou": {
+      "requested_url": "https://cp.kuaishou.com/article/publish/video?tabType=3",
+      "resolved_url": "https://cp.kuaishou.com/article/publish/video",
+      "title": "快手创作者服务平台",
+      "observed_state": "signed_out",
+      "evidence": {
+        "login_markers": ["立即登录"],
+        "editor_markers": ["上传视频"],
+        "selector_counts": {
+          "input[type='file']": 0,
+          "input[placeholder*='标题']": 0,
+          "textarea[placeholder*='作品描述']": 0,
+          "[data-media-id]": 0,
+          "[data-video-id]": 0,
+          "[data-testid='cover-preview']": 0
+        }
+      },
+      "attempts": 1,
+      "release_gate": "unverified",
+      "result": "blocked_external_login"
+    },
+    "shipinhao": {
+      "requested_url": "https://channels.weixin.qq.com/platform/post/create",
+      "observed_state": "not_observed",
+      "evidence": {
+        "browser_policy": "navigation_blocked_by_browser_security_policy",
+        "navigation_attempts": 1,
+        "selector_counts": null
+      },
+      "attempts": 1,
+      "release_gate": "unverified",
+      "result": "blocked_browser_policy"
+    },
+    "xiaohongshu": {
+      "requested_url": "https://creator.xiaohongshu.com/publish/publish?source=official",
+      "resolved_url": "https://creator.xiaohongshu.com/publish/publish",
+      "title": "小红书创作服务平台",
+      "observed_state": "signed_out",
+      "evidence": {
+        "login_markers": ["短信登录", "手机号", "验证码", "登 录"],
+        "editor_markers": [],
+        "challenge_markers": [],
+        "selector_counts": {
+          "input[type='file']": 0,
+          "input[placeholder*='标题']": 0,
+          "textarea[placeholder*='正文']": 0,
+          "div[contenteditable='true']": 0,
+          "[data-media-id]": 0,
+          "[data-video-id]": 0,
+          "[data-testid='cover-preview']": 0
+        }
+      },
+      "attempts": 1,
+      "release_gate": "unverified",
+      "result": "blocked_external_login"
+    }
+  },
+  "conclusion": "No platform passed live gate. This is boundary evidence only; no adapter was promoted to pilot and no final publish action was attempted."
+}

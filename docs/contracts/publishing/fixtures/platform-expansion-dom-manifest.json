@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "purpose": "Redacted synthetic DOM contracts for the three platform adapters; these files are not live-platform evidence.",
+  "coverage_scope": "state markers, platform-specific field selectors, media identity, cover receipt and final-action guard",
+  "platforms": {
+    "kuaishou": {
+      "entry_url": "https://cp.kuaishou.com/article/publish/video?tabType=1",
+      "adapter_version": "kuaishou-video@1",
+      "fixtures": [
+        {"id":"logged-out","path":"tests/fixtures/publishing/dom/platform-expansion/kuaishou/logged-out.html","state":"signed_out","required_markers":["data-auth-state=\"signed_out\"","data-testid=\"login-entry\""],"sha256":"sha256:cece0697bf9fafef4f8c294173129da95d78fc8193c04657ee8316bf731ba443"},
+        {"id":"captcha","path":"tests/fixtures/publishing/dom/platform-expansion/kuaishou/captcha.html","state":"captcha","required_markers":["data-state=\"captcha\"","data-testid=\"human-check\""],"sha256":"sha256:88269a578a91825417d8936dabb0873f1df931527096c415e7d66890d9eb4d0d"},
+        {"id":"loading","path":"tests/fixtures/publishing/dom/platform-expansion/kuaishou/loading.html","state":"loading","required_markers":["data-state=\"loading\"","data-testid=\"page-loading\""],"sha256":"sha256:8adbe15ee849522dca415a9a41b2efb63ea2753b7d13af4697691fd80b8d718b"},
+        {"id":"unknown","path":"tests/fixtures/publishing/dom/platform-expansion/kuaishou/unknown.html","state":"unknown","required_markers":["data-state=\"unknown\"","data-error-code=\"PLATFORM_PAGE_CHANGED\""],"sha256":"sha256:8f1fb6c7983ee78c01439506e2083b16ddd240ab4ff4ffa0cc18ddf324eea4a9"},
+        {"id":"editor-fields","path":"tests/fixtures/publishing/dom/platform-expansion/kuaishou/editor-fields.html","state":"editor_ready","required_markers":["input placeholder=\"标题\"","textarea placeholder=\"作品描述\"","data-media-id=\"media-kuaishou-1001\"","data-testid=\"cover-preview\"","data-guard=\"deny\""],"sha256":"sha256:2453005a7058d0831ae0a7121b24097402466e7ffa6427cf4da9959a3e0cd9fe"}
+      ]
+    },
+    "shipinhao": {
+      "entry_url": "https://channels.weixin.qq.com/platform/post/create",
+      "adapter_version": "shipinhao-video@1",
+      "fixtures": [
+        {"id":"logged-out","path":"tests/fixtures/publishing/dom/platform-expansion/shipinhao/logged-out.html","state":"signed_out","required_markers":["data-auth-state=\"signed_out\"","data-testid=\"login-entry\""],"sha256":"sha256:c7c362d5e9a9a64d88c5d8388121eba3aa21f312b149fc7e5c389a92fdb2ee61"},
+        {"id":"captcha","path":"tests/fixtures/publishing/dom/platform-expansion/shipinhao/captcha.html","state":"captcha","required_markers":["data-state=\"captcha\"","data-testid=\"human-check\""],"sha256":"sha256:150c1fc6a0c61694c18b091f31b2000f15fcd965271bb0105a796d85a1c4a63c"},
+        {"id":"loading","path":"tests/fixtures/publishing/dom/platform-expansion/shipinhao/loading.html","state":"loading","required_markers":["data-state=\"loading\"","data-testid=\"page-loading\""],"sha256":"sha256:8adbe15ee849522dca415a9a41b2efb63ea2753b7d13af4697691fd80b8d718b"},
+        {"id":"unknown","path":"tests/fixtures/publishing/dom/platform-expansion/shipinhao/unknown.html","state":"unknown","required_markers":["data-state=\"unknown\"","data-error-code=\"PLATFORM_PAGE_CHANGED\""],"sha256":"sha256:8f1fb6c7983ee78c01439506e2083b16ddd240ab4ff4ffa0cc18ddf324eea4a9"},
+        {"id":"editor-fields","path":"tests/fixtures/publishing/dom/platform-expansion/shipinhao/editor-fields.html","state":"editor_ready","required_markers":["input placeholder=\"标题\"","textarea placeholder=\"描述\"","data-media-id=\"media-shipinhao-2001\"","data-testid=\"cover-preview\"","data-guard=\"deny\""],"sha256":"sha256:16af6c5175c62cb6eb208b58a4fef7e7e25ce9f27eb3eec7cd78c73343c19ae0"}
+      ]
+    },
+    "xiaohongshu": {
+      "entry_url": "https://creator.xiaohongshu.com/publish/publish?source=official",
+      "adapter_version": "xiaohongshu-video@1",
+      "fixtures": [
+        {"id":"logged-out","path":"tests/fixtures/publishing/dom/platform-expansion/xiaohongshu/logged-out.html","state":"signed_out","required_markers":["data-auth-state=\"signed_out\"","data-testid=\"login-entry\""],"sha256":"sha256:0af185912043fb5adbb67b528d0cb525125ad99b559d65aa2b0bda0610d47a55"},
+        {"id":"captcha","path":"tests/fixtures/publishing/dom/platform-expansion/xiaohongshu/captcha.html","state":"captcha","required_markers":["data-state=\"captcha\"","data-testid=\"human-check\""],"sha256":"sha256:ebd3a26be8e58c5b275d044b608cc127a76fc27ebd5238440a44897769100cbf"},
+        {"id":"loading","path":"tests/fixtures/publishing/dom/platform-expansion/xiaohongshu/loading.html","state":"loading","required_markers":["data-state=\"loading\"","data-testid=\"page-loading\""],"sha256":"sha256:8adbe15ee849522dca415a9a41b2efb63ea2753b7d13af4697691fd80b8d718b"},
+        {"id":"unknown","path":"tests/fixtures/publishing/dom/platform-expansion/xiaohongshu/unknown.html","state":"unknown","required_markers":["data-state=\"unknown\"","data-error-code=\"PLATFORM_PAGE_CHANGED\""],"sha256":"sha256:8f1fb6c7983ee78c01439506e2083b16ddd240ab4ff4ffa0cc18ddf324eea4a9"},
+        {"id":"editor-fields","path":"tests/fixtures/publishing/dom/platform-expansion/xiaohongshu/editor-fields.html","state":"editor_ready","required_markers":["input placeholder=\"标题\"","data-placeholder=\"正文\"","data-media-id=\"media-xiaohongshu-3001\"","data-testid=\"cover-preview\"","data-guard=\"deny\""],"sha256":"sha256:8ac74d0b45cb97691d3c03c456ffdccb018148f0b1a801a8f4feb55267e8097a"}
+      ]
+    }
+  }
+}
