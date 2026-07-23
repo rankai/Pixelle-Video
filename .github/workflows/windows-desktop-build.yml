@@ -1,5 +1,6 @@
 name: Windows Desktop Build
 
+# Keep the required Windows installer/sidecar check attached to reviewed rollout heads.
 on:
   push:
     branches: [dev, main, "codex/**"]
