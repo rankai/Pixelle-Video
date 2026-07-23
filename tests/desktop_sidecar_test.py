@@ -19,3 +19,13 @@ def test_sidecar_build_bundles_runtime_contract_schemas():
     assert '"--add-data"' in source
     assert "docs/contracts" in source
     assert data_separator() == (";" if platform.system().lower() == "windows" else ":")
+
+
+def test_frozen_sidecar_startup_banner_is_windows_console_safe():
+    source = (ROOT / "api" / "app.py").read_text(encoding="utf-8")
+
+    assert "Pixelle-Video API Server" in source
+    assert "UnicodeEncodeError" in source
+    assert "╔" not in source
+    assert "║" not in source
+    assert "╚" not in source

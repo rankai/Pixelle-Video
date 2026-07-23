@@ -205,18 +205,16 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # Print startup banner
-    print(f"""
-╔══════════════════════════════════════════════════════════════╗
-║                    AI-Video-Factory API Server                      ║
-╚══════════════════════════════════════════════════════════════╝
-
-Starting server at http://{args.host}:{args.port}
-API Docs: http://{args.host}:{args.port}/docs
-ReDoc: http://{args.host}:{args.port}/redoc
-
-Press Ctrl+C to stop the server
-""")
+    # Keep the frozen sidecar startup output ASCII-only.  Windows runners and
+    # some end-user consoles still expose cp1252 stdout; box-drawing or CJK
+    # banner characters would raise UnicodeEncodeError before uvicorn starts.
+    print(
+        "\n=== Pixelle-Video API Server ===\n"
+        f"Starting server at http://{args.host}:{args.port}\n"
+        f"API Docs: http://{args.host}:{args.port}/docs\n"
+        f"ReDoc: http://{args.host}:{args.port}/redoc\n\n"
+        "Press Ctrl+C to stop the server\n"
+    )
 
     # PyInstaller executes this file as ``__main__`` and does not expose the
     # source package as an importable ``api.app`` module.  Pass the already
