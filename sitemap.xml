@@ -1100,6 +1100,20 @@
         <xhtml:link rel="alternate" hreflang="zh" href="https://AIDC-AI.github.io/Pixelle-Video/zh/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-ci-run-2026-07-22/"/>
     </url>
     <url>
+        <loc>https://AIDC-AI.github.io/Pixelle-Video/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-installer-smoke-2026-07-23/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://AIDC-AI.github.io/Pixelle-Video/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-installer-smoke-2026-07-23/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://AIDC-AI.github.io/Pixelle-Video/zh/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-installer-smoke-2026-07-23/"/>
+    </url>
+    <url>
+        <loc>https://AIDC-AI.github.io/Pixelle-Video/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-installer-smoke-review-2026-07-23/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://AIDC-AI.github.io/Pixelle-Video/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-installer-smoke-review-2026-07-23/"/>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://AIDC-AI.github.io/Pixelle-Video/zh/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-installer-smoke-review-2026-07-23/"/>
+    </url>
+    <url>
         <loc>https://AIDC-AI.github.io/Pixelle-Video/reviews/application-publishing-program/PUB-1-account-implementation-2026-07-20/</loc>
         <lastmod>2026-07-23</lastmod>
         <changefreq>daily</changefreq>
@@ -2470,6 +2484,20 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="zh" href="https://AIDC-AI.github.io/Pixelle-Video/zh/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-ci-run-2026-07-22/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://AIDC-AI.github.io/Pixelle-Video/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-ci-run-2026-07-22/"/>
+    </url>
+    <url>
+        <loc>https://AIDC-AI.github.io/Pixelle-Video/zh/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-installer-smoke-2026-07-23/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://AIDC-AI.github.io/Pixelle-Video/zh/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-installer-smoke-2026-07-23/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://AIDC-AI.github.io/Pixelle-Video/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-installer-smoke-2026-07-23/"/>
+    </url>
+    <url>
+        <loc>https://AIDC-AI.github.io/Pixelle-Video/zh/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-installer-smoke-review-2026-07-23/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="zh" href="https://AIDC-AI.github.io/Pixelle-Video/zh/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-installer-smoke-review-2026-07-23/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://AIDC-AI.github.io/Pixelle-Video/reviews/application-publishing-program/PROGRAM-ROLLOUT-windows-installer-smoke-review-2026-07-23/"/>
     </url>
     <url>
         <loc>https://AIDC-AI.github.io/Pixelle-Video/zh/reviews/application-publishing-program/PUB-1-account-implementation-2026-07-20/</loc>
