@@ -62,6 +62,24 @@ function Wait-PortReleased {
     return $false
 }
 
+function Get-RedactedLogTail {
+    param([string]$Path, [string]$RunnerRoot)
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        return $null
+    }
+    $text = ((Get-Content -LiteralPath $Path -ErrorAction SilentlyContinue | Select-Object -Last 12) -join " ")
+    if ([string]::IsNullOrWhiteSpace($text)) {
+        return $null
+    }
+    $text = $text.Replace($RunnerRoot, "<runner-temp>")
+    $text = [regex]::Replace($text, "(?i)[A-Z]:\\[^ ]+", "<path>")
+    if ($text.Length -gt 2000) {
+        return $text.Substring(0, 2000)
+    }
+    return $text
+}
+
 $outputPath = [IO.Path]::GetFullPath($Output)
 $runnerTempRoot = ([IO.Path]::GetFullPath(($env:RUNNER_TEMP ?? $env:TEMP))).TrimEnd([char[]]@("\", "/"))
 $runtimeRoot = Join-Path $runnerTempRoot "Pixelle Sidecar Smoke"
@@ -80,6 +98,8 @@ $result = [ordered]@{
     process_exit_code = $null
     stdout_present = $false
     stderr_present = $false
+    stderr_tail = $null
+    stdout_tail = $null
     external_actions = 0
     final_publish_clicks = 0
     started_at = [DateTime]::UtcNow.ToString("o")
@@ -162,9 +182,17 @@ try {
     }
     $result.stdout_present = Test-Path -LiteralPath $stdoutPath -PathType Leaf
     $result.stderr_present = Test-Path -LiteralPath $stderrPath -PathType Leaf
+    $result.stderr_tail = Get-RedactedLogTail -Path $stderrPath -RunnerRoot $runnerTempRoot
+    $result.stdout_tail = Get-RedactedLogTail -Path $stdoutPath -RunnerRoot $runnerTempRoot
     $result.finished_at = [DateTime]::UtcNow.ToString("o")
     $result | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $outputPath -Encoding UTF8
     Write-Output ($result | ConvertTo-Json -Depth 10 -Compress)
+    if ($result.error_code) {
+        Write-Output "::error title=Packaged Windows sidecar smoke::$($result.error_code)"
+    }
+    if ($env:GITHUB_STEP_SUMMARY) {
+        "### Packaged Windows sidecar smoke$([Environment]::NewLine)$([Environment]::NewLine)- status: $($result.status)$([Environment]::NewLine)- error_code: $($result.error_code)$([Environment]::NewLine)- health: $($result.health)$([Environment]::NewLine)- stderr: $($result.stderr_tail)$([Environment]::NewLine)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+    }
     foreach ($name in $previousEnvironment.Keys) {
         [Environment]::SetEnvironmentVariable($name, $previousEnvironment[$name])
     }
