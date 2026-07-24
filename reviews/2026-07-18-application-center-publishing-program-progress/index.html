@@ -3816,6 +3816,14 @@ gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user</p>
 <td><code>manual_windows_install=pending_user_device</code>；PG-L-10=<code>pending_external</code>；PG-L-11=<code>not_executed</code>；不把 hosted Runner smoke 当作实机验收，不开启默认 Publish V2</td>
 <td>当前唯一入口仍为 PROGRAM-ROLLOUT/PG-L_waiting_user；等待 Windows 实机回传、产品签字和真实 rollback/WebView 结论后，再执行 PG-L closure review</td>
 </tr>
+<tr>
+<td>2026-07-24</td>
+<td>APP-IPB/AC-5 受控真实数字人 live smoke</td>
+<td>在隔离数据目录临时开启后端/桌面双开关；一次真实本地 Edge TTS 成功生成 8.544 秒音频；RunningHub 音频/人物上传成功，但创建数字人任务因“企业版余额不足，请充值”失败；未生成视频、封面或发布文案 Artifact；失败状态跨进程重启保持，执行一次 retry 状态转换为 queued 且未再次调用 Provider；无产物时人工 accept 返回 409；最终发布点击=0</td>
+<td><a href="../application-publishing-program/qa/AC-5-digital-human-live-smoke-2026-07-24.json"><code>qa/AC-5-digital-human-live-smoke-2026-07-24.json</code></a>；真实一次执行日志；定向 <code>47 passed</code>；<code>git diff --check</code>、证据 JSON 校验通过</td>
+<td><code>PG-I</code> 代码/边界仍有效，但真实 Provider Gate <code>blocked_by_external_state</code>；RunningHub 余额不足是唯一阻塞，不能把 TTS 成功或本地 Artifact 结构测试解释为真实成片通过；应用中心生产开关未改为默认开启，平台上传/最终发布均未触发</td>
+<td>余额恢复后只允许基于同一失败运行做一次有目的的真实 retry，重新验证视频/封面/发布文案 Artifact、重启恢复和人工接收；在此之前保持“待上线”与最终发布停手边界</td>
+</tr>
 </tbody>
 </table>
 
@@ -3840,7 +3848,7 @@ gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 23, 2026 18:32:52 UTC">July 23, 2026 18:32:52</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 24, 2026 00:17:37 UTC">July 24, 2026 00:17:37</span>
   </span>
 
     

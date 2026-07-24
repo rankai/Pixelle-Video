@@ -1478,8 +1478,8 @@
 <tr>
 <td>数字人口播视频</td>
 <td>AppRun、来源选择、数字人形象选择、TTS→数字人→后期真实媒体执行、恢复/取消/重试/人工接收</td>
-<td>已完成 provider 生成闭环；不含自动平台发布</td>
-<td>&#8536;（独立页清晰，需真实 provider 配置验收）</td>
+<td>已接入 provider 生成闭环；真实 live smoke 受 RunningHub 余额阻塞；不含自动平台发布</td>
+<td>&#8536;（独立页清晰，需余额恢复后完成一次真实成片验收）</td>
 </tr>
 </tbody>
 </table>
@@ -1527,7 +1527,7 @@
 <li>Registry manifest 标记为 <code>pilot</code>，声明需要 <code>llm</code>、<code>runninghub</code>、<code>digital_human</code>，产出视频/封面/发布文案。</li>
 <li>当前页面真实支持：项目和文案/标题来源选择、数字人形象/场景选择、创建持久化 AppRun、重启恢复、状态刷新、取消、失败重试、生成数字人视频和人工接收。</li>
 <li>重启恢复会校验 pinned source artifact/version；来源被归档或删除时清理本地指针并隐藏旧运行操作，必须显式重新选择来源后才能继续。</li>
-<li><code>execute_provider</code> 已串接既有 <code>run_ip_broadcast_step</code> 的 TTS、数字人和后期步骤，生成真实视频、封面和发布文案 Artifact；执行完成后停在 <code>needs_review</code>，不会自动触发平台发布。</li>
+<li><code>execute_provider</code> 已串接既有 <code>run_ip_broadcast_step</code> 的 TTS、数字人和后期步骤，设计上生成真实视频、封面和发布文案 Artifact；执行完成后停在 <code>needs_review</code>，不会自动触发平台发布。2026-07-24 单次真实 live smoke 中，Edge TTS 成功、RunningHub 音频/人物上传成功，但因企业版余额不足未创建数字人任务，视频/封面/发布文案 Artifact 尚未取得真实通过证据。</li>
 <li>生产路径仍受 Registry readiness、数字人资产和模型/RunningHub 配置约束；没有这些配置时会明确返回不可用或失败状态，不伪造成功。</li>
 </ul>
 <h2 id="_4">用户体验判断<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
@@ -1543,7 +1543,7 @@
 <li>状态标签已拆分为“可试用 / 本地可导出 / 需先配置 / 灰度中 / 未开启”，不再用单一“可用”掩盖交付边界。</li>
 <li>图文已改为产物、版本和企业图片选择器，内部 ID 不再是用户输入项。</li>
 <li>数字人已提供真实生成 CTA；生成失败、缺配置、缺形象都会停在可诊断状态，成功结果先进入人工审核。</li>
-<li>仍需在已配置真实 LLM、RunningHub/数字人服务和至少一个数字人资产的环境执行一次 live smoke；平台自动点击仍按范围关闭。</li>
+<li>已在双开关和真实配置环境执行一次 live smoke；当前唯一阻塞是 RunningHub 企业版余额不足。余额恢复后只补一次有目的的真实成片复验；平台自动点击仍按范围关闭。</li>
 </ol>
 <h2 id="_5">后续建议（修复后）<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <ol>
@@ -1555,7 +1555,7 @@
 <h2 id="_6">证据边界<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
 <ul>
 <li>代码合同、API、渲染器和 provider 边界专项测试：本轮相关 Python 测试 76 个通过；全量桌面前端 11 个测试文件、60 个测试通过；桌面构建通过。</li>
-<li>provider 边界测试验证了真实 TTS→数字人→后期调用链的 Artifact 产出和 <code>needs_review</code> 停手；本轮没有调用真实 LLM、RunningHub 或第三方平台，也没有进行抖音/快手/小红书发布。</li>
+<li>provider 边界测试验证了真实 TTS→数字人→后期调用链的 Artifact 产出和 <code>needs_review</code> 停手；2026-07-24 live smoke 真实调用了 Edge TTS 和 RunningHub 上传/任务创建，因余额不足停在 Provider 失败边界，尚未取得真实视频/封面/发布文案 Artifact；没有进行抖音/快手/小红书发布。</li>
 <li>截图能验证可见层级、导航和表单认知负担；完整键盘、屏幕阅读器、网络抖动和真实模型质量仍需单独验收。</li>
 </ul>
 
@@ -1580,7 +1580,7 @@
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 23, 2026 09:44:26 UTC">July 23, 2026 09:44:26</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 24, 2026 00:17:37 UTC">July 24, 2026 00:17:37</span>
   </span>
 
     
