@@ -1,5 +1,5 @@
 import { AppstoreOutlined, FileTextOutlined, PictureOutlined, SoundOutlined, VideoCameraOutlined } from "@ant-design/icons";
-import { Alert, Button, Empty, Input, Tag, Typography } from "antd";
+import { Alert, Empty, Input, Tag, Typography } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import { listApplications, type ApplicationManifest } from "../../api";
 import { featureFlags } from "../../featureFlags";
@@ -40,22 +40,8 @@ function toApplication(manifest: ApplicationManifest): Application {
   const isDigitalHuman = manifest.app_id === "builtin.digital-human-video";
   const desktopReady = !isDigitalHuman || featureFlags.digitalHumanInAppCenter;
   const ready = backendReady && desktopReady;
-  const statusLabel = !manifest.enabled
-    ? "未开启"
-    : manifest.readiness.status === "not_ready"
-      ? "需先配置"
-      : isDigitalHuman
-        ? desktopReady && backendReady ? "灰度中" : "灰度未开启"
-        : manifest.app_id === "builtin.douyin-carousel" && backendReady
-          ? "本地可导出"
-          : backendReady ? "可试用" : "即将上线";
-  const statusTone = !manifest.enabled || manifest.readiness.status === "disabled"
-    ? "default"
-    : manifest.readiness.status === "not_ready"
-      ? "warning"
-      : isDigitalHuman
-        ? "processing"
-        : backendReady ? "success" : "warning";
+  const statusLabel = ready ? "" : "待上线";
+  const statusTone = ready ? "success" : "warning";
   const routePath = {
     "builtin.marketing-copy": "/apps/marketing-copy",
     "builtin.viral-titles": "/apps/viral-titles",
@@ -123,7 +109,7 @@ export function ApplicationCenterView({ onOpenApp }: { onOpenApp: (application: 
           <Typography.Text className="app-center-eyebrow">PIXELLE APPLICATION CENTER</Typography.Text>
           <Typography.Title level={2}>应用中心</Typography.Title>
           <Typography.Paragraph type="secondary">
-            按任务发现文案、标题、图文和视频能力。状态会区分可试用、本地可导出和灰度中；最终平台发布始终保留人工确认。
+            按任务发现文案、标题、图文和视频能力；未准备好的应用会标记为待上线，最终平台发布始终保留人工确认。
           </Typography.Paragraph>
         </div>
         <Tag icon={<AppstoreOutlined />} color="processing">
@@ -162,7 +148,20 @@ export function ApplicationCenterView({ onOpenApp }: { onOpenApp: (application: 
             const Icon = application.icon;
             const ready = application.actionable;
             return (
-              <article className="app-center-card" key={application.appId}>
+              <article
+                className={`app-center-card${ready ? " is-actionable" : ""}`}
+                key={application.appId}
+                role={ready ? "button" : undefined}
+                tabIndex={ready ? 0 : undefined}
+                aria-label={ready ? `打开${application.name}` : undefined}
+                onClick={ready ? () => onOpenApp(application) : undefined}
+                onKeyDown={ready ? (event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onOpenApp(application);
+                  }
+                } : undefined}
+              >
                 <div className="app-center-card-main">
                   <div className="app-center-card-copy-row">
                     <div className="app-center-card-icon"><Icon /></div>
@@ -171,16 +170,11 @@ export function ApplicationCenterView({ onOpenApp }: { onOpenApp: (application: 
                         <Typography.Title level={4}>{application.name}</Typography.Title>
                         <div className="app-center-card-tags">
                           <Tag color="default">{application.category}</Tag>
-                          <Tag color={application.statusTone}>{application.statusLabel}</Tag>
+                          {application.statusLabel ? <Tag color={application.statusTone}>{application.statusLabel}</Tag> : null}
                         </div>
                       </div>
                       <Typography.Paragraph className="app-center-card-description" type="secondary">{application.description}</Typography.Paragraph>
                     </div>
-                  </div>
-                  <div className="app-center-card-footer">
-                    <Button type={ready ? "primary" : "default"} disabled={!application.actionable} onClick={() => onOpenApp(application)}>
-                      {ready ? "打开流程" : "查看规划"}
-                    </Button>
                   </div>
                 </div>
               </article>

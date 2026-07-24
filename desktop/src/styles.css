@@ -391,6 +391,19 @@ button:not(.ant-btn).secondary-action,
   box-shadow: 0 10px 26px rgb(var(--app-primary-rgb) / 4%);
 }
 
+.app-center-card.is-actionable {
+  cursor: pointer;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.app-center-card.is-actionable:hover,
+.app-center-card.is-actionable:focus-visible {
+  border-color: rgb(var(--app-primary-rgb) / 42%);
+  box-shadow: 0 14px 30px rgb(var(--app-primary-rgb) / 11%);
+  outline: none;
+  transform: translateY(-1px);
+}
+
 .creation-workspace {
   margin-bottom: 20px;
 }
@@ -490,6 +503,7 @@ button:not(.ant-btn).secondary-action,
 .app-center-card-main {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   min-width: 0;
   flex: 1;
 }
@@ -505,17 +519,11 @@ button:not(.ant-btn).secondary-action,
   min-width: 0;
 }
 
-.app-center-card-heading,
-.app-center-card-footer {
+.app-center-card-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-}
-
-.app-center-card-footer {
-  margin-top: auto;
-  justify-content: flex-end;
 }
 
 .app-center-card-heading h4 {
