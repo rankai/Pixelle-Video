@@ -418,6 +418,11 @@ def test_domain_media_links_are_validated_and_poster_defaults_to_source(tmp_path
     )
     assert profile["poster_asset_id"] == asset["asset_id"]
     assert profile["scenes"][0]["source_revision_id"] == asset["current_revision_id"]
+    assert "digital_human" in profile["capabilities"]
+    assert profile["summary"]["width"] == asset["width"]
+    assert profile["summary"]["height"] == asset["height"]
+    assert profile["scenes"][0]["width"] == asset["width"]
+    assert profile["scenes"][0]["height"] == asset["height"]
 
     try:
         repository.create_digital_human_profile(

@@ -1,0 +1,36 @@
+{
+  "contract_id": "digital-human-dual-mode-recovery",
+  "schema_version": 1,
+  "stage": "DH-DUAL-3",
+  "fixed_input": {
+    "must_revalidate_before_execute": true,
+    "facts": ["content_source", "digital_human", "delivery"],
+    "asset_revision_change": "reject_without_provider_call"
+  },
+  "recovery_matrix": [
+    {"id": "provider-not-created-before-restart", "result": "resume_allowed"},
+    {"id": "provider-running-before-restart", "result": "fail_closed_and_reuse_task"},
+    {"id": "provider-success-before-artifact-registration", "result": "needs_review_or_retryable_without_duplicate"},
+    {"id": "needs-review-restart", "result": "preserve_artifacts_and_fingerprint"},
+    {"id": "failed-once", "result": "one_root_cause_retry_only"},
+    {"id": "balance-insufficient", "result": "failed_with_safe_next_action"},
+    {"id": "provider-timeout", "result": "failed_with_safe_next_action"},
+    {"id": "provider-no-video", "result": "failed_without_artifact_accept"},
+    {"id": "local-file-missing", "result": "failed_without_provider_duplicate"},
+    {"id": "subtitle-or-cover-failure", "result": "failed_without_publish_action"},
+    {"id": "artifact-tampered-before-accept", "result": "accept_rejected"},
+    {"id": "repeated-accept", "result": "idempotent_completed"},
+    {"id": "mode-switch-old-pending", "result": "source_revision_conflict"},
+    {"id": "final-publish", "result": "always_false"}
+  ],
+  "artifact_acceptance": {
+    "required_types": ["video", "cover", "publish_copy", "spoken_script"],
+    "requires_generated_source": true,
+    "fingerprint_must_match": true
+  },
+  "safety": {
+    "provider_calls_at_entry": 0,
+    "platform_actions": 0,
+    "final_publish_clicked": false
+  }
+}

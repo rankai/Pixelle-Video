@@ -8,7 +8,11 @@ from fastapi import APIRouter, HTTPException, Query, status
 
 from api.dependencies import get_pixelle_video
 from api.routers.app_center import get_app_center_repository
-from api.schemas.app_center import IpBroadcastAppRunCreateRequest, IpBroadcastAppRunResponse
+from api.schemas.app_center import (
+    IpBroadcastAppRunCreateRequest,
+    IpBroadcastAppRunResponse,
+    IpBroadcastProviderRetryPlanRequest,
+)
 from pixelle_video.app_center.ip_broadcast_adapter import (
     IpBroadcastAdapterError,
     IpBroadcastAppAdapter,
@@ -17,9 +21,24 @@ from pixelle_video.app_center.ip_broadcast_adapter import (
 from pixelle_video.app_center.repository import AppCenterRepositoryError
 
 router = APIRouter(prefix="/app-center/ip-broadcast", tags=["application-center-ip-broadcast"])
-_SECRET_RE = re.compile(r"(?i)(?:api[_-]?key|token|authorization|cookie|password|secret)\s*[:=]\s*[^\s,;]+")
-_PATH_RE = re.compile(r"(?<![\w])(?:/(?:private|Users|tmp|var|home|etc)/[^\s,;]+|[A-Za-z]:\\[^\s,;]+)")
-_SAFE_ARTIFACT_KEYS = frozenset({"video", "cover", "publish_copy", "final_video", "digital_human_video", "audio", "carousel_package", "carousel_page"})
+_SECRET_RE = re.compile(
+    r"(?i)(?:api[_-]?key|token|authorization|cookie|password|secret)\s*[:=]\s*[^\s,;]+"
+)
+_PATH_RE = re.compile(
+    r"(?<![\w])(?:/(?:private|Users|tmp|var|home|etc)/[^\s,;]+|[A-Za-z]:\\[^\s,;]+)"
+)
+_SAFE_ARTIFACT_KEYS = frozenset(
+    {
+        "video",
+        "cover",
+        "publish_copy",
+        "final_video",
+        "digital_human_video",
+        "audio",
+        "carousel_package",
+        "carousel_page",
+    }
+)
 
 
 def get_ip_broadcast_app_adapter() -> IpBroadcastAppAdapter:
@@ -72,7 +91,9 @@ def _raise_adapter_error(exc: Exception):
     if isinstance(exc, IpBroadcastAdapterError):
         raise HTTPException(status_code=409, detail={"code": exc.code}) from exc
     if isinstance(exc, AppCenterRepositoryError):
-        raise HTTPException(status_code=409, detail={"code": "APP_CENTER_REPOSITORY_ERROR"}) from exc
+        raise HTTPException(
+            status_code=409, detail={"code": "APP_CENTER_REPOSITORY_ERROR"}
+        ) from exc
     if isinstance(exc, ValueError):
         raise HTTPException(status_code=422, detail={"code": "INPUT_PAYLOAD_INVALID"}) from exc
     raise exc
@@ -101,7 +122,9 @@ def get_app_run(app_run_id: str, project_id: str = Query(min_length=1, max_lengt
         binding = adapter.binding_store.get_by_app_run(app_run_id)
         if binding is None:
             raise HTTPException(status_code=404, detail="IP broadcast AppRun not found")
-        return _response(adapter.reconcile(binding.session_id, project_id=project_id, app_run_id=app_run_id))
+        return _response(
+            adapter.reconcile(binding.session_id, project_id=project_id, app_run_id=app_run_id)
+        )
     except HTTPException:
         raise
     except Exception as exc:
@@ -120,6 +143,22 @@ def cancel_app_run(app_run_id: str):
 def retry_app_run(app_run_id: str):
     try:
         return _response(get_ip_broadcast_app_adapter().retry(app_run_id))
+    except Exception as exc:
+        _raise_adapter_error(exc)
+
+
+@router.post("/runs/{app_run_id}/retry-plan", response_model=IpBroadcastAppRunResponse)
+def prepare_provider_retry(app_run_id: str, request: IpBroadcastProviderRetryPlanRequest):
+    """Record a single, root-cause-bound Provider retry without executing it."""
+
+    try:
+        return _response(
+            get_ip_broadcast_app_adapter().prepare_provider_retry(
+                app_run_id,
+                root_cause=request.root_cause,
+                retry_reason=request.retry_reason,
+            )
+        )
     except Exception as exc:
         _raise_adapter_error(exc)
 
@@ -153,7 +192,11 @@ def accept_legacy_outputs(app_run_id: str):
             for artifact_id in run.output_artifact_ids:
                 artifact = get_app_center_repository().get_artifact(artifact_id)
                 if artifact.current_version_id:
-                    sources.append(get_app_center_repository().get_artifact_version(artifact.current_version_id).source)
+                    sources.append(
+                        get_app_center_repository()
+                        .get_artifact_version(artifact.current_version_id)
+                        .source
+                    )
             if sources and all(source == "generated" for source in sources):
                 return _response(adapter.accept_local_outputs(app_run_id))
         run = get_app_center_repository().get_app_run(app_run_id)
@@ -162,7 +205,11 @@ def accept_legacy_outputs(app_run_id: str):
             for artifact_id in run.output_artifact_ids:
                 artifact = get_app_center_repository().get_artifact(artifact_id)
                 if artifact.current_version_id:
-                    sources.append(get_app_center_repository().get_artifact_version(artifact.current_version_id).source)
+                    sources.append(
+                        get_app_center_repository()
+                        .get_artifact_version(artifact.current_version_id)
+                        .source
+                    )
             if sources and all(source == "generated" for source in sources):
                 return _response(adapter.accept_generated_outputs(app_run_id))
         return _response(adapter.accept_legacy_outputs(app_run_id))

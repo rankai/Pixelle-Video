@@ -14,6 +14,12 @@ FORBIDDEN_BUSINESS_FIELDS = frozenset(
         "authorization",
         "cookie",
         "provider_path",
+        "provider_url",
+        "provider_credentials",
+        "token",
+        "absolute_path",
+        "workflow_file_path",
+        "runninghub_webapp_id",
         "raw_provider_response",
     }
 )

@@ -320,6 +320,7 @@ class ComfyUIDigitalHumanProvider(DigitalHumanProvider):
 
     def __init__(self, core):
         self._core = core
+        self.last_generation_meta: dict[str, Any] = {}
 
     async def generate(
         self,
@@ -348,6 +349,15 @@ class ComfyUIDigitalHumanProvider(DigitalHumanProvider):
                 width=width,
                 height=height,
             )
+            self.last_generation_meta = {
+                "provider_task_id": str(
+                    getattr(result, "prompt_id", "")
+                    or getattr(result, "task_id", "")
+                    or (result.get("taskId") if isinstance(result, dict) else "")
+                    or ""
+                ),
+                "provider": self.provider_id,
+            }
             if getattr(result, "status", "completed") != "completed":
                 error_msg = getattr(result, "msg", None) or "Unknown error"
                 raise RuntimeError(f"Digital human generation failed: {error_msg}")
@@ -378,6 +388,16 @@ class ComfyUIDigitalHumanProvider(DigitalHumanProvider):
             workflow_input,
             workflow_params,
         )
+
+        self.last_generation_meta = {
+            "provider_task_id": str(
+                getattr(result, "prompt_id", "")
+                or getattr(result, "task_id", "")
+                or (result.get("taskId") if isinstance(result, dict) else "")
+                or ""
+            ),
+            "provider": self.provider_id,
+        }
 
         if getattr(result, "status", "completed") != "completed":
             error_msg = getattr(result, "msg", None) or "Unknown error"
@@ -841,6 +861,7 @@ class DigitalHumanService:
 
     def __init__(self, core):
         self._core = core
+        self.last_generation_meta: dict[str, Any] = {}
 
     def _get_provider(self) -> DigitalHumanProvider:
         cfg = config_manager.get_digital_human_service_config()
@@ -863,7 +884,7 @@ class DigitalHumanService:
     ) -> str:
         provider = self._get_provider()
         logger.info(f"Digital human generation via provider: {provider.provider_id}")
-        return await provider.generate(
+        result = await provider.generate(
             portrait_path,
             audio_path,
             output_path,
@@ -873,3 +894,5 @@ class DigitalHumanService:
             width=width,
             height=height,
         )
+        self.last_generation_meta = dict(getattr(provider, "last_generation_meta", {}) or {})
+        return result

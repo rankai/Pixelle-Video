@@ -41,7 +41,9 @@ LEGACY_SPECS = {
     "image": next(spec for spec in MANIFEST_SPECS if spec["resource_kind"] == "image"),
     "video": next(spec for spec in MANIFEST_SPECS if spec["resource_kind"] == "video"),
     "voice": next(spec for spec in MANIFEST_SPECS if spec["resource_kind"] == "voice"),
-    "digital_human": next(spec for spec in MANIFEST_SPECS if spec["resource_kind"] == "digital_human"),
+    "digital_human": next(
+        spec for spec in MANIFEST_SPECS if spec["resource_kind"] == "digital_human"
+    ),
 }
 
 
@@ -168,7 +170,9 @@ def _audio_metadata(path: Path) -> dict[str, Any]:
     duration = (payload.get("format") or {}).get("duration")
     return {
         "duration_ms": int(float(duration) * 1000) if duration else None,
-        "sample_rate": int(audio_stream["sample_rate"]) if audio_stream.get("sample_rate") else None,
+        "sample_rate": int(audio_stream["sample_rate"])
+        if audio_stream.get("sample_rate")
+        else None,
         "channels": int(audio_stream["channels"]) if audio_stream.get("channels") else None,
         "has_audio": True,
     }
@@ -683,7 +687,9 @@ class AssetLibraryRepository:
             for row in connection.execute("PRAGMA table_info(asset_revisions)").fetchall()
         }
         if "has_transparency" not in revision_columns:
-            connection.execute("ALTER TABLE asset_revisions ADD COLUMN has_transparency INTEGER NOT NULL DEFAULT 0")
+            connection.execute(
+                "ALTER TABLE asset_revisions ADD COLUMN has_transparency INTEGER NOT NULL DEFAULT 0"
+            )
         columns = {
             str(row["name"])
             for row in connection.execute("PRAGMA table_info(upload_sessions)").fetchall()
@@ -717,16 +723,34 @@ class AssetLibraryRepository:
             "CREATE INDEX IF NOT EXISTS idx_voice_profiles_status "
             "ON voice_profiles(status, updated_at DESC)"
         )
-        scene_columns = {str(row["name"]) for row in connection.execute("PRAGMA table_info(digital_human_scenes)").fetchall()}
-        for name, definition in {"sort_order": "INTEGER NOT NULL DEFAULT 0", "status": "TEXT NOT NULL DEFAULT 'ready'"}.items():
+        scene_columns = {
+            str(row["name"])
+            for row in connection.execute("PRAGMA table_info(digital_human_scenes)").fetchall()
+        }
+        for name, definition in {
+            "sort_order": "INTEGER NOT NULL DEFAULT 0",
+            "status": "TEXT NOT NULL DEFAULT 'ready'",
+        }.items():
             if name not in scene_columns:
-                connection.execute(f"ALTER TABLE digital_human_scenes ADD COLUMN {name} {definition}")
-        collection_columns = {str(row["name"]) for row in connection.execute("PRAGMA table_info(resource_collections)").fetchall()}
+                connection.execute(
+                    f"ALTER TABLE digital_human_scenes ADD COLUMN {name} {definition}"
+                )
+        collection_columns = {
+            str(row["name"])
+            for row in connection.execute("PRAGMA table_info(resource_collections)").fetchall()
+        }
         if "status" not in collection_columns:
-            connection.execute("ALTER TABLE resource_collections ADD COLUMN status TEXT NOT NULL DEFAULT 'ready'")
-        template_columns = {str(row["name"]) for row in connection.execute("PRAGMA table_info(template_definitions)").fetchall()}
+            connection.execute(
+                "ALTER TABLE resource_collections ADD COLUMN status TEXT NOT NULL DEFAULT 'ready'"
+            )
+        template_columns = {
+            str(row["name"])
+            for row in connection.execute("PRAGMA table_info(template_definitions)").fetchall()
+        }
         if "layout_contract_json" not in template_columns:
-            connection.execute("ALTER TABLE template_definitions ADD COLUMN layout_contract_json TEXT NOT NULL DEFAULT '{}'")
+            connection.execute(
+                "ALTER TABLE template_definitions ADD COLUMN layout_contract_json TEXT NOT NULL DEFAULT '{}'"
+            )
 
     def _backfill_voice_profiles_locked(self, connection: sqlite3.Connection) -> None:
         """Give imported legacy voice references a first-class domain identity."""
@@ -771,7 +795,6 @@ class AssetLibraryRepository:
                 "UPDATE upload_sessions SET status = 'expired', error_code = 'ttl_expired', updated_at = ? WHERE upload_id = ?",
                 (now, row["upload_id"]),
             )
-
 
     def _migrate_resource_ledger_foreign_keys_locked(self, connection: sqlite3.Connection) -> None:
         """Allow usage/snapshot rows to reference domain resources as Stage 2 expands.
@@ -823,11 +846,15 @@ class AssetLibraryRepository:
                 "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?", (table,)
             ).fetchone()
             definition_sql = str(sql["sql"] if sql else "")
-            needs_rebuild = "REFERENCES media_assets" in definition_sql or (
-                table == "resource_usage"
-                and "UNIQUE(session_id, step, purpose, slot_id, resource_id)" in definition_sql
-                and "resource_kind, resource_id" not in definition_sql
-            ) or (table == "resource_snapshots" and "metadata_json" not in definition_sql)
+            needs_rebuild = (
+                "REFERENCES media_assets" in definition_sql
+                or (
+                    table == "resource_usage"
+                    and "UNIQUE(session_id, step, purpose, slot_id, resource_id)" in definition_sql
+                    and "resource_kind, resource_id" not in definition_sql
+                )
+                or (table == "resource_snapshots" and "metadata_json" not in definition_sql)
+            )
             if not sql or not needs_rebuild:
                 continue
             legacy = f"{table}_stage1"
@@ -836,12 +863,18 @@ class AssetLibraryRepository:
             connection.execute(definition)
             if table == "resource_snapshots" and "metadata_json" not in definition_sql:
                 old_columns = columns.replace(", metadata_json", "")
-                select_columns = old_columns.replace(", session_id", ", '{}' AS metadata_json, session_id")
-                connection.execute(f"INSERT INTO {table}({columns}) SELECT {select_columns} FROM {legacy}")
+                select_columns = old_columns.replace(
+                    ", session_id", ", '{}' AS metadata_json, session_id"
+                )
+                connection.execute(
+                    f"INSERT INTO {table}({columns}) SELECT {select_columns} FROM {legacy}"
+                )
             else:
                 connection.execute(f"INSERT INTO {table}({columns}) SELECT {columns} FROM {legacy}")
             connection.execute(f"DROP TABLE {legacy}")
-            index_columns = "step, updated_at DESC" if table == "resource_usage" else "step, created_at DESC"
+            index_columns = (
+                "step, updated_at DESC" if table == "resource_usage" else "step, created_at DESC"
+            )
             connection.execute(
                 f"CREATE INDEX IF NOT EXISTS idx_{table}_session ON {table}(session_id, {index_columns})"
             )
@@ -857,7 +890,12 @@ class AssetLibraryRepository:
             connection.execute(
                 "UPDATE upload_sessions SET status = 'failed', error_code = ?, "
                 "error_message = ?, updated_at = ? WHERE upload_id = ?",
-                ("restart_recovery", "Upload interrupted by application restart", _now(), row["upload_id"]),
+                (
+                    "restart_recovery",
+                    "Upload interrupted by application restart",
+                    _now(),
+                    row["upload_id"],
+                ),
             )
 
     def _legacy_media_manifest_paths(self) -> dict[str, Path]:
@@ -932,9 +970,7 @@ class AssetLibraryRepository:
                 "UPDATE media_assets SET status = 'archived', archived_at = ?, updated_at = ? "
                 "WHERE source = 'imported' AND media_kind = ? "
                 "AND legacy_id IS NOT NULL AND legacy_id NOT LIKE 'digital_human:%' "
-                "AND legacy_id NOT IN ({})".format(
-                    ",".join("?" for _ in active_ids) or "''"
-                ),
+                "AND legacy_id NOT IN ({})".format(",".join("?" for _ in active_ids) or "''"),
                 (_now(), _now(), media_kind, *sorted(active_ids)),
             )
 
@@ -1023,7 +1059,13 @@ class AssetLibraryRepository:
             spec = LEGACY_SPECS[kind]
             media_kind = "audio" if kind == "voice" else kind
             manifest_path = self.data_root / spec["manifest"]
-            kind_report = {"manifest": spec["manifest"], "media_kind": media_kind, "records": 0, "imported": 0, "missing": []}
+            kind_report = {
+                "manifest": spec["manifest"],
+                "media_kind": media_kind,
+                "records": 0,
+                "imported": 0,
+                "missing": [],
+            }
             if not manifest_path.is_file():
                 report["kinds"][kind] = kind_report
                 continue
@@ -1099,7 +1141,9 @@ class AssetLibraryRepository:
                         created_at,
                     ),
                 )
-                self._ensure_variant_locked(connection, asset_id, revision_id, source, media_kind, record)
+                self._ensure_variant_locked(
+                    connection, asset_id, revision_id, source, media_kind, record
+                )
                 kind_report["imported"] += 1
             report["kinds"][kind] = kind_report
         connection.execute(
@@ -1111,7 +1155,12 @@ class AssetLibraryRepository:
         """Import digital-human, brand and template metadata without moving files."""
         report: dict[str, Any] = {"schema_version": SCHEMA_VERSION, "kinds": {}}
         portrait_manifest = self.data_root / LEGACY_SPECS["digital_human"]["manifest"]
-        portrait_report = {"manifest": str(portrait_manifest.relative_to(self.data_root)), "records": 0, "imported": 0, "missing": []}
+        portrait_report = {
+            "manifest": str(portrait_manifest.relative_to(self.data_root)),
+            "records": 0,
+            "imported": 0,
+            "missing": [],
+        }
         if portrait_manifest.is_file():
             try:
                 records = json.loads(portrait_manifest.read_text(encoding="utf-8"))
@@ -1127,7 +1176,12 @@ class AssetLibraryRepository:
                 filename = str(record.get("filename") or "").strip()
                 if not legacy_id or not filename:
                     continue
-                media_kind = "video" if str(record.get("media_type") or "").lower() == "video" or Path(filename).suffix.lower() in {".mp4", ".mov", ".webm"} else "image"
+                media_kind = (
+                    "video"
+                    if str(record.get("media_type") or "").lower() == "video"
+                    or Path(filename).suffix.lower() in {".mp4", ".mov", ".webm"}
+                    else "image"
+                )
                 relative_path = f"portraits/{Path(filename).name}"
                 source = _safe_relative_path(self.data_root, relative_path)
                 if not source.is_file():
@@ -1136,37 +1190,93 @@ class AssetLibraryRepository:
                 safe_key = _safe_asset_key(legacy_id)
                 asset_id = f"media-digital-human-{safe_key}"
                 revision_id = f"revision-digital-human-{safe_key}-1"
-                if not connection.execute("SELECT 1 FROM media_assets WHERE asset_id = ?", (asset_id,)).fetchone():
+                if not connection.execute(
+                    "SELECT 1 FROM media_assets WHERE asset_id = ?", (asset_id,)
+                ).fetchone():
                     metadata = self._inspect_media(source, media_kind, record)
                     created_at = str(record.get("created_at") or _now())
                     now = _now()
                     connection.execute(
                         "INSERT INTO media_assets(asset_id, legacy_id, media_kind, name, description, source, current_revision_id, status, created_at, updated_at) VALUES (?, ?, ?, ?, '', 'imported', ?, ?, ?, ?)",
-                        (asset_id, f"digital_human:{legacy_id}", media_kind, str(record.get("name") or Path(filename).stem), revision_id, "ready" if metadata["valid"] else "warning", created_at, now),
+                        (
+                            asset_id,
+                            f"digital_human:{legacy_id}",
+                            media_kind,
+                            str(record.get("name") or Path(filename).stem),
+                            revision_id,
+                            "ready" if metadata["valid"] else "warning",
+                            created_at,
+                            now,
+                        ),
                     )
                     connection.execute(
                         "INSERT INTO asset_revisions(revision_id, asset_id, version, relative_path, mime_type, bytes, sha256, width, height, aspect_ratio, duration_ms, frame_rate, has_audio, has_transparency, created_at) VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                        (revision_id, asset_id, relative_path, _mime_type(filename), source.stat().st_size, _sha256(source), metadata.get("width"), metadata.get("height"), metadata.get("aspect_ratio"), metadata.get("duration_ms"), metadata.get("frame_rate"), int(metadata.get("has_audio", False)), int(metadata.get("has_transparency", False)), created_at),
+                        (
+                            revision_id,
+                            asset_id,
+                            relative_path,
+                            _mime_type(filename),
+                            source.stat().st_size,
+                            _sha256(source),
+                            metadata.get("width"),
+                            metadata.get("height"),
+                            metadata.get("aspect_ratio"),
+                            metadata.get("duration_ms"),
+                            metadata.get("frame_rate"),
+                            int(metadata.get("has_audio", False)),
+                            int(metadata.get("has_transparency", False)),
+                            created_at,
+                        ),
                     )
-                    self._ensure_variant_locked(connection, asset_id, revision_id, source, media_kind, record)
+                    self._ensure_variant_locked(
+                        connection, asset_id, revision_id, source, media_kind, record
+                    )
                 # Keep the legacy portrait identifier stable for existing
                 # workflow sessions and deep links.
                 profile_id = legacy_id
                 now = _now()
                 connection.execute(
                     "INSERT OR IGNORE INTO digital_human_profiles(profile_id, legacy_id, name, provider, poster_asset_id, supported_workflows_json, default_scene_id, quality_state, status, created_at, updated_at) VALUES (?, ?, ?, 'custom', ?, ?, ?, 'unchecked', 'ready', ?, ?)",
-                    (profile_id, legacy_id, str(record.get("name") or Path(filename).stem), asset_id, json.dumps([], ensure_ascii=False), f"scene-{safe_key}", str(record.get("created_at") or now), now),
+                    (
+                        profile_id,
+                        legacy_id,
+                        str(record.get("name") or Path(filename).stem),
+                        asset_id,
+                        json.dumps([], ensure_ascii=False),
+                        f"scene-{safe_key}",
+                        str(record.get("created_at") or now),
+                        now,
+                    ),
                 )
                 connection.execute(
                     "INSERT OR IGNORE INTO digital_human_scenes(scene_id, profile_id, name, source_asset_id, source_revision_id, shot_size, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                    (f"scene-{safe_key}", profile_id, str(record.get("name") or "默认场景"), asset_id, revision_id, "medium", str(record.get("created_at") or now), now),
+                    (
+                        f"scene-{safe_key}",
+                        profile_id,
+                        str(record.get("name") or "默认场景"),
+                        asset_id,
+                        revision_id,
+                        "medium",
+                        str(record.get("created_at") or now),
+                        now,
+                    ),
                 )
-                self._record_domain_revision_locked(connection, "digital_human", profile_id, self._domain_row_payload_locked(connection, "digital_human", profile_id))
+                self._record_domain_revision_locked(
+                    connection,
+                    "digital_human",
+                    profile_id,
+                    self._domain_row_payload_locked(connection, "digital_human", profile_id),
+                )
                 portrait_report["imported"] += 1
         report["kinds"]["digital_human"] = portrait_report
 
         brand_manifest = self.data_root / "brand_kits" / "brand_kits.json"
-        brand_report = {"manifest": "brand_kits/brand_kits.json", "records": 0, "imported": 0, "missing": []}
+        brand_report = {
+            "manifest": "brand_kits/brand_kits.json",
+            "records": 0,
+            "imported": 0,
+            "missing": [],
+        }
         if brand_manifest.is_file():
             try:
                 records = json.loads(brand_manifest.read_text(encoding="utf-8"))
@@ -1184,9 +1294,28 @@ class AssetLibraryRepository:
                 now = _now()
                 connection.execute(
                     "INSERT OR IGNORE INTO brand_kits_v2(brand_id, legacy_id, brand_name, primary_color, secondary_color, font_family, default_subtitle_style, ending_card_text, store_address, phone, coupon_phrase, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ready', ?, ?)",
-                    (legacy_id, legacy_id, str(record.get("brand_name") or "未命名品牌"), str(record.get("primary_color") or "#1f6feb"), str(record.get("secondary_color") or "#0f766e"), str(record.get("font_family") or ""), str(record.get("default_subtitle_style") or ""), str(record.get("ending_card_text") or ""), str(record.get("store_address") or ""), str(record.get("phone") or ""), str(record.get("coupon_phrase") or ""), str(record.get("created_at") or now), now),
+                    (
+                        legacy_id,
+                        legacy_id,
+                        str(record.get("brand_name") or "未命名品牌"),
+                        str(record.get("primary_color") or "#1f6feb"),
+                        str(record.get("secondary_color") or "#0f766e"),
+                        str(record.get("font_family") or ""),
+                        str(record.get("default_subtitle_style") or ""),
+                        str(record.get("ending_card_text") or ""),
+                        str(record.get("store_address") or ""),
+                        str(record.get("phone") or ""),
+                        str(record.get("coupon_phrase") or ""),
+                        str(record.get("created_at") or now),
+                        now,
+                    ),
                 )
-                self._record_domain_revision_locked(connection, "brand", legacy_id, self._domain_row_payload_locked(connection, "brand", legacy_id))
+                self._record_domain_revision_locked(
+                    connection,
+                    "brand",
+                    legacy_id,
+                    self._domain_row_payload_locked(connection, "brand", legacy_id),
+                )
                 brand_report["imported"] += 1
         report["kinds"]["brand"] = brand_report
 
@@ -1207,13 +1336,35 @@ class AssetLibraryRepository:
             now = _now()
             connection.execute(
                 "INSERT OR IGNORE INTO template_definitions(template_id, revision, display_name, short_description, full_description, preview_url, schema_version, renderer_version, cover_contract_json, subtitle_contract_json, status, created_at, updated_at) VALUES (?, 1, ?, ?, ?, ?, 1, ?, ?, ?, 'ready', ?, ?)",
-                (template.template_id, template.display_name, template.short_description, template.full_description, f"/api/assets/templates/ip-broadcast/{template.template_id}/preview", "ip-broadcast-composer-v2", json.dumps({"canvas_width": IP_BROADCAST_CANVAS_WIDTH, "canvas_height": IP_BROADCAST_CANVAS_HEIGHT}, ensure_ascii=False), json.dumps(style.__dict__, ensure_ascii=False), now, now),
+                (
+                    template.template_id,
+                    template.display_name,
+                    template.short_description,
+                    template.full_description,
+                    f"/api/assets/templates/ip-broadcast/{template.template_id}/preview",
+                    "ip-broadcast-composer-v2",
+                    json.dumps(
+                        {
+                            "canvas_width": IP_BROADCAST_CANVAS_WIDTH,
+                            "canvas_height": IP_BROADCAST_CANVAS_HEIGHT,
+                        },
+                        ensure_ascii=False,
+                    ),
+                    json.dumps(style.__dict__, ensure_ascii=False),
+                    now,
+                    now,
+                ),
             )
             template_report["imported"] += 1
         report["kinds"]["template"] = template_report
         connection.execute(
             "INSERT INTO migration_runs(run_id, schema_version, report_json, created_at) VALUES (?, ?, ?, ?)",
-            (f"legacy-domain-{uuid.uuid4().hex}", SCHEMA_VERSION, json.dumps(report, ensure_ascii=False), _now()),
+            (
+                f"legacy-domain-{uuid.uuid4().hex}",
+                SCHEMA_VERSION,
+                json.dumps(report, ensure_ascii=False),
+                _now(),
+            ),
         )
 
     def _inspect_media(self, source: Path, kind: str, record: dict[str, Any]) -> dict[str, Any]:
@@ -1252,7 +1403,9 @@ class AssetLibraryRepository:
         if kind == "video":
             thumbnail_filename = str(record.get("thumbnail_filename") or "").strip()
             if thumbnail_filename:
-                candidate = _safe_relative_path(self.data_root, f"video_assets/overlay/{Path(thumbnail_filename).name}")
+                candidate = _safe_relative_path(
+                    self.data_root, f"video_assets/overlay/{Path(thumbnail_filename).name}"
+                )
                 if candidate.is_file():
                     variant_path = candidate
         else:
@@ -1370,6 +1523,19 @@ class AssetLibraryRepository:
         row = self._asset_row(asset_id)
         return self._row_to_dict(row) if row else None
 
+    def get_asset_revision(self, asset_id: str, revision_id: str) -> dict[str, Any] | None:
+        """Return one exact asset revision, never silently falling back to current."""
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT a.*, r.revision_id, r.version, r.relative_path, r.mime_type, r.bytes, "
+                "r.sha256, r.width, r.height, r.aspect_ratio, r.duration_ms, r.frame_rate, "
+                "r.has_audio, r.has_transparency "
+                "FROM media_assets a JOIN asset_revisions r ON r.asset_id = a.asset_id "
+                "WHERE a.asset_id = ? AND r.revision_id = ?",
+                (asset_id, revision_id),
+            ).fetchone()
+        return self._row_to_dict(row) if row else None
+
     def list_domain_items(
         self,
         kind: str,
@@ -1395,10 +1561,19 @@ class AssetLibraryRepository:
                     "r.revision_id, r.version, r.relative_path, r.mime_type, r.bytes, r.sha256, r.duration_ms "
                     "FROM voice_profiles v JOIN media_assets a ON a.asset_id = v.audio_asset_id "
                     "LEFT JOIN asset_revisions r ON r.revision_id = v.audio_revision_id "
-                    "WHERE 1 = 1 " + status_clause
-                    + ("AND (v.name LIKE ? OR v.description LIKE ? OR r.relative_path LIKE ?) " if needle else "")
+                    "WHERE 1 = 1 "
+                    + status_clause
+                    + (
+                        "AND (v.name LIKE ? OR v.description LIKE ? OR r.relative_path LIKE ?) "
+                        if needle
+                        else ""
+                    )
                     + "ORDER BY v.updated_at DESC LIMIT ? OFFSET ?",
-                    (*([f"%{needle}%", f"%{needle}%", f"%{needle}%"] if needle else []), limit, offset),
+                    (
+                        *([f"%{needle}%", f"%{needle}%", f"%{needle}%"] if needle else []),
+                        limit,
+                        offset,
+                    ),
                 ).fetchall()
                 return [self._voice_profile_item(row) for row in rows]
             if kind == "digital_human":
@@ -1409,7 +1584,11 @@ class AssetLibraryRepository:
                     "r.mime_type AS poster_mime_type "
                     "FROM digital_human_profiles p LEFT JOIN media_assets a ON a.asset_id = p.poster_asset_id "
                     "LEFT JOIN asset_revisions r ON r.revision_id = a.current_revision_id "
-                    + ("WHERE " + status_clause + "(p.name LIKE ? OR p.legacy_id LIKE ?) " if needle else "WHERE " + status_clause + "1 = 1 ")
+                    + (
+                        "WHERE " + status_clause + "(p.name LIKE ? OR p.legacy_id LIKE ?) "
+                        if needle
+                        else "WHERE " + status_clause + "1 = 1 "
+                    )
                     + "ORDER BY p.updated_at DESC LIMIT ? OFFSET ?",
                     (*([f"%{needle}%", f"%{needle}%"] if needle else []), limit, offset),
                 ).fetchall()
@@ -1418,7 +1597,11 @@ class AssetLibraryRepository:
                 status_clause = "" if include_archived else "status <> 'archived' AND "
                 rows = connection.execute(
                     "SELECT * FROM brand_kits_v2 "
-                    + ("WHERE " + status_clause + "(brand_name LIKE ? OR legacy_id LIKE ?) " if needle else "WHERE " + status_clause + "1 = 1 ")
+                    + (
+                        "WHERE " + status_clause + "(brand_name LIKE ? OR legacy_id LIKE ?) "
+                        if needle
+                        else "WHERE " + status_clause + "1 = 1 "
+                    )
                     + "ORDER BY updated_at DESC LIMIT ? OFFSET ?",
                     (*([f"%{needle}%", f"%{needle}%"] if needle else []), limit, offset),
                 ).fetchall()
@@ -1427,7 +1610,13 @@ class AssetLibraryRepository:
                 status_clause = "" if include_archived else "t.status <> 'archived' AND "
                 rows = connection.execute(
                     "SELECT t.* FROM template_definitions t JOIN (SELECT template_id, MAX(revision) AS revision FROM template_definitions GROUP BY template_id) latest ON latest.template_id = t.template_id AND latest.revision = t.revision "
-                    + ("WHERE " + status_clause + "(t.display_name LIKE ? OR t.short_description LIKE ?) " if needle else "WHERE " + status_clause + "1 = 1 ")
+                    + (
+                        "WHERE "
+                        + status_clause
+                        + "(t.display_name LIKE ? OR t.short_description LIKE ?) "
+                        if needle
+                        else "WHERE " + status_clause + "1 = 1 "
+                    )
                     + "ORDER BY CASE WHEN t.template_id = 'boss_clean' THEN 0 ELSE 1 END, t.template_id ASC LIMIT ? OFFSET ?",
                     (*([f"%{needle}%", f"%{needle}%"] if needle else []), limit, offset),
                 ).fetchall()
@@ -1566,7 +1755,9 @@ class AssetLibraryRepository:
             clauses.append("library.kind = ?")
             params.append(kind)
         if query.strip():
-            clauses.append("(library.name LIKE ? OR library.description LIKE ? OR library.resource_id LIKE ?)")
+            clauses.append(
+                "(library.name LIKE ? OR library.description LIKE ? OR library.resource_id LIKE ?)"
+            )
             needle = f"%{query.strip()}%"
             params.extend([needle, needle, needle])
         if not include_archived:
@@ -1578,10 +1769,14 @@ class AssetLibraryRepository:
             clauses.append("library.source = ?")
             params.append(source)
         if favorite is not None:
-            clauses.append("EXISTS (SELECT 1 FROM resource_favorites f WHERE f.resource_kind = library.kind AND f.resource_id = library.resource_id) = ?")
+            clauses.append(
+                "EXISTS (SELECT 1 FROM resource_favorites f WHERE f.resource_kind = library.kind AND f.resource_id = library.resource_id) = ?"
+            )
             params.append(int(favorite))
         if collection_id:
-            clauses.append("EXISTS (SELECT 1 FROM collection_items ci WHERE ci.collection_id = ? AND ci.resource_kind = library.kind AND ci.resource_id = library.resource_id)")
+            clauses.append(
+                "EXISTS (SELECT 1 FROM collection_items ci WHERE ci.collection_id = ? AND ci.resource_kind = library.kind AND ci.resource_id = library.resource_id)"
+            )
             params.append(collection_id)
         if recently_used is not None:
             clauses.append("(library.last_used_at IS NOT NULL) = ?")
@@ -1599,7 +1794,9 @@ class AssetLibraryRepository:
             clauses.append("duration_ms <= ?")
             params.append(max_duration_ms)
         for tag in tags or []:
-            clauses.append("EXISTS (SELECT 1 FROM resource_tags rt WHERE rt.resource_kind = library.kind AND rt.resource_id = library.resource_id AND rt.tag = ?)")
+            clauses.append(
+                "EXISTS (SELECT 1 FROM resource_tags rt WHERE rt.resource_kind = library.kind AND rt.resource_id = library.resource_id AND rt.tag = ?)"
+            )
             params.append(tag)
 
         order = {
@@ -1624,8 +1821,17 @@ class AssetLibraryRepository:
                     clauses.append("(LOWER(name), kind, resource_id) > (?, ?, ?)")
                     params.extend([str(tuple_value[0]), str(tuple_value[1]), str(tuple_value[2])])
                 elif sort == "recent":
-                    clauses.append("(COALESCE(last_used_at, ''), updated_at, kind, resource_id) < (?, ?, ?, ?)")
-                    params.extend([str(tuple_value[0] or ""), str(tuple_value[1]), str(tuple_value[2]), str(tuple_value[3])])
+                    clauses.append(
+                        "(COALESCE(last_used_at, ''), updated_at, kind, resource_id) < (?, ?, ?, ?)"
+                    )
+                    params.extend(
+                        [
+                            str(tuple_value[0] or ""),
+                            str(tuple_value[1]),
+                            str(tuple_value[2]),
+                            str(tuple_value[3]),
+                        ]
+                    )
                 else:
                     clauses.append("(updated_at, kind, resource_id) < (?, ?, ?)")
                     params.extend([str(tuple_value[0]), str(tuple_value[1]), str(tuple_value[2])])
@@ -1644,19 +1850,54 @@ class AssetLibraryRepository:
                 if sort == "name":
                     last_tuple = [str(last["name"]).lower(), last["kind"], last["resource_id"]]
                 elif sort == "recent":
-                    last_tuple = [last.get("last_used_at"), last["updated_at"], last["kind"], last["resource_id"]]
+                    last_tuple = [
+                        last.get("last_used_at"),
+                        last["updated_at"],
+                        last["kind"],
+                        last["resource_id"],
+                    ]
                 else:
                     last_tuple = [last["updated_at"], last["kind"], last["resource_id"]]
-                next_cursor = encode_cursor(sort=sort, filters=filters, index_generation=generation, last_tuple=last_tuple, secret="ux0-fixture-secret")
+                next_cursor = encode_cursor(
+                    sort=sort,
+                    filters=filters,
+                    index_generation=generation,
+                    last_tuple=last_tuple,
+                    secret="ux0-fixture-secret",
+                )
             total = connection.execute(
-                self._library_union_sql() + f" SELECT COUNT(*) AS total FROM library WHERE {' AND '.join(facet_clauses)}",
+                self._library_union_sql()
+                + f" SELECT COUNT(*) AS total FROM library WHERE {' AND '.join(facet_clauses)}",
                 facet_params,
             ).fetchone()["total"]
             facet_where = " AND ".join(facet_clauses)
-            facet_kinds = connection.execute(self._library_union_sql() + f" SELECT kind, COUNT(*) AS total FROM library WHERE {facet_where} GROUP BY kind", facet_params).fetchall()
-            facet_statuses = connection.execute(self._library_union_sql() + f" SELECT status, COUNT(*) AS total FROM library WHERE {facet_where} GROUP BY status", facet_params).fetchall()
-            facet_tags = connection.execute(self._library_union_sql() + f" SELECT rt.tag, COUNT(DISTINCT library.resource_id) AS total FROM library JOIN resource_tags rt ON rt.resource_kind = library.kind AND rt.resource_id = library.resource_id WHERE {facet_where} GROUP BY rt.tag", facet_params).fetchall()
-        return {"items": items, "total": int(total), "next_cursor": next_cursor, "index_generation": generation, "filter_hash": filter_hash, "facets": {"kinds": {str(row["kind"]): int(row["total"]) for row in facet_kinds}, "statuses": {str(row["status"]): int(row["total"]) for row in facet_statuses}, "tags": {str(row["tag"]): int(row["total"]) for row in facet_tags}}}
+            facet_kinds = connection.execute(
+                self._library_union_sql()
+                + f" SELECT kind, COUNT(*) AS total FROM library WHERE {facet_where} GROUP BY kind",
+                facet_params,
+            ).fetchall()
+            facet_statuses = connection.execute(
+                self._library_union_sql()
+                + f" SELECT status, COUNT(*) AS total FROM library WHERE {facet_where} GROUP BY status",
+                facet_params,
+            ).fetchall()
+            facet_tags = connection.execute(
+                self._library_union_sql()
+                + f" SELECT rt.tag, COUNT(DISTINCT library.resource_id) AS total FROM library JOIN resource_tags rt ON rt.resource_kind = library.kind AND rt.resource_id = library.resource_id WHERE {facet_where} GROUP BY rt.tag",
+                facet_params,
+            ).fetchall()
+        return {
+            "items": items,
+            "total": int(total),
+            "next_cursor": next_cursor,
+            "index_generation": generation,
+            "filter_hash": filter_hash,
+            "facets": {
+                "kinds": {str(row["kind"]): int(row["total"]) for row in facet_kinds},
+                "statuses": {str(row["status"]): int(row["total"]) for row in facet_statuses},
+                "tags": {str(row["tag"]): int(row["total"]) for row in facet_tags},
+            },
+        }
 
     def library_facets(self, **filters: Any) -> dict[str, Any]:
         """Return facets using the same SQL predicate as the current page."""
@@ -1680,9 +1921,16 @@ class AssetLibraryRepository:
             "favorite": False,
             "created_at": data["created_at"],
             "updated_at": data["updated_at"],
-            "summary": {"filename": Path(data.get("relative_path") or "").name, "bytes": int(data.get("bytes") or 0)},
+            "summary": {
+                "filename": Path(data.get("relative_path") or "").name,
+                "bytes": int(data.get("bytes") or 0),
+            },
             "asset_id": data["asset_id"],
-            "revision": {"revision_id": data.get("revision_id"), "version": data.get("version"), "duration_ms": data.get("duration_ms")},
+            "revision": {
+                "revision_id": data.get("revision_id"),
+                "version": data.get("version"),
+                "duration_ms": data.get("duration_ms"),
+            },
         }
 
     def _voice_profile_item(self, row: sqlite3.Row) -> dict[str, Any]:
@@ -1691,7 +1939,9 @@ class AssetLibraryRepository:
             "resource_id": data["voice_id"],
             "kind": "voice",
             "name": data["name"],
-            "description": "参考音色" if str(data.get("description") or "").startswith(("voice_references/", "/")) else (data.get("description") or "参考音色"),
+            "description": "参考音色"
+            if str(data.get("description") or "").startswith(("voice_references/", "/"))
+            else (data.get("description") or "参考音色"),
             "status": data["status"],
             "cover_url": f"/api/v2/media-assets/{data['asset_id']}/file",
             "file_url": f"/api/v2/media-assets/{data['asset_id']}/file",
@@ -1726,11 +1976,18 @@ class AssetLibraryRepository:
         data = dict(row)
         scenes = self.list_digital_human_scenes(data["profile_id"])
         poster_asset_id = str(data["poster_asset_id"]) if data.get("poster_asset_id") else None
-        poster_media_type = "video" if (
-            data.get("poster_media_kind") == "video"
-            or str(data.get("poster_mime_type") or "").lower().startswith("video/")
-            or str(data.get("poster_relative_path") or "").lower().endswith((".mp4", ".mov", ".webm", ".m4v"))
-        ) else "image"
+        poster_asset = self.get_asset(poster_asset_id) if poster_asset_id else None
+        poster_media_type = (
+            "video"
+            if (
+                data.get("poster_media_kind") == "video"
+                or str(data.get("poster_mime_type") or "").lower().startswith("video/")
+                or str(data.get("poster_relative_path") or "")
+                .lower()
+                .endswith((".mp4", ".mov", ".webm", ".m4v"))
+            )
+            else "image"
+        )
         file_url = f"/api/v2/media-assets/{poster_asset_id}/file" if poster_asset_id else None
         cover_url = file_url
         # A video is the source/demo file, not an <img>-compatible cover. Use
@@ -1758,11 +2015,24 @@ class AssetLibraryRepository:
             "status": data["status"],
             "cover_url": cover_url,
             "file_url": file_url,
-            "tags": [item for item in (data.get("gender"), data.get("style"), data.get("posture")) if item],
+            "tags": [
+                item
+                for item in (data.get("gender"), data.get("style"), data.get("posture"))
+                if item
+            ],
             "favorite": False,
+            "capabilities": ["preview", "use", "favorite", "digital_human"],
             "created_at": data["created_at"],
             "updated_at": data["updated_at"],
-            "summary": {"provider": data.get("provider") or "custom", "quality_state": data.get("quality_state") or "unchecked", "default_scene_id": data.get("default_scene_id") or "", "media_type": poster_media_type},
+            "summary": {
+                "provider": data.get("provider") or "custom",
+                "quality_state": data.get("quality_state") or "unchecked",
+                "default_scene_id": data.get("default_scene_id") or "",
+                "media_type": poster_media_type,
+                "width": poster_asset.get("width") if poster_asset else None,
+                "height": poster_asset.get("height") if poster_asset else None,
+                "duration_ms": poster_asset.get("duration_ms") if poster_asset else None,
+            },
             "poster_asset_id": poster_asset_id,
             "scenes": scenes,
         }
@@ -1771,7 +2041,8 @@ class AssetLibraryRepository:
         with self._connect() as connection:
             rows = connection.execute(
                 "SELECT s.*, a.asset_id AS preview_asset_id, a.media_kind AS preview_media_kind, "
-                "r.mime_type AS preview_mime_type "
+                "r.mime_type AS preview_mime_type, r.width AS preview_width, "
+                "r.height AS preview_height, r.duration_ms AS preview_duration_ms "
                 "FROM digital_human_scenes s "
                 "LEFT JOIN media_assets a ON a.asset_id = s.source_asset_id "
                 "LEFT JOIN asset_revisions r ON r.asset_id = a.asset_id "
@@ -1791,10 +2062,17 @@ class AssetLibraryRepository:
                 item["preview_url"] = (
                     f"/api/v2/media-assets/{item['preview_asset_id']}/file{revision_query}"
                 )
-                item["preview_media_type"] = "video" if (
-                    item.get("preview_media_kind") == "video"
-                    or str(item.get("preview_mime_type") or "").lower().startswith("video/")
-                ) else "image"
+                item["preview_media_type"] = (
+                    "video"
+                    if (
+                        item.get("preview_media_kind") == "video"
+                        or str(item.get("preview_mime_type") or "").lower().startswith("video/")
+                    )
+                    else "image"
+                )
+                item["width"] = item.get("preview_width")
+                item["height"] = item.get("preview_height")
+                item["duration_ms"] = item.get("preview_duration_ms")
             result.append(item)
         return result
 
@@ -1821,10 +2099,14 @@ class AssetLibraryRepository:
             item["preview_url"] = (
                 f"/api/v2/media-assets/{item['source_asset_id']}/file{revision_query}"
             )
-            item["preview_media_type"] = "video" if (
-                item.get("preview_media_kind") == "video"
-                or str(item.get("preview_mime_type") or "").lower().startswith("video/")
-            ) else "image"
+            item["preview_media_type"] = (
+                "video"
+                if (
+                    item.get("preview_media_kind") == "video"
+                    or str(item.get("preview_mime_type") or "").lower().startswith("video/")
+                )
+                else "image"
+            )
         return item
 
     def get_scene_source_path(self, scene_id: str) -> Path | None:
@@ -1856,12 +2138,21 @@ class AssetLibraryRepository:
             "name": data["brand_name"],
             "description": data.get("ending_card_text") or "品牌套件",
             "status": data["status"],
-            "cover_url": f"/api/v2/media-assets/{data['logo_asset_id']}/file" if data.get("logo_asset_id") else None,
+            "cover_url": f"/api/v2/media-assets/{data['logo_asset_id']}/file"
+            if data.get("logo_asset_id")
+            else None,
             "tags": [],
             "favorite": False,
             "created_at": data["created_at"],
             "updated_at": data["updated_at"],
-            "summary": {"primary_color": data["primary_color"], "secondary_color": data["secondary_color"], "font_family": data["font_family"], "has_logo": bool(data.get("logo_asset_id")), "has_bgm": bool(data.get("default_bgm_asset_id")), "has_contact": bool(data.get("store_address") or data.get("phone"))},
+            "summary": {
+                "primary_color": data["primary_color"],
+                "secondary_color": data["secondary_color"],
+                "font_family": data["font_family"],
+                "has_logo": bool(data.get("logo_asset_id")),
+                "has_bgm": bool(data.get("default_bgm_asset_id")),
+                "has_contact": bool(data.get("store_address") or data.get("phone")),
+            },
             "brand": data,
         }
 
@@ -1884,7 +2175,12 @@ class AssetLibraryRepository:
             "favorite": False,
             "created_at": data["created_at"],
             "updated_at": data["updated_at"],
-            "summary": {"revision": int(data["revision"]), "canvas_width": int(cover_contract.get("canvas_width") or 0), "canvas_height": int(cover_contract.get("canvas_height") or 0), "subtitle_font_size": int(subtitle_contract.get("font_size") or 0)},
+            "summary": {
+                "revision": int(data["revision"]),
+                "canvas_width": int(cover_contract.get("canvas_width") or 0),
+                "canvas_height": int(cover_contract.get("canvas_height") or 0),
+                "subtitle_font_size": int(subtitle_contract.get("font_size") or 0),
+            },
             "template": data,
             "layout_contract": layout_contract or None,
         }
@@ -1915,7 +2211,9 @@ class AssetLibraryRepository:
                 (asset_id, revision_id),
             ).fetchone()
             if not revision:
-                raise ValueError(f"Revision {revision_id!r} does not belong to media asset {asset_id!r}")
+                raise ValueError(
+                    f"Revision {revision_id!r} does not belong to media asset {asset_id!r}"
+                )
         return row
 
     def create_brand_kit(self, values: dict[str, Any]) -> dict[str, Any]:
@@ -1926,18 +2224,62 @@ class AssetLibraryRepository:
             raise ValueError(f"font_id_not_registered:{font_id}")
         with self._lock, self._connect() as connection:
             if values.get("logo_asset_id"):
-                self._require_media_reference_locked(connection, str(values["logo_asset_id"]), {"image"})
+                self._require_media_reference_locked(
+                    connection, str(values["logo_asset_id"]), {"image"}
+                )
             if values.get("default_bgm_asset_id"):
-                self._require_media_reference_locked(connection, str(values["default_bgm_asset_id"]), {"audio"})
+                self._require_media_reference_locked(
+                    connection, str(values["default_bgm_asset_id"]), {"audio"}
+                )
             connection.execute(
                 "INSERT INTO brand_kits_v2(brand_id, legacy_id, brand_name, logo_asset_id, default_bgm_asset_id, primary_color, secondary_color, font_family, default_subtitle_style, ending_card_text, store_address, phone, coupon_phrase, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ready', ?, ?)",
-                (brand_id, values.get("legacy_id"), str(values.get("brand_name") or "未命名品牌"), values.get("logo_asset_id"), values.get("default_bgm_asset_id"), str(values.get("primary_color") or "#1f6feb"), str(values.get("secondary_color") or "#0f766e"), str(values.get("font_family") or ""), str(values.get("default_subtitle_style") or ""), str(values.get("ending_card_text") or ""), str(values.get("store_address") or ""), str(values.get("phone") or ""), str(values.get("coupon_phrase") or ""), now, now),
+                (
+                    brand_id,
+                    values.get("legacy_id"),
+                    str(values.get("brand_name") or "未命名品牌"),
+                    values.get("logo_asset_id"),
+                    values.get("default_bgm_asset_id"),
+                    str(values.get("primary_color") or "#1f6feb"),
+                    str(values.get("secondary_color") or "#0f766e"),
+                    str(values.get("font_family") or ""),
+                    str(values.get("default_subtitle_style") or ""),
+                    str(values.get("ending_card_text") or ""),
+                    str(values.get("store_address") or ""),
+                    str(values.get("phone") or ""),
+                    str(values.get("coupon_phrase") or ""),
+                    now,
+                    now,
+                ),
             )
-            self._record_domain_revision_locked(connection, "brand", brand_id, self._domain_row_payload_locked(connection, "brand", brand_id))
+            self._record_domain_revision_locked(
+                connection,
+                "brand",
+                brand_id,
+                self._domain_row_payload_locked(connection, "brand", brand_id),
+            )
         return self.get_domain_item("brand", brand_id) or {}
 
     def patch_brand_kit(self, brand_id: str, values: dict[str, Any]) -> dict[str, Any] | None:
-        allowed = {key: value for key, value in values.items() if key in {"brand_name", "logo_asset_id", "default_bgm_asset_id", "primary_color", "secondary_color", "font_family", "default_subtitle_style", "ending_card_text", "store_address", "phone", "coupon_phrase", "status"} and value is not None}
+        allowed = {
+            key: value
+            for key, value in values.items()
+            if key
+            in {
+                "brand_name",
+                "logo_asset_id",
+                "default_bgm_asset_id",
+                "primary_color",
+                "secondary_color",
+                "font_family",
+                "default_subtitle_style",
+                "ending_card_text",
+                "store_address",
+                "phone",
+                "coupon_phrase",
+                "status",
+            }
+            and value is not None
+        }
         if not allowed:
             return self.get_domain_item("brand", brand_id)
         if allowed.get("font_family") and not resolve_registered_font(str(allowed["font_family"])):
@@ -1945,23 +2287,45 @@ class AssetLibraryRepository:
         updates = ", ".join(f"{key} = ?" for key in allowed)
         with self._lock, self._connect() as connection:
             if allowed.get("logo_asset_id"):
-                self._require_media_reference_locked(connection, str(allowed["logo_asset_id"]), {"image"})
+                self._require_media_reference_locked(
+                    connection, str(allowed["logo_asset_id"]), {"image"}
+                )
             if allowed.get("default_bgm_asset_id"):
-                self._require_media_reference_locked(connection, str(allowed["default_bgm_asset_id"]), {"audio"})
-            cursor = connection.execute(f"UPDATE brand_kits_v2 SET {updates}, updated_at = ? WHERE brand_id = ?", (*allowed.values(), _now(), brand_id))
+                self._require_media_reference_locked(
+                    connection, str(allowed["default_bgm_asset_id"]), {"audio"}
+                )
+            cursor = connection.execute(
+                f"UPDATE brand_kits_v2 SET {updates}, updated_at = ? WHERE brand_id = ?",
+                (*allowed.values(), _now(), brand_id),
+            )
             if cursor.rowcount == 0:
                 return None
-            self._record_domain_revision_locked(connection, "brand", brand_id, self._domain_row_payload_locked(connection, "brand", brand_id))
+            self._record_domain_revision_locked(
+                connection,
+                "brand",
+                brand_id,
+                self._domain_row_payload_locked(connection, "brand", brand_id),
+            )
         return self.get_domain_item("brand", brand_id)
 
     def set_domain_status(self, kind: str, resource_id: str, status: str) -> dict[str, Any] | None:
-        table_and_column = {"brand": ("brand_kits_v2", "brand_id"), "digital_human": ("digital_human_profiles", "profile_id"), "template": ("template_definitions", "template_id")}
+        table_and_column = {
+            "brand": ("brand_kits_v2", "brand_id"),
+            "digital_human": ("digital_human_profiles", "profile_id"),
+            "template": ("template_definitions", "template_id"),
+        }
         if kind == "voice":
             with self._lock, self._connect() as connection:
-                row = connection.execute("SELECT voice_id FROM voice_profiles WHERE voice_id = ? OR legacy_id = ?", (resource_id, resource_id)).fetchone()
+                row = connection.execute(
+                    "SELECT voice_id FROM voice_profiles WHERE voice_id = ? OR legacy_id = ?",
+                    (resource_id, resource_id),
+                ).fetchone()
                 if not row:
                     return None
-                connection.execute("UPDATE voice_profiles SET status = ?, updated_at = ? WHERE voice_id = ?", (status, _now(), row["voice_id"]))
+                connection.execute(
+                    "UPDATE voice_profiles SET status = ?, updated_at = ? WHERE voice_id = ?",
+                    (status, _now(), row["voice_id"]),
+                )
                 resource_id = str(row["voice_id"])
             return self.get_domain_item(kind, resource_id)
         table_info = table_and_column.get(kind)
@@ -1970,9 +2334,15 @@ class AssetLibraryRepository:
         table, column = table_info
         with self._lock, self._connect() as connection:
             if kind == "template":
-                cursor = connection.execute(f"UPDATE {table} SET status = ?, updated_at = ? WHERE {column} = ?", (status, _now(), resource_id))
+                cursor = connection.execute(
+                    f"UPDATE {table} SET status = ?, updated_at = ? WHERE {column} = ?",
+                    (status, _now(), resource_id),
+                )
             else:
-                cursor = connection.execute(f"UPDATE {table} SET status = ?, updated_at = ? WHERE {column} = ?", (status, _now(), resource_id))
+                cursor = connection.execute(
+                    f"UPDATE {table} SET status = ?, updated_at = ? WHERE {column} = ?",
+                    (status, _now(), resource_id),
+                )
             if cursor.rowcount == 0:
                 return None
             self._record_domain_revision_locked(
@@ -1985,7 +2355,10 @@ class AssetLibraryRepository:
 
     def get_asset_by_legacy_id(self, media_kind: str, legacy_id: str) -> dict[str, Any] | None:
         with self._connect() as connection:
-            row = connection.execute("SELECT asset_id FROM media_assets WHERE media_kind = ? AND legacy_id = ?", (media_kind, legacy_id)).fetchone()
+            row = connection.execute(
+                "SELECT asset_id FROM media_assets WHERE media_kind = ? AND legacy_id = ?",
+                (media_kind, legacy_id),
+            ).fetchone()
         return self.get_asset(row["asset_id"]) if row else None
 
     def create_voice_profile(self, values: dict[str, Any]) -> dict[str, Any]:
@@ -2002,20 +2375,57 @@ class AssetLibraryRepository:
             revision_id = values.get("audio_revision_id") or row["current_revision_id"]
             connection.execute(
                 "INSERT INTO voice_profiles(voice_id, legacy_id, audio_asset_id, audio_revision_id, name, description, language, style, authorization_status, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'ready', ?, ?)",
-                (voice_id, values.get("legacy_id"), audio_asset_id, revision_id, str(values.get("name") or "未命名音色"), str(values.get("description") or ""), str(values.get("language") or ""), str(values.get("style") or ""), str(values.get("authorization_status") or "unknown"), now, now),
+                (
+                    voice_id,
+                    values.get("legacy_id"),
+                    audio_asset_id,
+                    revision_id,
+                    str(values.get("name") or "未命名音色"),
+                    str(values.get("description") or ""),
+                    str(values.get("language") or ""),
+                    str(values.get("style") or ""),
+                    str(values.get("authorization_status") or "unknown"),
+                    now,
+                    now,
+                ),
             )
         return self.get_domain_item("voice", voice_id) or {}
 
     def patch_voice_profile(self, voice_id: str, values: dict[str, Any]) -> dict[str, Any] | None:
-        allowed = {key: value for key, value in values.items() if key in {"name", "description", "language", "style", "authorization_status", "status", "audio_asset_id", "audio_revision_id"} and value is not None}
+        allowed = {
+            key: value
+            for key, value in values.items()
+            if key
+            in {
+                "name",
+                "description",
+                "language",
+                "style",
+                "authorization_status",
+                "status",
+                "audio_asset_id",
+                "audio_revision_id",
+            }
+            and value is not None
+        }
         if not allowed:
             return self.get_domain_item("voice", voice_id)
         with self._lock, self._connect() as connection:
             if allowed.get("audio_asset_id"):
-                row = self._require_media_reference_locked(connection, str(allowed["audio_asset_id"]), {"audio"}, str(allowed.get("audio_revision_id")) if allowed.get("audio_revision_id") else None)
+                row = self._require_media_reference_locked(
+                    connection,
+                    str(allowed["audio_asset_id"]),
+                    {"audio"},
+                    str(allowed.get("audio_revision_id"))
+                    if allowed.get("audio_revision_id")
+                    else None,
+                )
                 allowed.setdefault("audio_revision_id", row["current_revision_id"])
             updates = ", ".join(f"{key} = ?" for key in allowed)
-            cursor = connection.execute(f"UPDATE voice_profiles SET {updates}, updated_at = ? WHERE voice_id = ?", (*allowed.values(), _now(), voice_id))
+            cursor = connection.execute(
+                f"UPDATE voice_profiles SET {updates}, updated_at = ? WHERE voice_id = ?",
+                (*allowed.values(), _now(), voice_id),
+            )
             if cursor.rowcount == 0:
                 return None
         return self.get_domain_item("voice", voice_id)
@@ -2029,7 +2439,9 @@ class AssetLibraryRepository:
         with self._lock, self._connect() as connection:
             poster_asset_id = values.get("poster_asset_id") or source_asset_id
             if poster_asset_id:
-                self._require_media_reference_locked(connection, str(poster_asset_id), {"image", "video"})
+                self._require_media_reference_locked(
+                    connection, str(poster_asset_id), {"image", "video"}
+                )
             if source_asset_id:
                 source_row = self._require_media_reference_locked(
                     connection,
@@ -2043,13 +2455,43 @@ class AssetLibraryRepository:
                 source_revision_id = source_row["current_revision_id"] if source_row else None
             connection.execute(
                 "INSERT INTO digital_human_profiles(profile_id, legacy_id, name, provider, poster_asset_id, gender, style, posture, supported_workflows_json, default_scene_id, quality_state, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unchecked', 'ready', ?, ?)",
-                (profile_id, values.get("legacy_id"), str(values.get("name") or "未命名数字人"), str(values.get("provider") or "custom"), poster_asset_id, values.get("gender"), values.get("style"), values.get("posture"), json.dumps(values.get("supported_workflows") or [], ensure_ascii=False), scene_id, now, now),
+                (
+                    profile_id,
+                    values.get("legacy_id"),
+                    str(values.get("name") or "未命名数字人"),
+                    str(values.get("provider") or "custom"),
+                    poster_asset_id,
+                    values.get("gender"),
+                    values.get("style"),
+                    values.get("posture"),
+                    json.dumps(values.get("supported_workflows") or [], ensure_ascii=False),
+                    scene_id,
+                    now,
+                    now,
+                ),
             )
             connection.execute(
                 "INSERT INTO digital_human_scenes(scene_id, profile_id, name, source_asset_id, source_revision_id, shot_size, location, outfit, posture, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (scene_id, profile_id, str(values.get("scene_name") or "默认场景"), source_asset_id, source_revision_id, str(values.get("shot_size") or "medium"), str(values.get("location") or ""), str(values.get("outfit") or ""), str(values.get("posture") or ""), now, now),
+                (
+                    scene_id,
+                    profile_id,
+                    str(values.get("scene_name") or "默认场景"),
+                    source_asset_id,
+                    source_revision_id,
+                    str(values.get("shot_size") or "medium"),
+                    str(values.get("location") or ""),
+                    str(values.get("outfit") or ""),
+                    str(values.get("posture") or ""),
+                    now,
+                    now,
+                ),
             )
-            self._record_domain_revision_locked(connection, "digital_human", profile_id, self._domain_row_payload_locked(connection, "digital_human", profile_id))
+            self._record_domain_revision_locked(
+                connection,
+                "digital_human",
+                profile_id,
+                self._domain_row_payload_locked(connection, "digital_human", profile_id),
+            )
         return self.get_domain_item("digital_human", profile_id) or {}
 
     def patch_digital_human_profile(
@@ -2082,7 +2524,9 @@ class AssetLibraryRepository:
         updates = ", ".join(f"{key} = ?" for key in allowed)
         with self._lock, self._connect() as connection:
             if allowed.get("poster_asset_id"):
-                self._require_media_reference_locked(connection, str(allowed["poster_asset_id"]), {"image", "video"})
+                self._require_media_reference_locked(
+                    connection, str(allowed["poster_asset_id"]), {"image", "video"}
+                )
             cursor = connection.execute(
                 f"UPDATE digital_human_profiles SET {updates}, updated_at = ? WHERE profile_id = ?",
                 (*allowed.values(), _now(), profile_id),
@@ -2148,39 +2592,90 @@ class AssetLibraryRepository:
             )
         return self.get_digital_human_scene(scene_id)
 
-    def patch_digital_human_scene(self, scene_id: str, values: dict[str, Any]) -> dict[str, Any] | None:
-        allowed = {key: value for key, value in values.items() if key in {"name", "shot_size", "location", "outfit", "posture", "source_asset_id", "source_revision_id", "status"} and value is not None}
+    def patch_digital_human_scene(
+        self, scene_id: str, values: dict[str, Any]
+    ) -> dict[str, Any] | None:
+        allowed = {
+            key: value
+            for key, value in values.items()
+            if key
+            in {
+                "name",
+                "shot_size",
+                "location",
+                "outfit",
+                "posture",
+                "source_asset_id",
+                "source_revision_id",
+                "status",
+            }
+            and value is not None
+        }
         if not allowed:
             return self.get_digital_human_scene(scene_id)
         with self._lock, self._connect() as connection:
             if allowed.get("source_asset_id"):
-                row = self._require_media_reference_locked(connection, str(allowed["source_asset_id"]), {"image", "video"}, str(allowed.get("source_revision_id")) if allowed.get("source_revision_id") else None)
+                row = self._require_media_reference_locked(
+                    connection,
+                    str(allowed["source_asset_id"]),
+                    {"image", "video"},
+                    str(allowed.get("source_revision_id"))
+                    if allowed.get("source_revision_id")
+                    else None,
+                )
                 allowed.setdefault("source_revision_id", row["current_revision_id"])
             updates = ", ".join(f"{key} = ?" for key in allowed)
-            cursor = connection.execute(f"UPDATE digital_human_scenes SET {updates}, updated_at = ? WHERE scene_id = ?", (*allowed.values(), _now(), scene_id))
+            cursor = connection.execute(
+                f"UPDATE digital_human_scenes SET {updates}, updated_at = ? WHERE scene_id = ?",
+                (*allowed.values(), _now(), scene_id),
+            )
             if cursor.rowcount == 0:
                 return None
-            profile = connection.execute("SELECT profile_id FROM digital_human_scenes WHERE scene_id = ?", (scene_id,)).fetchone()
+            profile = connection.execute(
+                "SELECT profile_id FROM digital_human_scenes WHERE scene_id = ?", (scene_id,)
+            ).fetchone()
             if profile:
-                connection.execute("UPDATE digital_human_profiles SET updated_at = ? WHERE profile_id = ?", (_now(), profile["profile_id"]))
+                connection.execute(
+                    "UPDATE digital_human_profiles SET updated_at = ? WHERE profile_id = ?",
+                    (_now(), profile["profile_id"]),
+                )
         return self.get_digital_human_scene(scene_id)
 
-    def reorder_digital_human_scenes(self, profile_id: str, scene_ids: list[str]) -> list[dict[str, Any]]:
+    def reorder_digital_human_scenes(
+        self, profile_id: str, scene_ids: list[str]
+    ) -> list[dict[str, Any]]:
         with self._lock, self._connect() as connection:
-            existing = {str(row["scene_id"]) for row in connection.execute("SELECT scene_id FROM digital_human_scenes WHERE profile_id = ?", (profile_id,)).fetchall()}
+            existing = {
+                str(row["scene_id"])
+                for row in connection.execute(
+                    "SELECT scene_id FROM digital_human_scenes WHERE profile_id = ?", (profile_id,)
+                ).fetchall()
+            }
             if set(scene_ids) != existing:
                 raise ValueError("Scene order must include every scene exactly once")
             now = _now()
-            connection.executemany("UPDATE digital_human_scenes SET sort_order = ?, updated_at = ? WHERE scene_id = ? AND profile_id = ?", [(index, now, scene_id, profile_id) for index, scene_id in enumerate(scene_ids)])
-            connection.execute("UPDATE digital_human_profiles SET updated_at = ? WHERE profile_id = ?", (now, profile_id))
+            connection.executemany(
+                "UPDATE digital_human_scenes SET sort_order = ?, updated_at = ? WHERE scene_id = ? AND profile_id = ?",
+                [(index, now, scene_id, profile_id) for index, scene_id in enumerate(scene_ids)],
+            )
+            connection.execute(
+                "UPDATE digital_human_profiles SET updated_at = ? WHERE profile_id = ?",
+                (now, profile_id),
+            )
         return self.list_digital_human_scenes(profile_id)
 
-    def _domain_row_payload_locked(self, connection: sqlite3.Connection, kind: str, resource_id: str) -> dict[str, Any]:
+    def _domain_row_payload_locked(
+        self, connection: sqlite3.Connection, kind: str, resource_id: str
+    ) -> dict[str, Any]:
         if kind == "brand":
-            row = connection.execute("SELECT * FROM brand_kits_v2 WHERE brand_id = ?", (resource_id,)).fetchone()
+            row = connection.execute(
+                "SELECT * FROM brand_kits_v2 WHERE brand_id = ?", (resource_id,)
+            ).fetchone()
             return dict(row) if row else {}
         if kind == "digital_human":
-            row = connection.execute("SELECT * FROM digital_human_profiles WHERE profile_id = ?", (resource_id,)).fetchone()
+            row = connection.execute(
+                "SELECT * FROM digital_human_profiles WHERE profile_id = ?", (resource_id,)
+            ).fetchone()
             return dict(row) if row else {}
         if kind == "template":
             row = connection.execute(
@@ -2191,15 +2686,32 @@ class AssetLibraryRepository:
             return dict(row) if row else {}
         return {}
 
-    def _record_domain_revision_locked(self, connection: sqlite3.Connection, kind: str, resource_id: str, payload: dict[str, Any]) -> int:
-        row = connection.execute("SELECT COALESCE(MAX(revision), 0) AS revision FROM domain_revisions WHERE resource_kind = ? AND resource_id = ?", (kind, resource_id)).fetchone()
+    def _record_domain_revision_locked(
+        self, connection: sqlite3.Connection, kind: str, resource_id: str, payload: dict[str, Any]
+    ) -> int:
+        row = connection.execute(
+            "SELECT COALESCE(MAX(revision), 0) AS revision FROM domain_revisions WHERE resource_kind = ? AND resource_id = ?",
+            (kind, resource_id),
+        ).fetchone()
         revision = int(row["revision"] or 0) + 1
-        connection.execute("INSERT INTO domain_revisions(resource_kind, resource_id, revision, payload_json, created_at) VALUES (?, ?, ?, ?, ?)", (kind, resource_id, revision, json.dumps(payload, ensure_ascii=False, default=str), _now()))
+        connection.execute(
+            "INSERT INTO domain_revisions(resource_kind, resource_id, revision, payload_json, created_at) VALUES (?, ?, ?, ?, ?)",
+            (
+                kind,
+                resource_id,
+                revision,
+                json.dumps(payload, ensure_ascii=False, default=str),
+                _now(),
+            ),
+        )
         return revision
 
     def list_domain_revisions(self, kind: str, resource_id: str) -> list[dict[str, Any]]:
         with self._connect() as connection:
-            rows = connection.execute("SELECT * FROM domain_revisions WHERE resource_kind = ? AND resource_id = ? ORDER BY revision DESC", (kind, resource_id)).fetchall()
+            rows = connection.execute(
+                "SELECT * FROM domain_revisions WHERE resource_kind = ? AND resource_id = ? ORDER BY revision DESC",
+                (kind, resource_id),
+            ).fetchall()
         return [self._row_to_dict(row) for row in rows]
 
     def create_template_revision(self, values: dict[str, Any]) -> dict[str, Any]:
@@ -2208,15 +2720,34 @@ class AssetLibraryRepository:
         layout_contract = values.get("layout_contract")
         if layout_contract is not None:
             try:
-                layout_contract = TemplateLayoutContract.model_validate(layout_contract).model_dump(mode="json")
+                layout_contract = TemplateLayoutContract.model_validate(layout_contract).model_dump(
+                    mode="json"
+                )
             except (TypeError, ValueError) as exc:
                 raise ValueError(f"Invalid TemplateLayoutContract: {exc}") from exc
         with self._lock, self._connect() as connection:
-            current = connection.execute("SELECT COALESCE(MAX(revision), 0) AS revision FROM template_definitions WHERE template_id = ?", (template_id,)).fetchone()
+            current = connection.execute(
+                "SELECT COALESCE(MAX(revision), 0) AS revision FROM template_definitions WHERE template_id = ?",
+                (template_id,),
+            ).fetchone()
             revision = int(current["revision"] or 0) + 1
             connection.execute(
                 "INSERT INTO template_definitions(template_id, revision, display_name, short_description, full_description, preview_url, schema_version, renderer_version, cover_contract_json, subtitle_contract_json, layout_contract_json, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ready', ?, ?)",
-                (template_id, revision, str(values.get("display_name") or "未命名模板"), str(values.get("short_description") or ""), str(values.get("full_description") or ""), values.get("preview_url"), int(values.get("schema_version") or 1), str(values.get("renderer_version") or "ip-broadcast-composer-v2"), json.dumps(values.get("cover_contract") or {}, ensure_ascii=False), json.dumps(values.get("subtitle_contract") or {}, ensure_ascii=False), json.dumps(layout_contract or {}, ensure_ascii=False), now, now),
+                (
+                    template_id,
+                    revision,
+                    str(values.get("display_name") or "未命名模板"),
+                    str(values.get("short_description") or ""),
+                    str(values.get("full_description") or ""),
+                    values.get("preview_url"),
+                    int(values.get("schema_version") or 1),
+                    str(values.get("renderer_version") or "ip-broadcast-composer-v2"),
+                    json.dumps(values.get("cover_contract") or {}, ensure_ascii=False),
+                    json.dumps(values.get("subtitle_contract") or {}, ensure_ascii=False),
+                    json.dumps(layout_contract or {}, ensure_ascii=False),
+                    now,
+                    now,
+                ),
             )
             self._record_domain_revision_locked(
                 connection,
@@ -2246,7 +2777,10 @@ class AssetLibraryRepository:
             "subtitle_contract": values.get(
                 "subtitle_contract", json.loads(current.get("subtitle_contract_json") or "{}")
             ),
-            "layout_contract": values.get("layout_contract", json.loads(current.get("layout_contract_json") or "{}")) or None,
+            "layout_contract": values.get(
+                "layout_contract", json.loads(current.get("layout_contract_json") or "{}")
+            )
+            or None,
         }
         if values.get("status") is not None:
             payload["status"] = values["status"]
@@ -2254,44 +2788,82 @@ class AssetLibraryRepository:
 
     def resource_tags(self, resource_kind: str, resource_id: str) -> list[str]:
         with self._connect() as connection:
-            rows = connection.execute("SELECT tag FROM resource_tags WHERE resource_kind = ? AND resource_id = ? ORDER BY tag", (resource_kind, resource_id)).fetchall()
+            rows = connection.execute(
+                "SELECT tag FROM resource_tags WHERE resource_kind = ? AND resource_id = ? ORDER BY tag",
+                (resource_kind, resource_id),
+            ).fetchall()
         return [str(row["tag"]) for row in rows]
 
     def is_favorite(self, resource_kind: str, resource_id: str) -> bool:
         with self._connect() as connection:
-            return connection.execute("SELECT 1 FROM resource_favorites WHERE resource_kind = ? AND resource_id = ?", (resource_kind, resource_id)).fetchone() is not None
+            return (
+                connection.execute(
+                    "SELECT 1 FROM resource_favorites WHERE resource_kind = ? AND resource_id = ?",
+                    (resource_kind, resource_id),
+                ).fetchone()
+                is not None
+            )
 
     def set_resource_tags(self, resource_kind: str, resource_id: str, tags: list[str]) -> list[str]:
         clean = sorted({tag.strip() for tag in tags if tag and tag.strip()})[:30]
         with self._lock, self._connect() as connection:
-            connection.execute("DELETE FROM resource_tags WHERE resource_kind = ? AND resource_id = ?", (resource_kind, resource_id))
-            connection.executemany("INSERT INTO resource_tags(resource_kind, resource_id, tag, created_at) VALUES (?, ?, ?, ?)", [(resource_kind, resource_id, tag, _now()) for tag in clean])
+            connection.execute(
+                "DELETE FROM resource_tags WHERE resource_kind = ? AND resource_id = ?",
+                (resource_kind, resource_id),
+            )
+            connection.executemany(
+                "INSERT INTO resource_tags(resource_kind, resource_id, tag, created_at) VALUES (?, ?, ?, ?)",
+                [(resource_kind, resource_id, tag, _now()) for tag in clean],
+            )
         return clean
 
     def set_favorite(self, resource_kind: str, resource_id: str, favorite: bool) -> bool:
         with self._lock, self._connect() as connection:
             if favorite:
-                connection.execute("INSERT OR IGNORE INTO resource_favorites(resource_kind, resource_id, created_at) VALUES (?, ?, ?)", (resource_kind, resource_id, _now()))
+                connection.execute(
+                    "INSERT OR IGNORE INTO resource_favorites(resource_kind, resource_id, created_at) VALUES (?, ?, ?)",
+                    (resource_kind, resource_id, _now()),
+                )
             else:
-                connection.execute("DELETE FROM resource_favorites WHERE resource_kind = ? AND resource_id = ?", (resource_kind, resource_id))
+                connection.execute(
+                    "DELETE FROM resource_favorites WHERE resource_kind = ? AND resource_id = ?",
+                    (resource_kind, resource_id),
+                )
         return favorite
 
     def create_collection(self, name: str, description: str = "") -> dict[str, Any]:
         now = _now()
         clean_name = name.strip() or "未命名集合"
-        item = {"collection_id": f"collection-{uuid.uuid4().hex[:12]}", "name": clean_name, "description": description, "status": "ready", "created_at": now, "updated_at": now}
+        item = {
+            "collection_id": f"collection-{uuid.uuid4().hex[:12]}",
+            "name": clean_name,
+            "description": description,
+            "status": "ready",
+            "created_at": now,
+            "updated_at": now,
+        }
         with self._lock, self._connect() as connection:
-            if connection.execute("SELECT 1 FROM resource_collections WHERE lower(name) = lower(?) AND status <> 'archived'", (clean_name,)).fetchone():
+            if connection.execute(
+                "SELECT 1 FROM resource_collections WHERE lower(name) = lower(?) AND status <> 'archived'",
+                (clean_name,),
+            ).fetchone():
                 raise ValueError("Collection name already exists")
-            connection.execute("INSERT INTO resource_collections(collection_id, name, description, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)", tuple(item.values()))
+            connection.execute(
+                "INSERT INTO resource_collections(collection_id, name, description, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+                tuple(item.values()),
+            )
         return item
 
     def list_collections(self) -> list[dict[str, Any]]:
         with self._connect() as connection:
-            rows = connection.execute("SELECT c.*, COUNT(i.resource_id) AS item_count FROM resource_collections c LEFT JOIN collection_items i ON i.collection_id = c.collection_id GROUP BY c.collection_id ORDER BY c.updated_at DESC").fetchall()
+            rows = connection.execute(
+                "SELECT c.*, COUNT(i.resource_id) AS item_count FROM resource_collections c LEFT JOIN collection_items i ON i.collection_id = c.collection_id GROUP BY c.collection_id ORDER BY c.updated_at DESC"
+            ).fetchall()
         return [dict(row) for row in rows]
 
-    def patch_collection(self, collection_id: str, name: str | None = None, description: str | None = None) -> dict[str, Any] | None:
+    def patch_collection(
+        self, collection_id: str, name: str | None = None, description: str | None = None
+    ) -> dict[str, Any] | None:
         updates: list[str] = []
         values: list[Any] = []
         if name is not None:
@@ -2301,46 +2873,92 @@ class AssetLibraryRepository:
             updates.append("description = ?")
             values.append(description)
         if not updates:
-            return next((item for item in self.list_collections() if item["collection_id"] == collection_id), None)
+            return next(
+                (
+                    item
+                    for item in self.list_collections()
+                    if item["collection_id"] == collection_id
+                ),
+                None,
+            )
         updates.append("updated_at = ?")
         values.extend([_now(), collection_id])
         with self._lock, self._connect() as connection:
-            if name is not None and connection.execute("SELECT 1 FROM resource_collections WHERE lower(name) = lower(?) AND status <> 'archived' AND collection_id <> ?", (name.strip(), collection_id)).fetchone():
+            if (
+                name is not None
+                and connection.execute(
+                    "SELECT 1 FROM resource_collections WHERE lower(name) = lower(?) AND status <> 'archived' AND collection_id <> ?",
+                    (name.strip(), collection_id),
+                ).fetchone()
+            ):
                 raise ValueError("Collection name already exists")
-            cursor = connection.execute(f"UPDATE resource_collections SET {', '.join(updates)} WHERE collection_id = ?", values)
+            cursor = connection.execute(
+                f"UPDATE resource_collections SET {', '.join(updates)} WHERE collection_id = ?",
+                values,
+            )
             if cursor.rowcount == 0:
                 return None
-        return next((item for item in self.list_collections() if item["collection_id"] == collection_id), None)
+        return next(
+            (item for item in self.list_collections() if item["collection_id"] == collection_id),
+            None,
+        )
 
     def set_collection_status(self, collection_id: str, status: str) -> dict[str, Any] | None:
         with self._lock, self._connect() as connection:
-            cursor = connection.execute("UPDATE resource_collections SET status = ?, updated_at = ? WHERE collection_id = ?", (status, _now(), collection_id))
+            cursor = connection.execute(
+                "UPDATE resource_collections SET status = ?, updated_at = ? WHERE collection_id = ?",
+                (status, _now(), collection_id),
+            )
             if cursor.rowcount == 0:
                 return None
-        return next((item for item in self.list_collections() if item["collection_id"] == collection_id), None)
+        return next(
+            (item for item in self.list_collections() if item["collection_id"] == collection_id),
+            None,
+        )
 
     def delete_collection(self, collection_id: str) -> bool:
         with self._lock, self._connect() as connection:
-            cursor = connection.execute("DELETE FROM resource_collections WHERE collection_id = ?", (collection_id,))
+            cursor = connection.execute(
+                "DELETE FROM resource_collections WHERE collection_id = ?", (collection_id,)
+            )
         return cursor.rowcount > 0
 
     def list_collection_items(self, collection_id: str) -> list[dict[str, Any]]:
         with self._connect() as connection:
-            rows = connection.execute("SELECT resource_kind, resource_id, created_at FROM collection_items WHERE collection_id = ? ORDER BY created_at DESC", (collection_id,)).fetchall()
+            rows = connection.execute(
+                "SELECT resource_kind, resource_id, created_at FROM collection_items WHERE collection_id = ? ORDER BY created_at DESC",
+                (collection_id,),
+            ).fetchall()
         return [dict(row) for row in rows]
 
     def add_collection_item(self, collection_id: str, resource_kind: str, resource_id: str) -> bool:
         with self._lock, self._connect() as connection:
-            if not connection.execute("SELECT 1 FROM resource_collections WHERE collection_id = ?", (collection_id,)).fetchone():
+            if not connection.execute(
+                "SELECT 1 FROM resource_collections WHERE collection_id = ?", (collection_id,)
+            ).fetchone():
                 return False
-            connection.execute("INSERT OR IGNORE INTO collection_items(collection_id, resource_kind, resource_id, created_at) VALUES (?, ?, ?, ?)", (collection_id, resource_kind, resource_id, _now()))
-            connection.execute("UPDATE resource_collections SET updated_at = ? WHERE collection_id = ?", (_now(), collection_id))
+            connection.execute(
+                "INSERT OR IGNORE INTO collection_items(collection_id, resource_kind, resource_id, created_at) VALUES (?, ?, ?, ?)",
+                (collection_id, resource_kind, resource_id, _now()),
+            )
+            connection.execute(
+                "UPDATE resource_collections SET updated_at = ? WHERE collection_id = ?",
+                (_now(), collection_id),
+            )
         return True
 
-    def remove_collection_item(self, collection_id: str, resource_kind: str, resource_id: str) -> bool:
+    def remove_collection_item(
+        self, collection_id: str, resource_kind: str, resource_id: str
+    ) -> bool:
         with self._lock, self._connect() as connection:
-            cursor = connection.execute("DELETE FROM collection_items WHERE collection_id = ? AND resource_kind = ? AND resource_id = ?", (collection_id, resource_kind, resource_id))
-            connection.execute("UPDATE resource_collections SET updated_at = ? WHERE collection_id = ?", (_now(), collection_id))
+            cursor = connection.execute(
+                "DELETE FROM collection_items WHERE collection_id = ? AND resource_kind = ? AND resource_id = ?",
+                (collection_id, resource_kind, resource_id),
+            )
+            connection.execute(
+                "UPDATE resource_collections SET updated_at = ? WHERE collection_id = ?",
+                (_now(), collection_id),
+            )
         return cursor.rowcount > 0
 
     def get_variants(self, asset_id: str) -> list[dict[str, Any]]:
@@ -2440,7 +3058,9 @@ class AssetLibraryRepository:
             ).fetchone()
         return self._row_to_dict(row) if row else None
 
-    def reconcile_session_usage(self, session_id: str, references: list[dict[str, Any]]) -> dict[str, int]:
+    def reconcile_session_usage(
+        self, session_id: str, references: list[dict[str, Any]]
+    ) -> dict[str, int]:
         """Rebuild a session's usage rows from its current state.
 
         The session is authoritative during migration/recovery.  Rebuilding
@@ -2477,7 +3097,18 @@ class AssetLibraryRepository:
                     revision_id = row["current_revision_id"] if row else None
                 connection.execute(
                     "INSERT INTO resource_usage(usage_id, resource_kind, resource_id, revision_id, session_id, step, purpose, slot_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ",
-                    (f"usage-{uuid.uuid4().hex}", item["resource_kind"], item["resource_id"], revision_id, session_id, item["step"], item["purpose"], item["slot_id"], now, now),
+                    (
+                        f"usage-{uuid.uuid4().hex}",
+                        item["resource_kind"],
+                        item["resource_id"],
+                        revision_id,
+                        session_id,
+                        item["step"],
+                        item["purpose"],
+                        item["slot_id"],
+                        now,
+                        now,
+                    ),
                 )
         return {"desired": len(desired), "written": len(desired)}
 
@@ -2496,7 +3127,9 @@ class AssetLibraryRepository:
             return None
         variant_id = None
         if variant_role:
-            variants = [item for item in self.get_variants(asset_id) if item["role"] == variant_role]
+            variants = [
+                item for item in self.get_variants(asset_id) if item["role"] == variant_role
+            ]
             variant_id = variants[0]["variant_id"] if variants else None
         snapshot = {
             "snapshot_id": f"snapshot-{uuid.uuid4().hex}",
@@ -2572,7 +3205,9 @@ class AssetLibraryRepository:
             return template or {}
         if resource_kind == "brand":
             with self._connect() as connection:
-                row = connection.execute("SELECT * FROM brand_kits_v2 WHERE brand_id = ?", (resource_id,)).fetchone()
+                row = connection.execute(
+                    "SELECT * FROM brand_kits_v2 WHERE brand_id = ?", (resource_id,)
+                ).fetchone()
             payload = dict(row) if row else {}
             revisions = self.list_domain_revisions(resource_kind, resource_id)
             payload["domain_revision"] = revisions[0]["revision"] if revisions else 1
@@ -2580,12 +3215,24 @@ class AssetLibraryRepository:
         if resource_kind == "digital_human":
             item = self.get_domain_item("digital_human", resource_id) or {}
             revisions = self.list_domain_revisions(resource_kind, resource_id)
-            return {"profile": item, "scenes": item.get("scenes") or [], "domain_revision": revisions[0]["revision"] if revisions else 1}
+            return {
+                "profile": item,
+                "scenes": item.get("scenes") or [],
+                "domain_revision": revisions[0]["revision"] if revisions else 1,
+            }
         if resource_kind == "digital_human_scene":
             return self.get_digital_human_scene(resource_id) or {}
         if resource_kind == "voice":
             asset = self.get_asset(resource_id) or self.get_asset_by_legacy_id("audio", resource_id)
-            return {"asset_id": asset.get("asset_id"), "revision_id": asset.get("current_revision_id"), "sha256": asset.get("sha256")} if asset else {}
+            return (
+                {
+                    "asset_id": asset.get("asset_id"),
+                    "revision_id": asset.get("current_revision_id"),
+                    "sha256": asset.get("sha256"),
+                }
+                if asset
+                else {}
+            )
         return {}
 
     def list_usage(self, session_id: str) -> list[dict[str, Any]]:
@@ -2658,7 +3305,9 @@ class AssetLibraryRepository:
         path = _safe_relative_path(self.data_root, relative_path)
         return path if path.is_file() else None
 
-    def patch_asset(self, asset_id: str, name: str | None = None, description: str | None = None) -> dict[str, Any] | None:
+    def patch_asset(
+        self, asset_id: str, name: str | None = None, description: str | None = None
+    ) -> dict[str, Any] | None:
         if name is None and description is None:
             return self.get_asset(asset_id)
         updates: list[str] = []
@@ -2710,7 +3359,9 @@ class AssetLibraryRepository:
             )
         return self.get_asset(asset_id)
 
-    def retry_analysis(self, asset_id: str, revision_id: str | None = None) -> dict[str, Any] | None:
+    def retry_analysis(
+        self, asset_id: str, revision_id: str | None = None
+    ) -> dict[str, Any] | None:
         asset = self.get_asset(asset_id)
         if not asset:
             return None
@@ -2729,7 +3380,19 @@ class AssetLibraryRepository:
         with self._lock, self._connect() as connection:
             connection.execute(
                 "UPDATE asset_revisions SET mime_type = ?, bytes = ?, sha256 = ?, width = ?, height = ?, aspect_ratio = ?, duration_ms = ?, frame_rate = ?, has_audio = ?, has_transparency = ? WHERE revision_id = ?",
-                (_mime_type(source.name), source.stat().st_size, _sha256(source), metadata.get("width"), metadata.get("height"), metadata.get("aspect_ratio"), metadata.get("duration_ms"), metadata.get("frame_rate"), int(metadata.get("has_audio", False)), int(metadata.get("has_transparency", False)), selected_revision),
+                (
+                    _mime_type(source.name),
+                    source.stat().st_size,
+                    _sha256(source),
+                    metadata.get("width"),
+                    metadata.get("height"),
+                    metadata.get("aspect_ratio"),
+                    metadata.get("duration_ms"),
+                    metadata.get("frame_rate"),
+                    int(metadata.get("has_audio", False)),
+                    int(metadata.get("has_transparency", False)),
+                    selected_revision,
+                ),
             )
             connection.execute(
                 "UPDATE media_assets SET status = ?, updated_at = ? WHERE asset_id = ?",
@@ -2737,7 +3400,9 @@ class AssetLibraryRepository:
             )
         return self.get_asset(asset_id)
 
-    def create_revision_from_path(self, asset_id: str, filename: str, temporary: Path, *, allow_duplicate: bool = False) -> dict[str, Any] | None:
+    def create_revision_from_path(
+        self, asset_id: str, filename: str, temporary: Path, *, allow_duplicate: bool = False
+    ) -> dict[str, Any] | None:
         asset = self.get_asset(asset_id)
         if not asset or not temporary.is_file():
             return None
@@ -2751,7 +3416,10 @@ class AssetLibraryRepository:
             if duplicate and not allow_duplicate:
                 temporary.unlink(missing_ok=True)
                 return self.get_asset(asset_id)
-            row = connection.execute("SELECT COALESCE(MAX(version), 0) AS version FROM asset_revisions WHERE asset_id = ?", (asset_id,)).fetchone()
+            row = connection.execute(
+                "SELECT COALESCE(MAX(version), 0) AS version FROM asset_revisions WHERE asset_id = ?",
+                (asset_id,),
+            ).fetchone()
             version = int(row["version"] or 0) + 1
             revision_id = f"revision-{uuid.uuid4().hex}"
             extension = _extension(filename) or "bin"
@@ -2764,10 +3432,32 @@ class AssetLibraryRepository:
             try:
                 connection.execute(
                     "INSERT INTO asset_revisions(revision_id, asset_id, version, parent_revision_id, relative_path, mime_type, bytes, sha256, width, height, aspect_ratio, duration_ms, frame_rate, has_audio, has_transparency, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (revision_id, asset_id, version, asset.get("current_revision_id"), relative_path, _mime_type(filename), destination.stat().st_size, digest, metadata.get("width"), metadata.get("height"), metadata.get("aspect_ratio"), metadata.get("duration_ms"), metadata.get("frame_rate"), int(metadata.get("has_audio", False)), int(metadata.get("has_transparency", False)), now),
+                    (
+                        revision_id,
+                        asset_id,
+                        version,
+                        asset.get("current_revision_id"),
+                        relative_path,
+                        _mime_type(filename),
+                        destination.stat().st_size,
+                        digest,
+                        metadata.get("width"),
+                        metadata.get("height"),
+                        metadata.get("aspect_ratio"),
+                        metadata.get("duration_ms"),
+                        metadata.get("frame_rate"),
+                        int(metadata.get("has_audio", False)),
+                        int(metadata.get("has_transparency", False)),
+                        now,
+                    ),
                 )
-                self._ensure_variant_locked(connection, asset_id, revision_id, destination, asset["media_kind"])
-                connection.execute("UPDATE media_assets SET current_revision_id = ?, status = ?, updated_at = ? WHERE asset_id = ?", (revision_id, "ready" if metadata.get("valid") else "warning", now, asset_id))
+                self._ensure_variant_locked(
+                    connection, asset_id, revision_id, destination, asset["media_kind"]
+                )
+                connection.execute(
+                    "UPDATE media_assets SET current_revision_id = ?, status = ?, updated_at = ? WHERE asset_id = ?",
+                    (revision_id, "ready" if metadata.get("valid") else "warning", now, asset_id),
+                )
             except Exception:
                 destination.unlink(missing_ok=True)
                 raise
@@ -2831,7 +3521,12 @@ class AssetLibraryRepository:
             raise KeyError("Upload session not found")
         if session.get("decision_mode") != "deferred":
             return self.finalize_upload(upload_id)
-        if session.get("status") in {"awaiting_duplicate_decision", "uploaded", "finalized", "ready"}:
+        if session.get("status") in {
+            "awaiting_duplicate_decision",
+            "uploaded",
+            "finalized",
+            "ready",
+        }:
             return session
         if session["status"] not in {"created", "uploading"}:
             raise ValueError("Upload session is no longer writable")
@@ -2854,7 +3549,14 @@ class AssetLibraryRepository:
             next_status = "awaiting_duplicate_decision" if duplicate else "uploaded"
             connection.execute(
                 "UPDATE upload_sessions SET status = ?, duplicate_asset_id = ?, sha256 = ?, expires_at = ?, updated_at = ? WHERE upload_id = ?",
-                (next_status, duplicate["asset_id"] if duplicate else None, digest, (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat(), _now(), upload_id),
+                (
+                    next_status,
+                    duplicate["asset_id"] if duplicate else None,
+                    digest,
+                    (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat(),
+                    _now(),
+                    upload_id,
+                ),
             )
         return self.get_upload_session(upload_id) or {}
 
@@ -2894,7 +3596,10 @@ class AssetLibraryRepository:
             raise KeyError("Upload session not found")
         if session.get("finalize_result_json"):
             return session
-        if session.get("decision_mode") == "deferred" and session["status"] in {"created", "uploading"}:
+        if session.get("decision_mode") == "deferred" and session["status"] in {
+            "created",
+            "uploading",
+        }:
             self.complete_upload_content(upload_id)
             session = self.get_upload_session(upload_id) or session
         allowed_statuses = {"created", "uploading"}
@@ -2916,7 +3621,11 @@ class AssetLibraryRepository:
                 "SELECT r.asset_id FROM asset_revisions r "
                 "JOIN media_assets a ON a.asset_id = r.asset_id "
                 "WHERE r.sha256 = ? AND a.media_kind = ? "
-                + ("AND a.asset_id = ? " if duplicate_policy == "attach_revision" and session.get("duplicate_asset_id") else "")
+                + (
+                    "AND a.asset_id = ? "
+                    if duplicate_policy == "attach_revision" and session.get("duplicate_asset_id")
+                    else ""
+                )
                 + "ORDER BY r.created_at LIMIT 1"
             )
             duplicate_params: tuple[Any, ...] = (digest, session["target_kind"])
@@ -2930,7 +3639,12 @@ class AssetLibraryRepository:
                 connection.execute(
                     "UPDATE upload_sessions SET status = 'ready', duplicate_asset_id = ?, "
                     "finalize_result_json = ?, updated_at = ? WHERE upload_id = ?",
-                    (duplicate["asset_id"], json.dumps({"policy": duplicate_policy, "asset_id": duplicate["asset_id"]}), _now(), upload_id),
+                    (
+                        duplicate["asset_id"],
+                        json.dumps({"policy": duplicate_policy, "asset_id": duplicate["asset_id"]}),
+                        _now(),
+                        upload_id,
+                    ),
                 )
                 # The session is read through a separate connection below;
                 # commit before returning the updated projection.
@@ -2941,12 +3655,22 @@ class AssetLibraryRepository:
 
             if duplicate and duplicate_policy == "attach_revision":
                 connection.commit()
-                self.create_revision_from_path(duplicate["asset_id"], session["filename"], temporary, allow_duplicate=True)
+                self.create_revision_from_path(
+                    duplicate["asset_id"], session["filename"], temporary, allow_duplicate=True
+                )
                 with self._lock, self._connect() as finalize_connection:
                     finalize_connection.execute(
                         "UPDATE upload_sessions SET status = 'finalized', asset_id = ?, duplicate_asset_id = ?, "
                         "finalize_result_json = ?, updated_at = ? WHERE upload_id = ?",
-                        (duplicate["asset_id"], duplicate["asset_id"], json.dumps({"policy": duplicate_policy, "asset_id": duplicate["asset_id"]}), _now(), upload_id),
+                        (
+                            duplicate["asset_id"],
+                            duplicate["asset_id"],
+                            json.dumps(
+                                {"policy": duplicate_policy, "asset_id": duplicate["asset_id"]}
+                            ),
+                            _now(),
+                            upload_id,
+                        ),
                     )
                 result = self.get_upload_session(upload_id) or {}
                 result["asset_id"] = duplicate["asset_id"]
@@ -2999,15 +3723,29 @@ class AssetLibraryRepository:
                         now,
                     ),
                 )
-                self._ensure_variant_locked(connection, asset_id, revision_id, destination, session["target_kind"])
+                self._ensure_variant_locked(
+                    connection, asset_id, revision_id, destination, session["target_kind"]
+                )
                 connection.execute(
                     "INSERT INTO media_jobs(job_id, asset_id, kind, status, created_at, updated_at) VALUES (?, ?, 'metadata', ?, ?, ?)",
-                    (f"job-{uuid.uuid4().hex}", asset_id, "completed" if metadata.get("valid") else "warning", now, now),
+                    (
+                        f"job-{uuid.uuid4().hex}",
+                        asset_id,
+                        "completed" if metadata.get("valid") else "warning",
+                        now,
+                        now,
+                    ),
                 )
                 connection.execute(
                     "UPDATE upload_sessions SET status = ?, asset_id = ?, updated_at = ?, "
                     "finalize_result_json = ? WHERE upload_id = ?",
-                    ("finalized" if session.get("decision_mode") == "deferred" else "ready", asset_id, now, json.dumps({"policy": duplicate_policy, "asset_id": asset_id}), upload_id),
+                    (
+                        "finalized" if session.get("decision_mode") == "deferred" else "ready",
+                        asset_id,
+                        now,
+                        json.dumps({"policy": duplicate_policy, "asset_id": asset_id}),
+                        upload_id,
+                    ),
                 )
             except Exception:
                 destination.unlink(missing_ok=True)
@@ -3053,7 +3791,12 @@ class AssetLibraryRepository:
         with self._lock, self._connect() as connection:
             connection.execute(
                 "UPDATE upload_sessions SET duplicate_policy = ?, duplicate_asset_id = COALESCE(?, duplicate_asset_id), updated_at = ? WHERE upload_id = ?",
-                (duplicate_policy, target_asset_id if duplicate_policy == "attach_revision" else None, _now(), upload_id),
+                (
+                    duplicate_policy,
+                    target_asset_id if duplicate_policy == "attach_revision" else None,
+                    _now(),
+                    upload_id,
+                ),
             )
         return self.finalize_upload(upload_id)
 

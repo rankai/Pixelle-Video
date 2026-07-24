@@ -1,0 +1,38 @@
+{
+  "contract_id": "digital-human-dual-mode-rollout",
+  "schema_version": 1,
+  "stage": "DH-DUAL-4",
+  "feature_flags": {
+    "backend": "PIXELLE_APP_CENTER_DIGITAL_HUMAN_DUAL_MODE",
+    "desktop": "VITE_APP_CENTER_DIGITAL_HUMAN_DUAL_MODE",
+    "default": false,
+    "joint_gate": true,
+    "desktop_only_cannot_bypass_backend": true,
+    "backend_off_preserves_legacy_route": true
+  },
+  "release_states": {
+    "image_talking_stable": "pilot_verified",
+    "image_talking_natural": "candidate",
+    "video_lipsync_natural": "stable",
+    "video_live_gate": "passed_with_boundary",
+    "video_requires_provider_live_gate_before_available": true,
+    "video_requires_independent_live_gate": false,
+    "video_requires_program_six_dimension_review_before_stable": true,
+    "video_default_mode": false,
+    "video_quality_evidence": "docs/reviews/application-publishing-program/qa/DH-QUALITY-2-video-live-gate-2026-07-24.json"
+  },
+  "grey_order": [
+    "development",
+    "local_controlled",
+    "image_mode",
+    "video_mode",
+    "both_modes",
+    "restart_and_rollback",
+    "product_signoff"
+  ],
+  "safety": {
+    "default_publish_click": false,
+    "platform_actions": 0,
+    "final_publish_clicked": false
+  }
+}

@@ -1,0 +1,151 @@
+{
+  "contract_id": "digital-human-video-input-v2",
+  "schema_version": 2,
+  "fixtures": [
+    {
+      "id": "image-custom-script-valid",
+      "valid": true,
+      "input": {
+        "schema_version": 2,
+        "project_id": "project-a",
+        "content_source": {"mode": "custom_script", "script": "新店开业前三天，到店有真实优惠，欢迎到店咨询。"},
+        "digital_human": {"mode": "image_talking", "portrait_id": "dh-a", "scene_id": "scene-image-a", "asset_revision_id": "rev-image-a", "workflow_profile": "stable"},
+        "delivery": {"cover_title": "新店开业优惠先看", "subtitle_preset": "readable_v2"}
+      },
+      "asset": {"media_type": "image", "status": "ready", "revision_id": "rev-image-a", "short_edge_px": 1080},
+      "expected": {"workflow_capability": "image_talking", "default_preview": "final_video", "provider_calls": 0}
+    },
+    {
+      "id": "video-copywriting-valid",
+      "valid": true,
+      "input": {
+        "schema_version": 2,
+        "project_id": "project-a",
+        "content_source": {"mode": "copywriting_artifact", "source_artifact_version_id": "av-copy-a", "selected_variant_index": 1},
+        "digital_human": {"mode": "video_lipsync", "portrait_id": "dh-a", "scene_id": "scene-video-a", "asset_revision_id": "rev-video-a", "workflow_profile": "natural"},
+        "delivery": {"cover_title": "老板亲自说清这件事", "publish_title": "门店老板必须讲清楚的优惠", "subtitle_preset": "readable_v2"}
+      },
+      "source": {"artifact_type": "copywriting", "project_id": "project-a", "version_id": "av-copy-a", "variant_count": 3, "variant_index": 1},
+      "asset": {"media_type": "video", "status": "ready", "revision_id": "rev-video-a", "width": 1080, "height": 1920, "duration_ms": 18000},
+      "expected": {"workflow_capability": "video_lipsync", "default_preview": "final_video", "provider_calls": 0}
+    },
+    {
+      "id": "generated-copy-completed-artifact-valid",
+      "valid": true,
+      "input": {
+        "schema_version": 2,
+        "project_id": "project-a",
+        "content_source": {"mode": "generated_marketing_copy", "source_artifact_version_id": "av-generated-a", "selected_variant_index": 0},
+        "digital_human": {"mode": "image_talking", "portrait_id": "dh-a", "scene_id": "scene-image-a", "asset_revision_id": "rev-image-a", "workflow_profile": "stable"}
+      },
+      "source": {"artifact_type": "copywriting", "project_id": "project-a", "version_id": "av-generated-a", "source_app_run_state": "completed", "variant_index": 0},
+      "expected": {"upstream_llm_owner": "builtin.marketing-copy", "provider_calls": 0}
+    },
+    {
+      "id": "title-only-new-run-invalid",
+      "valid": false,
+      "error": "DIGITAL_HUMAN_TITLE_REQUIRES_SCRIPT",
+      "input": {
+        "schema_version": 2,
+        "project_id": "project-a",
+        "content_source": {"mode": "title_plus_copywriting", "title_artifact_version_id": "av-title-a", "selected_variant_index": 0},
+        "digital_human": {"mode": "image_talking", "portrait_id": "dh-a", "scene_id": "scene-image-a", "asset_revision_id": "rev-image-a", "workflow_profile": "stable"}
+      }
+    },
+    {
+      "id": "image-mode-video-asset-invalid",
+      "valid": false,
+      "error": "DIGITAL_HUMAN_MEDIA_TYPE_MISMATCH",
+      "input": {
+        "schema_version": 2,
+        "project_id": "project-a",
+        "content_source": {"mode": "custom_script", "script": "完整门店口播文案。"},
+        "digital_human": {"mode": "image_talking", "portrait_id": "dh-a", "scene_id": "scene-video-a", "asset_revision_id": "rev-video-a", "workflow_profile": "stable"}
+      },
+      "asset": {"media_type": "video", "status": "ready", "revision_id": "rev-video-a"}
+    },
+    {
+      "id": "video-mode-image-asset-invalid",
+      "valid": false,
+      "error": "DIGITAL_HUMAN_MEDIA_TYPE_MISMATCH",
+      "input": {
+        "schema_version": 2,
+        "project_id": "project-a",
+        "content_source": {"mode": "custom_script", "script": "完整门店口播文案。"},
+        "digital_human": {"mode": "video_lipsync", "portrait_id": "dh-a", "scene_id": "scene-image-a", "asset_revision_id": "rev-image-a", "workflow_profile": "natural"}
+      },
+      "asset": {"media_type": "image", "status": "ready", "revision_id": "rev-image-a"}
+    },
+    {
+      "id": "video-too-short-invalid",
+      "valid": false,
+      "error": "DIGITAL_HUMAN_VIDEO_DURATION_INVALID",
+      "input": {
+        "schema_version": 2,
+        "project_id": "project-a",
+        "content_source": {"mode": "custom_script", "script": "完整门店口播文案。"},
+        "digital_human": {"mode": "video_lipsync", "portrait_id": "dh-a", "scene_id": "scene-video-a", "asset_revision_id": "rev-video-short", "workflow_profile": "natural"}
+      },
+      "asset": {"media_type": "video", "status": "ready", "revision_id": "rev-video-short", "width": 1080, "height": 1920, "duration_ms": 3000}
+    },
+    {
+      "id": "workflow-profile-not-released-invalid",
+      "valid": false,
+      "error": "DIGITAL_HUMAN_WORKFLOW_NOT_RELEASED",
+      "input": {
+        "schema_version": 2,
+        "project_id": "project-a",
+        "content_source": {"mode": "custom_script", "script": "完整门店口播文案。"},
+        "digital_human": {"mode": "image_talking", "portrait_id": "dh-a", "scene_id": "scene-image-a", "asset_revision_id": "rev-image-a", "workflow_profile": "natural"}
+      },
+      "workflow_profile": {"mode": "image_talking", "release_state": "candidate", "live_verified": false}
+    },
+    {
+      "id": "path-and-secret-injection-invalid",
+      "valid": false,
+      "error": "INPUT_PAYLOAD_INVALID",
+      "input": {
+        "schema_version": 2,
+        "project_id": "project-a",
+        "api_key": "should-not-be-accepted",
+        "provider_url": "https://malicious.example/workflow",
+        "digital_human_workflow": "/Users/private/workflow.json",
+        "content_source": {"mode": "custom_script", "script": "完整门店口播文案。"},
+        "digital_human": {"mode": "image_talking", "portrait_id": "dh-a", "scene_id": "scene-image-a", "asset_revision_id": "rev-image-a", "workflow_profile": "stable"}
+      }
+    },
+    {
+      "id": "v1-blank-project-compat",
+      "valid": true,
+      "compatibility": "1.0.0_to_v2_normalize",
+      "input": {"app_version": "1.0.0", "project_id": "project-a", "source_mode": "blank_project", "goal": "为新店开业制作一条口播视频", "portrait_id": "dh-a", "digital_human_scene_id": "scene-image-a"},
+      "expected_normalized": {"schema_version": 2, "content_source": {"mode": "custom_script", "script": "为新店开业制作一条口播视频"}, "digital_human": {"mode": "image_talking", "portrait_id": "dh-a", "scene_id": "scene-image-a"}}
+    },
+    {
+      "id": "v1-selected-title-resume-only",
+      "valid": true,
+      "compatibility": "1.0.0_resume_only",
+      "input": {"app_version": "1.0.0", "project_id": "project-a", "source_mode": "selected_title", "source_artifact_version_ids": ["av-title-a"], "session_id": "session-old", "resume_mode": "resume_existing"},
+      "expected": {"new_v2_run_allowed": false, "resume_existing_allowed": true, "title_cannot_replace_script": true}
+    },
+    {
+      "id": "asset-revision-drift-invalid",
+      "valid": false,
+      "error": "DIGITAL_HUMAN_ASSET_REVISION_MISMATCH",
+      "input": {
+        "schema_version": 2,
+        "project_id": "project-a",
+        "content_source": {"mode": "custom_script", "script": "完整门店口播文案。"},
+        "digital_human": {"mode": "image_talking", "portrait_id": "dh-a", "scene_id": "scene-image-a", "asset_revision_id": "rev-image-old", "workflow_profile": "stable"}
+      },
+      "asset": {"media_type": "image", "status": "ready", "revision_id": "rev-image-new", "short_edge_px": 1080}
+    }
+  ],
+  "entry_expectations": {
+    "provider_calls": 0,
+    "browser_actions": 0,
+    "platform_writes": 0,
+    "final_publish_clicks": 0,
+    "no_business_code_changed": true
+  }
+}

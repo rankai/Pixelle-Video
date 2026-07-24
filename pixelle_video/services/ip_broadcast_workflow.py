@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import inspect
 import json
 import re
@@ -100,6 +101,7 @@ FINAL_VIDEO_DEPENDENCY_KEYS = {
     "video_plan_applied",
     "overlay_enabled",
     "subtitle_enabled",
+    "subtitle_preset",
     "bgm_path",
     "bgm_volume",
     "voice_volume",
@@ -112,6 +114,8 @@ COVER_ONLY_DEPENDENCY_KEYS = {
     "title",
     "description",
     "cover_title",
+    "cover_subtitle",
+    "hashtags",
 }
 IP_LEARNING_INPUT_KEYS = {
     "source_mode",
@@ -174,6 +178,7 @@ def _default_state() -> dict[str, Any]:
         "style_prompt": "口语化、亲切自然、有感染力",
         "word_count": 200,
         "final_script": "",
+        "spoken_script": "",
         "copywriting_confirmed": False,
         "tts_inference_mode": "local",
         "tts_voice": "zh-CN-YunjianNeural",
@@ -214,6 +219,14 @@ def _default_state() -> dict[str, Any]:
         "digital_human_width": 720,
         "digital_human_height": 1280,
         "digital_human_video_path": "",
+        "provider_task_id": "",
+        "provider_task_status": "not_created",
+        "provider_task_create_count": 0,
+        "provider_retry_count": 0,
+        "provider_retry_plan": {},
+        "provider_previous_task_ids": [],
+        "quality_input_fingerprint": "",
+        "quality_fixed_inputs": {},
         "output_canvas_width": CANVAS_WIDTH,
         "output_canvas_height": CANVAS_HEIGHT,
         "template_id": "boss_clean",
@@ -224,6 +237,11 @@ def _default_state() -> dict[str, Any]:
         "video_plan_applied": False,
         "overlay_enabled": False,
         "subtitle_enabled": True,
+        "subtitle_burned_in": False,
+        "subtitle_path": "",
+        # Empty means a legacy run. New App Center V2 runs pin readable_v2
+        # explicitly and therefore never silently change old render semantics.
+        "subtitle_preset": "",
         "bgm_path": "",
         "bgm_volume": 0.3,
         "voice_volume": 1.0,
@@ -232,6 +250,9 @@ def _default_state() -> dict[str, Any]:
         "title": "",
         "description": "",
         "hashtags": [],
+        "cover_title": "",
+        "cover_subtitle": "",
+        "delivery": {},
         "cover_path": "",
         "publish_package": {},
         "platform_suggestions": {},
@@ -250,11 +271,7 @@ class IpBroadcastSession:
     artifacts: dict[str, str] = field(default_factory=dict)
 
     def update_config(self, values: dict[str, Any]) -> None:
-        changed_keys = {
-            key
-            for key, value in values.items()
-            if self.state.get(key) != value
-        }
+        changed_keys = {key for key, value in values.items() if self.state.get(key) != value}
         self.state.update(values)
         self._invalidate_dependents(changed_keys, set(values))
         self.refresh_readiness()
@@ -505,7 +522,9 @@ class IpBroadcastSession:
 class IpBroadcastSessionStore:
     def __init__(self, store_path: str | Path | None = None):
         self._sessions: dict[str, IpBroadcastSession] = {}
-        self._store_path = Path(store_path) if store_path else Path(get_data_path("ip_broadcast_sessions"))
+        self._store_path = (
+            Path(store_path) if store_path else Path(get_data_path("ip_broadcast_sessions"))
+        )
         self._store_path.mkdir(parents=True, exist_ok=True)
         self._load_sessions()
 
@@ -566,9 +585,9 @@ def _session_from_payload(payload: dict[str, Any]) -> IpBroadcastSession:
         session_id=str(payload["session_id"]),
         state=state,
         step_status={
-            int(key): str(value)
-            for key, value in dict(payload.get("step_status") or {}).items()
-        } or {step: "pending" for step in range(1, 7)},
+            int(key): str(value) for key, value in dict(payload.get("step_status") or {}).items()
+        }
+        or {step: "pending" for step in range(1, 7)},
         notices={
             int(key): dict(value)
             for key, value in dict(payload.get("notices") or {}).items()
@@ -694,9 +713,7 @@ async def _run_industry_persona_source(pixelle_video, session: IpBroadcastSessio
                 selling_points=selling_points,
                 other_reqs=merged_reqs,
                 business_goal=str(session.state.get("business_goal_name") or ""),
-                script_structure=_read_string_list(
-                    session.state.get("business_script_structure")
-                ),
+                script_structure=_read_string_list(session.state.get("business_script_structure")),
                 target_word_count=int(session.state.get("word_count") or 200),
                 style_prompt=str(session.state.get("style_prompt") or ""),
                 intent_note=str(session.state.get("business_intent_note") or ""),
@@ -718,13 +735,20 @@ async def _run_ip_learning_source(pixelle_video, session: IpBroadcastSession) ->
             str(item.get("script", "")) for item in existing_scripts if isinstance(item, dict)
         )[:1200]
         script = str(
-            await pixelle_video.llm(prompt=build_script_from_topic_prompt(selected_topic, viral_hint))
+            await pixelle_video.llm(
+                prompt=build_script_from_topic_prompt(selected_topic, viral_hint)
+            )
         ).strip()
         session.state["ip_learning_requires_topic_confirmation"] = False
         session.state["source_text"] = script
         _set_source_script(session, script, "IP学习")
         return
-    if isinstance(existing_scripts, list) and existing_scripts and isinstance(existing_topics, list) and existing_topics:
+    if (
+        isinstance(existing_scripts, list)
+        and existing_scripts
+        and isinstance(existing_topics, list)
+        and existing_topics
+    ):
         session.state["ip_learning_requires_topic_confirmation"] = True
         session.state["final_script"] = ""
         session.state["source_text"] = ""
@@ -748,7 +772,11 @@ async def _run_ip_learning_source(pixelle_video, session: IpBroadcastSession) ->
 
     extractor = _build_script_extractor()
     results = await extract_many_video_scripts(extractor, urls, limit=5)
-    scripts = [{"source": item.source, "script": item.script} for item in results if item.ok and item.script]
+    scripts = [
+        {"source": item.source, "script": item.script}
+        for item in results
+        if item.ok and item.script
+    ]
     errors = [{"source": item.source, "error": item.error} for item in results if not item.ok]
     if not scripts:
         raise ValueError("未能从这些视频中提取到可用口播文案，请检查链接或手动粘贴脚本")
@@ -836,7 +864,9 @@ def _normalize_script_paragraphs(
     if target_count <= 1:
         return compact
 
-    sentences = [item.strip() for item in re.split(r"(?<=[。！？!?；;，,])", compact) if item.strip()]
+    sentences = [
+        item.strip() for item in re.split(r"(?<=[。！？!?；;，,])", compact) if item.strip()
+    ]
     if len(sentences) < target_count:
         return _split_text_by_length(compact, target_count)
 
@@ -975,6 +1005,34 @@ def _tts_workflow_kind(workflow: str) -> str:
 
 
 async def _run_digital_human(pixelle_video, session: IpBroadcastSession) -> None:
+    # A repeated scheduler tick after a successful provider callback must not
+    # submit a second external task for the same pinned input.
+    existing_video = str(session.state.get("digital_human_video_path") or "")
+    if _path_exists(existing_video):
+        session.state["provider_task_status"] = "succeeded"
+        return
+    provider_task_id = str(session.state.get("provider_task_id") or "").strip()
+    if provider_task_id:
+        task_status = str(session.state.get("provider_task_status") or "unknown")
+        retry_plan = session.state.get("provider_retry_plan")
+        retry_approved = isinstance(retry_plan, dict) and bool(retry_plan.get("approved"))
+        if task_status != "retryable_failed" or not retry_approved:
+            raise ValueError(
+                "DH_QUALITY_PROVIDER_DUPLICATE_TASK: 已存在未完成的 Provider task，"
+                "恢复时必须先查询原 task，禁止重复创建"
+            )
+        if int(session.state.get("provider_retry_count") or 0) >= 1:
+            raise ValueError("DH_QUALITY_RETRY_LIMIT: Provider 仅允许一次有根因重试")
+        session.state["provider_previous_task_ids"] = [
+            *(
+                item
+                for item in session.state.get("provider_previous_task_ids", [])
+                if isinstance(item, str) and item
+            ),
+            provider_task_id,
+        ]
+        session.state["provider_task_id"] = ""
+        session.state["provider_task_status"] = "retrying"
     audio_path = session.state.get("audio_path", "")
     portrait_path = _resolve_v2_portrait_path(
         str(session.state.get("portrait_id") or ""),
@@ -988,18 +1046,42 @@ async def _run_digital_human(pixelle_video, session: IpBroadcastSession) -> None
         raise ValueError("形象文件不存在，请先选择或上传形象")
     _validate_portrait_media_type(workflow, session.state.get("portrait_media_type", ""))
     output_path = get_temp_path(f"ipb_dh_{uuid.uuid4().hex[:8]}.mp4")
-    video_path = await pixelle_video.digital_human.generate(
-        portrait_path=portrait_path,
-        audio_path=audio_path,
-        output_path=output_path,
-        workflow=workflow,
-        duration=float(session.state.get("digital_human_duration") or 0.0),
-        prompt=session.state.get("digital_human_prompt") or "",
-        width=int(session.state.get("digital_human_width") or 720),
-        height=int(session.state.get("digital_human_height") or 1280),
-    )
+    try:
+        video_path = await pixelle_video.digital_human.generate(
+            portrait_path=portrait_path,
+            audio_path=audio_path,
+            output_path=output_path,
+            workflow=workflow,
+            duration=float(session.state.get("digital_human_duration") or 0.0),
+            prompt=session.state.get("digital_human_prompt") or "",
+            width=int(session.state.get("digital_human_width") or 720),
+            height=int(session.state.get("digital_human_height") or 1280),
+        )
+    except Exception as exc:
+        generation_meta = getattr(pixelle_video.digital_human, "last_generation_meta", {})
+        if isinstance(generation_meta, dict):
+            generated_task_id = str(generation_meta.get("provider_task_id") or "").strip()
+            if generated_task_id:
+                session.state["provider_task_id"] = generated_task_id
+        session.state["provider_task_status"] = "retryable_failed"
+        session.state["provider_retry_plan"] = {
+            "approved": False,
+            "root_cause": "",
+            "retry_reason": "",
+            "observed_error": str(exc)[:500],
+        }
+        raise
     session.state["digital_human_video_path"] = video_path
     session.artifacts["digital_human_video"] = video_path
+    generation_meta = getattr(pixelle_video.digital_human, "last_generation_meta", {})
+    if isinstance(generation_meta, dict):
+        provider_task_id = str(generation_meta.get("provider_task_id") or "").strip()
+        if provider_task_id:
+            session.state["provider_task_id"] = provider_task_id
+        session.state["provider_task_create_count"] = (
+            int(session.state.get("provider_task_create_count") or 0) + 1
+        )
+    session.state["provider_task_status"] = "succeeded"
 
 
 async def _run_postproduction(pixelle_video, session: IpBroadcastSession) -> None:
@@ -1056,6 +1138,8 @@ async def _run_postproduction(pixelle_video, session: IpBroadcastSession) -> Non
             height=canvas_height,
             clean_output_path=clean_cover_source,
         )
+        if session.state.get("subtitle_preset") == "readable_v2":
+            session.state["subtitle_burned_in"] = True
         cover_source = clean_cover_source
     else:
         merged = merge_audio_into_video(
@@ -1066,19 +1150,29 @@ async def _run_postproduction(pixelle_video, session: IpBroadcastSession) -> Non
         cover_source = merged
         if session.state.get("subtitle_enabled", True) and session.state.get("final_script"):
             template = get_ip_broadcast_template_for_render(session.state.get("template_id"))
+            subtitle_overrides = session.state.get("subtitle_style")
+            if session.state.get("subtitle_preset") == "readable_v2":
+                subtitle_overrides = {
+                    **(subtitle_overrides if isinstance(subtitle_overrides, dict) else {}),
+                    "font_size": 48,
+                    "outline": 3,
+                    "margin_v": 190,
+                }
             force_style = build_ass_force_style(
                 template,
-                session.state.get("subtitle_style"),
+                subtitle_overrides,
                 video_width=canvas_width,
-                video_height=canvas_height if geometry_normalized else int(
-                    session.state.get("digital_human_height") or 1280
-                ),
+                video_height=canvas_height
+                if geometry_normalized
+                else int(session.state.get("digital_human_height") or 1280),
             )
             render_script = wrap_template_subtitle_text(
                 session.state["final_script"],
                 template,
                 video_width=canvas_width,
-                video_height=canvas_height if geometry_normalized else int(session.state.get("digital_human_height") or 1280),
+                video_height=canvas_height
+                if geometry_normalized
+                else int(session.state.get("digital_human_height") or 1280),
             )
             try:
                 ass = get_temp_path(f"ipb_{uid}.ass")
@@ -1090,6 +1184,8 @@ async def _run_postproduction(pixelle_video, session: IpBroadcastSession) -> Non
                     play_res_y=canvas_height,
                     force_style=force_style,
                 )
+                session.state["subtitle_path"] = ass
+                session.state["subtitle_burned_in"] = True
                 _embed_subtitles_compat(
                     merged,
                     ass,
@@ -1102,6 +1198,8 @@ async def _run_postproduction(pixelle_video, session: IpBroadcastSession) -> Non
                 logger.warning("ASS 字幕生成失败，回退 SRT：{}", exc)
                 srt = get_temp_path(f"ipb_{uid}.srt")
                 generate_srt(render_script, working_audio, srt)
+                session.state["subtitle_path"] = srt
+                session.state["subtitle_burned_in"] = True
                 _embed_subtitles_compat(merged, srt, final, force_style=force_style)
         else:
             shutil.copy2(merged, final)
@@ -1150,23 +1248,71 @@ def _record_media_usage_and_snapshots(session: IpBroadcastSession) -> None:
     # same voice, digital-human, brand and template revisions selected in the
     # production flow.
     domain_refs = (
-        ("voice", str(session.state.get("tts_ref_audio_id") or ""), STEP_VOICE, "reference", "voice-reference"),
-        ("digital_human", str(session.state.get("portrait_id") or ""), STEP_DIGITAL_HUMAN, "portrait", "digital-human"),
-        ("brand", str(session.state.get("brand_kit_id") or ""), STEP_POSTPRODUCTION, "brand_kit", "brand"),
-        ("audio", str(session.state.get("brand_bgm_asset_id") or ""), STEP_POSTPRODUCTION, "brand_bgm", "brand-bgm"),
+        (
+            "voice",
+            str(session.state.get("tts_ref_audio_id") or ""),
+            STEP_VOICE,
+            "reference",
+            "voice-reference",
+        ),
+        (
+            "digital_human",
+            str(session.state.get("portrait_id") or ""),
+            STEP_DIGITAL_HUMAN,
+            "portrait",
+            "digital-human",
+        ),
+        (
+            "brand",
+            str(session.state.get("brand_kit_id") or ""),
+            STEP_POSTPRODUCTION,
+            "brand_kit",
+            "brand",
+        ),
+        (
+            "audio",
+            str(session.state.get("brand_bgm_asset_id") or ""),
+            STEP_POSTPRODUCTION,
+            "brand_bgm",
+            "brand-bgm",
+        ),
         ("audio", str(session.state.get("bgm_asset_id") or ""), STEP_POSTPRODUCTION, "bgm", "bgm"),
-        ("template", str(session.state.get("template_id") or ""), STEP_POSTPRODUCTION, "template", "template"),
+        (
+            "template",
+            str(session.state.get("template_id") or ""),
+            STEP_POSTPRODUCTION,
+            "template",
+            "template",
+        ),
     )
     for resource_kind, resource_id, step, purpose, slot_id in domain_refs:
         if resource_id:
-            references.append({"resource_kind": resource_kind, "resource_id": resource_id, "step": step, "purpose": purpose, "slot_id": slot_id})
+            references.append(
+                {
+                    "resource_kind": resource_kind,
+                    "resource_id": resource_id,
+                    "step": step,
+                    "purpose": purpose,
+                    "slot_id": slot_id,
+                }
+            )
     scene_id = str(session.state.get("digital_human_scene_id") or "").strip()
     if scene_id:
-        references.append({"resource_kind": "digital_human_scene", "resource_id": scene_id, "step": STEP_DIGITAL_HUMAN, "purpose": "scene", "slot_id": "digital-human-scene"})
+        references.append(
+            {
+                "resource_kind": "digital_human_scene",
+                "resource_id": scene_id,
+                "step": STEP_DIGITAL_HUMAN,
+                "purpose": "scene",
+                "slot_id": "digital-human-scene",
+            }
+        )
     groups = session.state.get("visual_groups") or []
     if not isinstance(groups, list):
         groups = []
-    template_contract = repository.get_template_revision(str(session.state.get("template_id") or ""))
+    template_contract = repository.get_template_revision(
+        str(session.state.get("template_id") or "")
+    )
     for index, group in enumerate(groups, start=1):
         if not isinstance(group, dict):
             continue
@@ -1184,7 +1330,15 @@ def _record_media_usage_and_snapshots(session: IpBroadcastSession) -> None:
         if not asset_id or not repository.get_asset(asset_id):
             continue
         slot_id = str(group.get("group_id") or f"overlay-{index}")
-        references.append({"resource_kind": resource_kind, "resource_id": asset_id, "step": STEP_POSTPRODUCTION, "purpose": purpose, "slot_id": slot_id})
+        references.append(
+            {
+                "resource_kind": resource_kind,
+                "resource_id": asset_id,
+                "step": STEP_POSTPRODUCTION,
+                "purpose": purpose,
+                "slot_id": slot_id,
+            }
+        )
     repository.reconcile_session_usage(session.session_id, references)
 
     snapshot_ids: list[str] = []
@@ -1197,12 +1351,23 @@ def _record_media_usage_and_snapshots(session: IpBroadcastSession) -> None:
                 resource_id,
                 session.session_id,
                 step,
-                template_revision=int(template_contract.get("revision") or 1) if template_contract else 1,
-                renderer_version=(template_contract or {}).get("renderer_version") or "ip-broadcast-composer-v2",
+                template_revision=int(template_contract.get("revision") or 1)
+                if template_contract
+                else 1,
+                renderer_version=(template_contract or {}).get("renderer_version")
+                or "ip-broadcast-composer-v2",
             )
         else:
-            template_revision = int(template_contract.get("revision") or 1) if resource_kind == "template" and template_contract else None
-            renderer_version = (template_contract or {}).get("renderer_version") if resource_kind == "template" else None
+            template_revision = (
+                int(template_contract.get("revision") or 1)
+                if resource_kind == "template" and template_contract
+                else None
+            )
+            renderer_version = (
+                (template_contract or {}).get("renderer_version")
+                if resource_kind == "template"
+                else None
+            )
             snapshot = repository.create_external_snapshot(
                 resource_kind,
                 resource_id,
@@ -1290,7 +1455,11 @@ async def _ensure_template_cover(
     session.state["cover_path"] = await render_ip_broadcast_cover(
         template_id=str(session.state.get("template_id") or ""),
         title=_build_cover_title(session),
-        subtitle=str(session.state.get("description") or "")[:80],
+        subtitle=(
+            str(session.state.get("cover_subtitle") or "")[:28]
+            if session.state.get("subtitle_preset") == "readable_v2"
+            else str(session.state.get("description") or "")[:80]
+        ),
         background=first_frame,
         output_path=cover_path,
     )
@@ -1304,6 +1473,162 @@ async def _run_publish(session: IpBroadcastSession) -> None:
     if session.state.get("cover_path"):
         session.artifacts["cover"] = session.state["cover_path"]
     _write_publish_package(session)
+    _write_quality_evidence(session)
+
+
+def _file_sha256(path: str) -> str | None:
+    try:
+        digest = hashlib.sha256()
+        with Path(path).open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+    except (OSError, TypeError):
+        return None
+
+
+def _write_quality_evidence(session: IpBroadcastSession) -> None:
+    if session.state.get("subtitle_preset") != "readable_v2":
+        return
+    final_video = str(session.state.get("final_video_path") or "")
+    cover = str(session.state.get("cover_path") or "")
+    spoken_script = str(
+        session.state.get("spoken_script") or session.state.get("final_script") or ""
+    )
+    ffprobe = _probe_quality_media(final_video)
+    frame_samples = _capture_quality_frames(final_video, session.session_id, ffprobe)
+    subtitle_path = str(session.state.get("subtitle_path") or "")
+    evidence = {
+        "stage": "DH-QUALITY-2",
+        "session_id": session.session_id,
+        "provider_task_id": str(session.state.get("provider_task_id") or ""),
+        "provider_task_status": str(session.state.get("provider_task_status") or ""),
+        "provider_task_create_count": int(session.state.get("provider_task_create_count") or 0),
+        "provider_retry_count": int(session.state.get("provider_retry_count") or 0),
+        "provider_previous_task_ids": list(session.state.get("provider_previous_task_ids") or []),
+        "quality_input_fingerprint": str(session.state.get("quality_input_fingerprint") or ""),
+        "subtitle_preset": "readable_v2",
+        "raw_digital_human_video": {
+            "path": str(session.state.get("digital_human_video_path") or ""),
+            "sha256": _file_sha256(str(session.state.get("digital_human_video_path") or "")),
+        },
+        "final_video": {"path": final_video, "sha256": _file_sha256(final_video)},
+        "cover": {"path": cover, "sha256": _file_sha256(cover)},
+        "ffprobe": ffprobe,
+        "frame_samples": frame_samples,
+        "subtitles": {
+            "path": subtitle_path,
+            "sha256": _file_sha256(subtitle_path),
+            "burned_in": bool(session.state.get("subtitle_burned_in")),
+        },
+        "spoken_script": {
+            "chars": len(spoken_script.strip()),
+            "sha256": hashlib.sha256(spoken_script.encode("utf-8")).hexdigest(),
+        },
+        "artifacts": {
+            "final_video": bool(session.artifacts.get("final_video")),
+            "cover": bool(session.artifacts.get("cover")),
+            "publish_copy": bool(session.artifacts.get("publish_package_json")),
+            "spoken_script": bool(spoken_script.strip()),
+        },
+        "platform_actions": 0,
+        "final_publish_clicked": False,
+        "review_state": "needs_review",
+    }
+    evidence_path = get_output_path(f"ipb_{session.session_id[:8]}_quality_evidence.json")
+    try:
+        Path(evidence_path).write_text(
+            json.dumps(evidence, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+    except OSError as exc:
+        logger.warning("Unable to persist quality evidence: {}", exc)
+        return
+    session.artifacts["quality_evidence_json"] = evidence_path
+
+
+def _probe_quality_media(path: str) -> dict[str, Any]:
+    if not path or not Path(path).exists():
+        return {"status": "missing"}
+    try:
+        result = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-show_streams",
+                "-show_format",
+                "-of",
+                "json",
+                path,
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        parsed = json.loads(result.stdout or "{}")
+        return {"status": "ok", "data": parsed}
+    except (OSError, ValueError, subprocess.CalledProcessError) as exc:
+        return {"status": "error", "message": str(exc)}
+
+
+def _capture_quality_frames(
+    path: str,
+    session_id: str,
+    ffprobe: dict[str, Any],
+) -> dict[str, Any]:
+    """Capture deterministic 25/50/75% frame evidence when media is probeable."""
+
+    samples = {"25": None, "50": None, "75": None}
+    if ffprobe.get("status") != "ok" or not path:
+        return {"status": "unavailable", "samples": samples}
+    streams = ffprobe.get("data", {}).get("streams", [])
+    formats = ffprobe.get("data", {}).get("format", {})
+    duration = 0.0
+    try:
+        duration = float(formats.get("duration") or 0.0)
+    except (TypeError, ValueError):
+        duration = 0.0
+    if duration <= 0 or not any(str(item.get("codec_type")) == "video" for item in streams):
+        return {"status": "unavailable", "samples": samples}
+
+    output_dir = Path(get_temp_path(f"ipb_quality_frames_{session_id[:8]}"))
+    try:
+        output_dir.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        return {"status": "unavailable", "samples": samples}
+    for label, ratio in (("25", 0.25), ("50", 0.5), ("75", 0.75)):
+        frame_path = output_dir / f"frame_{label}.jpg"
+        try:
+            subprocess.run(
+                [
+                    "ffmpeg",
+                    "-y",
+                    "-ss",
+                    f"{duration * ratio:.3f}",
+                    "-i",
+                    path,
+                    "-frames:v",
+                    "1",
+                    "-q:v",
+                    "3",
+                    str(frame_path),
+                ],
+                capture_output=True,
+                check=True,
+            )
+            samples[label] = {
+                "path": str(frame_path),
+                "sha256": _file_sha256(str(frame_path)),
+            }
+        except (OSError, subprocess.CalledProcessError):
+            samples[label] = {"status": "error"}
+    return {
+        "status": "ok"
+        if all(item and item.get("sha256") for item in samples.values())
+        else "partial",
+        "samples": samples,
+    }
 
 
 def _populate_publish_metadata(session: IpBroadcastSession) -> None:
@@ -1335,6 +1660,7 @@ def _write_publish_package(session: IpBroadcastSession) -> None:
         "hashtags": hashtags,
         "preferred_platforms": preferred_platforms,
         "script": script,
+        "spoken_script": str(session.state.get("spoken_script") or script).strip(),
         "script_summary": script[:80],
         "platform_suggestions": _build_platform_suggestions(
             session.state.get("title", ""),
@@ -1388,9 +1714,9 @@ def _build_platform_suggestions(
             "hashtags": hashtags,
         },
     }
-    ordered_keys = [
-        key for key in (preferred_platforms or []) if key in suggestions
-    ] + [key for key in suggestions if key not in (preferred_platforms or [])]
+    ordered_keys = [key for key in (preferred_platforms or []) if key in suggestions] + [
+        key for key in suggestions if key not in (preferred_platforms or [])
+    ]
     return {key: suggestions[key] for key in ordered_keys}
 
 
@@ -1413,9 +1739,26 @@ def _build_cover_title(session: IpBroadcastSession) -> str:
     explicit = str(session.state.get("cover_title") or "").strip()
     if explicit:
         return explicit
-    return str(session.state.get("title") or "").strip() or _shorten_title(
-        str(session.state.get("final_script") or "")
-    )
+    title = str(session.state.get("title") or "").strip()
+    if session.state.get("subtitle_preset") != "readable_v2":
+        return title or _shorten_title(str(session.state.get("final_script") or ""))
+    selected_title = str(session.state.get("selected_title") or "").strip()
+    if selected_title and _display_characters(selected_title) <= 24:
+        return selected_title
+    if title and _display_characters(title) <= 24:
+        return title
+    hooks = {
+        "团购转化": "到店优惠先看清楚",
+        "门店探店": "到店前先看这件事",
+        "新品推荐": "门店新品先了解",
+        "老板人设": "老板经验先讲清楚",
+        "客户案例": "真实案例先看结果",
+    }
+    return hooks.get(str(session.state.get("business_goal_name") or ""), "门店经营重点先讲清楚")
+
+
+def _display_characters(value: str) -> int:
+    return len(value.replace("\r\n", "\n").replace("\r", "\n"))
 
 
 def _build_comment_cta(business_goal: str) -> str:
@@ -1464,7 +1807,9 @@ def _resolve_v2_audio_path(resource_id: str, fallback: str) -> str:
             from pixelle_video.services.assets_v2.repository import AssetLibraryRepository
 
             repository = AssetLibraryRepository()
-            asset = repository.get_asset(resource_id) or repository.get_asset_by_legacy_id("audio", resource_id)
+            asset = repository.get_asset(resource_id) or repository.get_asset_by_legacy_id(
+                "audio", resource_id
+            )
             if asset is None:
                 # The production picker stores the stable VoiceProfile ID. The
                 # profile owns the audio revision, so resolve through the

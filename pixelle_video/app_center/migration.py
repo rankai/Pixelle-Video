@@ -10,6 +10,7 @@ import sqlite3
 import time
 import uuid
 from contextlib import contextmanager
+from copy import deepcopy
 from pathlib import Path
 from typing import Iterable
 
@@ -58,17 +59,83 @@ def _backup_path(path: Path) -> Path:
 
 
 def _seed_registry(conn: sqlite3.Connection, manifests: Iterable[dict]) -> None:
-    manifests = tuple(manifests)
+    expanded: list[dict] = []
+    for manifest in manifests:
+        versions = manifest.get("supported_versions", [manifest["version"]])
+        schema_by_version = manifest.get("input_schema_by_version", {})
+        for version in versions:
+            item = deepcopy(manifest)
+            item["version"] = str(version)
+            if version in schema_by_version:
+                item["input_schema"] = schema_by_version[version]
+            if str(manifest.get("app_id")) == "builtin.digital-human-video":
+                # Keep the historical 1.0.0 registry fact unchanged.  V2
+                # fields belong to the 1.1.0 seed; rewriting the old row
+                # would make a harmless startup look like registry drift.
+                if str(version) == "1.0.0":
+                    item["produced_artifact_types"] = ["video", "cover", "publish_copy"]
+                    item.pop("supported_versions", None)
+                    item.pop("input_schema_by_version", None)
+            expanded.append(item)
+    manifests = tuple(expanded)
     for manifest in manifests:
         app_id = str(manifest["app_id"])
         version = str(manifest["version"])
-        manifest_json = json.dumps(manifest, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        manifest_json = json.dumps(
+            manifest, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        )
         existing = conn.execute(
             "SELECT manifest_json, source FROM app_registry WHERE app_id = ? AND version = ?",
             (app_id, version),
         ).fetchone()
-        if existing and (existing[0] != manifest_json or existing[1] != "builtin_code"):
+        if existing and existing[1] != "builtin_code":
             raise AppCenterMigrationError(f"registry seed drift for {app_id}@{version}")
+        if existing and existing[0] != manifest_json:
+            try:
+                old_manifest = json.loads(existing[0])
+            except (TypeError, ValueError) as exc:
+                raise AppCenterMigrationError(
+                    f"registry seed drift for {app_id}@{version}"
+                ) from exc
+            additions = set(manifest) - set(old_manifest)
+            legacy_output_shape = (
+                app_id == "builtin.digital-human-video"
+                and version == "1.0.0"
+                and old_manifest.get("produced_artifact_types")
+                == ["video", "cover", "publish_copy", "spoken_script"]
+                and manifest.get("produced_artifact_types") == ["video", "cover", "publish_copy"]
+            )
+            legacy_v2_output_upgrade = (
+                app_id == "builtin.digital-human-video"
+                and version == "1.1.0"
+                and old_manifest.get("produced_artifact_types")
+                == ["video", "cover", "publish_copy"]
+                and manifest.get("produced_artifact_types")
+                == ["video", "cover", "publish_copy", "spoken_script"]
+            )
+            legacy_version_mapping = (
+                app_id == "builtin.digital-human-video"
+                and version in {"1.0.0", "1.1.0"}
+                and additions <= {"supported_versions", "input_schema_by_version"}
+                and (
+                    all(
+                        old_manifest.get(key) == manifest.get(key)
+                        for key in old_manifest
+                        if key not in {"supported_versions", "input_schema_by_version"}
+                    )
+                    or legacy_output_shape
+                    or (
+                        legacy_v2_output_upgrade
+                        and all(
+                            old_manifest.get(key) == manifest.get(key)
+                            for key in old_manifest
+                            if key != "produced_artifact_types"
+                        )
+                    )
+                )
+            )
+            if not legacy_version_mapping:
+                raise AppCenterMigrationError(f"registry seed drift for {app_id}@{version}")
         conn.execute(
             """
             INSERT INTO app_registry (
@@ -95,7 +162,9 @@ def _seed_registry(conn: sqlite3.Connection, manifests: Iterable[dict]) -> None:
     expected = {(str(item["app_id"]), str(item["version"])) for item in manifests}
     actual = {
         (row[0], row[1])
-        for row in conn.execute("SELECT app_id, version FROM app_registry WHERE source = 'builtin_code'")
+        for row in conn.execute(
+            "SELECT app_id, version FROM app_registry WHERE source = 'builtin_code'"
+        )
     }
     if not expected <= actual:
         raise AppCenterMigrationError("registry seed verification failed")
@@ -117,7 +186,9 @@ def migrate_app_center(
     path.parent.mkdir(parents=True, exist_ok=True)
     lock_path = path.with_suffix(path.suffix + ".lock")
     existed = path.exists()
-    script_path = Path(__file__).resolve().parents[2] / "docs/contracts/app-center/app-center-v1.sql"
+    script_path = (
+        Path(__file__).resolve().parents[2] / "docs/contracts/app-center/app-center-v1.sql"
+    )
     script = script_path.read_text(encoding="utf-8")
     checksum = _script_checksum(script)
 
@@ -180,7 +251,9 @@ def migrate_app_center(
                 staging.unlink()
             if isinstance(exc, AppCenterMigrationError):
                 raise
-            raise AppCenterMigrationError("app-center migration failed; database left unchanged") from exc
+            raise AppCenterMigrationError(
+                "app-center migration failed; database left unchanged"
+            ) from exc
     return path
 
 
