@@ -260,7 +260,7 @@ export type LibraryItemV2 = {
   display?: Record<string, string | number | boolean>;
   voice_profile?: { voice_id: string; legacy_id?: string | null; language: string; style: string; authorization_status: string };
   revision?: { revision_id?: string | null; version?: number | null; bytes?: number | null; sha256?: string | null };
-  scenes?: Array<{ scene_id: string; name: string; preview_url?: string; preview_media_type?: "image" | "video"; shot_size?: string | null; location?: string | null; outfit?: string | null; posture?: string | null; status?: string; sort_order?: number }>;
+  scenes?: Array<{ scene_id: string; name: string; preview_url?: string; preview_media_type?: "image" | "video"; source_revision_id?: string | null; width?: number | null; height?: number | null; duration_ms?: number | null; shot_size?: string | null; location?: string | null; outfit?: string | null; posture?: string | null; status?: string; sort_order?: number }>;
   brand?: { default_bgm_asset_id?: string | null; [key: string]: unknown };
   template?: { template_id?: string; display_name?: string; short_description?: string; full_description?: string; preview_url?: string | null; renderer_version?: string; cover_contract_json?: string; subtitle_contract_json?: string; [key: string]: unknown };
   layout_contract?: Record<string, unknown> | null;

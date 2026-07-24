@@ -1,0 +1,69 @@
+{
+  "evidence_type": "application_center_digital_human_dual_mode_server_implementation",
+  "recorded_at": "2026-07-24",
+  "stage": "DH-DUAL-1",
+  "gate": "PG-DH-B",
+  "status": "implementation_pass_with_boundary",
+  "scope": "server_normalizer_registry_media_validation_feature_gate",
+  "change_request": "CR-DH-DUAL-MODE-001",
+  "entry_review": "docs/reviews/application-publishing-program/DH-DUAL-0-entry-review-2026-07-24.md",
+  "git_baseline": {
+    "branch": "codex/dh-dual-mode-entry",
+    "head_before_stage": "aa0e1f554eae01884a1b1d0a9eaef348e57f3219",
+    "business_code_changed": true,
+    "provider_code_called": false,
+    "new_files": [
+      "pixelle_video/app_center/digital_human_input.py",
+      "pixelle_video/app_center/digital_human_workflow_catalog.py",
+      "pixelle_video/app_center/digital_human_feature_gate.py",
+      "tests/digital_human_dual_mode_server_test.py"
+    ],
+    "modified_files": [
+      "pixelle_video/app_center/ip_broadcast_adapter.py",
+      "pixelle_video/app_center/migration.py",
+      "pixelle_video/app_center/registry.py",
+      "pixelle_video/app_center/repository.py",
+      "pixelle_video/app_center/runner.py",
+      "pixelle_video/app_center/validation.py",
+      "pixelle_video/app_center/__init__.py",
+      "pixelle_video/services/assets_v2/repository.py"
+    ]
+  },
+  "implementation": {
+    "v1_v2_mapping": true,
+    "registry_versions": ["1.0.0", "1.1.0"],
+    "trusted_workflow_catalog": true,
+    "trusted_asset_resolver_seam": true,
+    "media_revision_validation": true,
+    "joint_feature_gate": true,
+    "provider_url_and_secret_rejection": true,
+    "runtime_gate_rollback_rejection": true,
+    "strict_input_types_and_scene_association": true,
+    "pinned_revision_resolution": true
+  },
+  "tests": {
+    "command": "uv run pytest -q tests/digital_human_dual_mode_server_test.py tests/digital_human_dual_mode_entry_contract_test.py tests/app_center_ip_broadcast_adapter_test.py tests/app_center_ip_broadcast_api_test.py tests/app_center_ip_broadcast_artifact_test.py tests/app_center_registry_test.py",
+    "result": "86 passed, 12 existing warnings",
+    "ruff": "passed",
+    "ruff_format": "passed",
+    "json_parse": "passed",
+    "git_diff_check": "passed"
+  },
+  "external_actions": {
+    "provider_calls": 0,
+    "browser_actions": 0,
+    "platform_writes": 0,
+    "final_publish_clicks": 0
+  },
+  "boundaries": [
+    "No real provider smoke in this Stage",
+    "Real AssetLibrary scene data and desktop picker are deferred to DH-DUAL-2",
+    "Candidate video workflow is not released",
+    "Subtitle/cover/final Artifact quality is deferred to DH-QUALITY-1 and DH-DUAL-3",
+    "PG-L Windows and platform publishing boundaries remain unchanged"
+  ],
+  "independent_review": {
+    "status": "passed_with_boundary",
+    "reviewer": "/root/dh_dual_entry_reviewer"
+  }
+}

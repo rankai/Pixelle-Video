@@ -185,7 +185,7 @@ export function AssetPickerDialog({
           {items.map((item) => {
             const Icon = icons[item.kind];
             const mediaSrc = item.cover_url || item.file_url || "";
-            const compatibility = getPickerCompatibility(item, context);
+              const compatibility = getPickerCompatibility(item, context);
             const choose = () => {
               if (compatibility.reason) {
                 recordAssetTelemetry("asset_picker_incompatible_seen", { kind: item.kind, entry: "picker" });
@@ -217,8 +217,8 @@ export function AssetPickerDialog({
             <div><strong>{activeItem.name} · 选择场景</strong><button type="button" onClick={() => setActiveItem(null)}>返回人物列表</button></div>
             <div className="library-picker-scene-grid">
                   {(activeItem.scenes || []).map((scene) => (
-                <button type="button" key={scene.scene_id} className={pendingScene === scene.scene_id ? "selected" : ""} onClick={() => { setPendingItem(activeItem); setPendingScene(scene.scene_id); }}>
-                  {scene.preview_url ? <PickerProtectedImage src={scene.preview_url} alt="" /> : null}<strong>{scene.name}</strong><span>{scene.shot_size || "默认景别"}</span>
+                <button type="button" key={scene.scene_id} className={pendingScene === scene.scene_id ? "selected" : ""} disabled={Boolean(context?.media_type && scene.preview_media_type && context.media_type !== scene.preview_media_type)} onClick={() => { setPendingItem(activeItem); setPendingScene(scene.scene_id); }}>
+                  {scene.preview_url ? scene.preview_media_type === "video" ? <PickerProtectedVideo src={scene.preview_url} title={scene.name} /> : <PickerProtectedImage src={scene.preview_url} alt="" /> : null}<strong>{scene.name}</strong><span>{scene.preview_media_type === "video" ? "视频场景" : "图片场景"} · {scene.shot_size || "默认景别"}</span>{context?.media_type && scene.preview_media_type && context.media_type !== scene.preview_media_type ? <small>与当前模式不匹配</small> : null}
                 </button>
                   ))}
             </div>
@@ -274,9 +274,29 @@ function getPickerCompatibility(item: LibraryItemV2, context?: PickerContext): {
     const duration = Number(item.summary.duration_ms || item.summary.reference_duration_ms || 0);
     if (duration > context.max_duration_ms) return { reason: `时长超过当前步骤上限 ${Math.round(context.max_duration_ms / 1000)} 秒` };
   }
+  if (context.media_type && item.kind === "digital_human") {
+    const compatibleScene = (item.scenes || []).some((scene) => scene.status !== "archived" && scene.preview_media_type === context.media_type);
+    if (!compatibleScene) return { reason: `当前模式只支持${context.media_type === "video" ? "视频" : "图片"}场景` };
+  }
   if (context.aspect_ratio) {
     const ratio = Number(item.summary.aspect_ratio || 0);
     if (ratio && Math.abs(ratio - context.aspect_ratio) > 0.15) return { reason: "画面比例与当前槽位不匹配" };
   }
   return {};
+}
+
+function PickerProtectedVideo({ src, title }: { src: string; title: string }) {
+  const [resolved, setResolved] = useState("");
+  useEffect(() => {
+    let disposed = false;
+    let current = "";
+    setResolved("");
+    void assetBlobUrl(src).then((url) => {
+      if (disposed) { URL.revokeObjectURL(url); return; }
+      current = url;
+      setResolved(url);
+    }).catch(() => { if (!disposed) setResolved(src); });
+    return () => { disposed = true; if (current) URL.revokeObjectURL(current); };
+  }, [src]);
+  return <video src={resolved || src} title={title} controls muted preload="metadata" />;
 }

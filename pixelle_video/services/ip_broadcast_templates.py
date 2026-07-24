@@ -132,7 +132,11 @@ def get_ip_broadcast_template_for_render(template_id: str | None) -> IPBroadcast
             layout_style = layout_contract["video_subtitle"]
             font_token = str(layout_style.get("font_token") or "")
             font = next(
-                (item for item in layout_contract.get("fonts", []) if item.get("token") == font_token),
+                (
+                    item
+                    for item in layout_contract.get("fonts", [])
+                    if item.get("token") == font_token
+                ),
                 {},
             )
             subtitle_contract = {
@@ -186,6 +190,8 @@ def resolve_ip_broadcast_fonts_dir() -> str | None:
 
 _SUBTITLE_STYLE_LIMITS = {
     "font_size": (16, 72),
+    "outline": (0, 8),
+    "shadow": (0, 8),
     "margin_v": (0, 500),
 }
 
@@ -302,8 +308,12 @@ def build_ass_force_style(
     if video_width and video_width != IP_BROADCAST_CANVAS_WIDTH:
         resolved_style = replace(
             resolved_style,
-            margin_l=_scale_template_px(resolved_style.margin_l, IP_BROADCAST_CANVAS_WIDTH, video_width),
-            margin_r=_scale_template_px(resolved_style.margin_r, IP_BROADCAST_CANVAS_WIDTH, video_width),
+            margin_l=_scale_template_px(
+                resolved_style.margin_l, IP_BROADCAST_CANVAS_WIDTH, video_width
+            ),
+            margin_r=_scale_template_px(
+                resolved_style.margin_r, IP_BROADCAST_CANVAS_WIDTH, video_width
+            ),
         )
     style = _merge_subtitle_style(resolved_style, overrides)
     parts = {
@@ -366,7 +376,9 @@ def _font_candidates(bold: bool = False) -> list[str]:
         "/usr/share/fonts/opentype/noto",
         "/usr/share/fonts/truetype/noto",
     ]
-    candidates = ([str(bundled)] if bundled else []) + [str(Path(root) / name) for root in roots if root for name in names]
+    candidates = ([str(bundled)] if bundled else []) + [
+        str(Path(root) / name) for root in roots if root for name in names
+    ]
     candidates.extend(
         [
             "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
@@ -650,7 +662,11 @@ def _contract_line_height(font_size: int, value: Any, fallback: float = 1.2) -> 
         numeric = float(value)
     except (TypeError, ValueError):
         numeric = fallback
-    return max(font_size, round(font_size * numeric)) if numeric < 8 else max(font_size, round(numeric))
+    return (
+        max(font_size, round(font_size * numeric))
+        if numeric < 8
+        else max(font_size, round(numeric))
+    )
 
 
 def _contract_box_lines(
@@ -692,10 +708,17 @@ def _draw_contract_text(
             line_x = x + max(0, (width - line_width) // 2)
         elif align == "right":
             line_x = x + max(0, width - line_width)
-        draw.text((line_x, y), line, font=font, fill=fill, stroke_width=1, stroke_fill=(0, 0, 0, 140))
-        rendered.append({"text": line, "x": line_x, "y": y, "width": line_width, "height": line_height})
+        draw.text(
+            (line_x, y), line, font=font, fill=fill, stroke_width=1, stroke_fill=(0, 0, 0, 140)
+        )
+        rendered.append(
+            {"text": line, "x": line_x, "y": y, "width": line_width, "height": line_height}
+        )
         y += line_height
-    return {"lines": rendered, "box": {"x": x, "y": int(box.get("y") or 0), "width": width, "height": height}}
+    return {
+        "lines": rendered,
+        "box": {"x": x, "y": int(box.get("y") or 0), "width": width, "height": height},
+    }
 
 
 def _render_contract_cover(
@@ -712,28 +735,44 @@ def _render_contract_cover(
     height = int(canvas.get("height") or IP_BROADCAST_CANVAS_HEIGHT)
     source = _local_background_path(background, template)
     try:
-        image = Image.open(source).convert("RGB") if source else Image.new("RGB", (width, height), "#111827")
+        image = (
+            Image.open(source).convert("RGB")
+            if source
+            else Image.new("RGB", (width, height), "#111827")
+        )
     except (OSError, ValueError):
         image = Image.new("RGB", (width, height), "#111827")
-    canvas_image = ImageOps.fit(image, (width, height), method=Image.Resampling.LANCZOS).convert("RGBA")
+    canvas_image = ImageOps.fit(image, (width, height), method=Image.Resampling.LANCZOS).convert(
+        "RGBA"
+    )
     overlay = Image.new("RGBA", (width, height), (0, 0, 0, 112))
     canvas_image = Image.alpha_composite(canvas_image, overlay)
     draw = ImageDraw.Draw(canvas_image, "RGBA")
-    fonts = {str(item.get("token")): item for item in contract.get("fonts", []) if isinstance(item, dict)}
+    fonts = {
+        str(item.get("token")): item for item in contract.get("fonts", []) if isinstance(item, dict)
+    }
     cover = contract.get("cover") or {}
     for key, value in (("title", title), ("subtitle", subtitle)):
         box = cover.get(key) or {}
         font_token = str(box.get("font_token") or "")
-        identity = resolve_registered_font(str(fonts.get(font_token, {}).get("font_id") or "noto-sans-sc-bold"))
+        identity = resolve_registered_font(
+            str(fonts.get(font_token, {}).get("font_id") or "noto-sans-sc-bold")
+        )
         font_path = identity.get("font_path") if identity else None
         font_size = int(box.get("font_size") or 32)
-        font = ImageFont.truetype(str(font_path), font_size) if font_path else _load_cover_font(font_size, bold=True)
+        font = (
+            ImageFont.truetype(str(font_path), font_size)
+            if font_path
+            else _load_cover_font(font_size, bold=True)
+        )
         panel_color = (17, 24, 39, 105 if key == "title" else 92)
         x = int(box.get("x") or 0)
         y = int(box.get("y") or 0)
         box_width = int(box.get("width") or width)
         box_height = int(box.get("height") or 180)
-        draw.rounded_rectangle((x - 10, y - 10, x + box_width + 10, y + box_height + 10), radius=22, fill=panel_color)
+        draw.rounded_rectangle(
+            (x - 10, y - 10, x + box_width + 10, y + box_height + 10), radius=22, fill=panel_color
+        )
         _draw_contract_text(draw, value, box, font)
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     canvas_image.convert("RGB").save(output_path, format="PNG")
@@ -752,11 +791,19 @@ def wrap_template_subtitle_text(
         return text
     box = contract.get("video_subtitle") or {}
     font_token = str(box.get("font_token") or "")
-    font_item = next((item for item in contract.get("fonts", []) if item.get("token") == font_token), {})
+    font_item = next(
+        (item for item in contract.get("fonts", []) if item.get("token") == font_token), {}
+    )
     identity = resolve_registered_font(str(font_item.get("font_id") or "noto-sans-sc-bold"))
     font_path = identity.get("font_path") if identity else None
-    scaled_size = max(1, round(int(box.get("font_size") or 48) * video_height / IP_BROADCAST_CANVAS_HEIGHT))
-    font = ImageFont.truetype(str(font_path), scaled_size) if font_path else _load_cover_font(scaled_size)
+    scaled_size = max(
+        1, round(int(box.get("font_size") or 48) * video_height / IP_BROADCAST_CANVAS_HEIGHT)
+    )
+    font = (
+        ImageFont.truetype(str(font_path), scaled_size)
+        if font_path
+        else _load_cover_font(scaled_size)
+    )
     margin_l = round(int(box.get("margin_l") or 0) * video_width / IP_BROADCAST_CANVAS_WIDTH)
     margin_r = round(int(box.get("margin_r") or 0) * video_width / IP_BROADCAST_CANVAS_WIDTH)
     draw = ImageDraw.Draw(Image.new("RGBA", (video_width, video_height), (0, 0, 0, 0)))

@@ -1,0 +1,78 @@
+{
+  "contract_id": "digital-human-quality-entry",
+  "fixtures": [
+    {
+      "id": "custom-script-exact",
+      "valid": true,
+      "source": {"mode": "custom_script", "script": "打架先动手和后动手有什么区别？门店纠纷先保留证据，再按流程处理。"},
+      "expected": {"llm_calls_from_media_adapter": 0, "script_mutated": false}
+    },
+    {
+      "id": "marketing-copy-upstream-artifact",
+      "valid": true,
+      "source": {"mode": "copywriting_artifact", "source_artifact_version_id": "av-copy-1", "selected_variant_index": 1, "artifact_state": "completed", "artifact_project_id": "project-a"},
+      "expected": {"llm_owner": "builtin.marketing-copy", "media_adapter_llm_calls": 0}
+    },
+    {
+      "id": "selected-title-bound-copy",
+      "valid": true,
+      "source": {"mode": "title_plus_copywriting", "title_artifact_version_id": "av-title-1", "source_artifact_version_id": "av-copy-1", "selected_variant_index": 0, "title_project_id": "project-a", "copy_project_id": "project-a"},
+      "expected": {"spoken_script_source": "av-copy-1"}
+    },
+    {
+      "id": "goal-is-not-spoken-script",
+      "valid": false,
+      "error": "DH_QUALITY_CUSTOM_SCRIPT_MUTATION",
+      "source": {"mode": "custom_script", "goal": "为新店开业做一条视频"}
+    },
+    {
+      "id": "title-only-rejected",
+      "valid": false,
+      "error": "DH_QUALITY_TITLE_REQUIRES_COPY",
+      "source": {"mode": "title_plus_copywriting", "title_artifact_version_id": "av-title-1", "selected_variant_index": 0}
+    },
+    {
+      "id": "cross-project-binding-rejected",
+      "valid": false,
+      "error": "DH_QUALITY_SOURCE_BINDING_MISMATCH",
+      "source": {"mode": "title_plus_copywriting", "title_artifact_version_id": "av-title-1", "source_artifact_version_id": "av-copy-1", "selected_variant_index": 0, "title_project_id": "project-a", "copy_project_id": "project-b"}
+    },
+    {
+      "id": "cover-title-hard-limit",
+      "valid": false,
+      "error": "DH_QUALITY_COVER_TITLE_TOO_LONG",
+      "cover_title": "这是一条超过二十四个显示字符硬上限的封面标题示例"
+    },
+    {
+      "id": "cover-prefix-fallback-rejected",
+      "valid": false,
+      "error": "DH_QUALITY_COVER_FALLBACK_INVALID",
+      "fallback": {"cover_title": "完整口播文案前四十个字符直接截断", "source": "spoken_script_prefix"}
+    },
+    {
+      "id": "new-run-readable-v2",
+      "valid": true,
+      "delivery": {"subtitle_preset": "readable_v2", "default_enabled": true, "burned_in": true, "cover_title": "新店开业优惠先看"},
+      "expected": {"default_preview": "final_video", "raw_artifact_role": "diagnostic_only"}
+    },
+    {
+      "id": "old-run-style-preserved",
+      "valid": true,
+      "run": {"app_version": "1.0.0", "subtitle_preset": null, "status": "needs_review"},
+      "expected": {"render_semantics": "preserve_original"}
+    },
+    {
+      "id": "artifact-incomplete-blocks-accept",
+      "valid": false,
+      "error": "DH_QUALITY_FINAL_ARTIFACT_INCOMPLETE",
+      "artifacts": {"final_video": {"video_stream": true, "audio_stream": false, "burned_subtitles": false}, "cover": true, "publish_copy": true}
+    }
+  ],
+  "entry_expectations": {
+    "business_code_changed": false,
+    "provider_calls": 0,
+    "browser_platform_actions": 0,
+    "final_publish_clicks": 0,
+    "default_flags_changed": false
+  }
+}

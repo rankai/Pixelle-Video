@@ -117,6 +117,11 @@ class IpBroadcastAppRunCreateRequest(BaseModel):
     context_snapshot_id: str | None = Field(default=None, min_length=1, max_length=200)
 
 
+class IpBroadcastProviderRetryPlanRequest(BaseModel):
+    root_cause: str = Field(min_length=1, max_length=500)
+    retry_reason: str = Field(min_length=1, max_length=500)
+
+
 class IpBroadcastAppRunResponse(BaseModel):
     app_run_id: str
     project_id: str

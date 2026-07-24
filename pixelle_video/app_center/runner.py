@@ -70,7 +70,14 @@ class AppRunnerConfigurationError(RuntimeError):
 
 
 class AppRunner:
-    def __init__(self, repository: AppCenterRepository, *, executors: dict[str, AppExecutor] | None = None, task_projector=None, enforce_readiness: bool = True):
+    def __init__(
+        self,
+        repository: AppCenterRepository,
+        *,
+        executors: dict[str, AppExecutor] | None = None,
+        task_projector=None,
+        enforce_readiness: bool = True,
+    ):
         self.repository = repository
         self.executors = executors or {}
         self.task_projector = task_projector
@@ -88,7 +95,7 @@ class AppRunner:
     async def run(self, app_run_id: str, *, task_id: str | None = None) -> AppRun:
         run = self.repository.get_app_run(app_run_id)
         if self.enforce_readiness:
-            manifest = get_app(run.app_id)
+            manifest = get_app(run.app_id, version=run.app_version)
             if manifest is None or manifest["version"] != run.app_version:
                 raise AppRunnerConfigurationError("应用版本未登记")
             readiness = manifest["readiness"]
@@ -103,22 +110,36 @@ class AppRunner:
             return run
         run = self.repository.transition_app_run(app_run_id, "running")
         previous_attempts = self.repository.list_attempts(app_run_id)
-        task_id = task_id or (previous_attempts[-1].task_id if previous_attempts and previous_attempts[-1].task_id else None)
+        task_id = task_id or (
+            previous_attempts[-1].task_id
+            if previous_attempts and previous_attempts[-1].task_id
+            else None
+        )
         projected_task = None
         if self.task_projector:
             if task_id:
                 projected_task = self.task_projector.manager.get_task(task_id)
             else:
                 projected_task = self.task_projector.create(run)
-        attempt = self.repository.create_attempt(app_run_id, task_id=projected_task.task_id if projected_task else task_id)
+        attempt = self.repository.create_attempt(
+            app_run_id, task_id=projected_task.task_id if projected_task else task_id
+        )
         started_monotonic = time.perf_counter()
         self._active_attempts[app_run_id] = (attempt.attempt_id, attempt.task_id)
-        self.repository.update_attempt(attempt.attempt_id, state="running", started_at=run.updated_at)
+        self.repository.update_attempt(
+            attempt.attempt_id, state="running", started_at=run.updated_at
+        )
         if projected_task:
             self.task_projector.update(run, projected_task.task_id)
         executor = self.executors.get(run.app_id)
         if executor is None:
-            result = await self._fail(run, attempt.attempt_id, "APP_EXECUTOR_NOT_REGISTERED", "应用尚未注册执行器", started_monotonic=started_monotonic)
+            result = await self._fail(
+                run,
+                attempt.attempt_id,
+                "APP_EXECUTOR_NOT_REGISTERED",
+                "应用尚未注册执行器",
+                started_monotonic=started_monotonic,
+            )
             self._project(result, attempt.task_id)
             self._active_attempts.pop(app_run_id, None)
             return result
@@ -126,7 +147,12 @@ class AppRunner:
             output = await executor.execute(run)
             current = self.repository.get_app_run(app_run_id)
             if app_run_id in self._cancel_requested or current.state == "cancelled":
-                self.repository.update_attempt(attempt.attempt_id, state="cancelled", completed_at=current.updated_at, duration_ms=self._duration_ms(started_monotonic))
+                self.repository.update_attempt(
+                    attempt.attempt_id,
+                    state="cancelled",
+                    completed_at=current.updated_at,
+                    duration_ms=self._duration_ms(started_monotonic),
+                )
                 result = self.repository.get_app_run(app_run_id)
                 self._project(result, attempt.task_id)
                 self._active_attempts.pop(app_run_id, None)
@@ -153,7 +179,12 @@ class AppRunner:
                     )
                     related_artifact_ids.append(related_version.artifact_id)
                     related_version_ids[related.key] = related_version.artifact_version_id
-                artifact = self.repository.create_artifact(run.project_id, output.artifact_type, output.name, source_app_run_id=run.app_run_id)
+                artifact = self.repository.create_artifact(
+                    run.project_id,
+                    output.artifact_type,
+                    output.name,
+                    source_app_run_id=run.app_run_id,
+                )
                 created_artifact_ids.append(artifact.artifact_id)
                 version = self.repository.append_artifact_version(
                     artifact.artifact_id,
@@ -161,7 +192,9 @@ class AppRunner:
                     file_refs=output.file_refs,
                     source=output.source,
                 )
-                self.repository.set_output_artifacts(run.app_run_id, [version.artifact_id, *related_artifact_ids])
+                self.repository.set_output_artifacts(
+                    run.app_run_id, [version.artifact_id, *related_artifact_ids]
+                )
             except Exception:
                 # Compensate only artifacts created by this attempt.  A retry
                 # must preserve prior successful ArtifactVersion history.
@@ -182,22 +215,50 @@ class AppRunner:
             self._active_attempts.pop(app_run_id, None)
             return result
         except AppLLMPortError as exc:
-            result = await self._fail(run, attempt.attempt_id, exc.code, str(exc), diagnostic=exc.diagnostic, started_monotonic=started_monotonic)
+            result = await self._fail(
+                run,
+                attempt.attempt_id,
+                exc.code,
+                str(exc),
+                diagnostic=exc.diagnostic,
+                started_monotonic=started_monotonic,
+            )
             self._project(result, attempt.task_id)
             self._active_attempts.pop(app_run_id, None)
             return result
         except Exception as exc:
             current = self.repository.get_app_run(app_run_id)
             if app_run_id in self._cancel_requested or current.state == "cancelled":
-                self.repository.update_attempt(attempt.attempt_id, state="cancelled", completed_at=current.updated_at, duration_ms=self._duration_ms(started_monotonic))
+                self.repository.update_attempt(
+                    attempt.attempt_id,
+                    state="cancelled",
+                    completed_at=current.updated_at,
+                    duration_ms=self._duration_ms(started_monotonic),
+                )
                 result = current
             else:
-                result = await self._fail(run, attempt.attempt_id, "APP_EXECUTOR_FAILED", "应用执行失败", diagnostic=type(exc).__name__, started_monotonic=started_monotonic)
+                result = await self._fail(
+                    run,
+                    attempt.attempt_id,
+                    "APP_EXECUTOR_FAILED",
+                    "应用执行失败",
+                    diagnostic=type(exc).__name__,
+                    started_monotonic=started_monotonic,
+                )
             self._project(result, attempt.task_id)
             self._active_attempts.pop(app_run_id, None)
             return result
 
-    async def _fail(self, run: AppRun, attempt_id: str, code: str, message: str, *, diagnostic: str | None = None, started_monotonic: float | None = None) -> AppRun:
+    async def _fail(
+        self,
+        run: AppRun,
+        attempt_id: str,
+        code: str,
+        message: str,
+        *,
+        diagnostic: str | None = None,
+        started_monotonic: float | None = None,
+    ) -> AppRun:
         current = self.repository.get_app_run(run.app_run_id)
         if current.state == "cancelled":
             values = {"state": "cancelled", "completed_at": current.updated_at}
@@ -230,7 +291,9 @@ class AppRunner:
         if not attempts or attempts[-1].state != "needs_review" or not current.output_artifact_ids:
             raise AppCenterRepositoryError("AppRun has no reviewable output")
         result = self.repository.transition_app_run(app_run_id, "completed")
-        self.repository.update_attempt(attempts[-1].attempt_id, state="completed", completed_at=result.completed_at)
+        self.repository.update_attempt(
+            attempts[-1].attempt_id, state="completed", completed_at=result.completed_at
+        )
         self._project(result, attempts[-1].task_id if attempts else None)
         return result
 
@@ -239,7 +302,9 @@ class AppRunner:
         result = self.repository.cancel_app_run(app_run_id)
         attempts = self.repository.list_attempts(app_run_id)
         if attempts and attempts[-1].state not in {"completed", "failed", "cancelled"}:
-            self.repository.update_attempt(attempts[-1].attempt_id, state="cancelled", completed_at=result.completed_at)
+            self.repository.update_attempt(
+                attempts[-1].attempt_id, state="cancelled", completed_at=result.completed_at
+            )
         self._project(result, attempts[-1].task_id if attempts else None)
         return result
 

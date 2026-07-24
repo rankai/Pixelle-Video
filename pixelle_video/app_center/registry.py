@@ -30,7 +30,11 @@ BUILTIN_MANIFESTS: tuple[dict[str, Any], ...] = (
         "required_capabilities": ["llm"],
         "accepted_artifact_types": ["brief"],
         "produced_artifact_types": ["copywriting"],
-        "handoff_targets": ["builtin.viral-titles", "builtin.douyin-carousel", "builtin.digital-human-video"],
+        "handoff_targets": [
+            "builtin.viral-titles",
+            "builtin.douyin-carousel",
+            "builtin.digital-human-video",
+        ],
         "feature_flag": "contentApps",
         "sort_order": 10,
     },
@@ -69,7 +73,12 @@ BUILTIN_MANIFESTS: tuple[dict[str, Any], ...] = (
         "output_schema": "douyin-carousel-output.v1",
         "required_capabilities": ["llm", "template"],
         "accepted_artifact_types": ["copywriting", "selected_title"],
-        "produced_artifact_types": ["carousel_plan", "carousel_page", "carousel_package", "publish_copy"],
+        "produced_artifact_types": [
+            "carousel_plan",
+            "carousel_page",
+            "carousel_package",
+            "publish_copy",
+        ],
         "handoff_targets": [],
         "feature_flag": "douyinCarousel",
         "sort_order": 30,
@@ -78,6 +87,11 @@ BUILTIN_MANIFESTS: tuple[dict[str, Any], ...] = (
         "schema_version": 1,
         "app_id": "builtin.digital-human-video",
         "version": "1.0.0",
+        "supported_versions": ["1.0.0", "1.1.0"],
+        "input_schema_by_version": {
+            "1.0.0": "digital-human-video-input.v1",
+            "1.1.0": "digital-human-video-input.v2",
+        },
         "name": "数字人口播视频",
         "description": "复用既有口播链路制作视频",
         "category": "video",
@@ -89,7 +103,7 @@ BUILTIN_MANIFESTS: tuple[dict[str, Any], ...] = (
         "output_schema": "digital-human-video-output.v1",
         "required_capabilities": ["llm", "runninghub", "digital_human"],
         "accepted_artifact_types": ["copywriting", "selected_title"],
-        "produced_artifact_types": ["video", "cover", "publish_copy"],
+        "produced_artifact_types": ["video", "cover", "publish_copy", "spoken_script"],
         "handoff_targets": [],
         "feature_flag": "digitalHumanInAppCenter",
         "sort_order": 40,
@@ -141,11 +155,29 @@ def _effective_manifest(manifest: dict[str, Any], capabilities: set[str]) -> dic
 
 def list_effective_apps() -> list[dict[str, Any]]:
     capabilities = configured_capabilities()
-    return [_effective_manifest(item, capabilities) for item in sorted(BUILTIN_MANIFESTS, key=lambda value: value["sort_order"])]
+    return [
+        _effective_manifest(item, capabilities)
+        for item in sorted(BUILTIN_MANIFESTS, key=lambda value: value["sort_order"])
+    ]
 
 
-def get_app(app_id: str) -> dict[str, Any] | None:
-    return next((item for item in list_effective_apps() if item["app_id"] == app_id), None)
+def get_app(app_id: str, *, version: str | None = None) -> dict[str, Any] | None:
+    item = next((item for item in list_effective_apps() if item["app_id"] == app_id), None)
+    if item is None or version is None:
+        return item
+    supported = set(item.get("supported_versions", [item.get("version")]))
+    if version not in supported:
+        return None
+    resolved = deepcopy(item)
+    resolved["version"] = version
+    schema_by_version = resolved.get("input_schema_by_version", {})
+    if version in schema_by_version:
+        resolved["input_schema"] = schema_by_version[version]
+    return resolved
+
+
+def is_app_version_supported(app_id: str, version: str) -> bool:
+    return get_app(app_id, version=version) is not None
 
 
 def get_app_readiness(app_id: str) -> dict[str, Any] | None:

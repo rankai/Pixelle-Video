@@ -1,0 +1,81 @@
+{
+  "stage": "DH-QUALITY-1",
+  "gate": "PG-DH-D",
+  "status": "implementation_pass_with_boundary",
+  "implementation": {
+    "canonical_content_modes": [
+      "custom_script",
+      "copywriting_artifact",
+      "generated_marketing_copy",
+      "title_plus_copywriting"
+    ],
+    "aliases": {
+      "marketing_copy_artifact": "copywriting_artifact",
+      "selected_title_with_copy": "title_plus_copywriting"
+    },
+    "delivery_fields": [
+      "publish_title",
+      "publish_description",
+      "cover_title",
+      "hashtags",
+      "subtitle_preset",
+      "subtitle_enabled"
+    ],
+    "artifacts_v2": [
+      "video",
+      "cover",
+      "publish_copy",
+      "spoken_script"
+    ],
+    "legacy_artifacts_preserved": [
+      "video",
+      "cover",
+      "publish_copy"
+    ],
+    "desktop_sources": [
+      "custom_script",
+      "copywriting_artifact",
+      "generated_marketing_copy",
+      "title_plus_copywriting"
+    ]
+  },
+  "tests": {
+    "quality_impl": {
+      "command": "uv run pytest -q tests/digital_human_quality_impl_test.py",
+      "result": "11 passed"
+    },
+    "python_targeted": {
+      "command": "uv run pytest -q tests/digital_human_quality_impl_test.py tests/digital_human_dual_mode_server_test.py tests/app_center_ip_broadcast_api_test.py tests/app_center_ip_broadcast_adapter_test.py tests/app_center_ip_broadcast_artifact_test.py tests/ip_broadcast_productization_test.py",
+      "result": "107 passed, 12 warnings"
+    },
+    "desktop_targeted": {
+      "command": "cd desktop && npm test -- --run src/features/app-center/DigitalHumanApplicationView.test.tsx src/features/app-center/ApplicationCenterView.test.tsx src/features/assets/components/AssetPickerDialog.test.tsx",
+      "result": "19 passed"
+    },
+    "desktop_build": {
+      "command": "cd desktop && npm run build",
+      "result": "passed"
+    },
+    "static_checks": {
+      "result": "ruff check/format, JSON parse, git diff --check passed"
+    }
+  },
+  "external_actions": {
+    "provider_calls": 0,
+    "llm_calls": 0,
+    "tts_calls": 0,
+    "browser_platform_actions": 0,
+    "uploads": 0,
+    "final_publish_clicks": 0
+  },
+  "boundaries": [
+    "真实 provider、媒体抽帧和恢复矩阵后置 DH-QUALITY-2/DH-DUAL-3",
+    "最终发布自动点击保持关闭",
+    "独立六维复审按用户要求延后至 Program 完成"
+  ],
+  "independent_review": {
+    "status": "deferred_by_user_until_program_complete",
+    "required_p0_p1": 0,
+    "not_run_for_this_implementation_batch": true
+  }
+}
