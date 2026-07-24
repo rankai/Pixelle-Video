@@ -6,6 +6,7 @@ export type ResolvedFeatureFlags = {
   contentApps: boolean;
   douyinCarousel: boolean;
   digitalHumanInAppCenter: boolean;
+  digitalHumanDualModeV2: boolean;
   appCenterNewNav: boolean;
   publishCenterV2: boolean;
   assetCenterV2: boolean;
@@ -53,6 +54,12 @@ export function resolveFeatureFlags(env: FeatureFlagEnv): ResolvedFeatureFlags {
       env,
       "VITE_APP_CENTER_DIGITAL_HUMAN",
       ["VITE_DIGITAL_HUMAN_IN_APP_CENTER"],
+      false,
+    ),
+    digitalHumanDualModeV2: readCanonicalWithAliases(
+      env,
+      "VITE_APP_CENTER_DIGITAL_HUMAN_DUAL_MODE",
+      ["VITE_DIGITAL_HUMAN_DUAL_MODE_V2"],
       false,
     ),
     appCenterNewNav: readFlag(env, "VITE_APP_CENTER_NEW_NAV", false),

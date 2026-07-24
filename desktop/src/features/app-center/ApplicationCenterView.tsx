@@ -38,7 +38,9 @@ const categories = ["全部", "文案创作", "视频创作", "图文创作", "�
 function toApplication(manifest: ApplicationManifest): Application {
   const backendReady = manifest.readiness.status === "ready" && manifest.enabled;
   const isDigitalHuman = manifest.app_id === "builtin.digital-human-video";
-  const desktopReady = !isDigitalHuman || featureFlags.digitalHumanInAppCenter;
+  const desktopReady = !isDigitalHuman || (
+    featureFlags.digitalHumanInAppCenter && featureFlags.digitalHumanDualModeV2
+  );
   const ready = backendReady && desktopReady;
   const statusLabel = ready ? "" : "待上线";
   const statusTone = ready ? "success" : "warning";

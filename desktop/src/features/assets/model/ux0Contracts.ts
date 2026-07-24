@@ -76,6 +76,7 @@ export type PickerContext = {
   allowed_kinds: AssetViewKind[];
   aspect_ratio?: number;
   max_duration_ms?: number;
+  media_type?: "image" | "video";
   required_capabilities: string[];
   selection_mode: "single" | "multiple";
 };
