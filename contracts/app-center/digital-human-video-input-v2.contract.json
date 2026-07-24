@@ -1,0 +1,262 @@
+{
+  "contract_id": "digital-human-video-input-v2",
+  "schema_version": 2,
+  "app_id": "builtin.digital-human-video",
+  "new_app_version": "1.1.0",
+  "supported_resume_app_versions": ["1.0.0", "1.1.0"],
+  "registry_migration": {
+    "current_manifest_version": "1.0.0",
+    "new_manifest_version": "1.1.0",
+    "current_input_schema": "digital-human-video-input.v1",
+    "new_input_schema": "digital-human-video-input.v2",
+    "mapping_required_before_dh_dual_1": true,
+    "entry_does_not_mutate_registry": true
+  },
+  "feature_flags": {
+    "backend": "digitalHumanInAppCenter",
+    "dual_mode": "digitalHumanDualModeV2",
+    "desktop": "VITE_APP_CENTER_DIGITAL_HUMAN_DUAL_MODE",
+    "joint_gate": {
+      "backend_ready_required": true,
+      "desktop_ready_required": true,
+      "both_flags_must_be_on_for_v2": true,
+      "backend_off_preserves_v1_route": true,
+      "desktop_off_hides_v2_entry": true,
+      "dual_flag_cannot_bypass_backend_readiness": true
+    }
+  },
+  "scope": {
+    "content_source_and_digital_human_mode_are_independent": true,
+    "current_stage": "DH-DUAL-0",
+    "provider_calls_in_entry": 0,
+    "platform_actions_in_entry": 0,
+    "final_publish_clicks_in_entry": 0
+  },
+  "content_source": {
+    "field": "content_source.mode",
+    "modes": [
+      {
+        "mode": "custom_script",
+        "required": ["script"],
+        "uses_llm": false,
+        "artifact_requirement": "script_is_pinned_in_source_revision"
+      },
+      {
+        "mode": "copywriting_artifact",
+        "required": ["source_artifact_version_id", "selected_variant_index"],
+        "artifact_types": ["copywriting"],
+        "uses_llm": false,
+        "selection_key": "variants[].full_text"
+      },
+      {
+        "mode": "generated_marketing_copy",
+        "required": ["source_artifact_version_id", "selected_variant_index"],
+        "artifact_types": ["copywriting"],
+        "uses_llm": "upstream_marketing_copy_app_only",
+        "requires_completed_upstream_artifact": true
+      },
+      {
+        "mode": "title_plus_copywriting",
+        "required": ["title_artifact_version_id", "source_artifact_version_id", "selected_variant_index"],
+        "artifact_types": ["selected_title", "copywriting"],
+        "uses_llm": false,
+        "title_cannot_replace_script": true
+      }
+    ],
+    "forbidden_new_mode": "selected_title_without_script_source"
+  },
+  "digital_human": {
+    "field": "digital_human.mode",
+    "modes": [
+      {
+        "mode": "image_talking",
+        "asset_media_type": "image",
+        "workflow_capabilities": ["image_talking"],
+        "default_profile": "stable"
+      },
+      {
+        "mode": "video_lipsync",
+        "asset_media_type": "video",
+        "workflow_capabilities": ["video_lipsync"],
+        "default_profile": "natural"
+      }
+    ],
+    "required": ["mode", "portrait_id", "scene_id", "asset_revision_id", "workflow_profile"],
+    "server_resolves": [
+      "profile",
+      "scene",
+      "source_asset",
+      "source_revision",
+      "mime_type",
+      "width",
+      "height",
+      "duration_ms",
+      "sha256",
+      "status"
+    ],
+    "frontend_intent_is_not_media_proof": true,
+    "mode_change_creates_new_run": true,
+    "run_pins_asset_revision_and_workflow_revision": true
+  },
+  "workflow_profiles": [
+    {
+      "profile": "stable",
+      "mode": "image_talking",
+      "release_state": "pilot_verified",
+      "portrait_media_type": "image",
+      "current_candidate": "digital_combination.json",
+      "quality_tier": "standard",
+      "provider_live_required_before_default": true
+    },
+    {
+      "profile": "natural",
+      "mode": "image_talking",
+      "release_state": "candidate",
+      "portrait_media_type": "image",
+      "candidates": ["digital_talk_image_prompt.json", "digital_talk_fast_720p.json"],
+      "quality_tier": "candidate",
+      "provider_live_required_before_default": true
+    },
+    {
+      "profile": "natural",
+      "mode": "video_lipsync",
+      "release_state": "stable",
+      "portrait_media_type": "video",
+      "current_workflow": "digital_lip_sync_video.json",
+      "quality_tier": "natural_motion",
+      "provider_live_required_before_available": true,
+      "live_gate": "passed_with_boundary",
+      "default_mode": false,
+      "quality_evidence": "docs/reviews/application-publishing-program/qa/DH-QUALITY-2-video-live-gate-2026-07-24.json"
+    }
+  ],
+  "asset_preflight": {
+    "image": {
+      "allowed_mime": ["image/png", "image/jpeg"],
+      "minimum_short_edge_px": 720,
+      "recommended_canvas": "1080x1920",
+      "hard_checks": ["decodable", "ready", "scene_media_type=image", "revision_sha_matches"]
+    },
+    "video": {
+      "allowed_container": ["mp4", "mov"],
+      "preferred_codec": "h264",
+      "minimum_width": 720,
+      "minimum_height": 1280,
+      "minimum_duration_ms": 5000,
+      "maximum_duration_ms": 60000,
+      "hard_checks": ["decodable", "ready", "scene_media_type=video", "revision_sha_matches", "portrait_orientation_preferred"]
+    },
+    "unverified_human_quality_hints": [
+      "single_person",
+      "face_continuously_visible",
+      "avoid_fast_cuts",
+      "avoid_complex_fuzzy_edges",
+      "avoid_backlight_and_extreme_exposure"
+    ]
+  },
+  "delivery": {
+    "separate_fields": ["spoken_script", "publish_title", "publish_description", "cover_title", "hashtags"],
+    "cover_title": {
+      "recommended_character_range": [12, 18],
+      "hard_max_display_characters": 24,
+      "max_lines": 2,
+      "max_characters_per_line": 12,
+      "must_not_fallback_to_script_prefix": true
+    },
+    "subtitle": {
+      "default_preset": "readable_v2",
+      "burned_in": true,
+      "max_lines": 2,
+      "font_size_range": [44, 56],
+      "font_family": "Noto Sans CJK SC"
+    },
+    "default_preview_artifact": "final_video",
+    "raw_artifact_role": "diagnostic_only"
+  },
+  "outputs": {
+    "required_user_artifacts": ["video", "cover", "publish_copy", "spoken_script"],
+    "internal_artifacts": ["audio", "digital_human_video"],
+    "video_means": "final_video_with_audio_and_burned_subtitles",
+    "publish_package_owner": "publishing_domain",
+    "accept_requires_complete_outputs": true,
+    "accept_does_not_publish": true
+  },
+  "v1_compatibility": {
+    "blank_project_goal": "custom_script.script",
+    "copywriting_source": "copywriting_artifact",
+    "selected_title_resume": "resume_only; new_v2_run_requires_script_source",
+    "old_pinned_workflow": "resume_original_trusted_revision",
+    "old_run_artifacts_preserved": true,
+    "old_legacy_route_preserved_when_flag_off": true
+  },
+  "error_codes": [
+    "INPUT_PAYLOAD_INVALID",
+    "DIGITAL_HUMAN_MODE_REQUIRED",
+    "DIGITAL_HUMAN_MODE_INVALID",
+    "DIGITAL_HUMAN_ASSET_REQUIRED",
+    "DIGITAL_HUMAN_SCENE_REQUIRED",
+    "DIGITAL_HUMAN_ASSET_NOT_READY",
+    "DIGITAL_HUMAN_ASSET_REVISION_MISMATCH",
+    "DIGITAL_HUMAN_PORTRAIT_SCENE_MISMATCH",
+    "DIGITAL_HUMAN_SCENE_NOT_READY",
+    "DIGITAL_HUMAN_MEDIA_TYPE_MISMATCH",
+    "DIGITAL_HUMAN_WORKFLOW_PROFILE_INVALID",
+    "DIGITAL_HUMAN_WORKFLOW_NOT_RELEASED",
+    "DIGITAL_HUMAN_VIDEO_DURATION_INVALID",
+    "DIGITAL_HUMAN_VIDEO_GEOMETRY_INVALID",
+    "DIGITAL_HUMAN_CONTENT_SOURCE_INCOMPLETE",
+    "DIGITAL_HUMAN_TITLE_REQUIRES_SCRIPT",
+    "DIGITAL_HUMAN_FINAL_ARTIFACT_MISSING"
+  ],
+  "security": {
+    "frontend_must_not_send": [
+      "api_key",
+      "token",
+      "cookie",
+      "authorization",
+      "provider_credentials",
+      "provider_url",
+      "absolute_path",
+      "workflow_file_path",
+      "runninghub_webapp_id"
+    ],
+    "server_must_not_persist": ["secret", "cookie", "authorization_header", "absolute_path"],
+    "workflow_selection": "profile_allowlist_only",
+    "safe_error_response": "stable_code_without_secret_or_absolute_path"
+  },
+  "live_test_policy": {
+    "entry_provider_calls": 0,
+    "post_entry_image_calls": 1,
+    "post_entry_video_calls": 1,
+    "candidate_image_ab_calls": "only_if_a_specific_quality_question_requires_it",
+    "blind_retries": false,
+    "failure_requires_diagnosis_before_retry": true,
+    "final_publish_clicks": 0,
+    "platform_actions": 0
+  },
+  "forbidden_in_entry": [
+    "rewrite_ip_broadcast_workflow",
+    "modify_digital_human_application_business_ui",
+    "modify_ip_broadcast_adapter_business_behavior",
+    "real_runninghub_provider_call",
+    "real_browser_or_platform_action",
+    "douyin_authorization_upload_or_final_publish",
+    "second_model_configuration_source",
+    "admin_rbac_plan_payment_or_multitenant_control_plane",
+    "destructive_migration"
+  ],
+  "gate": {
+    "name": "PG-DH-A",
+    "entry_status": "entry_in_progress",
+    "requires": [
+      "cr_registered",
+      "plan_sha_recorded",
+      "contract_and_fixture_validated",
+      "v1_compatibility_recorded",
+      "rollback_recorded",
+      "independent_six_dimension_review_p0_p1_zero",
+      "provider_calls_zero"
+    ],
+    "next_stage": "DH-DUAL-1"
+  }
+}

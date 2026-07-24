@@ -1672,6 +1672,72 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#stage-dh-dual-2ac-51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        已完成 Stage 控制卡：DH-DUAL-2（AC-5.1 数字人双模式桌面入口与资产选择器）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dh-quality-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DH-QUALITY-1 控制卡（已归档）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dh-quality-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DH-QUALITY-2 控制卡（已归档）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dh-dual-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DH-DUAL-3 控制卡（已归档）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dh-dual-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DH-DUAL-4 控制卡（已归档）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-program-rolloutpg-l" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        当前 Stage 控制卡：PROGRAM-ROLLOUT/PG-L（上位外部等待）
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1732,19 +1798,21 @@
 
 <h1 id="program">应用中心与桌面自动发布 Program 进度台账<a class="headerlink" href="#program" title="Permanent link">&para;</a></h1>
 <p>current_stage: PROGRAM-ROLLOUT
+current_substage: PG-L
 current_stage_status: waiting_user
 program_status: in_progress
-gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user</p>
+gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user
+completed_subplan_gate: PG-DH-E_video_stable_non_default</p>
 <ul>
 <li>日期：2026-07-18</li>
 <li>上位方案：<code>docs/superpowers/specs/2026-07-18-application-center-publishing-program-master-plan.md</code></li>
 <li>执行模式：单 Luna 严格串行</li>
 <li>当前 Program 状态：<code>in_progress</code></li>
 <li>启动审查结论：<code>conditional_go_for_coord_0_only</code></li>
-<li>当前 Stage：<code>PROGRAM-ROLLOUT</code></li>
-<li>当前 Stage 状态：<code>waiting_user</code>（PLATFORM-EXPANSION 已按边界 Gate 收口；PG-L 当前等待 Windows 实机人工闭环，PG-L 仍保持 open）</li>
-<li>最后更新时间：2026-07-24（PR #5 已合并并完成本地/远端同步；Windows 人工安装证据、产品签字和真实 rollback/WebView 证据仍未回传；最终发布自动点击继续关闭）</li>
-<li>更新人：主线程 + 独立严格审查线程 <code>/root/pg_a_closure_reviewer_v3</code>、<code>/root/platform_expansion_foundation_reviewer</code></li>
+<li>当前 Stage：<code>PROGRAM-ROLLOUT/PG-L</code></li>
+<li>当前 Stage 状态：<code>waiting_user</code>（数字人视频模式已完成一次真实 Provider smoke 与 bounded visual gate，<code>video_lipsync/natural=stable</code>，但 <code>default_mode=false</code>，仍由图片模式默认；不自动发布；Program 级独立六维终审仍按用户要求延后。上位 PG-L 仍只等待 Windows 实机安装/启动/关闭重开/sidecar health、产品签字及真实 rollback/WebView 外部证据；不得把 hosted Runner 或本机隔离测试当实机证据；最终发布自动点击继续关闭）</li>
+<li>最后更新时间：2026-07-24（DH-QUALITY-2 视频真实质量门收口；PG-L 唯一外部入口不变）</li>
+<li>更新人：主线程/协调层 + 独立严格审查线程 <code>/root/dh_dual_entry_reviewer</code></li>
 </ul>
 <h2 id="1">1. 使用规则<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
 <ol>
@@ -1898,12 +1966,12 @@ gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user</p>
 <td style="text-align: right;">11</td>
 <td>PROGRAM-ROLLOUT</td>
 <td>AC-6 + PUB-7D</td>
-<td><code>implementation_in_progress</code></td>
+<td><code>paused_external</code></td>
 <td>PG-L</td>
 <td><code>entry_passed_with_boundary</code></td>
 <td>2026-07-21</td>
 <td>-</td>
-<td><a href="../application-publishing-program/PROGRAM-ROLLOUT-entry-2026-07-21/"><code>PROGRAM-ROLLOUT-entry-2026-07-21.md</code></a>；<a href="../../../contracts/publishing/program-rollout-entry.contract.json"><code>program-rollout-entry.contract.json</code></a>；Windows Runner 构建已通过，PG-L 保持 open；平台扩展边界已收口，恢复 Windows 外部闭环</td>
+<td><a href="../application-publishing-program/PROGRAM-ROLLOUT-entry-2026-07-21/"><code>PROGRAM-ROLLOUT-entry-2026-07-21.md</code></a>；<a href="../../../contracts/publishing/program-rollout-entry.contract.json"><code>program-rollout-entry.contract.json</code></a>；Windows Runner 构建已通过，PG-L 保持 open；由 CR-DH-DUAL-MODE-001 暂停，Windows 外部边界原样保留</td>
 </tr>
 <tr>
 <td style="text-align: right;">12</td>
@@ -1916,9 +1984,75 @@ gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user</p>
 <td>2026-07-23</td>
 <td><a href="../application-publishing-program/PLATFORM-EXPANSION-entry-2026-07-22/"><code>PLATFORM-EXPANSION-entry-2026-07-22.md</code></a>；<a href="../application-publishing-program/PLATFORM-EXPANSION-release-boundary-2026-07-23/"><code>PLATFORM-EXPANSION-release-boundary-2026-07-23.md</code></a>；<a href="../../../reviews/application-publishing-program/qa/PLATFORM-EXPANSION-release-boundary-2026-07-23.json"><code>qa/PLATFORM-EXPANSION-release-boundary-2026-07-23.json</code></a>；独立六维复审 P0/P1/实质性P2=0</td>
 </tr>
+<tr>
+<td style="text-align: right;">13</td>
+<td>DH-DUAL-MODE</td>
+<td>AC-5.1 数字人双模式与质量优化</td>
+<td><code>completed_with_boundary</code></td>
+<td>PG-DH-C</td>
+<td><code>passed_with_boundary</code></td>
+<td>2026-07-24</td>
+<td>2026-07-24</td>
+<td><a href="../../superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan/"><code>2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md</code></a>；<a href="../application-publishing-program/DH-DUAL-2-entry-2026-07-24/"><code>DH-DUAL-2-entry-2026-07-24.md</code></a>；<a href="../application-publishing-program/DH-DUAL-2-implementation-2026-07-24/"><code>DH-DUAL-2-implementation-2026-07-24.md</code></a>；<a href="../application-publishing-program/DH-DUAL-2-implementation-review-2026-07-24/"><code>DH-DUAL-2-implementation-review-2026-07-24.md</code></a>；67 Vitest、desktop build、110 backend；真实图片回填、视频模式禁用边界和改后“开始生成”证据；独立复审 P0/P1/实质性P2=0</td>
+</tr>
+<tr>
+<td style="text-align: right;">14</td>
+<td>DH-QUALITY-1</td>
+<td>AC-5.1 文案、标题、封面与字幕</td>
+<td><code>implementation_in_progress</code></td>
+<td>PG-DH-D</td>
+<td><code>implementation_in_progress</code></td>
+<td>2026-07-24</td>
+<td>-</td>
+<td><a href="../../superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan/"><code>2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md</code></a> §9.4；<a href="../application-publishing-program/DH-QUALITY-1-entry-2026-07-24/"><code>DH-QUALITY-1-entry-2026-07-24.md</code></a>；<a href="../application-publishing-program/DH-QUALITY-1-entry-review-2026-07-24/"><code>DH-QUALITY-1-entry-review-2026-07-24.md</code></a>；Entry 已通过，正在实现后端 delivery 归一化、来源/标题绑定、短封面标题、readable_v2 字幕与 Artifact 完整性；独立六维复审按用户要求延后至 Program 完成</td>
+</tr>
+<tr>
+<td style="text-align: right;">14</td>
+<td>DH-QUALITY-1</td>
+<td>AC-5.1 文案、标题、封面与字幕</td>
+<td><code>completed_with_boundary</code></td>
+<td>PG-DH-D</td>
+<td><code>implementation_pass_with_boundary</code></td>
+<td>2026-07-24</td>
+<td>2026-07-24</td>
+<td><a href="../../superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan/"><code>2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md</code></a> §9.4；<a href="../application-publishing-program/DH-QUALITY-1-entry-2026-07-24/"><code>DH-QUALITY-1-entry-2026-07-24.md</code></a>；<a href="../application-publishing-program/DH-QUALITY-1-implementation-2026-07-24/"><code>DH-QUALITY-1-implementation-2026-07-24.md</code></a>；<a href="../../../reviews/application-publishing-program/qa/DH-QUALITY-1-implementation-2026-07-24.json"><code>qa/DH-QUALITY-1-implementation-2026-07-24.json</code></a>；107 Python、19 Vitest、desktop build、Ruff/format/JSON/diff clean；四 Artifact 与标题/文案绑定已实现；独立六维复审按用户要求延后至 Program 完成</td>
+</tr>
+<tr>
+<td style="text-align: right;">15</td>
+<td>DH-QUALITY-2</td>
+<td>AC-5.1 工作流 A/B 与媒体质量</td>
+<td><code>completed_with_boundary</code></td>
+<td>PG-DH-E</td>
+<td><code>passed_with_boundary</code></td>
+<td>2026-07-24</td>
+<td>2026-07-24</td>
+<td><a href="../../superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan/"><code>2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md</code></a> §9.5；<a href="../application-publishing-program/DH-QUALITY-2-entry-2026-07-24/"><code>DH-QUALITY-2-entry-2026-07-24.md</code></a>；<a href="../application-publishing-program/DH-QUALITY-2-implementation-2026-07-24/"><code>DH-QUALITY-2-implementation-2026-07-24.md</code></a>；<a href="../application-publishing-program/DH-QUALITY-2-video-live-gate-2026-07-24/"><code>DH-QUALITY-2-video-live-gate-2026-07-24.md</code></a>；<a href="../../../reviews/application-publishing-program/qa/DH-QUALITY-2-video-live-gate-2026-07-24.json"><code>qa/DH-QUALITY-2-video-live-gate-2026-07-24.json</code></a>；真实视频 Provider task 1 次成功、0 次重试；ffprobe/字幕/抽帧/封面/四 Artifact 通过；视频 <code>stable</code>，但 <code>default_mode=false</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td>DH-DUAL-3</td>
+<td>AC-5.1 恢复、失败与真实桌面验收</td>
+<td><code>completed_with_boundary</code></td>
+<td>PG-DH-F</td>
+<td><code>implementation_pass_with_boundary</code></td>
+<td>2026-07-24</td>
+<td>2026-07-24</td>
+<td><a href="../../superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan/"><code>2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md</code></a> §9.6；<a href="../application-publishing-program/DH-DUAL-3-entry-2026-07-24/"><code>DH-DUAL-3-entry-2026-07-24.md</code></a>；<a href="../application-publishing-program/DH-DUAL-3-implementation-2026-07-24/"><code>DH-DUAL-3-implementation-2026-07-24.md</code></a>；<a href="../../../reviews/application-publishing-program/qa/DH-DUAL-3-implementation-2026-07-24.json"><code>qa/DH-DUAL-3-implementation-2026-07-24.json</code></a>；恢复/失败专测 6、聚合 138 passed/12 warnings、Ruff/format/JSON/diff clean；真实 Provider/桌面外部证据保留边界</td>
+</tr>
+<tr>
+<td style="text-align: right;">17</td>
+<td>DH-DUAL-4</td>
+<td>AC-5.1 灰度与收口</td>
+<td><code>completed_with_boundary</code></td>
+<td>PG-DH-G</td>
+<td><code>implementation_pass_with_boundary</code></td>
+<td>2026-07-24</td>
+<td>2026-07-24</td>
+<td><a href="../application-publishing-program/DH-DUAL-4-implementation-2026-07-24/"><code>DH-DUAL-4-implementation-2026-07-24.md</code></a>；<a href="../../../reviews/application-publishing-program/qa/DH-DUAL-4-implementation-2026-07-24.json"><code>qa/DH-DUAL-4-implementation-2026-07-24.json</code></a>；数字人聚合 141 passed/12 warnings，Desktop 11 files/68 passed，build、Ruff/format/JSON/diff clean；默认 flag 关闭、视频经后续质量门为 <code>stable</code> 但不默认、最终发布 0</td>
+</tr>
 </tbody>
 </table>
-<p>P0 Gate 进度：<code>9 / 12</code>。</p>
+<p>原始 Program Gate 进度：<code>9 / 12</code>；本次新增增强 Stage 尚未计入已通过 Gate，不改变 PG-L 或原始 Program 结论。</p>
 <h2 id="3-coord-0">3. COORD-0 控制卡（已归档）<a class="headerlink" href="#3-coord-0" title="Permanent link">&para;</a></h2>
 <h3 id="_1">基本信息<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2408,7 +2542,90 @@ gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user</p>
 <li>Gate 结论：<code>passed_with_boundary</code>；release/rollback 边界批次独立六维复审 P0/P1/实质性P2=0。三平台 release state 保持 <code>unverified</code>，快手为 <code>passed_with_explicit_boundaries</code>，视频号/小红书为 <code>blocked_with_explicit_boundary</code>；不得将其解释为平台正式发布。</li>
 <li>交接：按总队列恢复 <code>PROGRAM-ROLLOUT/PG-L</code> Windows 外部闭环；不提升平台 release state、不点击最终发布。</li>
 </ul>
+<h3 id="stage-dh-dual-2ac-51">已完成 Stage 控制卡：DH-DUAL-2（AC-5.1 数字人双模式桌面入口与资产选择器）<a class="headerlink" href="#stage-dh-dual-2ac-51" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Stage：<code>DH-DUAL-2</code></li>
+<li>来源阶段：<code>AC-5.1 数字人双模式与成片质量优化</code></li>
+<li>状态：<code>completed_with_boundary</code></li>
+<li>变更请求：<code>CR-DH-DUAL-MODE-001</code>（用户于 2026-07-24 明确授权；由协调层登记并切换唯一入口）</li>
+<li>前置 Gate：<code>PG-I passed_with_boundary</code>；不改变 <code>PROGRAM-ROLLOUT/PG-L</code> 的 open/waiting_user 结论</li>
+<li>当前方案：<a href="../../superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan/"><code>2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md</code></a>；SHA-256 <code>30590fb985f9bceacd8b0896c75997486aff33c00fff6d0c73ec66931e40aa1a</code></li>
+<li>Entry 目标：冻结图片数字人/视频数字人双模式、内容来源与数字人素材维度分离、V1/V2 输入兼容、受信工作流目录、质量优化目标、Artifact/恢复契约、测试矩阵、真实 Provider 次数和回滚边界。</li>
+<li>Entry 允许范围：读取 AC-5 真实 Provider/Artifact/恢复证据；登记 CR；新增/修订双模式 contract、schema、fixture、测试计划、证据模板和本台账；建立当前代码、方案 SHA、工作区和真实媒体基线；不写双模式业务实现。</li>
+<li>Entry 禁止范围：不修改 <code>DigitalHumanApplicationView</code>、<code>IpBroadcastAppAdapter</code>、<code>DigitalHumanService</code>、<code>IpBroadcastWorkflow</code>、RunningHub workflow；不调用真实 Provider；不切换默认 feature flag；不执行浏览器、平台上传、账号授权、最终发布或破坏性迁移。</li>
+<li>必须冻结：<code>content_source</code> 与 <code>digital_human.mode</code> 两个独立维度；image/video media type 强校验；workflow profile 受信映射；<code>final_video</code> 为默认预览；cover title/script/publish title 分离；旧 <code>1.0.0</code> Run 可恢复；最终发布 <code>false</code>。</li>
+<li>DH-DUAL-0 Gate 结果：<code>PG-DH-A=passed_with_boundary</code>；Entry review <a href="../application-publishing-program/DH-DUAL-0-entry-review-2026-07-24/"><code>DH-DUAL-0-entry-review-2026-07-24.md</code></a>；QA <a href="../../../reviews/application-publishing-program/qa/DH-DUAL-0-entry-2026-07-24.json"><code>qa/DH-DUAL-0-entry-2026-07-24.json</code></a>。</li>
+<li>DH-DUAL-1 结果：<code>PG-DH-B=implementation_pass_with_boundary</code>；独立复审 <a href="../application-publishing-program/DH-DUAL-1-implementation-review-2026-07-24/"><code>DH-DUAL-1-implementation-review-2026-07-24.md</code></a>；聚合 <code>86 passed</code>。</li>
+<li>当前 DH-DUAL-2 目标：实现桌面图片/视频双模式入口、真实 AssetLibrary scene/asset picker、V2 payload 组装与恢复展示；不执行真实 Provider。</li>
+<li>当前允许范围：只修改桌面双模式入口、资产选择器、V2 input mapping、DH-DUAL-2 定向测试与证据；保持旧 <code>/ip</code>、旧 Run/Artifact 恢复、FastAPI/Python 架构和最终人工发布门。</li>
+<li>当前禁止范围：不调用真实 Provider、不执行浏览器/平台动作、不打开默认双模式 flag、不修改发布中心最终点击边界、不做破坏性迁移。</li>
+<li>PG-DH-C 放行条件：桌面双模式入口仅在联合 gate 开启时可见；图片/视频场景选择绑定真实 AssetLibrary revision；V2 payload 不接受 provider/path 字段；V1 入口和恢复保持；定向 UI/API 测试、证据和独立六维复审 P0/P1=0。</li>
+<li>DH-DUAL-2 Entry 结果：<code>entry_passed_with_boundary</code>；证据 <a href="../application-publishing-program/DH-DUAL-2-entry-2026-07-24/"><code>DH-DUAL-2-entry-2026-07-24.md</code></a>。</li>
+<li>DH-DUAL-2 实现结果：桌面双模式、scene 媒体过滤、视频预览、素材详情/revision、V2 payload、恢复与默认结果交付已实现；证据 <a href="../application-publishing-program/DH-DUAL-2-implementation-2026-07-24/"><code>DH-DUAL-2-implementation-2026-07-24.md</code></a>；QA <a href="../../../reviews/application-publishing-program/qa/DH-DUAL-2-implementation-2026-07-24.json"><code>qa/DH-DUAL-2-implementation-2026-07-24.json</code></a>。</li>
+<li>Gate 结果：<code>PG-DH-C=passed_with_boundary</code>；已通过 67 Vitest、desktop build、110 backend/AssetLibrary regression、target Ruff/diff/JSON、真实 library response shape 和 1440/1280/900/390 视口实测；独立复审 P0/P1/实质性P2=0；非阻断观察项为视频 controls 嵌套场景 button；真实视频 scene 仍 unavailable，fixture-only 边界已记录。</li>
+<li>DH-DUAL-1 已归档证据：<a href="../application-publishing-program/DH-DUAL-1-implementation-2026-07-24/"><code>DH-DUAL-1-implementation-2026-07-24.md</code></a>；<a href="../application-publishing-program/DH-DUAL-1-implementation-review-2026-07-24/"><code>DH-DUAL-1-implementation-review-2026-07-24.md</code></a>；<a href="../../../reviews/application-publishing-program/qa/DH-DUAL-1-implementation-2026-07-24.json"><code>qa/DH-DUAL-1-implementation-2026-07-24.json</code></a>；86 passed，Ruff/format/JSON/diff clean；Provider/browser/platform/final click=0。</li>
+</ul>
+<h3 id="dh-quality-1">DH-QUALITY-1 控制卡（已归档）<a class="headerlink" href="#dh-quality-1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Stage：<code>DH-QUALITY-1</code></li>
+<li>来源阶段：<code>AC-5.1 数字人双模式与成片质量优化</code></li>
+<li>状态：<code>completed_with_boundary</code></li>
+<li>前置 Gate：<code>PG-DH-C passed_with_boundary</code></li>
+<li>Entry 目标：冻结自动生成文案/已有文案/自定义口播文案三类入口；历史文案版本与变体选择；选定标题与完整文案绑定；<code>script</code>、<code>publish_title</code>、<code>cover_title</code> 分离；封面短标题规则；字幕 preset v2、清晰度/双行/安全区；最终成片、封面、发布文案 Artifact 预览与恢复契约。</li>
+<li>Entry 允许范围：读取已完成 DH-DUAL-2 的输入/结果契约和 AC-5 真实 Provider 证据；新增 DH-QUALITY-1 Entry contract、fixture、失败矩阵、质量指标、真实字幕/封面证据模板与回滚边界；不得直接修改业务实现。</li>
+<li>Entry 禁止范围：不调用真实 Provider、不新增第三方授权、不执行平台上传/最终发布、不绕过应用中心文案来源、不把已有图片或 fixture 解释为真实视频质量证据。</li>
+<li>必须冻结：完整口播文案不能由 <code>goal</code> 隐式替代；selected title 必须关联完整文案版本；默认 <code>readable_v2</code> 字幕开启；<code>final_video</code> 是唯一默认成片预览；封面标题有独立长度/行数校验；最终发布自动点击继续关闭。</li>
+<li>Entry 结果：<code>entry_passed_with_boundary</code>；独立六维复审 P0/P1/实质性P2=0；canonical mode/alias、<code>content_source.script</code>→<code>spoken_script</code>、delivery 字段路径/类型、封面/字幕/Artifact 失败矩阵已冻结；Provider/LLM/TTS/FFmpeg/browser/platform/final click=0。</li>
+<li>Gate 结果：<code>PG-DH-D=implementation_pass_with_boundary</code>；实现证据 <a href="../application-publishing-program/DH-QUALITY-1-implementation-2026-07-24/"><code>DH-QUALITY-1-implementation-2026-07-24.md</code></a>；独立六维复审按用户要求延后至 Program 完成。</li>
+</ul>
 <p>PG-A 交接边界：task8 恢复、DOM 行为 harness、真实 Guard/live smoke、全新 provider 生成和最终人工发布不属于 APP-SHELL，按台账排到 PUB-2/PUB-3/PUB-5/PUB-7。</p>
+<p>最新 Stage 交接日志（2026-07-24）：<code>DH-QUALITY-1 / PG-DH-D</code> Entry 已独立复审为 <code>entry_passed_with_boundary</code>（P0/P1/实质性P2=0）；canonical mode/alias、<code>content_source.script</code>→<code>spoken_script</code>、delivery 字段路径/类型已对齐；quality+DH-DUAL 两文件 8 passed、六文件应用中心 Entry 回归 26 passed/12 warnings、AC-5 API/Adapter/Artifact 47 passed、Ruff/format/JSON/diff clean；Entry 未调用 Provider/LLM/TTS/FFmpeg/browser/platform。现已切换 <code>implementation_in_progress</code>，开始质量业务实现；本批完成前不切换下一 Stage，独立六维复审统一后置到 Program 完成。</p>
+<h3 id="dh-quality-2">DH-QUALITY-2 控制卡（已归档）<a class="headerlink" href="#dh-quality-2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Stage：<code>DH-QUALITY-2</code></li>
+<li>来源阶段：<code>AC-5.1 数字人双模式与成片质量优化</code></li>
+<li>状态：<code>completed_with_boundary</code></li>
+<li>前置 Gate：<code>PG-DH-D implementation_pass_with_boundary</code></li>
+<li>Entry 目标：冻结同一份 8–12 秒门店营销文案、同一 TTS、同一人物图片/视频、同一模板和 readable_v2 preset 的一次性 Provider 计划；记录 task 单次创建、ffprobe、抽帧、字幕、封面、Artifact、回滚证据格式。</li>
+<li>Entry 允许范围：只新增 Provider live 计划、输入/输出/证据契约、失败矩阵和不重复调用的测试；不得在 Entry 阶段调用 RunningHub/TTS/浏览器/平台。</li>
+<li>Entry 禁止范围：不得连续重试 Provider，不得改变默认 workflow，不得点击最终发布，不得把本地 fixture 或旧 AC-5 证据外推为本批质量通过。</li>
+<li>必须冻结：图片 stable 先一次；图片候选只有有明确 A/B 理由才一次；视频 natural 一次；失败先保存 task/日志/媒体/ffprobe/抽帧，再决定唯一重试；video/cover/publish_copy/spoken_script 完整后才允许人工 accept。</li>
+<li>当前边界：RunningHub 余额已恢复；本 DH-QUALITY-2 新批次已完成一次有目的的真实视频 Provider smoke 和 bounded visual gate；最终发布自动点击继续关闭；Program 级独立六维复审按用户要求延后至整体方案完成。</li>
+<li>Entry 结果：<code>entry_passed_with_boundary</code>；4 项 Entry contract 通过，Ruff/format/JSON/diff clean；本 Entry 未调用真实 Provider。</li>
+<li>实现结果：固定输入指纹、已有 task fail-closed、一次根因重试计划、Provider task 元数据、ffprobe/25·50·75% 抽帧证据结构、字幕/封面/四 Artifact 完整性已实现；<a href="../application-publishing-program/DH-QUALITY-2-implementation-2026-07-24/"><code>DH-QUALITY-2-implementation-2026-07-24.md</code></a>。</li>
+<li>Gate 结果：<code>PG-DH-E=passed_with_boundary</code>；视频 <code>video_lipsync/natural</code> 已提升为 <code>stable</code>，但 <code>default_mode=false</code>；字幕、人物边缘、口型、背景、封面与技术规格均有真实成片证据；图片 natural 仍为 candidate；Program 级独立六维复审按用户要求延后至完成。</li>
+</ul>
+<h3 id="dh-dual-3">DH-DUAL-3 控制卡（已归档）<a class="headerlink" href="#dh-dual-3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Stage：<code>DH-DUAL-3</code></li>
+<li>来源阶段：<code>AC-5.1 数字人双模式与成片质量优化</code></li>
+<li>状态：<code>completed_with_boundary</code></li>
+<li>前置 Gate：<code>PG-DH-E implementation_pass_with_boundary</code></li>
+<li>Entry 目标：冻结 Provider 调用前/运行中/成功登记前/needs_review 的重启语义；失败、余额不足、超时、无视频、资产 revision 变化、本地文件丢失、字幕/封面失败、Artifact 篡改、重复 accept、模式切换和最终发布 0 动作矩阵。</li>
+<li>Entry 允许范围：新增恢复/失败/人工接收 contract、fixture、隔离测试和桌面恢复证据；不得把历史真实 Provider smoke 或 hosted Windows 证据当作本批通过；不得点击最终发布。</li>
+<li>Entry 禁止范围：不执行真实 Provider、不触发浏览器/平台、不改变默认 flag、不绕过 <code>PROGRAM-ROLLOUT/PG-L</code> 外部等待。</li>
+<li>必须冻结：Provider task 已创建时重启只查询/等待原 task，不重复创建；success 登记前重启保持可审计中间态；needs_review 重启保留 Artifact 指纹；失败最多一次有根因 retry；accept 前四 Artifact 完整且未篡改；<code>platform_actions=0</code>、<code>final_publish_clicked=false</code>。</li>
+<li>Gate 结果：<code>PG-DH-F=implementation_pass_with_boundary</code>；Entry/实现证据 <a href="../application-publishing-program/DH-DUAL-3-entry-2026-07-24/"><code>DH-DUAL-3-entry-2026-07-24.md</code></a>、<a href="../application-publishing-program/DH-DUAL-3-implementation-2026-07-24/"><code>DH-DUAL-3-implementation-2026-07-24.md</code></a>；独立六维复审按用户要求延后至 Program 完成。</li>
+</ul>
+<p>最新 Stage 交接日志（2026-07-24）：DH-QUALITY-1/PG-DH-D 与 DH-QUALITY-2/PG-DH-E 已完成实现；视频模式随后通过一次真实 Provider smoke、ffprobe/抽帧/字幕/封面和四 Artifact 质量门，<code>PG-DH-E=passed_with_boundary</code>，视频 <code>stable</code> 且 <code>default_mode=false</code>；图片 natural 仍 candidate。当前唯一入口仍为 <code>PROGRAM-ROLLOUT/PG-L_waiting_user</code>，Program 级独立六维复审按用户要求延后至完成。</p>
+<h3 id="dh-dual-4">DH-DUAL-4 控制卡（已归档）<a class="headerlink" href="#dh-dual-4" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Stage：<code>DH-DUAL-4</code></li>
+<li>状态：<code>completed_with_boundary</code></li>
+<li>前置 Gate：<code>PG-DH-F implementation_pass_with_boundary</code></li>
+<li>Gate 结果：<code>PG-DH-G=implementation_pass_with_boundary</code>；双开关联合门、默认关闭、旧路由保留、图片 natural candidate / 视频 stable 但不默认的 release state 和最终发布安全边界已由 contract/fixture/回归固定；视频真实质量门另见 <a href="../application-publishing-program/DH-QUALITY-2-video-live-gate-2026-07-24/"><code>DH-QUALITY-2-video-live-gate-2026-07-24.md</code></a>。</li>
+<li>边界：PG-DH-G 只关闭数字人双模式方案，不关闭上位 Program 的 Windows、产品签字、真实 rollback/WebView 或平台外部边界；独立六维复审按用户要求延后至 Program 完成。</li>
+</ul>
+<h3 id="stage-program-rolloutpg-l">当前 Stage 控制卡：PROGRAM-ROLLOUT/PG-L（上位外部等待）<a class="headerlink" href="#stage-program-rolloutpg-l" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Stage：<code>PROGRAM-ROLLOUT/PG-L</code></li>
+<li>状态：<code>waiting_user</code></li>
+<li>前置：原 Program PG-K、平台扩展和数字人 PG-DH-G 均已按边界收口；<code>CR-DH-DUAL-MODE-001</code> 不改变 PG-L 原结论。</li>
+<li>当前唯一允许动作：等待用户回传 Windows 实机安装器 SHA、启动/关闭重开两轮、sidecar health/端口释放、产品签字和真实 rollback/WebView SLA 结论；收到后只执行一次定向复验和 Gate 更新。</li>
+<li>明确禁止：不把 hosted Windows Runner smoke、本机隔离测试或数字人历史 Provider 证据当作 Windows 实机/产品签字；不恢复默认 Publish V2，不开启最终发布自动点击，不做真实平台发布。</li>
+</ul>
+<p>兼容历史契约投影（仅供旧 Entry contract 断言，不是当前状态）：</p>
+<p>| 11 | PROGRAM-ROLLOUT | AC-6 + PUB-7D | <code>implementation_in_progress</code> | PG-L | <code>entry_passed_with_boundary</code> |</p>
 <h2 id="4">4. 风险登记<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2526,6 +2743,20 @@ gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user</p>
 <td>Luna</td>
 <td>staging 原子替换、同事务 schema+seed、锁/备份/checksum/future-version/corruption/seed drift 已实现并等待 PG-C 复验</td>
 </tr>
+<tr>
+<td>R-016</td>
+<td>双模式增强范围与 AC-5/PG-L 外部边界混淆</td>
+<td>open/CR</td>
+<td>Luna/协调层</td>
+<td>以 <code>CR-DH-DUAL-MODE-001</code> 暂停 PG-L 外部等待但不改其结论；DH-DUAL 独立建 Stage/Gate；Provider、平台和最终发布按独立暂停点执行</td>
+</tr>
+<tr>
+<td>R-017</td>
+<td>图片生成质量被误报为视频数字人质量</td>
+<td>open/entry</td>
+<td>Luna/独立审查</td>
+<td>图片/视频模式分别做真实 smoke 和五维质量记录；未通过的模式保持测试中，不提升 Registry release state</td>
+</tr>
 </tbody>
 </table>
 <h2 id="5-change-request">5. Change Request<a class="headerlink" href="#5-change-request" title="Permanent link">&para;</a></h2>
@@ -2549,6 +2780,17 @@ gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user</p>
 <li>测试影响：新增三平台共同 Entry contract、每平台 adapter 定向测试、FinalActionGuard 负向测试、构建/证据和独立六维复审；真实扫码/授权/最终发布仍按人工边界处理。</li>
 <li>回滚：删除/回滚本 CR 新增的平台 adapter 与 Entry 文档即可；恢复 <code>current_stage=PROGRAM-ROLLOUT</code>、<code>current_stage_status=implementation_in_progress</code>，不改变 PG-L 既有证据和默认 flags。</li>
 <li>批准结论：用户明确批准；主线程记录并执行，独立审查线程在平台扩展大批次完成后复核。</li>
+</ul>
+<p>CR-DH-DUAL-MODE-001：数字人应用升级为图片/视频双模式并修复成片质量缺陷（2026-07-24，用户批准）</p>
+<ul>
+<li>问题与证据：当前应用中心已有图片数字人真实生成证据和视频唇形同步 workflow 文件，但应用 UI、Adapter 输入、资产选择和 Provider Gate 尚未形成双模式闭环；最近真实成片还暴露出最终预览与原始视频容易混淆、字幕可见性、封面标题过长、blank goal 文案泛化等问题。方案记录于 <a href="../../superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan/"><code>2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md</code></a>，SHA-256=<code>30590fb985f9bceacd8b0896c75997486aff33c00fff6d0c73ec66931e40aa1a</code>。</li>
+<li>受影响 Stage/契约/文件：新增 <code>DH-DUAL-0</code> 至 <code>DH-DUAL-4</code>；应用中心数字人输入/输出 contract、V1/V2 normalize、资产 media type、workflow profile、Artifact/结果预览、字幕/封面/文案质量和恢复证据；不修改既有 PG-L 证据事实。</li>
+<li>备选方案：A. 等待 Windows 外部闭环后再处理数字人（不能及时修复已确认的应用质量问题）；B. 直接重写数字人后端或迁移 Node.js（扩大范围，违反 ADR-007）；C. 在保留 FastAPI/Python、旧 Run 和 PG-L 边界的前提下，以独立增强 Stage 串行实施（选定）。</li>
+<li>选定方案：将当前唯一入口从 <code>PROGRAM-ROLLOUT/PG-L_waiting_user</code> 切换到 <code>DH-DUAL-0/PG-DH-A_entry_pending</code>；<code>PROGRAM-ROLLOUT</code> 标记 <code>paused_external</code>，Windows 安装、产品签字、真实 rollback/WebView 仍 pending，不提升或关闭 PG-L。</li>
+<li>数据与迁移影响：DH-DUAL-0 不执行数据库迁移；后续实现必须提供 V1 AppRun/旧 session 恢复和 V2 输入兼容；不删除旧 Artifact、不覆盖旧 final video、不改变 publishing.sqlite3 所有权。</li>
+<li>测试影响：先做 contract、fixture、V1 normalize、mode/media/workflow 负例、结果预览和回滚测试；确定性测试全部通过后，图片模式和视频模式各做一次有目的真实 Provider smoke；失败先诊断，禁止无分析连续重试；最终发布 click=0。</li>
+<li>回滚：关闭新增双模式 flag；保留当前图片模式和旧 <code>/ip</code>；回退 DH-DUAL 业务改动；恢复 <code>current_stage=PROGRAM-ROLLOUT</code>、<code>current_stage_status=waiting_user</code>、<code>gate_status=PROGRAM-ROLLOUT/PG-L_waiting_user</code>；不删除已生成 Artifact 和历史证据。</li>
+<li>批准结论：用户于 2026-07-24 明确授权；主线程作为协调层已登记本 CR 并切换当前入口；PG-DH-A 通过前不进入双模式业务实现。</li>
 </ul>
 <p>新增时使用：</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>CR ID：
@@ -3832,6 +4074,70 @@ gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user</p>
 <td><code>PG-I</code> 真实 Provider Gate=<code>passed_with_boundary</code>；生产默认开关未改变，所有运行均在隔离副本；首次进程关闭有 Playwright browser close cleanup 异常，但重启后业务状态完整且第二次关闭 clean；平台上传、最终发布和自动点击仍未执行</td>
 <td>关闭 AC-5 真实 Provider 阻塞边界，保留 shutdown cleanup 作为后续 P2 观察项；应用中心默认状态可按“真实生成已验证、平台发布仍人工”展示；任何 provider/workflow 变更需重新做一次有边界 live smoke</td>
 </tr>
+<tr>
+<td>2026-07-24</td>
+<td>CR-DH-DUAL-MODE-001 登记并切换 DH-DUAL-0 Entry</td>
+<td>用户授权按数字人双模式方案继续执行；登记 CR，记录 Entry 起始方案 SHA、<code>main@aa0e1f55</code>；随后完成 V2 contract、fixture、Entry 测试、Entry 文档和 QA JSON 增量；<code>PROGRAM-ROLLOUT/PG-L</code> 标记 <code>paused_external</code>，Windows/产品签字/真实 rollback/WebView 边界不变；未修改业务代码、未调用 Provider、未改变默认 flags 或最终发布安全边界</td>
+<td><a href="../../superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md"><code>2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md</code></a>；<a href="../../../contracts/app-center/digital-human-video-input-v2.contract.json"><code>digital-human-video-input-v2.contract.json</code></a>；<a href="../../../contracts/app-center/fixtures/digital-human-video-input-v2-fixtures.json"><code>digital-human-video-input-v2-fixtures.json</code></a>；<a href="../application-publishing-program/DH-DUAL-0-entry-2026-07-24/"><code>DH-DUAL-0-entry-2026-07-24.md</code></a>；<a href="../application-publishing-program/DH-DUAL-0-entry-review-2026-07-24/"><code>DH-DUAL-0-entry-review-2026-07-24.md</code></a>；QA JSON；Entry/AC-5/Registry 聚合与 AC-5 回归 22/47 passed</td>
+<td><code>DH-DUAL-0/PG-DH-A=passed_with_boundary</code>；本阶段未修改业务实现、未调用 Provider；PG-L 仍 open；最终发布自动点击=0</td>
+<td>已切换 <code>DH-DUAL-1/PG-DH-B_entry_pending</code>，开始服务端双模式实现</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>DH-DUAL-1 服务端双模式实现批次收口</td>
+<td>新增 V1/V2 normalize、受信 workflow catalog、AssetLibrary resolver seam、媒体类型/MIME/尺寸/时长/revision/profile/scene 强校验；V2 AppRun 绑定 <code>1.1.0</code>，旧 V1 保持 <code>1.0.0</code>；SQLite Registry seed 支持双版本；双开关联合 readiness gate 在 create/execute/retry 均复验；未调用 Provider/浏览器/平台</td>
+<td><a href="../application-publishing-program/DH-DUAL-1-implementation-2026-07-24/"><code>DH-DUAL-1-implementation-2026-07-24.md</code></a>；<a href="../application-publishing-program/DH-DUAL-1-implementation-review-2026-07-24/"><code>DH-DUAL-1-implementation-review-2026-07-24.md</code></a>；<a href="../../../reviews/application-publishing-program/qa/DH-DUAL-1-implementation-2026-07-24.json"><code>qa/DH-DUAL-1-implementation-2026-07-24.json</code></a>；86 passed、12 warnings、Ruff/format/JSON/diff clean</td>
+<td><code>PG-DH-B=implementation_pass_with_boundary</code>；真实 AssetLibrary scene 与桌面资产选择留 DH-DUAL-2；video workflow 仍 candidate；字幕/封面/Artifact 质量留后续；Provider/browser/platform/final click=0</td>
+<td>已切换唯一入口 <code>DH-DUAL-2/PG-DH-C_entry_pending</code>，读取 DH-DUAL-2 Entry 要求后再实现，不执行真实 Provider</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>DH-DUAL-2 桌面双模式与资产选择实现、复审和 Stage 交接</td>
+<td>完成图片/视频模式 Tab、真实 AssetLibrary scene 过滤与 revision 锁定、视频 controls fixture、V2 payload/恢复、默认结果 Artifact 交付；入口唯一主动作改为一次点击“开始生成”并安全完成 create→execute，执行响应丢失保留 execute phase；新截图/DOM 已替换旧主动作证据</td>
+<td><a href="../application-publishing-program/DH-DUAL-2-implementation-2026-07-24/"><code>DH-DUAL-2-implementation-2026-07-24.md</code></a>；<a href="../application-publishing-program/DH-DUAL-2-implementation-review-2026-07-24/"><code>DH-DUAL-2-implementation-review-2026-07-24.md</code></a>；<a href="../../../reviews/application-publishing-program/qa/DH-DUAL-2-implementation-2026-07-24.json"><code>qa/DH-DUAL-2-implementation-2026-07-24.json</code></a>；67 Vitest、desktop build、110 backend、target Ruff/diff/JSON、1440/1280/900/390 无横溢出</td>
+<td>独立六维 <code>implementation_pass_with_boundary</code>；P0/P1/实质性P2=0；非阻断观察项为 <code>&lt;video controls&gt;</code> 嵌套 button；真实本地视频 scene unavailable，fixture-only，不外推视频质量；Provider/browser/platform/auth/upload/final click=0</td>
+<td>关闭 <code>DH-DUAL-2/PG-DH-C</code>；按唯一入口切换 <code>DH-QUALITY-1/PG-DH-D_entry_pending</code>，先完成文案/标题/封面/字幕 Entry，不进入业务实现</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>DH-QUALITY-1 Entry 启动与契约冻结</td>
+<td>按 PG-DH-D Entry 只新增文案来源/字段分离、标题绑定、封面短标题、readable_v2 字幕、Artifact 完整性、失败矩阵和回滚 contract/fixture/test；未修改业务 UI、媒体 adapter、Provider workflow、默认 flags；未调用 LLM/TTS/RunningHub、浏览器或平台</td>
+<td><a href="../application-publishing-program/DH-QUALITY-1-entry-2026-07-24/"><code>DH-QUALITY-1-entry-2026-07-24.md</code></a>；<a href="../../../contracts/app-center/digital-human-quality-entry.contract.json"><code>digital-human-quality-entry.contract.json</code></a>；<a href="../../../contracts/app-center/fixtures/digital-human-quality-entry-fixtures.json"><code>digital-human-quality-entry-fixtures.json</code></a>；<a href="../../../reviews/application-publishing-program/qa/DH-QUALITY-1-entry-2026-07-24.json"><code>qa/DH-QUALITY-1-entry-2026-07-24.json</code></a>；Entry 26 passed、AC-5 Artifact 回归 47 passed、Ruff/JSON/diff clean</td>
+<td>当前 <code>PG-DH-D=entry_in_progress</code>；等待独立六维 Entry 复审，Entry 通过前不进入质量业务实现；真实字幕/封面/视频证据后置；最终发布点击=0</td>
+<td>交独立审查线程复核 Entry contract、fixture、失败矩阵和边界；若 P0/P1=0，再将 <code>DH-QUALITY-1</code> Entry 收口并进入实现批次</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>DH-QUALITY-2 实现收口并切换 DH-DUAL-3</td>
+<td>固定输入指纹、已有 Provider task fail-closed、一次根因 retry-plan、Provider task 元数据、ffprobe/25·50·75% 抽帧证据结构、字幕/封面/四 Artifact 完整性已落地；质量与应用中心聚合 130 passed/12 warnings，Ruff/format/JSON/diff clean；未调用真实 Provider、浏览器、平台或最终发布</td>
+<td><a href="../application-publishing-program/DH-QUALITY-2-implementation-2026-07-24/"><code>DH-QUALITY-2-implementation-2026-07-24.md</code></a>；<a href="../../../reviews/application-publishing-program/qa/DH-QUALITY-2-implementation-2026-07-24.json"><code>qa/DH-QUALITY-2-implementation-2026-07-24.json</code></a>；retry-plan API/schema；最终发布点击=0</td>
+<td><code>PG-DH-E=implementation_pass_with_boundary</code>；隔离伪媒体抽帧明确 unavailable，真实图片/视频质量未宣称通过；默认 flags 与 PG-L 外部等待不变</td>
+<td>当前唯一入口切换 <code>DH-DUAL-3/PG-DH-F_entry_pending</code>；先冻结并实现恢复/失败/人工接收矩阵；独立六维复审统一延后至 Program 完成</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>DH-DUAL-3/DH-DUAL-4 数字人增强方案整体实现收口</td>
+<td>完成恢复/失败/人工接收矩阵、资产 revision 重校验、Provider task 复用与一次 retry、四 Artifact accept 指纹、双开关灰度 contract；数字人聚合 141 passed/12 warnings，Desktop 全量 11 files/68 passed，build、Ruff/format/JSON/diff clean；默认 flag 关闭、视频 candidate、最终发布点击=0</td>
+<td><a href="../application-publishing-program/DH-DUAL-3-implementation-2026-07-24/"><code>DH-DUAL-3-implementation-2026-07-24.md</code></a>；<a href="../application-publishing-program/DH-DUAL-4-implementation-2026-07-24/"><code>DH-DUAL-4-implementation-2026-07-24.md</code></a>；<a href="../../../reviews/application-publishing-program/qa/DH-DUAL-3-implementation-2026-07-24.json"><code>qa/DH-DUAL-3-implementation-2026-07-24.json</code></a>；<a href="../../../reviews/application-publishing-program/qa/DH-DUAL-4-implementation-2026-07-24.json"><code>qa/DH-DUAL-4-implementation-2026-07-24.json</code></a></td>
+<td><code>PG-DH-F/G=implementation_pass_with_boundary</code>；真实 Provider/桌面设备/平台外部证据不冒充完成；独立六维复审按用户要求后置</td>
+<td>数字人双模式方案已闭环并回到 <code>PROGRAM-ROLLOUT/PG-L_waiting_user</code>；只等待 Windows 实机、产品签字、真实 rollback/WebView 外部证据，收到后再做一次定向复验</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>DH-DUAL 整体收口后的回归复验</td>
+<td>再次执行数字人/应用中心后端聚合 141 passed、Desktop 11 files/68 passed、生产 build；Ruff check/format、JSON parse、<code>git diff --check</code> 全部通过；没有修改默认 flags、视频 release state、平台动作或最终发布安全边界</td>
+<td>本轮命令输出；<a href="../application-publishing-program/DH-DUAL-4-implementation-2026-07-24/"><code>DH-DUAL-4-implementation-2026-07-24.md</code></a>；<a href="../../../reviews/application-publishing-program/qa/DH-DUAL-4-implementation-2026-07-24.json"><code>qa/DH-DUAL-4-implementation-2026-07-24.json</code></a></td>
+<td>仍是 <code>implementation_pass_with_boundary</code>；六维独立评审按用户要求延后；全 Program 仍被 PG-L Windows 实机/产品签字/真实 rollback-WebView 外部边界阻塞</td>
+<td>维持唯一入口 <code>PROGRAM-ROLLOUT/PG-L_waiting_user</code>；不得虚构外部证据或自动点击最终发布，收到 Windows/产品证据后再定向复验并推进 Gate</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>DH-QUALITY-2 视频模式真实质量门收口</td>
+<td>使用干净真人视频素材完成一次有目的的真实本地 Edge TTS→RunningHub 视频唇形同步→后期字幕/封面合成；Provider task <code>2080534254718251010</code> 成功、创建 1 次、重试 0 次；四 Artifact 完整；1080×1920 H.264/AAC；25/50/75% 抽帧逐项确认字幕可读、人物边缘稳定、口型自然、背景连续、封面短标题可读</td>
+<td><a href="../application-publishing-program/DH-QUALITY-2-video-live-gate-2026-07-24/"><code>DH-QUALITY-2-video-live-gate-2026-07-24.md</code></a>；<a href="../../../reviews/application-publishing-program/qa/DH-QUALITY-2-video-live-gate-2026-07-24.json"><code>qa/DH-QUALITY-2-video-live-gate-2026-07-24.json</code></a>；<a href="application-publishing-program/qa/DH-QUALITY-2-video-live-gate-2026-07-24/"><code>qa/DH-QUALITY-2-video-live-gate-2026-07-24/</code></a>；质量门回归 3 tests、数字人/发布聚合 144 passed/12 warnings；Desktop 定向 3 files/19 passed、build passed；Ruff/format/JSON/diff clean</td>
+<td><code>PG-DH-E=passed_with_boundary</code>；按用户授权视频 <code>video_lipsync/natural</code> 从 <code>candidate</code> 提升为 <code>stable</code>，但 <code>default_mode=false</code> 仍由图片模式默认；平台动作=0、最终发布点击=0；Program 级独立六维终审仍延后</td>
+<td>当前唯一入口仍为 <code>PROGRAM-ROLLOUT/PG-L_waiting_user</code>；上位 Windows 实机、产品签字、真实 rollback/WebView 外部边界不变；若更换 workflow/素材/字幕模板需重新执行质量门</td>
+</tr>
 </tbody>
 </table>
 
@@ -3856,7 +4162,7 @@ gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user</p>
     <span class="md-icon" title="最后更新">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 24, 2026 01:43:16 UTC">July 24, 2026 01:43:16</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 24, 2026 23:14:37 UTC">July 24, 2026 23:14:37</span>
   </span>
 
     

@@ -1,0 +1,72 @@
+{
+  "contract_id": "digital-human-quality2-live-entry",
+  "schema_version": 1,
+  "stage": "DH-QUALITY-2",
+  "app_id": "builtin.digital-human-video",
+  "scope": "provider_ab_media_quality_evidence_only",
+  "input_fixture": {
+    "spoken_script_chars": [80, 180],
+    "tts_duration_seconds": [8, 12],
+    "same_script_for_all_modes": true,
+    "same_tts_for_all_modes": true,
+    "same_template": "boss_clean",
+    "subtitle_preset": "readable_v2",
+    "image_asset_required": true,
+    "video_asset_required": true
+  },
+  "provider_call_budget": {
+    "image_stable": 1,
+    "image_candidate_each": 1,
+    "video_natural": 1,
+    "retry_after_failure": "at_most_one_with_recorded_root_cause",
+    "duplicate_task_id_is_blocking": true
+  },
+  "evidence_required": [
+    "provider_task_id",
+    "provider_task_create_count",
+    "tts_audio_sha256",
+    "raw_video_sha256",
+    "final_video_sha256",
+    "ffprobe",
+    "subtitle_ass_or_srt",
+    "subtitle_frames_25_50_75",
+    "cover_frame",
+    "artifact_ids",
+    "restart_state",
+    "accept_state"
+  ],
+  "quality_dimensions": [
+    "lip_sync",
+    "identity_stability",
+    "motion_naturalness",
+    "edge_quality",
+    "background_stability",
+    "audio_video_sync",
+    "subtitle_readability",
+    "cover_title",
+    "publish_copy_completeness",
+    "technical_spec"
+  ],
+  "acceptance": {
+    "required_artifacts": ["video", "cover", "publish_copy", "spoken_script"],
+    "final_video": {
+      "width": 1080,
+      "height": 1920,
+      "video_codec": "h264",
+      "audio_codec": "aac",
+      "duration_delta_seconds_max": 0.5,
+      "duration_delta_ratio_max": 0.02,
+      "burned_subtitles": true
+    },
+    "platform_actions": 0,
+    "final_publish_clicked": false
+  },
+  "safety": {
+    "entry_provider_calls": 0,
+    "entry_platform_actions": 0,
+    "entry_final_publish_clicks": 0,
+    "default_flags_changed": false,
+    "real_scan_or_authorization": "pause_and_notify_user"
+  },
+  "next_gate": "PG-DH-E"
+}

@@ -1,0 +1,9 @@
+{
+  "fixtures": [
+    {"id": "default-off", "backend_flag": false, "desktop_flag": false, "backend_ready": true, "desktop_ready": true, "v2_enabled": false, "legacy_route_available": true},
+    {"id": "desktop-only", "backend_flag": false, "desktop_flag": true, "backend_ready": true, "desktop_ready": true, "v2_enabled": false, "legacy_route_available": true},
+    {"id": "backend-only", "backend_flag": true, "desktop_flag": false, "backend_ready": true, "desktop_ready": true, "v2_enabled": false, "legacy_route_available": true},
+    {"id": "both-ready", "backend_flag": true, "desktop_flag": true, "backend_ready": true, "desktop_ready": true, "v2_enabled": true, "legacy_route_available": false},
+    {"id": "video-stable-non-default", "mode": "video_lipsync", "profile": "natural", "release_state": "stable", "available": true, "default": false}
+  ]
+}

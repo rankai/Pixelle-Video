@@ -1,0 +1,185 @@
+{
+  "contract_id": "digital-human-quality-entry",
+  "schema_version": 1,
+  "stage": "DH-QUALITY-1",
+  "app_id": "builtin.digital-human-video",
+  "scope": "content_copy_title_cover_subtitle_entry_only",
+  "entry_policy": {
+    "business_code_changed": false,
+    "provider_calls": 0,
+    "browser_platform_actions": 0,
+    "final_publish_clicks": 0,
+    "default_flags_changed": false,
+    "entry_does_not_render_or_submit_media": true
+  },
+  "content_sources": [
+    {
+      "mode": "custom_script",
+      "payload_path": "content_source.script",
+      "run_field": "spoken_script",
+      "input_type": "string",
+      "requires": ["spoken_script"],
+      "llm_owner": "none",
+      "implicit_goal_to_script": false
+    },
+    {
+      "mode": "copywriting_artifact",
+      "payload_path": "content_source.source_artifact_version_id + content_source.selected_variant_index",
+      "requires": ["source_artifact_version_id", "selected_variant_index"],
+      "artifact_type": "copywriting",
+      "requires_source_state": "completed",
+      "llm_owner": "builtin.marketing-copy",
+      "media_adapter_must_not_call_llm": true
+    },
+    {
+      "mode": "generated_marketing_copy",
+      "payload_path": "content_source.source_artifact_version_id + content_source.selected_variant_index",
+      "requires": ["source_artifact_version_id", "selected_variant_index"],
+      "artifact_type": "copywriting",
+      "requires_source_state": "completed",
+      "llm_owner": "builtin.marketing-copy",
+      "media_adapter_must_not_call_llm": true
+    },
+    {
+      "mode": "title_plus_copywriting",
+      "payload_path": "content_source.title_artifact_version_id + content_source.source_artifact_version_id + content_source.selected_variant_index",
+      "requires": ["title_artifact_version_id", "source_artifact_version_id", "selected_variant_index"],
+      "artifact_types": ["selected_title", "copywriting"],
+      "title_cannot_replace_script": true,
+      "same_project_binding_required": true
+    }
+  ],
+  "mode_aliases": {
+    "marketing_copy_artifact": "copywriting_artifact",
+    "selected_title_with_copy": "title_plus_copywriting",
+    "alias_policy": "accept_only_at_boundary_then_normalize_to_canonical",
+    "server_normalizer_owner": "pixelle_video.app_center.digital_human_input"
+  },
+  "field_separation": {
+    "required_run_fields": {
+      "spoken_script": {"path": "content_source.script | source_artifact.variants[selected_variant_index].full_text", "type": "string"},
+      "publish_title": {"path": "delivery.publish_title", "type": "string"},
+      "publish_description": {"path": "delivery.publish_description", "type": "string"},
+      "cover_title": {"path": "delivery.cover_title", "type": "string"},
+      "hashtags": {"path": "delivery.hashtags", "type": "array<string>"}
+    },
+    "forbidden_aliases": {
+      "spoken_script": ["goal", "制作目标"],
+      "publish_title": ["spoken_script"],
+      "cover_title": ["spoken_script_prefix", "description_prefix"]
+    },
+    "source_version_pinned_at_run_creation": true,
+    "source_changes_do_not_hot_update_run": true
+  },
+  "delivery_payload": {
+    "path": "delivery",
+    "fields": {
+      "publish_title": {"type": "string", "required_for_publish_copy": true},
+      "publish_description": {"type": "string", "required_for_publish_copy": true},
+      "cover_title": {"type": "string", "required_for_cover": true},
+      "hashtags": {"type": "array<string>", "required_for_publish_copy": true},
+      "subtitle_preset": {"type": "string", "allowed": ["readable_v2"], "default": "readable_v2"},
+      "subtitle_enabled": {"type": "boolean", "default": true}
+    },
+    "unknown_fields": "reject_or_ignore_without_affecting_canonical_fields"
+  },
+  "cover": {
+    "title": {
+      "recommended_characters": [12, 18],
+      "hard_max_display_characters": 24,
+      "max_lines": 2,
+      "max_characters_per_line": 12,
+      "user_editable_before_run": true,
+      "fallback_order": ["selected_title_short", "structured_cover_hook", "deterministic_complete_sentence"],
+      "forbidden_fallbacks": ["spoken_script_first_40_characters", "publish_description_first_80_characters"]
+    },
+    "subtitle": {
+      "optional": true,
+      "hard_max_display_characters": 28,
+      "default_when_title_is_complete": "empty",
+      "must_not_use_description_prefix": true
+    },
+    "safe_area": {
+      "template_owned": true,
+      "auto_face_avoidance_claim": false,
+      "overflow_is_blocking": true
+    }
+  },
+  "subtitle": {
+    "preset": "readable_v2",
+    "default_enabled": true,
+    "burned_in": true,
+    "canvas": "1080x1920",
+    "font_family": "Noto Sans CJK SC",
+    "font_size_px": 48,
+    "font_size_range_px": [44, 56],
+    "font_weight": "bold",
+    "max_lines": 2,
+    "max_characters_per_line": [12, 16],
+    "outline_px": 3,
+    "background_alpha": 0.5,
+    "safe_margin_bottom_px": [170, 220],
+    "rendering": "ffmpeg_libass_burn_in",
+    "old_run_without_preset": "preserve_original_render_semantics",
+    "clean_source_sha_must_differ": true
+  },
+  "artifact_delivery": {
+    "required": ["final_video", "cover", "publish_copy", "spoken_script"],
+    "default_preview": "final_video",
+    "raw_digital_human_video": "diagnostic_only",
+    "final_video_requires": ["video_stream", "audio_stream", "burned_subtitles", "duration_matches_tts"],
+    "publish_copy_requires": ["publish_title", "publish_description", "hashtags"],
+    "accept_requires_complete_outputs": true,
+    "accept_does_not_publish": true
+  },
+  "failure_matrix": [
+    {"case": "custom_script_rewritten_implicitly", "expected": "reject_or_preserve_exact_script", "code": "DH_QUALITY_CUSTOM_SCRIPT_MUTATION"},
+    {"case": "marketing_copy_missing_or_not_completed", "expected": "fail_closed", "code": "DH_QUALITY_SOURCE_ARTIFACT_INVALID"},
+    {"case": "selected_title_without_copy", "expected": "reject_new_run", "code": "DH_QUALITY_TITLE_REQUIRES_COPY"},
+    {"case": "title_and_copy_different_project", "expected": "reject_new_run", "code": "DH_QUALITY_SOURCE_BINDING_MISMATCH"},
+    {"case": "cover_title_over_24_display_characters", "expected": "block_before_run", "code": "DH_QUALITY_COVER_TITLE_TOO_LONG"},
+    {"case": "cover_fallback_uses_script_prefix", "expected": "reject_fallback", "code": "DH_QUALITY_COVER_FALLBACK_INVALID"},
+    {"case": "subtitle_preset_missing_on_new_run", "expected": "set_readable_v2", "code": "DH_QUALITY_SUBTITLE_PRESET_REQUIRED"},
+    {"case": "old_run_silently_re_rendered_with_readable_v2", "expected": "preserve_old_style", "code": "DH_QUALITY_OLD_RUN_STYLE_MUTATION"},
+    {"case": "artifact_missing_stream_or_subtitles", "expected": "accept_409_and_keep_needs_review", "code": "DH_QUALITY_FINAL_ARTIFACT_INCOMPLETE"}
+  ],
+  "quality_evidence": {
+    "visual_frames": [0.25, 0.5, 0.75],
+    "must_show": ["burned_subtitles", "short_cover_title", "final_video_preview", "publish_copy"],
+    "media_inspection": ["non_empty_ass_or_srt", "video_sha_differs_from_clean_source", "h264_aac", "duration_delta_within_max_0_5s_or_2_percent"],
+    "entry_evidence_is_contract_only": true,
+    "real_provider_evidence_deferred_to": "DH-QUALITY-2"
+  },
+  "rollback": {
+    "disable_new_quality_flag": true,
+    "preserve_v1_and_existing_runs": true,
+    "do_not_delete_artifacts": true,
+    "do_not_rewrite_old_run_subtitles": true,
+    "restore_stage": "DH-DUAL-2"
+  },
+  "forbidden_in_entry": [
+    "modify_digital_human_business_ui",
+    "modify_media_adapter_behavior",
+    "call_llm_provider_from_media_adapter",
+    "call_tts_or_runninghub",
+    "render_real_video_or_cover",
+    "platform_upload_or_authorization",
+    "final_publish_click",
+    "destructive_migration"
+  ],
+  "gate": {
+    "name": "PG-DH-D",
+    "entry_status": "entry_in_progress",
+    "requires": [
+      "content_source_modes_and_ownership_frozen",
+      "field_separation_frozen",
+      "cover_and_subtitle_rules_frozen",
+      "artifact_acceptance_and_quality_evidence_frozen",
+      "failure_matrix_and_rollback_recorded",
+      "entry_fixture_test_passed",
+      "independent_six_dimension_review_p0_p1_zero",
+      "provider_calls_zero"
+    ],
+    "next_stage": "DH-QUALITY-1-IMPLEMENTATION"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "fixtures": [
+    {"id": "provider-running-before-restart", "input": {"provider_task_id": "task-1", "provider_task_status": "running"}, "expected": "fail_closed_and_reuse_task"},
+    {"id": "asset-revision-change", "input": {"asset_revision_id": "rev-old", "current_asset_revision_id": "rev-new"}, "expected_error": "DH_QUALITY_FIXED_INPUT_MUTATED"},
+    {"id": "accept-incomplete-artifacts", "input": {"artifact_types": ["video", "cover", "publish_copy"]}, "expected_error": "DH_QUALITY_FINAL_ARTIFACT_INCOMPLETE"},
+    {"id": "artifact-tampered-before-accept", "input": {"fingerprint": "changed"}, "expected_error": "ARTIFACT_FINGERPRINT_MISMATCH"},
+    {"id": "final-publish", "input": {"platform_actions": 0, "final_publish_clicked": false}, "expected": "always_false"}
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "evidence_type": "application_center_digital_human_quality_entry",
+  "recorded_at": "2026-07-24",
+  "stage": "DH-QUALITY-1",
+  "gate": "PG-DH-D",
+  "status": "entry_in_progress",
+  "scope": "contract_fixture_failure_matrix_only",
+  "change_request": "CR-DH-DUAL-MODE-001",
+  "plan": {
+    "path": "docs/superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md",
+    "sha256": "30590fb985f9bceacd8b0896c75997486aff33c00fff6d0c73ec66931e40aa1a"
+  },
+  "contracts": {
+    "quality_entry": "docs/contracts/app-center/digital-human-quality-entry.contract.json",
+    "quality_fixtures": "docs/contracts/app-center/fixtures/digital-human-quality-entry-fixtures.json",
+    "schema_version": 1,
+    "content_modes": ["custom_script", "copywriting_artifact", "generated_marketing_copy", "title_plus_copywriting"],
+    "mode_aliases": {"marketing_copy_artifact": "copywriting_artifact", "selected_title_with_copy": "title_plus_copywriting"},
+    "separate_fields": ["spoken_script", "publish_title", "publish_description", "cover_title", "hashtags"],
+    "cover_title_recommended": [12, 18],
+    "cover_title_hard_max": 24,
+    "subtitle_preset": "readable_v2",
+    "default_preview": "final_video",
+    "raw_artifact_role": "diagnostic_only"
+  },
+  "fixture_counts": {
+    "total": 11,
+    "valid": 5,
+    "invalid": 6,
+    "source_binding_cases": 6,
+    "cover_cases": 2,
+    "subtitle_and_artifact_cases": 3
+  },
+  "failure_matrix": {
+    "cases": 9,
+    "title_only_rejected": true,
+    "cross_project_binding_rejected": true,
+    "cover_prefix_fallback_rejected": true,
+    "old_run_style_preserved": true,
+    "incomplete_artifact_blocks_accept": true
+  },
+  "tests": {
+    "targeted_entry_contract": {
+      "command": "uv run pytest -q tests/digital_human_quality_entry_contract_test.py",
+      "result": "4 passed"
+    },
+    "existing_dh_dual_entry_regression": {
+      "command": "uv run pytest -q tests/digital_human_quality_entry_contract_test.py tests/digital_human_dual_mode_entry_contract_test.py",
+      "result": "8 passed"
+    },
+    "existing_app_center_entry_regression": {
+      "command": "uv run pytest -q tests/digital_human_quality_entry_contract_test.py tests/digital_human_dual_mode_entry_contract_test.py tests/app_center_ip_broadcast_entry_contract_test.py tests/app_center_ip_broadcast_desktop_entry_contract_test.py tests/app_center_ip_broadcast_handoff_entry_contract_test.py tests/app_center_registry_test.py",
+      "result": "26 passed, 12 existing warnings"
+    },
+    "artifact_regression": {
+      "command": "uv run pytest -q tests/app_center_ip_broadcast_api_test.py tests/app_center_ip_broadcast_adapter_test.py tests/app_center_ip_broadcast_artifact_test.py",
+      "result": "47 passed, 12 existing warnings"
+    },
+    "ruff": {"command": "uv run ruff check tests/digital_human_quality_entry_contract_test.py && uv run ruff format --check tests/digital_human_quality_entry_contract_test.py", "result": "passed"},
+    "json_parse": {"result": "passed"},
+    "git_diff_check": {"result": "passed"}
+  },
+  "external_actions": {
+    "provider_calls": 0,
+    "llm_calls": 0,
+    "tts_calls": 0,
+    "browser_platform_actions": 0,
+    "uploads": 0,
+    "final_publish_clicks": 0,
+    "default_flags_changed": false,
+    "business_code_changed": false
+  },
+  "boundaries": [
+    "This Entry freezes quality contracts only; it does not implement business behavior.",
+    "No real subtitle, cover, or final video is generated in Entry.",
+    "Real provider/media evidence is deferred until PG-DH-D passes and DH-QUALITY-2 starts.",
+    "Final publish remains manual and disabled."
+  ],
+  "independent_review": {
+    "status": "entry_passed_with_boundary",
+    "reviewer": "/root/dh_dual_entry_reviewer",
+    "review_document": "docs/reviews/application-publishing-program/DH-QUALITY-1-entry-review-2026-07-24.md",
+    "required_p0_p1": 0,
+    "p0": 0,
+    "p1": 0,
+    "substantive_p2": 0,
+    "next_stage": "DH-QUALITY-1-IMPLEMENTATION",
+    "boundary": "No real media/provider evidence or platform action in Entry; final publish remains manual and disabled."
+  }
+}

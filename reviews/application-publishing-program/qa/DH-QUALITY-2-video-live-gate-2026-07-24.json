@@ -1,0 +1,87 @@
+{
+  "stage": "DH-QUALITY-2",
+  "gate": "PG-DH-E",
+  "status": "passed_with_boundary",
+  "verification_scope": "controlled_video_mode_live_quality_gate",
+  "review_type": "bounded_main_thread_visual_gate",
+  "independent_program_six_dimension_review": "deferred_by_user_until_program_complete",
+  "provider": {
+    "workflow_profile": "video_lipsync/natural",
+    "workflow_revision": "digital_lip_sync_video.v1",
+    "task_id": "2080534254718251010",
+    "task_status": "succeeded",
+    "task_create_count": 1,
+    "retry_count": 0,
+    "previous_task_ids": [],
+    "tts": "local_edge_succeeded",
+    "provider_calls": 1
+  },
+  "run": {
+    "session_id": "dea13fc01ae04f0c9c368f2aa4c5b77c",
+    "app_run_id": "run_79b3d2f8ad0f480b8f269656552bb13d",
+    "review_state": "needs_review",
+    "quality_input_fingerprint": "sha256:61744f384676a33dbee1abb2122b1baf11163ee12f1f8427a85fb8b4476a5aa1",
+    "spoken_script_chars": 39,
+    "artifacts": {
+      "final_video": true,
+      "cover": true,
+      "publish_copy": true,
+      "spoken_script": true
+    }
+  },
+  "media": {
+    "final_video_sha256": "1225e49ad9704e70ee3e40a240aa276921381c26e3a84c387b867b2761ec3fc5",
+    "cover_sha256": "0d16342b1e33d0bf435468098a725f64b4a687488b526d6144a37f73bf45241c",
+    "ffprobe": {
+      "status": "ok",
+      "container": "mp4",
+      "video_codec": "h264",
+      "audio_codec": "aac",
+      "width": 1080,
+      "height": 1920,
+      "video_duration_seconds": 6.12,
+      "audio_duration_seconds": 6.101,
+      "fps": 25
+    },
+    "subtitle": {
+      "preset": "readable_v2",
+      "burned_in": true,
+      "safe_area": "passed",
+      "readability": "passed",
+      "evidence_files": [
+        "frame-25.png",
+        "frame-50.png",
+        "frame-75.png"
+      ]
+    }
+  },
+  "visual_review": {
+    "verdict": "passed_with_boundary",
+    "criteria": {
+      "subtitle_readability_and_safe_area": "pass",
+      "identity_stability": "pass",
+      "lip_motion_plausibility": "pass",
+      "audio_visual_sync": "pass_within_duration_tolerance",
+      "person_edges": "pass_no_severe_halo_or_matte_artifact",
+      "background_stability": "pass_no_black_white_matte_or_jagged_background",
+      "motion": "pass_natural_motion_blur_only",
+      "cover_title": "pass_short_and_readable",
+      "technical_spec": "pass"
+    },
+    "evidence_dir": "docs/reviews/application-publishing-program/qa/DH-QUALITY-2-video-live-gate-2026-07-24",
+    "manual_observation": "25/50/75% samples show readable burned-in subtitles, stable identity and background, plausible mouth motion, and no severe edge defect."
+  },
+  "safety": {
+    "platform_actions": 0,
+    "final_publish_clicked": false,
+    "default_publish_click": false,
+    "accept_is_still_human_confirmed": true
+  },
+  "release_decision": {
+    "video_lipsync_natural": "stable",
+    "availability": "stable_non_default",
+    "default_mode": false,
+    "image_talking_natural": "candidate",
+    "boundary": "The user explicitly promoted the video workflow to stable while retaining image mode as the default; this does not enable automatic platform publishing or change the deferred Program-level review boundary."
+  }
+}

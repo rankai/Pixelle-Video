@@ -1,0 +1,80 @@
+- complementary:
+  - generic: PV
+  - strong: Pixelle Video
+  - generic: 企业视频工作台
+  - menu:
+    - menuitem "应用中心":
+      - generic: 应用中心
+    - menuitem "工作台":
+      - generic: 工作台
+    - menuitem "口播剪辑":
+      - generic: 口播剪辑
+    - separator
+    - menuitem "企业资产库":
+      - generic: 企业资产库
+    - separator
+    - menuitem "发布中心":
+      - generic: 发布中心
+    - menuitem "任务记录":
+      - generic: 任务记录
+    - menuitem "系统设置":
+      - generic: 系统设置
+- banner:
+  - heading "数字人口播视频" [level=3]
+  - text: 从项目或可信内容进入数字人口播应用，发布前保留人工确认。
+  - generic: 本机安全模式
+- main:
+  - region "数字人口播应用":
+    - generic: APPLICATION · builtin.digital-human-video
+    - heading "数字人口播视频" [level=2]
+    - generic: 从项目、可信文案或选定标题进入统一运行链路；选择数字人形象后可调用已配置的 TTS/数字人服务生成真实视频，最终发布仍由人工确认。
+    - button "返回应用中心":
+      - generic: 返回应用中心
+    - alert:
+      - img "info-circle":
+      - generic: 已清理与当前模式不兼容的数字人素材，请重新选择对应场景。
+    - generic: 1 · 选择项目与来源
+    - generic: 内容项目
+    - combobox "内容项目":
+      - option "请选择项目"
+      - option "数字人口播真实验证-20260724" [selected]
+      - option "图文验收项目"
+      - option "口播发布项目"
+    - button "新建项目":
+      - generic: 新建项目
+    - tablist "口播来源":
+      - tab "空白项目" [selected]
+      - tab "已有文案"
+      - tab "选定标题"
+    - textbox "制作目标":
+      - /placeholder: 例如：为新店开业制作一条 30 秒口播视频
+    - generic: 数字人模式
+    - tablist "数字人模式":
+      - tab "图片数字人"
+      - tab "视频数字人" [selected]
+    - generic: 视频唇形模式：保留源视频动作与背景；当前为候选能力，生成前会继续做服务端校验。
+    - generic: 数字人形象
+    - button "选择数字人形象":
+      - generic: 选择数字人形象
+    - generic: 生成前必须选择与当前模式匹配的已登记场景；选择后会锁定素材 revision，不接受浏览器路径或 Provider 标识。
+    - button "创建应用运行" [disabled]:
+      - generic: 创建应用运行
+    - generic: V2 · v1.1.0
+    - dialog "选择数字人资产":
+      - heading "选择数字人资产" [level=2]
+      - paragraph: 数字人口播形象 · 先预览，再确认；确认后才会把稳定资源 ID 写入生产流。
+      - button "关闭选择器":
+      - textbox [active]:
+        - /placeholder: 搜索数字人名称或文件名
+      - button "仅看收藏"
+      - generic: 最近使用优先
+      - button "美女 不可用于当前步骤：当前模式只支持视频场景" [disabled]:
+        - strong: 美女
+        - generic: 不可用于当前步骤：当前模式只支持视频场景
+      - button "测试 不可用于当前步骤：当前模式只支持视频场景" [disabled]:
+        - strong: 测试
+        - generic: 不可用于当前步骤：当前模式只支持视频场景
+      - generic: 请选择并预览一个资产
+      - button "确认使用" [disabled]
+    - generic: 2 · 运行状态与安全停手
+    - generic: 尚未创建运行。创建后将持久化安全指针，并在重启时优先读取已有运行。

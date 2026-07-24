@@ -1,0 +1,36 @@
+{
+  "contract_id": "digital-human-quality2-live-entry",
+  "fixtures": [
+    {
+      "id": "same-input-image-and-video",
+      "valid": true,
+      "expected": {
+        "same_script": true,
+        "same_tts": true,
+        "image_calls": 1,
+        "video_calls": 1,
+        "final_publish_clicked": false
+      }
+    },
+    {
+      "id": "duplicate-provider-task",
+      "valid": false,
+      "error": "DH_QUALITY_PROVIDER_DUPLICATE_TASK"
+    },
+    {
+      "id": "retry-without-root-cause",
+      "valid": false,
+      "error": "DH_QUALITY_RETRY_PLAN_REQUIRED"
+    },
+    {
+      "id": "missing-subtitles-or-spoken-script",
+      "valid": false,
+      "error": "DH_QUALITY_FINAL_ARTIFACT_INCOMPLETE"
+    },
+    {
+      "id": "platform-action",
+      "valid": false,
+      "error": "DH_QUALITY_PLATFORM_ACTION_FORBIDDEN"
+    }
+  ]
+}

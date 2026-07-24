@@ -1,0 +1,58 @@
+{
+  "stage": "DH-QUALITY-2",
+  "gate": "PG-DH-E",
+  "status": "implementation_pass_with_boundary",
+  "implementation": {
+    "fixed_input_fingerprint": true,
+    "provider_task_deduplication": true,
+    "retry_plan_endpoint": "/app-center/ip-broadcast/runs/{app_run_id}/retry-plan",
+    "retry_limit_per_v2_run": 1,
+    "quality_evidence": [
+      "provider_task_id",
+      "provider_task_create_count",
+      "provider_previous_task_ids",
+      "quality_input_fingerprint",
+      "raw_video_sha256",
+      "final_video_sha256",
+      "cover_sha256",
+      "ffprobe",
+      "frame_samples_25_50_75",
+      "subtitle_path_sha256_burned_in",
+      "spoken_script",
+      "four_artifact_completeness",
+      "final_publish_clicked"
+    ],
+    "required_artifacts": ["video", "cover", "publish_copy", "spoken_script"]
+  },
+  "tests": {
+    "quality_impl_and_entry": {
+      "command": "uv run pytest -q tests/digital_human_quality_impl_test.py tests/digital_human_quality2_entry_contract_test.py",
+      "result": "19 passed"
+    },
+    "digital_human_app_center_publish_aggregate": {
+      "command": "uv run pytest -q tests/digital_human_quality_impl_test.py tests/digital_human_quality2_entry_contract_test.py tests/digital_human_quality_entry_contract_test.py tests/digital_human_dual_mode_entry_contract_test.py tests/digital_human_dual_mode_server_test.py tests/app_center_registry_test.py tests/app_center_ip_broadcast_adapter_test.py tests/app_center_ip_broadcast_api_test.py tests/app_center_ip_broadcast_artifact_test.py tests/ip_broadcast_productization_test.py",
+      "result": "130 passed, 12 warnings"
+    },
+    "static": {
+      "result": "Ruff check/format, JSON parse, git diff --check passed"
+    }
+  },
+  "external_actions": {
+    "provider_calls": 0,
+    "llm_calls": 0,
+    "tts_calls": 0,
+    "browser_platform_actions": 0,
+    "uploads": 0,
+    "final_publish_clicks": 0
+  },
+  "boundaries": [
+    "真实图片/视频 Provider 质量仍需单独 live smoke",
+    "隔离伪媒体抽帧为 unavailable，不外推为质量通过",
+    "默认 flag、平台动作和最终发布保持关闭",
+    "独立六维复审按用户要求延后至 Program 完成"
+  ],
+  "independent_review": {
+    "status": "deferred_by_user_until_program_complete",
+    "not_run_for_this_implementation_batch": true
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "evidence_type": "application_center_digital_human_dual_mode_desktop_implementation",
+  "recorded_at": "2026-07-24",
+  "stage": "DH-DUAL-2",
+  "gate": "PG-DH-C",
+  "status": "implementation_pending_independent_review",
+  "scope": "desktop_dual_mode_asset_picker_result_delivery",
+  "change_request": "CR-DH-DUAL-MODE-001",
+  "entry": "docs/reviews/application-publishing-program/DH-DUAL-2-entry-2026-07-24.md",
+  "implementation": {
+    "desktop_joint_flag": true,
+    "v2_app_version": "1.1.0",
+    "image_mode": "image_talking",
+    "video_mode": "video_lipsync",
+    "scene_media_filter": true,
+    "video_scene_playable_preview": "implemented_fixture_only",
+    "source_revision_pinned": true,
+    "asset_metadata_summary": true,
+    "incompatible_mode_clears_asset_preserves_copy": true,
+    "pending_run_restores_mode_revision_and_input": true,
+    "idempotent_double_click_guard": true,
+    "execute_phase_persists_on_response_loss": true,
+    "initial_main_action_start_generation": true,
+    "create_then_execute_in_single_action": true,
+    "default_result_artifacts": ["final_video", "cover", "publish_copy"],
+    "raw_digital_human_artifact": "diagnostic_only",
+    "default_download_artifact": "final_video"
+  },
+  "tests": {
+    "desktop_vitest": {
+      "command": "npm test -- --run",
+      "result": "11 files, 67 passed"
+    },
+    "desktop_build": {
+      "command": "npm run build",
+      "result": "tsc and Vite build passed"
+    },
+    "server_regression": {
+      "command": "uv run pytest -q tests/digital_human_dual_mode_server_test.py tests/digital_human_dual_mode_entry_contract_test.py tests/app_center_ip_broadcast_adapter_test.py tests/app_center_ip_broadcast_api_test.py tests/app_center_ip_broadcast_artifact_test.py tests/app_center_registry_test.py tests/asset_library_v2_repository_test.py",
+      "result": "110 passed, 12 existing warnings"
+    },
+    "static_checks": {
+      "ruff_target_files": "passed",
+      "git_diff_check": "passed",
+      "json_parse": "passed"
+    }
+  },
+  "visual_interaction": {
+    "surface": "Codex In-app Browser + local Vite/FastAPI",
+    "application_center_cards_verified": 4,
+    "digital_human_route_verified": true,
+    "mode_tabs_verified": ["图片数字人", "视频数字人"],
+    "real_api_shape_verified": {
+      "endpoint": "/api/v2/library/items?kind=digital_human",
+      "capability": "digital_human",
+      "profile_metadata": ["width", "height", "duration_ms"],
+      "scene_metadata": ["width", "height", "duration_ms", "source_revision_id"]
+    },
+    "viewport_checks": {
+      "1440x900": {"scroll_width": 1440, "client_width": 1440},
+      "1280x800": {"scroll_width": 1265, "client_width": 1265},
+      "900x760": {"scroll_width": 885, "client_width": 885},
+      "390x760": {"scroll_width": 390, "client_width": 390}
+    },
+    "horizontal_overflow": false,
+    "screenshot_captured": true,
+    "screenshot_evidence": [
+      {"path": "qa/DH-DUAL-2-visual-2026-07-24/app-center-1440x900.png", "sha256": "f8e25f967258bd9b2d5f59138c4607148db6f32cd11907e3c1897140b7a58500"},
+      {"path": "qa/DH-DUAL-2-visual-2026-07-24/digital-human-1440x900.png", "sha256": "da8c1f3c14d86beb0c990d36299f3eb2b50c05706089939ddc9c6f2fe311fa98"},
+      {"path": "qa/DH-DUAL-2-visual-2026-07-24/digital-human-1280x800.png", "sha256": "b6f3f95ad323173566c03d2e079c33a5a07876906483cf95f8dc89e09507485c"},
+      {"path": "qa/DH-DUAL-2-visual-2026-07-24/digital-human-900x760.png", "sha256": "27b6d01d9ef02a38b5761039ae01fefe767c18a789f818cbbdf40c3da6b0fe8b"},
+      {"path": "qa/DH-DUAL-2-visual-2026-07-24/digital-human-390x760.png", "sha256": "1492f5cd1c9332f9ca1b533b9fd33828c0e6ed242776fe188c00e5bd46590dc4"},
+      {"path": "qa/DH-DUAL-2-visual-2026-07-24/digital-human-picker-image-1440x900.png", "sha256": "7afe4d238300d7d6250323d440f08793d922f6b5578ccf1afb07ad714bc21ba0"},
+      {"path": "qa/DH-DUAL-2-visual-2026-07-24/digital-human-selected-image-1440x900.png", "sha256": "2b1088dbd58bbce6c0665c3dfc654c9e8f75d4fdd48521a6a145a21e2da84e2e"},
+      {"path": "qa/DH-DUAL-2-visual-2026-07-24/digital-human-picker-video-1440x900.png", "sha256": "63fc930f4c1b143fed4327d1e7713871c22173b25e985ed5525162ad6253374a"}
+      ,{"path": "qa/DH-DUAL-2-visual-2026-07-24/digital-human-one-click-1440x900.png", "sha256": "6da301e4b09bc619a1565a61662998e2100f84a5e2418a1c5d2e53b2d2f27906"}
+      ,{"path": "qa/DH-DUAL-2-visual-2026-07-24/digital-human-one-click-picker-image-1440x900.png", "sha256": "33917a1bb0f7546badb23f444757091cee63f3b84b3093fa205752b319256abd"}
+      ,{"path": "qa/DH-DUAL-2-visual-2026-07-24/digital-human-one-click-selected-image-1440x900.png", "sha256": "6da301e4b09bc619a1565a61662998e2100f84a5e2418a1c5d2e53b2d2f27906"}
+      ,{"path": "qa/DH-DUAL-2-visual-2026-07-24/digital-human-one-click-picker-video-1440x900.png", "sha256": "4fdd67ca5c1b7440c7ab3a94ed57b0c4adf1af6f370faaf9a8abe3f386147c6f"}
+    ],
+    "interaction_evidence": "qa/DH-DUAL-2-visual-2026-07-24/interaction-dom-snapshot.txt",
+    "picker_interaction_evidence": [
+      "qa/DH-DUAL-2-visual-2026-07-24/picker-image-interaction-dom-snapshot.txt",
+      "qa/DH-DUAL-2-visual-2026-07-24/selected-image-interaction-dom-snapshot.txt",
+      "qa/DH-DUAL-2-visual-2026-07-24/picker-video-interaction-dom-snapshot.txt",
+      "qa/DH-DUAL-2-visual-2026-07-24/digital-human-one-click-interaction-dom-snapshot.txt",
+      "qa/DH-DUAL-2-visual-2026-07-24/digital-human-one-click-picker-image-interaction-dom-snapshot.txt",
+      "qa/DH-DUAL-2-visual-2026-07-24/digital-human-one-click-selected-image-interaction-dom-snapshot.txt",
+      "qa/DH-DUAL-2-visual-2026-07-24/digital-human-one-click-picker-video-interaction-dom-snapshot.txt"
+    ],
+    "interaction_sequence": [
+      "应用中心加载四个应用卡片",
+      "进入数字人口播视频",
+      "切换图片/视频模式并保持制作目标",
+      "图片模式打开真实数字人资产选择器，选中美女图片场景并确认回填",
+      "回填显示图片场景、revision 已锁定、944×1280、质量：已就绪",
+      "视频模式打开真实选择器，图片资产明确禁用并显示只支持视频场景",
+      "初始唯一主动作显示为开始生成；一次点击先幂等创建 AppRun 再调用 execute",
+      "显示 V2 v1.1.0、资产 revision 锁定和开始生成前置状态"
+    ]
+  },
+  "visual_boundary": {
+    "real_video_scene_available": false,
+    "observed": "当前本地真实 AssetLibrary profile 仅登记图片 scene；视频模式选择器对全部图片资产禁用并提示只支持视频场景",
+    "fixture_controls_tested": true,
+    "video_preview_coverage": "mixed-profile video preview and playable controls covered by desktop Vitest; no Provider or fabricated real video asset used"
+  },
+  "external_actions": {
+    "provider_calls": 0,
+    "browser_platform_actions": 0,
+    "third_party_authorization": 0,
+    "uploads": 0,
+    "final_publish_clicks": 0
+  },
+  "independent_review": {
+    "status": "implementation_pass_with_boundary",
+    "reviewer": "/root/dh_dual_entry_reviewer",
+    "required_p0_p1": 0,
+    "p0": 0,
+    "p1": 0,
+    "substantive_p2": 0,
+    "non_blocking_observation": "video controls nested inside scene button; improve interactive semantics in a later UI hardening batch",
+    "review_document": "docs/reviews/application-publishing-program/DH-DUAL-2-implementation-review-2026-07-24.md",
+    "reviewed_at": "2026-07-24"
+  }
+}
