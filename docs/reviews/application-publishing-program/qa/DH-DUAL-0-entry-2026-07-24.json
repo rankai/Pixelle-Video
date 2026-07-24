@@ -1,0 +1,107 @@
+{
+  "evidence_type": "application_center_digital_human_dual_mode_entry",
+  "recorded_at": "2026-07-24",
+  "stage": "DH-DUAL-0",
+  "gate": "PG-DH-A",
+  "status": "entry_passed_with_boundary",
+  "scope": "contract_fixture_baseline_only",
+  "change_request": "CR-DH-DUAL-MODE-001",
+  "plan": {
+    "path": "docs/superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md",
+    "sha256": "30590fb985f9bceacd8b0896c75997486aff33c00fff6d0c73ec66931e40aa1a"
+  },
+  "git_baseline": {
+    "branch": "codex/dh-dual-mode-entry",
+    "head": "aa0e1f554eae01884a1b1d0a9eaef348e57f3219",
+    "business_code_changed": false,
+    "only_new_scope_files": [
+      "docs/contracts/app-center/digital-human-video-input-v2.contract.json",
+      "docs/contracts/app-center/fixtures/digital-human-video-input-v2-fixtures.json",
+      "tests/digital_human_dual_mode_entry_contract_test.py",
+      "docs/reviews/application-publishing-program/qa/DH-DUAL-0-entry-2026-07-24.json",
+      "docs/reviews/application-publishing-program/DH-DUAL-0-entry-2026-07-24.md"
+    ],
+    "ledger_updated": true
+  },
+  "contract": {
+    "path": "docs/contracts/app-center/digital-human-video-input-v2.contract.json",
+    "schema_version": 2,
+    "content_source_modes": ["custom_script", "copywriting_artifact", "generated_marketing_copy", "title_plus_copywriting"],
+    "digital_human_modes": ["image_talking", "video_lipsync"],
+    "default_preview_artifact": "final_video",
+    "raw_artifact_role": "diagnostic_only",
+    "v1_resume_versions": ["1.0.0", "1.1.0"],
+    "final_publish_clicks": 0
+  },
+  "fixture_counts": {
+    "total": 12,
+    "valid": 5,
+    "invalid": 7,
+    "image_mode_valid": 2,
+    "video_mode_valid": 1,
+    "v1_compatibility": 2,
+    "media_mismatch_negative": 2,
+    "quality_and_security_negative": 5
+  },
+  "tests": {
+    "targeted_entry_contract": {"command": "uv run pytest -q tests/digital_human_dual_mode_entry_contract_test.py", "result": "4 passed"},
+    "existing_app_center_entry_regression": {"command": "uv run pytest -q tests/digital_human_dual_mode_entry_contract_test.py tests/app_center_ip_broadcast_entry_contract_test.py tests/app_center_ip_broadcast_desktop_entry_contract_test.py tests/app_center_ip_broadcast_handoff_entry_contract_test.py tests/app_center_registry_test.py", "result": "22 passed, 12 existing warnings"},
+    "existing_ac5_adapter_api_artifact_regression": {"command": "uv run pytest -q tests/app_center_ip_broadcast_api_test.py tests/app_center_ip_broadcast_adapter_test.py tests/app_center_ip_broadcast_artifact_test.py", "result": "47 passed, 12 existing warnings"},
+    "ruff": {"command": "uv run ruff check tests/digital_human_dual_mode_entry_contract_test.py && uv run ruff format --check tests/digital_human_dual_mode_entry_contract_test.py", "result": "passed"},
+    "json_parse": {"result": "passed"},
+    "git_diff_check": {"result": "passed"}
+  },
+  "baseline_evidence": {
+    "captured_in_this_entry": false,
+    "source": "application-publishing-program/qa/AC-5-digital-human-live-smoke-retry-2026-07-24.json",
+    "review": "application-publishing-program/AC-5-digital-human-live-smoke-retry-review-2026-07-24.md",
+    "isolated_output_dir": "/tmp/pixelle-digital-human-retry-Sp7dyH",
+    "final_video": {
+      "path": "output/ipb_03c6cc51_final.mp4",
+      "sha256": "4d54df64a87fe71895deeeefad2f34958452e228446362122497947bcffeda3b",
+      "media": "1080x1920 H264/AAC, 8.544s"
+    },
+    "raw_digital_human_video": {
+      "path": "temp/ipb_dh_3e85ff8b.mp4",
+      "sha256": "416dac33a5c20fb7a16eafec81c9aa8fcd350065a0c66a2a4af8abb9d588efc6"
+    },
+    "cover": {
+      "path": "temp/ipb_cover_03c6cc51.png",
+      "sha256": "50f35215b1ecbe5d72f9267b97e16d3221070ab1bee5bfcb6e85ff4b9e24af82",
+      "media": "1080x1920 PNG"
+    },
+    "subtitle_frames": [
+      "/tmp/pixelle-digital-human-review-frames/frame-01.png",
+      "/tmp/pixelle-digital-human-review-frames/frame-02.png",
+      "/tmp/pixelle-digital-human-review-frames/frame-03.png"
+    ],
+    "interpretation": "复用 AC-5 image-mode retry 基线，不等价 DH-DUAL-0 已完成 Provider 或视频模式验证。"
+  },
+  "external_actions": {
+    "provider_calls": 0,
+    "browser_actions": 0,
+    "platform_writes": 0,
+    "final_publish_clicks": 0,
+    "production_data_written": false,
+    "default_flags_changed": false
+  },
+  "boundaries": [
+    "This evidence does not prove image or video provider generation.",
+    "This evidence does not prove final subtitle, cover, or visual quality.",
+    "This evidence does not close PG-L Windows external installation or product sign-off.",
+    "This evidence does not authorize platform upload or final publish."
+  ],
+  "independent_review": {
+    "status": "passed_with_boundary",
+    "reviewer": "/root/dh_dual_entry_reviewer",
+    "review_document": "docs/reviews/application-publishing-program/DH-DUAL-0-entry-review-2026-07-24.md",
+    "p0": 0,
+    "p1": 0,
+    "next_stage": "DH-DUAL-1",
+    "remaining_p2": [
+      "runtime registry 1.0 to 1.1 mapping assertion",
+      "baseline frame hashes",
+      "MIME/geometry/timeout/no-output/mixed-scene implementation negatives"
+    ]
+  }
+}

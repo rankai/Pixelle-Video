@@ -1,0 +1,39 @@
+{
+  "stage": "DH-QUALITY-2",
+  "gate": "PG-DH-E",
+  "status": "entry_passed_with_boundary",
+  "contract": "docs/contracts/app-center/digital-human-quality2-live-entry.contract.json",
+  "fixtures": "docs/contracts/app-center/fixtures/digital-human-quality2-live-entry-fixtures.json",
+  "tests": {
+    "entry_contract": {
+      "command": "uv run pytest -q tests/digital_human_quality2_entry_contract_test.py",
+      "result": "4 passed"
+    },
+    "static": {
+      "result": "Ruff, format, JSON parse, git diff --check passed"
+    }
+  },
+  "provider_plan": {
+    "image_stable": 1,
+    "image_candidate_each": 1,
+    "video_natural": 1,
+    "retry_after_failure": "at_most_one_with_recorded_root_cause"
+  },
+  "external_actions": {
+    "provider_calls": 0,
+    "llm_calls": 0,
+    "tts_calls": 0,
+    "browser_platform_actions": 0,
+    "uploads": 0,
+    "final_publish_clicks": 0
+  },
+  "boundaries": [
+    "真实 Provider 质量证据后置实现批次",
+    "四 Artifact、ffprobe、字幕抽帧和重启证据缺一不可",
+    "独立六维复审按用户要求延后至 Program 完成"
+  ],
+  "independent_review": {
+    "status": "deferred_by_user_until_program_complete",
+    "not_run_for_entry": true
+  }
+}

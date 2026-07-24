@@ -1,0 +1,45 @@
+{
+  "stage": "DH-DUAL-3",
+  "gate": "PG-DH-F",
+  "status": "implementation_pass_with_boundary",
+  "implementation": {
+    "revalidate_before_execute": true,
+    "asset_revision_change": "DH_QUALITY_FIXED_INPUT_MUTATED",
+    "provider_task_reuse": true,
+    "retry_plan_required": true,
+    "retry_limit": 1,
+    "required_v2_artifacts": ["video", "cover", "publish_copy", "spoken_script"],
+    "accept_fingerprint_guard": true,
+    "final_publish_clicked": false,
+    "platform_actions": 0
+  },
+  "tests": {
+    "recovery_contract_and_matrix": {
+      "command": "uv run pytest -q tests/digital_human_dual_mode_recovery_contract_test.py tests/digital_human_dual_mode_recovery_test.py",
+      "result": "6 passed"
+    },
+    "digital_human_app_center_publish_aggregate": {
+      "command": "uv run pytest -q tests/digital_human_quality_impl_test.py tests/digital_human_quality2_entry_contract_test.py tests/digital_human_quality_entry_contract_test.py tests/digital_human_dual_mode_entry_contract_test.py tests/digital_human_dual_mode_server_test.py tests/digital_human_dual_mode_recovery_contract_test.py tests/digital_human_dual_mode_recovery_test.py tests/app_center_registry_test.py tests/app_center_ip_broadcast_adapter_test.py tests/app_center_ip_broadcast_api_test.py tests/app_center_ip_broadcast_artifact_test.py tests/ip_broadcast_productization_test.py",
+      "result": "138 passed, 12 warnings"
+    },
+    "static": {
+      "result": "Ruff check/format, JSON parse, git diff --check passed"
+    }
+  },
+  "external_actions": {
+    "provider_calls": 0,
+    "tts_calls": 0,
+    "browser_platform_actions": 0,
+    "uploads": 0,
+    "final_publish_clicks": 0
+  },
+  "boundaries": [
+    "真实 Provider 和真实桌面重启证据未执行",
+    "Windows/产品签字/真实 rollback/WebView 外部等待不变",
+    "独立六维复审按用户要求延后至 Program 完成"
+  ],
+  "independent_review": {
+    "status": "deferred_by_user_until_program_complete",
+    "not_run_for_this_implementation_batch": true
+  }
+}
