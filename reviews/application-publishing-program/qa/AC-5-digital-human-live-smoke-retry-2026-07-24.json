@@ -1,0 +1,132 @@
+{
+  "evidence_type": "controlled_live_smoke_retry",
+  "stage": "APP-IPB/AC-5",
+  "recorded_at": "2026-07-24",
+  "scope": "one purposeful retry of the previously queued isolated application-center digital-human run; no platform upload or final publish",
+  "isolation": {
+    "data_root": "/tmp/pixelle-digital-human-retry-Sp7dyH",
+    "api_base": "http://127.0.0.1:8111",
+    "app_center_db": "/tmp/pixelle-digital-human-retry-Sp7dyH/data/app_center.sqlite",
+    "production_data_written": false,
+    "production_config_changed": false,
+    "provider_task_retries": 0
+  },
+  "flags": {
+    "backend_PIXELLE_APP_CENTER_DIGITAL_HUMAN": true,
+    "desktop_VITE_APP_CENTER_DIGITAL_HUMAN": true,
+    "registry_enabled": true,
+    "registry_readiness": "ready"
+  },
+  "capabilities": {
+    "llm": true,
+    "runninghub": true,
+    "digital_human": true,
+    "template": true
+  },
+  "run": {
+    "project_id": "project_f2c0db6f7153459d914dd502fe71084d",
+    "app_run_id": "run_0f451bc6ccaa4c9d99f3033de6888248",
+    "session_id": "827d95e2b4ab4007b176afbeaea0df04",
+    "source_mode": "blank_project",
+    "portrait_id": "9767582bcb3b",
+    "digital_human_scene_id": "scene-9767582bcb3b",
+    "workflow": "workflows/runninghub/digital_combination.json",
+    "runninghub_workflow_id": "2003717471859294210",
+    "idempotency_key": "dh-live-20260724-01",
+    "runninghub_task_id": "2080465311014019073"
+  },
+  "execution": {
+    "tts": {
+      "status": "passed",
+      "provider": "local-edge-tts",
+      "audio_duration_seconds": 8.544,
+      "audio_bytes": 51264,
+      "audio_sha256": "dc167cdd55bf37f57469208bfbda6e9ed92b2e0c8fad545715d850519d341998",
+      "artifact_key": "audio"
+    },
+    "runninghub_digital_human": {
+      "status": "passed",
+      "upload_audio": "passed",
+      "upload_portrait": "passed",
+      "create_task": "passed",
+      "task_status": "SUCCESS",
+      "provider_task_created": true,
+      "manual_retry_count": 0,
+      "task_duration_seconds": 331.0
+    },
+    "postproduction": {
+      "status": "passed",
+      "digital_human_video": {
+        "relative_path": "temp/ipb_dh_3e85ff8b.mp4",
+        "bytes": 926231,
+        "sha256": "416dac33a5c20fb7a16eafec81c9aa8fcd350065a0c66a2a4af8abb9d588efc6"
+      },
+      "final_video": {
+        "relative_path": "output/ipb_03c6cc51_final.mp4",
+        "bytes": 1947558,
+        "sha256": "4d54df64a87fe71895deeeefad2f34958452e228446362122497947bcffeda3b"
+      },
+      "cover": {
+        "relative_path": "temp/ipb_cover_03c6cc51.png",
+        "bytes": 1200898,
+        "sha256": "50f35215b1ecbe5d72f9267b97e16d3221070ab1bee5bfcb6e85ff4b9e24af82"
+      },
+      "publish_copy": {
+        "title_present": true,
+        "description_present": true,
+        "hashtags": ["老板口播", "IP口播"],
+        "platform_suggestions": ["douyin", "xiaohongshu", "shipinhao", "kuaishou"]
+      }
+    }
+  },
+  "artifacts": {
+    "artifact_keys": ["audio", "cover", "digital_human_video", "final_video", "publish_copy", "video"],
+    "output_artifact_ids": [
+      "artifact_ad0ef2a519f14d80a5efa72609cc356a",
+      "artifact_bc228df5f6de4b118b7f166aee9c9db6",
+      "artifact_3c9854e09bb14316bda332161dd5f1f3"
+    ],
+    "video_artifact_source": "generated",
+    "cover_artifact_source": "generated",
+    "publish_copy_artifact_source": "generated",
+    "artifact_registration": "passed"
+  },
+  "recovery": {
+    "prior_failure_and_retry": "see AC-5-digital-human-live-smoke-2026-07-24.json; the same AppRun was failed, restarted, retried once to queued, and then reused here",
+    "state_before_retry": {
+      "state": "queued",
+      "state_version": 5
+    },
+    "state_after_provider_and_postproduction": {
+      "state": "needs_review",
+      "state_version": 7,
+      "step_4": "done",
+      "step_5": "done",
+      "step_6": "ready"
+    },
+    "state_after_restart": {
+      "state": "needs_review",
+      "state_version": 7,
+      "artifact_keys": ["audio", "cover", "digital_human_video", "final_video", "publish_copy", "video"],
+      "output_artifact_ids_preserved": true
+    },
+    "human_accept": {
+      "status": 200,
+      "state_after_accept": "completed",
+      "state_version": 8,
+      "completion_allowed": true
+    }
+  },
+  "human_confirmation": {
+    "generated_outputs_reviewed": true,
+    "accept_simulated_as_user_action": true,
+    "final_publish_clicked": false,
+    "platform_actions": 0
+  },
+  "runtime_boundary": {
+    "first_process_shutdown": "completed_with_playwright_browser_close_error_after_successful_run",
+    "restart_process_shutdown": "clean",
+    "business_state_preserved": true
+  },
+  "conclusion": "passed_with_boundary; real Edge TTS -> RunningHub digital human -> postproduction produced and registered video, cover and publish_copy; restart recovery and human accept passed; final platform publishing remained disabled"
+}

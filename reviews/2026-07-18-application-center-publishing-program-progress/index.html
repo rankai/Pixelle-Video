@@ -3824,6 +3824,14 @@ gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user</p>
 <td><code>PG-I</code> 代码/边界仍有效，但真实 Provider Gate <code>blocked_by_external_state</code>；RunningHub 余额不足是唯一阻塞，不能把 TTS 成功或本地 Artifact 结构测试解释为真实成片通过；应用中心生产开关未改为默认开启，平台上传/最终发布均未触发</td>
 <td>余额恢复后只允许基于同一失败运行做一次有目的的真实 retry，重新验证视频/封面/发布文案 Artifact、重启恢复和人工接收；在此之前保持“待上线”与最终发布停手边界</td>
 </tr>
+<tr>
+<td>2026-07-24</td>
+<td>APP-IPB/AC-5 余额恢复后唯一一次真实 retry 与 Artifact 收口</td>
+<td>复用同一 queued AppRun，仅执行一次真实 retry；Edge TTS、RunningHub 音频/人物上传、任务创建与 SUCCESS 回收、数字人视频下载、后期合成全部通过；视频/封面/发布文案三类 generated Artifact 登记成功；进程重启后 <code>needs_review</code>、Artifact IDs 和产物状态保持；模拟人工 accept 后 <code>completed</code>；最终发布点击=0、平台动作=0</td>
+<td><a href="../application-publishing-program/qa/AC-5-digital-human-live-smoke-retry-2026-07-24.json"><code>qa/AC-5-digital-human-live-smoke-retry-2026-07-24.json</code></a>；<a href="../application-publishing-program/AC-5-digital-human-live-smoke-retry-review-2026-07-24/"><code>AC-5-digital-human-live-smoke-retry-review-2026-07-24.md</code></a>；RunningHub task <code>2080465311014019073</code>；AppRun <code>run_0f451bc6ccaa4c9d99f3033de6888248</code>；前一次失败/重试证据仍保留于上一 JSON；<code>git diff --check</code>、JSON 校验通过</td>
+<td><code>PG-I</code> 真实 Provider Gate=<code>passed_with_boundary</code>；生产默认开关未改变，所有运行均在隔离副本；首次进程关闭有 Playwright browser close cleanup 异常，但重启后业务状态完整且第二次关闭 clean；平台上传、最终发布和自动点击仍未执行</td>
+<td>关闭 AC-5 真实 Provider 阻塞边界，保留 shutdown cleanup 作为后续 P2 观察项；应用中心默认状态可按“真实生成已验证、平台发布仍人工”展示；任何 provider/workflow 变更需重新做一次有边界 live smoke</td>
+</tr>
 </tbody>
 </table>
 
@@ -3848,7 +3856,7 @@ gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 24, 2026 00:17:37 UTC">July 24, 2026 00:17:37</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 24, 2026 01:43:16 UTC">July 24, 2026 01:43:16</span>
   </span>
 
     
