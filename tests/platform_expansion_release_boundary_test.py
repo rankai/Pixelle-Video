@@ -55,6 +55,7 @@ def test_unverified_platforms_are_blocked_before_run_creation_and_browser_start(
 
     for platform_name, platform in PLATFORM_IDS.items():
         account = accounts.create_account(platform, platform_name, f"profile_{platform_name}")
+        accounts.revoke_platform_release(platform, reason_ref=f"rollback/boundary-{platform_name}")
         with pytest.raises(PublishRunConflict, match="PLATFORM_RELEASE_NOT_READY"):
             service.create_run(package.package_id, account.account_id, platform, f"boundary-{platform_name}")
         with sqlite3.connect(db) as connection:
@@ -69,6 +70,7 @@ def test_release_promotion_and_revoke_rehearsal_restores_unverified_without_acco
     before = {}
     for platform_name, platform in PLATFORM_IDS.items():
         account = accounts.create_account(platform, platform_name, f"profile_{platform_name}")
+        accounts.revoke_platform_release(platform, reason_ref=f"rollback/before-rehearsal-{platform_name}")
         before[platform_name] = (account.account_id, account.profile_ref, account.login_state, account.enabled)
 
     for platform_name, platform in PLATFORM_IDS.items():
@@ -90,11 +92,81 @@ def test_release_promotion_and_revoke_rehearsal_restores_unverified_without_acco
 @pytest.mark.parametrize("platform", list(PLATFORM_IDS.values()))
 def test_release_promotion_rejects_path_or_secret_like_evidence_without_state_change(tmp_path, platform):
     accounts = PublishAccountRepository(tmp_path / f"invalid-{platform.value}.sqlite")
+    accounts.revoke_platform_release(platform, reason_ref="rollback/before-invalid-evidence")
     with pytest.raises(PublishAccountConflict, match="RELEASE_EVIDENCE_REF_INVALID"):
         accounts.promote_platform_release(platform, evidence_ref="/tmp/live.json")
     with pytest.raises(PublishAccountConflict, match="RELEASE_EVIDENCE_REF_INVALID"):
         accounts.promote_platform_release(platform, evidence_ref="cookie-evidence")
     assert accounts.get_platform_release_state(platform) == "unverified"
+
+
+def test_pilot_release_contract_promotes_all_three_platforms_with_manual_boundaries():
+    contract = json.loads(
+        (ROOT / "docs/contracts/publishing/platform-expansion-pilot-release.contract.json").read_text()
+    )
+    assert contract["release_state"] == "pilot"
+    assert all(item["release_state"] == "pilot" for item in contract["platforms"].values())
+    assert contract["availability"] == "pre_publish_manual"
+    assert contract["invariants"] == {
+        "publish_run_creation_allowed": True,
+        "human_confirmation_required": True,
+        "allow_final_publish": False,
+        "final_publish_click_count": 0,
+        "duplicate_uploads": 0,
+        "restart_ambiguous_state_fails_closed": True,
+        "copy_download_fallback_available": True,
+        "default_publish_v2_rollout": False,
+        "credentials_or_profile_paths_exposed": False,
+    }
+
+
+def test_current_pilot_fixture_and_evidence_are_consistent():
+    fixture = json.loads(
+        (ROOT / "docs/contracts/publishing/fixtures/platform-expansion-pilot-release-fixtures.json").read_text()
+    )
+    assert all(state == "pilot" for state in fixture["platform_release_states"].values())
+    assert fixture["final_publish_click_count"] == 0
+    assert fixture["duplicate_uploads"] == 0
+    assert fixture["default_publish_v2_rollout"] is False
+
+
+def test_pilot_release_qa_promotes_only_release_state_and_preserves_safety_boundaries():
+    evidence = json.loads(
+        (ROOT / "docs/reviews/application-publishing-program/qa/PLATFORM-EXPANSION-pilot-release-2026-07-25.json").read_text()
+    )
+    assert evidence["result"] == "passed_with_boundary"
+    assert evidence["platform_release_states"] == {
+        "douyin": "pilot",
+        "kuaishou": "pilot",
+        "shipinhao": "pilot",
+        "xiaohongshu": "pilot",
+    }
+    assert evidence["invariants"]["publish_run_creation_allowed"] is True
+    assert evidence["invariants"]["human_confirmation_required"] is True
+    assert evidence["invariants"]["allow_final_publish"] is False
+    assert evidence["invariants"]["final_publish_click_count"] == 0
+    assert evidence["invariants"]["external_actions"] == 0
+    assert evidence["rollback"]["target_state"] == "unverified"
+
+
+def test_pilot_platforms_can_create_runs_but_still_require_human_confirmation(tmp_path):
+    db = tmp_path / "pilot-runs.sqlite"
+    accounts = PublishAccountRepository(db)
+    core = PublishCoreRepository(db)
+    package = core.create_package(_package())
+    service = PublishRunService(core, accounts, manager=TaskManager())
+
+    for platform_name, platform in PLATFORM_IDS.items():
+        account = accounts.create_account(platform, platform_name, f"profile_{platform_name}")
+        run, replay = service.create_run(
+            package.package_id,
+            account.account_id,
+            platform,
+            f"pilot-run-{platform_name}",
+        )
+        assert replay is False
+        assert run.human_confirmation_required is True
+        assert run.human_confirmed is False
 
 
 def test_existing_platform_evidence_is_explicitly_bounded_and_never_promoted():

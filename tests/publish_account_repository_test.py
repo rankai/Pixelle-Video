@@ -1,3 +1,5 @@
+import sqlite3
+
 import pytest
 
 from pixelle_video.services.publish.account_models import (
@@ -81,12 +83,13 @@ def test_open_contexts_are_marked_stale_on_recovery(tmp_path):
 
 def test_platform_release_gate_is_persisted_fail_closed_and_requires_evidence_ref(tmp_path):
     repository = PublishAccountRepository(tmp_path / "publishing.sqlite3")
-    assert repository.get_platform_release_state(PublishPlatform.KUAISHOU) == "unverified"
+    assert repository.get_platform_release_state(PublishPlatform.KUAISHOU) == "pilot"
     assert repository.get_platform_release_state(PublishPlatform.DOUYIN) == "pilot"
     with pytest.raises(PublishAccountConflict, match="RELEASE_EVIDENCE_REF_INVALID"):
         repository.promote_platform_release(PublishPlatform.KUAISHOU, evidence_ref="/tmp/live.json")
     with pytest.raises(PublishAccountConflict, match="RELEASE_EVIDENCE_REF_INVALID"):
         repository.promote_platform_release(PublishPlatform.KUAISHOU, evidence_ref="live-cookie-evidence")
+    assert repository.revoke_platform_release(PublishPlatform.KUAISHOU, reason_ref="rollback:before-test") == "unverified"
     assert repository.promote_platform_release(
         PublishPlatform.KUAISHOU,
         evidence_ref="docs/reviews/application-publishing-program/PG-M-kuaishou.md",
@@ -98,3 +101,36 @@ def test_platform_release_gate_is_persisted_fail_closed_and_requires_evidence_re
         repository.promote_platform_release(PublishPlatform.KUAISHOU, evidence_ref="second-review.md")
     assert repository.revoke_platform_release(PublishPlatform.KUAISHOU, reason_ref="rollback:live-gate") == "unverified"
     assert repository.get_platform_release_state(PublishPlatform.KUAISHOU) == "unverified"
+
+
+def test_platform_pilot_migration_promotes_legacy_unverified_once_and_respects_revoke(tmp_path):
+    db = tmp_path / "legacy-platform-release.sqlite3"
+    repository = PublishAccountRepository(db)
+    repository.revoke_platform_release(PublishPlatform.KUAISHOU, reason_ref="rollback/legacy-seed")
+    with sqlite3.connect(db) as connection:
+        connection.execute(
+            "DELETE FROM publishing_schema_migrations WHERE migration_id = ?",
+            ("platform-expansion-pilot-release-2026-07-25",),
+        )
+        connection.commit()
+
+    migrated = PublishAccountRepository(db)
+    assert migrated.get_platform_release_state(PublishPlatform.KUAISHOU) == "pilot"
+    migrated.revoke_platform_release(PublishPlatform.KUAISHOU, reason_ref="rollback/explicit-user")
+    reopened = PublishAccountRepository(db)
+    assert reopened.get_platform_release_state(PublishPlatform.KUAISHOU) == "unverified"
+
+
+def test_missing_platform_release_row_projects_unverified_fail_closed(tmp_path):
+    db = tmp_path / "missing-platform-release.sqlite3"
+    repository = PublishAccountRepository(db)
+    account = repository.create_account(PublishPlatform.KUAISHOU, "缺失状态账号", "profile_missing_release")
+    with sqlite3.connect(db) as connection:
+        connection.execute(
+            "DELETE FROM publish_platform_release WHERE platform = ?",
+            (PublishPlatform.KUAISHOU.value,),
+        )
+        connection.commit()
+
+    assert repository.get_platform_release_state(PublishPlatform.KUAISHOU) == "unverified"
+    assert repository.get_account(account.account_id).platform_release_state == "unverified"
