@@ -29,10 +29,10 @@ CREATE TABLE IF NOT EXISTS publish_accounts (
   last_verified_at TEXT
 );
 
--- Platform release state is a gate fact, not an administrator setting.  It is
--- only advanced by a trusted local evidence workflow after the platform's
--- independent live gate; default rollout remains closed for every platform
--- except the already-approved Douyin pilot.
+-- Platform release state is a gate fact, not an administrator setting.  The
+-- three platform pilot records below are backed by independently reviewed
+-- live-gate evidence.  Pilot means pre-publish filling with human confirmation;
+-- default Publish V2 rollout and the final publish click remain disabled.
 CREATE TABLE IF NOT EXISTS publish_platform_release (
   platform TEXT PRIMARY KEY CHECK (platform IN ('douyin', 'video_channel', 'kuaishou', 'xiaohongshu')),
   release_state TEXT NOT NULL CHECK (release_state IN ('unverified', 'pilot', 'stable', 'maintenance', 'disabled', 'retired')),
@@ -43,9 +43,9 @@ CREATE TABLE IF NOT EXISTS publish_platform_release (
 INSERT OR IGNORE INTO publish_platform_release(platform, release_state, evidence_ref, updated_at)
 VALUES
   ('douyin', 'pilot', 'PG-G/PG-K', CURRENT_TIMESTAMP),
-  ('video_channel', 'unverified', NULL, CURRENT_TIMESTAMP),
-  ('kuaishou', 'unverified', NULL, CURRENT_TIMESTAMP),
-  ('xiaohongshu', 'unverified', NULL, CURRENT_TIMESTAMP);
+  ('video_channel', 'pilot', 'PG-M-shipinhao-live-gate-fix-2026-07-22', CURRENT_TIMESTAMP),
+  ('kuaishou', 'pilot', 'PG-M-kuaishou-live-gate-2026-07-22', CURRENT_TIMESTAMP),
+  ('xiaohongshu', 'pilot', 'PG-M-xiaohongshu-live-gate-2026-07-22', CURRENT_TIMESTAMP);
 
 CREATE TABLE IF NOT EXISTS publish_packages_v2 (
   package_id TEXT PRIMARY KEY,

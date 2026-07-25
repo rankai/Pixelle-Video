@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "fixture_id": "platform-expansion-pilot-release-2026-07-25",
+  "valid": true,
+  "platform_release_states": {
+    "douyin": "pilot",
+    "kuaishou": "pilot",
+    "shipinhao": "pilot",
+    "xiaohongshu": "pilot"
+  },
+  "availability": "pre_publish_manual",
+  "default_publish_v2_rollout": false,
+  "human_confirmation_required": true,
+  "allow_final_publish": false,
+  "final_publish_click_count": 0,
+  "duplicate_uploads": 0,
+  "restart_ambiguous_state_fails_closed": true,
+  "evidence_refs": {
+    "kuaishou": "PG-M-kuaishou-live-gate-2026-07-22",
+    "shipinhao": "PG-M-shipinhao-live-gate-fix-2026-07-22",
+    "xiaohongshu": "PG-M-xiaohongshu-live-gate-2026-07-22"
+  }
+}
