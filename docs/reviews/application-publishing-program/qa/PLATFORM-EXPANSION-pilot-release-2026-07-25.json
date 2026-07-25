@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "stage": "PLATFORM-EXPANSION",
+  "batch": "pilot-release-with-boundaries",
+  "result": "passed_with_boundary",
+  "runtime": "project_playwright_persistent_context_existing_evidence",
+  "repeated_third_party_actions": false,
+  "reason": "Each platform already has one purpose-built headful live evidence record; this batch closes the release-state and rollback contract without blind re-upload retries.",
+  "platform_release_states": {
+    "douyin": "pilot",
+    "kuaishou": "pilot",
+    "shipinhao": "pilot",
+    "xiaohongshu": "pilot"
+  },
+  "evidence_refs": {
+    "kuaishou": "PG-M-kuaishou-live-gate-2026-07-22",
+    "shipinhao": "PG-M-shipinhao-live-gate-fix-2026-07-22",
+    "xiaohongshu": "PG-M-xiaohongshu-live-gate-2026-07-22"
+  },
+  "platform_live_evidence": {
+    "kuaishou": {
+      "source_result": "passed_with_explicit_boundaries",
+      "draft_ready": true,
+      "video_injection_count": 1,
+      "duplicate_video_injection_count": 0,
+      "final_publish_click_count": 0,
+      "boundaries": [
+        "FIELD_UNSUPPORTED:TITLE",
+        "HASHTAGS_TEXT_FALLBACK",
+        "KUAISHOU_LOCAL_BLOB_PREVIEW_ONLY"
+      ]
+    },
+    "shipinhao": {
+      "source_result": "blocked_with_explicit_boundary",
+      "draft_ready_before_restart": true,
+      "video_injection_count": 1,
+      "upload_calls_after_restart": 0,
+      "final_publish_click_count": 0,
+      "boundaries": [
+        "SHIPINHAO_NO_STABLE_REMOTE_MEDIA_ID",
+        "SHIPINHAO_DRAFT_NOT_PERSISTED_AFTER_RUNTIME_RESTART"
+      ]
+    },
+    "xiaohongshu": {
+      "source_result": "blocked_with_explicit_boundary",
+      "draft_ready_before_restart": true,
+      "video_injection_count": 1,
+      "upload_calls_after_restart": 0,
+      "final_publish_click_count": 0,
+      "boundaries": [
+        "HASHTAGS_TEXT_FALLBACK",
+        "XIAOHONGSHU_NO_STABLE_REMOTE_MEDIA_ID",
+        "XIAOHONGSHU_LOCAL_BLOB_PREVIEW_ONLY",
+        "XIAOHONGSHU_DRAFT_NOT_PERSISTED_AFTER_RUNTIME_RESTART"
+      ]
+    }
+  },
+  "invariants": {
+    "publish_run_creation_allowed": true,
+    "human_confirmation_required": true,
+    "allow_final_publish": false,
+    "default_publish_v2_rollout": false,
+    "final_publish_click_count": 0,
+    "external_actions": 0,
+    "credentials_or_profile_paths_exposed": false,
+    "restart_ambiguous_state_fails_closed": true,
+    "copy_download_fallback_available": true
+  },
+  "rollback": {
+    "promotion_operation": "one_time_local_evidence_migration",
+    "revoke_operation": "repository_revoke_platform_release",
+    "target_state": "unverified",
+    "account_profile_preserved": true,
+    "login_state_preserved": true,
+    "production_database_mutation": false
+  },
+  "independent_review": {
+    "status": "passed_with_boundary",
+    "reviewer": "/root/platform_expansion_foundation_reviewer",
+    "reviewed_at": "2026-07-25",
+    "p0_count": 0,
+    "p1_count": 0,
+    "substantive_p2_count": 0,
+    "fixes_verified": [
+      "missing platform release row projects unverified",
+      "missing platform release row blocks PublishRun creation"
+    ],
+    "review_dimensions": [
+      "requirements_completeness",
+      "logical_correctness",
+      "edge_cases",
+      "code_quality",
+      "test_coverage",
+      "actual_runtime_result"
+    ]
+  }
+}
