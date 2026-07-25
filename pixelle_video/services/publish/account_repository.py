@@ -28,6 +28,17 @@ PLATFORM_RELEASE_STATES = frozenset(
     {"unverified", "pilot", "stable", "maintenance", "disabled", "retired"}
 )
 
+# The three platform live-gate records were independently reviewed on
+# 2026-07-22. ``pilot`` is the same pre-publish, human-confirmed capability as
+# Douyin; it does not enable final-click automation or default Publish V2
+# rollout. Platform-specific limitations remain in the evidence below.
+PLATFORM_PILOT_EVIDENCE = {
+    PublishPlatform.KUAISHOU.value: "PG-M-kuaishou-live-gate-2026-07-22",
+    PublishPlatform.VIDEO_CHANNEL.value: "PG-M-shipinhao-live-gate-fix-2026-07-22",
+    PublishPlatform.XIAOHONGSHU.value: "PG-M-xiaohongshu-live-gate-2026-07-22",
+}
+PLATFORM_PILOT_MIGRATION_ID = "platform-expansion-pilot-release-2026-07-25"
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -116,9 +127,39 @@ class PublishAccountRepository:
             )
             now = utc_now()
             for platform in PublishPlatform:
+                evidence_ref = (
+                    "PG-G/PG-K"
+                    if platform is PublishPlatform.DOUYIN
+                    else PLATFORM_PILOT_EVIDENCE.get(platform.value)
+                )
                 connection.execute(
                     "INSERT OR IGNORE INTO publish_platform_release(platform, release_state, evidence_ref, updated_at) VALUES (?, ?, ?, ?)",
-                    (platform.value, "pilot" if platform is PublishPlatform.DOUYIN else "unverified", "PG-G/PG-K" if platform is PublishPlatform.DOUYIN else None, now),
+                    (platform.value, "pilot", evidence_ref, now),
+                )
+            # Existing local databases were created before the platform pilot
+            # closure. Apply the approved promotion exactly once, only from
+            # known redacted evidence refs; a later explicit revoke is not
+            # overwritten on subsequent app starts.
+            migration = connection.execute(
+                "SELECT 1 FROM publishing_schema_migrations WHERE migration_id = ?",
+                (PLATFORM_PILOT_MIGRATION_ID,),
+            ).fetchone()
+            if migration is None:
+                for platform, evidence_ref in PLATFORM_PILOT_EVIDENCE.items():
+                    connection.execute(
+                        """
+                        UPDATE publish_platform_release
+                        SET release_state = 'pilot', evidence_ref = ?, updated_at = ?
+                        WHERE platform = ? AND release_state = 'unverified'
+                        """,
+                        (evidence_ref, now, platform),
+                    )
+                connection.execute(
+                    """
+                    INSERT INTO publishing_schema_migrations(migration_id, schema_version, applied_at)
+                    VALUES (?, 2, ?)
+                    """,
+                    (PLATFORM_PILOT_MIGRATION_ID, now),
                 )
             rows = connection.execute(
                 "SELECT account_id, platform FROM publish_accounts"
@@ -531,7 +572,7 @@ class PublishAccountRepository:
             platform_release_state=(
                 str(row["platform_release_state"])
                 if "platform_release_state" in row.keys() and row["platform_release_state"]
-                else ("pilot" if platform == PublishPlatform.DOUYIN.value else "unverified")
+                else "unverified"
             ),
             created_at=row["created_at"],
             updated_at=row["updated_at"] or row["created_at"],

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/publishing/platform-expansion-pilot-release.v1.contract.json",
+  "schema_version": 1,
+  "stage": "PLATFORM-EXPANSION",
+  "batch": "pilot-release-with-boundaries",
+  "purpose": "Promote the three independently reviewed platform adapters to the same pre-publish pilot state as Douyin while retaining explicit platform boundaries.",
+  "release_state": "pilot",
+  "availability": "pre_publish_manual",
+  "platforms": {
+    "kuaishou": {
+      "label": "快手",
+      "release_state": "pilot",
+      "evidence_ref": "PG-M-kuaishou-live-gate-2026-07-22",
+      "result": "passed_with_explicit_boundaries",
+      "boundaries": [
+        "FIELD_UNSUPPORTED:TITLE",
+        "HASHTAGS_TEXT_FALLBACK",
+        "KUAISHOU_LOCAL_BLOB_PREVIEW_ONLY"
+      ]
+    },
+    "shipinhao": {
+      "label": "视频号",
+      "release_state": "pilot",
+      "evidence_ref": "PG-M-shipinhao-live-gate-fix-2026-07-22",
+      "result": "passed_with_explicit_boundaries",
+      "boundaries": [
+        "SHIPINHAO_NO_STABLE_REMOTE_MEDIA_ID",
+        "SHIPINHAO_DRAFT_NOT_PERSISTED_AFTER_RUNTIME_RESTART"
+      ]
+    },
+    "xiaohongshu": {
+      "label": "小红书",
+      "release_state": "pilot",
+      "evidence_ref": "PG-M-xiaohongshu-live-gate-2026-07-22",
+      "result": "passed_with_explicit_boundaries",
+      "boundaries": [
+        "HASHTAGS_TEXT_FALLBACK",
+        "XIAOHONGSHU_NO_STABLE_REMOTE_MEDIA_ID",
+        "XIAOHONGSHU_LOCAL_BLOB_PREVIEW_ONLY",
+        "XIAOHONGSHU_DRAFT_NOT_PERSISTED_AFTER_RUNTIME_RESTART"
+      ]
+    }
+  },
+  "invariants": {
+    "publish_run_creation_allowed": true,
+    "human_confirmation_required": true,
+    "allow_final_publish": false,
+    "final_publish_click_count": 0,
+    "duplicate_uploads": 0,
+    "restart_ambiguous_state_fails_closed": true,
+    "copy_download_fallback_available": true,
+    "default_publish_v2_rollout": false,
+    "credentials_or_profile_paths_exposed": false
+  },
+  "rollback": {
+    "operation": "repository_revoke_platform_release",
+    "target_state": "unverified",
+    "account_profile_preserved": true,
+    "login_state_preserved": true,
+    "production_database_mutation": false
+  },
+  "exit_rule": "The three platforms may display the same pilot/manual status as Douyin, but no platform is treated as final-publish automation or production default rollout."
+}
