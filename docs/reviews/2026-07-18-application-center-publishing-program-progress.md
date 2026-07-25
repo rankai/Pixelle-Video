@@ -13,9 +13,9 @@ completed_subplan_gate: PG-DH-E_video_stable_non_default
 - 当前 Program 状态：`in_progress`
 - 启动审查结论：`conditional_go_for_coord_0_only`
 - 当前 Stage：`PROGRAM-ROLLOUT/PG-L`
-- 当前 Stage 状态：`waiting_user`（数字人视频模式已完成一次真实 Provider smoke 与 bounded visual gate，`video_lipsync/natural=stable`，但 `default_mode=false`，仍由图片模式默认；不自动发布；Program 级独立六维终审仍按用户要求延后。上位 PG-L 仍只等待 Windows 实机安装/启动/关闭重开/sidecar health、产品签字及真实 rollback/WebView 外部证据；不得把 hosted Runner 或本机隔离测试当实机证据；最终发布自动点击继续关闭）
-- 最后更新时间：2026-07-24（DH-QUALITY-2 视频真实质量门收口；PG-L 唯一外部入口不变）
-- 更新人：主线程/协调层 + 独立严格审查线程 `/root/dh_dual_entry_reviewer`
+- 当前 Stage 状态：`waiting_user`（CR-PLATFORM-PILOT-001 已完成：快手、视频号、小红书均登记为与抖音同级的 `pilot`/人工发布前状态；复用已完成的三平台真实 Playwright 证据，不重复第三方上传；平台特定边界、最终发布自动点击关闭、默认 Publish V2 rollout 关闭。PG-L 的 Windows 实机、产品签字、真实 rollback/WebView 外部边界仍保持暂停）
+- 最后更新时间：2026-07-25（CR-PLATFORM-PILOT-001 完成独立六维复审并回到 PG-L）
+- 更新人：主线程/协调层
 
 ## 1. 使用规则
 
@@ -44,7 +44,7 @@ completed_subplan_gate: PG-DH-E_video_stable_non_default
 | 9 | PUB-INTEGRATION | PUB-4 | `completed` | PG-J | `passed_with_boundary` | 2026-07-20 | 2026-07-21 | [`PUB-4-entry-2026-07-20.md`](application-publishing-program/PUB-4-entry-2026-07-20.md)；[`PUB-4-implementation-batch-1-review-2026-07-20.md`](application-publishing-program/PUB-4-implementation-batch-1-review-2026-07-20.md)；[`PUB-4-implementation-batch-2-review-2026-07-20.md`](application-publishing-program/PUB-4-implementation-batch-2-review-2026-07-20.md)；[`PUB-4-implementation-batch-3-entry-review-2026-07-20.md`](application-publishing-program/PUB-4-implementation-batch-3-entry-review-2026-07-20.md)；[`PUB-4-implementation-batch-3-review-2026-07-20.md`](application-publishing-program/PUB-4-implementation-batch-3-review-2026-07-20.md)；[`PUB-4-implementation-batch-4-entry-2026-07-21.md`](application-publishing-program/PUB-4-implementation-batch-4-entry-2026-07-21.md)；[`PUB-4-implementation-batch-4-entry-review-2026-07-21.md`](application-publishing-program/PUB-4-implementation-batch-4-entry-review-2026-07-21.md)；[`PUB-4-implementation-batch-4-review-2026-07-21.md`](application-publishing-program/PUB-4-implementation-batch-4-review-2026-07-21.md)；[`PUB-4-PG-J-closure-entry-2026-07-21.md`](application-publishing-program/PUB-4-PG-J-closure-entry-2026-07-21.md)；[`PUB-4-PG-J-closure-entry-review-2026-07-21.md`](application-publishing-program/PUB-4-PG-J-closure-entry-review-2026-07-21.md)；[`PUB-4-PG-J-closure-2026-07-21.md`](application-publishing-program/PUB-4-PG-J-closure-2026-07-21.md)；[`PUB-4-PG-J-closure-review-2026-07-21.md`](application-publishing-program/PUB-4-PG-J-closure-review-2026-07-21.md)；[`PUB-4-PG-J-closure-2026-07-21.json`](application-publishing-program/qa/PUB-4-PG-J-closure-2026-07-21.json)；batch4 Python 20、Vitest 8 files/45、closure Tauri/sidecar 2 cycles、build/Ruff/diff；PG-J `passed_with_boundary` |
 | 10 | E2E-DOUYIN | PUB-5 | `completed_with_boundary` | PG-K | `passed_with_boundary` | 2026-07-21 | 2026-07-21 | [`PUB-5-entry-2026-07-21.md`](application-publishing-program/PUB-5-entry-2026-07-21.md)；[`PUB-5-entry-review-2026-07-21.md`](application-publishing-program/PUB-5-entry-review-2026-07-21.md)；[`PUB-5-stateful-executor-batch-1-2026-07-21.md`](application-publishing-program/PUB-5-stateful-executor-batch-1-2026-07-21.md)；[`PUB-5-stateful-executor-batch-1-review-2026-07-21.md`](application-publishing-program/PUB-5-stateful-executor-batch-1-review-2026-07-21.md)；[`qa/PUB-5-stateful-headful-2026-07-21.json`](application-publishing-program/qa/PUB-5-stateful-headful-2026-07-21.json)；123 publish tests、sidecar restart/readback；独立第二轮复审 P0/P1=0；最终发布未执行 |
 | 11 | PROGRAM-ROLLOUT | AC-6 + PUB-7D | `paused_external` | PG-L | `entry_passed_with_boundary` | 2026-07-21 | - | [`PROGRAM-ROLLOUT-entry-2026-07-21.md`](application-publishing-program/PROGRAM-ROLLOUT-entry-2026-07-21.md)；[`program-rollout-entry.contract.json`](../contracts/publishing/program-rollout-entry.contract.json)；Windows Runner 构建已通过，PG-L 保持 open；由 CR-DH-DUAL-MODE-001 暂停，Windows 外部边界原样保留 |
-| 12 | PLATFORM-EXPANSION | PUB-6 + 分平台 PUB-7 | `completed_with_boundary` | PG-M-* | `passed_with_boundary` | 2026-07-22 | 2026-07-23 | [`PLATFORM-EXPANSION-entry-2026-07-22.md`](application-publishing-program/PLATFORM-EXPANSION-entry-2026-07-22.md)；[`PLATFORM-EXPANSION-release-boundary-2026-07-23.md`](application-publishing-program/PLATFORM-EXPANSION-release-boundary-2026-07-23.md)；[`qa/PLATFORM-EXPANSION-release-boundary-2026-07-23.json`](application-publishing-program/qa/PLATFORM-EXPANSION-release-boundary-2026-07-23.json)；独立六维复审 P0/P1/实质性P2=0 |
+| 12 | PLATFORM-EXPANSION | PUB-6 + 分平台 PUB-7 | `completed_with_boundary` | PG-M-PILOT-RELEASE | `passed_with_boundary` | 2026-07-22 | 2026-07-25 | [`PLATFORM-EXPANSION-entry-2026-07-22.md`](application-publishing-program/PLATFORM-EXPANSION-entry-2026-07-22.md)；[`PLATFORM-EXPANSION-pilot-release-2026-07-25.md`](application-publishing-program/PLATFORM-EXPANSION-pilot-release-2026-07-25.md)；[`PLATFORM-EXPANSION-pilot-release-review-2026-07-25.md`](application-publishing-program/PLATFORM-EXPANSION-pilot-release-review-2026-07-25.md)；[`qa/PLATFORM-EXPANSION-pilot-release-2026-07-25.json`](application-publishing-program/qa/PLATFORM-EXPANSION-pilot-release-2026-07-25.json)；三平台既有真实 live evidence、pilot contract/fixture |
 | 13 | DH-DUAL-MODE | AC-5.1 数字人双模式与质量优化 | `completed_with_boundary` | PG-DH-C | `passed_with_boundary` | 2026-07-24 | 2026-07-24 | [`2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md`](../superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md)；[`DH-DUAL-2-entry-2026-07-24.md`](application-publishing-program/DH-DUAL-2-entry-2026-07-24.md)；[`DH-DUAL-2-implementation-2026-07-24.md`](application-publishing-program/DH-DUAL-2-implementation-2026-07-24.md)；[`DH-DUAL-2-implementation-review-2026-07-24.md`](application-publishing-program/DH-DUAL-2-implementation-review-2026-07-24.md)；67 Vitest、desktop build、110 backend；真实图片回填、视频模式禁用边界和改后“开始生成”证据；独立复审 P0/P1/实质性P2=0 |
 | 14 | DH-QUALITY-1 | AC-5.1 文案、标题、封面与字幕 | `implementation_in_progress` | PG-DH-D | `implementation_in_progress` | 2026-07-24 | - | [`2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md`](../superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md) §9.4；[`DH-QUALITY-1-entry-2026-07-24.md`](application-publishing-program/DH-QUALITY-1-entry-2026-07-24.md)；[`DH-QUALITY-1-entry-review-2026-07-24.md`](application-publishing-program/DH-QUALITY-1-entry-review-2026-07-24.md)；Entry 已通过，正在实现后端 delivery 归一化、来源/标题绑定、短封面标题、readable_v2 字幕与 Artifact 完整性；独立六维复审按用户要求延后至 Program 完成 |
 | 14 | DH-QUALITY-1 | AC-5.1 文案、标题、封面与字幕 | `completed_with_boundary` | PG-DH-D | `implementation_pass_with_boundary` | 2026-07-24 | 2026-07-24 | [`2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md`](../superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md) §9.4；[`DH-QUALITY-1-entry-2026-07-24.md`](application-publishing-program/DH-QUALITY-1-entry-2026-07-24.md)；[`DH-QUALITY-1-implementation-2026-07-24.md`](application-publishing-program/DH-QUALITY-1-implementation-2026-07-24.md)；[`qa/DH-QUALITY-1-implementation-2026-07-24.json`](application-publishing-program/qa/DH-QUALITY-1-implementation-2026-07-24.json)；107 Python、19 Vitest、desktop build、Ruff/format/JSON/diff clean；四 Artifact 与标题/文案绑定已实现；独立六维复审按用户要求延后至 Program 完成 |
@@ -397,8 +397,8 @@ completed_subplan_gate: PG-DH-E_video_stable_non_default
 - 当前目标：为快手、视频号、小红书建立独立平台 profile、入口/登录/编辑器状态、视频/标题/描述/话题/封面字段回读和人工停手契约；最终发布自动点击继续由 `FinalActionGuard` 拒绝。
 - Entry 禁止范围：不点击最终发布、不自动处理扫码/验证码/第三方授权、不改变 `release_state` 默认值、不打开默认 Publish V2、不进入管理员/RBAC/套餐/支付、不引入第二浏览器运行时。
 - Entry 证据：[`PLATFORM-EXPANSION-entry-2026-07-22.md`](application-publishing-program/PLATFORM-EXPANSION-entry-2026-07-22.md)；contract [`platform-expansion-entry.contract.json`](../contracts/publishing/platform-expansion-entry.contract.json)。
-- Gate 结论：`passed_with_boundary`；release/rollback 边界批次独立六维复审 P0/P1/实质性P2=0。三平台 release state 保持 `unverified`，快手为 `passed_with_explicit_boundaries`，视频号/小红书为 `blocked_with_explicit_boundary`；不得将其解释为平台正式发布。
-- 交接：按总队列恢复 `PROGRAM-ROLLOUT/PG-L` Windows 外部闭环；不提升平台 release state、不点击最终发布。
+- Gate 结论：`passed_with_boundary`；pilot release 批次独立六维复审 P0/P1/实质性P2=0。抖音、快手、视频号、小红书 release state 均为 `pilot`，但平台特定字段/媒体持久化/重启边界保持；不得将其解释为平台正式发布或自动发布完成。
+- 交接：按总队列恢复 `PROGRAM-ROLLOUT/PG-L` Windows 外部闭环；最终发布自动点击、默认 Publish V2 rollout 仍关闭。
 
 ### 已完成 Stage 控制卡：DH-DUAL-2（AC-5.1 数字人双模式桌面入口与资产选择器）
 
@@ -510,6 +510,7 @@ PG-A 交接边界：task8 恢复、DOM 行为 harness、真实 Guard/live smoke�
 | R-015 | AC-2 migration/seed 安全行为尚未有真实实现 | mitigated/pending-review | Luna | staging 原子替换、同事务 schema+seed、锁/备份/checksum/future-version/corruption/seed drift 已实现并等待 PG-C 复验 |
 | R-016 | 双模式增强范围与 AC-5/PG-L 外部边界混淆 | open/CR | Luna/协调层 | 以 `CR-DH-DUAL-MODE-001` 暂停 PG-L 外部等待但不改其结论；DH-DUAL 独立建 Stage/Gate；Provider、平台和最终发布按独立暂停点执行 |
 | R-017 | 图片生成质量被误报为视频数字人质量 | open/entry | Luna/独立审查 | 图片/视频模式分别做真实 smoke 和五维质量记录；未通过的模式保持测试中，不提升 Registry release state |
+| R-018 | 三平台已有有界 live evidence 但仍显示未验证，用户无法按抖音同级进入发布前填充 | open/CR | Luna/协调层 | 以 `CR-PLATFORM-PILOT-001` 仅提升至 pilot/manual 状态；保留平台特定边界、重启 fail-closed、最终点击 0 和默认 rollout 关闭 |
 
 ## 5. Change Request
 
@@ -533,6 +534,17 @@ CR-PLATFORM-ORDER-001：平台适配先于 Windows 外部闭环（2026-07-22，�
 - 测试影响：新增三平台共同 Entry contract、每平台 adapter 定向测试、FinalActionGuard 负向测试、构建/证据和独立六维复审；真实扫码/授权/最终发布仍按人工边界处理。
 - 回滚：删除/回滚本 CR 新增的平台 adapter 与 Entry 文档即可；恢复 `current_stage=PROGRAM-ROLLOUT`、`current_stage_status=implementation_in_progress`，不改变 PG-L 既有证据和默认 flags。
 - 批准结论：用户明确批准；主线程记录并执行，独立审查线程在平台扩展大批次完成后复核。
+
+CR-PLATFORM-PILOT-001：三平台与抖音同级的 pilot/人工发布前状态收口（2026-07-25，用户批准）
+
+- 问题与证据：快手、视频号、小红书已经分别完成一次有目的的项目 Playwright headful 主流程，视频、字段、封面和人工停手均有证据，但 release state 仍为 `unverified`，发布中心只能复制/下载回退，无法达到用户要求的“与抖音一致，已完成，有边界”。证据为 `PG-M-kuaishou-live-gate-2026-07-22.json`、`PG-M-shipinhao-live-gate-fix-2026-07-22.json`、`PG-M-xiaohongshu-live-gate-2026-07-22.json`。
+- 受影响 Stage/契约/文件：`PLATFORM-EXPANSION`、`publish_platform_release` seed/migration、三平台 release contract/fixture、账号/发布中心状态投影、平台 Gate 证据和回滚测试。
+- 备选方案：A. 继续保持 `unverified`（无法满足用户目标）；B. 把三平台提升为 `stable`（证据不足且超出本批）；C. 提升为与抖音一致的 `pilot`/人工发布前状态，同时保留所有平台特定边界和最终发布安全门（选定）。
+- 选定方案：三平台统一登记 `pilot`，允许创建受控 PublishRun 并进入平台发布前填充；`human_confirmation_required=true`、`allow_final_publish=false`、默认 Publish V2 rollout 关闭；视频号/小红书未保存草稿重启仍必须 `STATE_AMBIGUOUS`，不得重复上传；快手标题不支持、blob 封面等边界不伪造为成功。
+- 数据与迁移影响：新增一次性 `platform-expansion-pilot-release-2026-07-25` SQLite migration；只将当前 `unverified` 记录提升到 pilot，写入脱敏证据引用；后续显式 revoke 不会被启动时重复覆盖；不删除账号、profile、登录态或历史 run。
+- 测试影响：更新 SQL/Repository/Run Gate 的当前 pilot 基线；新增 pilot contract/fixture、三平台可创建 run、回滚保持账号 profile/login 状态和最终点击 0 的测试；复跑平台适配、发布核心、桌面 UI、build、Ruff、JSON、diff，并交独立六维审查。
+- 回滚：调用 `revoke_platform_release` 将单个平台恢复 `unverified`；默认复制/下载回退继续保留；不恢复 PG-L、不改变 Windows/产品签字/真实 rollback/WebView 外部边界。
+- 批准结论：用户于 2026-07-25 明确批准；主线程登记并执行，平台独立审查线程在本批实现和复验后确认 Gate。
 
 CR-DH-DUAL-MODE-001：数字人应用升级为图片/视频双模式并修复成片质量缺陷（2026-07-24，用户批准）
 

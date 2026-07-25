@@ -355,9 +355,9 @@ def test_sqlite_migrations_are_idempotent_and_constraints_hold():
     release_states = dict(connection.execute("SELECT platform, release_state FROM publish_platform_release").fetchall())
     assert release_states == {
         "douyin": "pilot",
-        "video_channel": "unverified",
-        "kuaishou": "unverified",
-        "xiaohongshu": "unverified",
+        "video_channel": "pilot",
+        "kuaishou": "pilot",
+        "xiaohongshu": "pilot",
     }
     with pytest.raises(sqlite3.IntegrityError):
         connection.execute("INSERT INTO app_schema_migrations(migration_id, schema_version, applied_at) VALUES ('future', 99, 'now')")
@@ -389,7 +389,7 @@ def test_coordination_and_plan_convergence_is_explicit():
     progress = (ROOT / "docs/reviews/2026-07-18-application-center-publishing-program-progress.md").read_text()
     assert re.search(r"^current_stage: (APP-TEXT|PUB-ACCOUNT|PUB-CORE|PUB-DOUYIN|APP-CAROUSEL|APP-IPB|PUB-INTEGRATION|E2E-DOUYIN|PROGRAM-ROLLOUT|PLATFORM-EXPANSION)$", progress, re.MULTILINE)
     assert re.search(r"^current_stage_status: (in_progress|waiting_user|implementation_in_progress|entry_in_progress)$", progress, re.MULTILINE)
-    assert re.search(r"^gate_status: (PG-D/entry_passed_with_boundary|PUB-ACCOUNT/entry_passed_with_boundary|PUB-CORE/entry_in_progress|PUB-CORE/entry_passed_with_boundary|PUB-DOUYIN/entry_in_progress|PUB-DOUYIN/entry_passed_with_boundary|PUB-DOUYIN/implementation_pass_with_boundary|PUB-DOUYIN/pg_g_in_progress|APP-CAROUSEL/entry_in_progress|APP-CAROUSEL/entry_passed_with_boundary|APP-CAROUSEL/implementation_in_progress|APP-CAROUSEL/implementation_pass_with_boundary|APP-CAROUSEL/PG-H_in_progress|APP-CAROUSEL/PG-H_passed_with_boundary|APP-IPB/entry_in_progress|APP-IPB/implementation_in_progress|APP-IPB/implementation_pass_with_boundary|PUB-INTEGRATION/pg-j-closure-entry_passed_with_boundary|PUB-INTEGRATION/pg-j-closure-implementation_pass_with_boundary_pending_review|E2E-DOUYIN/pub-5-entry_in_progress|E2E-DOUYIN/pub-5-entry_passed_with_boundary|PROGRAM-ROLLOUT/entry_passed_with_boundary|PROGRAM-ROLLOUT/implementation_in_progress|PROGRAM-ROLLOUT/PG-L_waiting_user|PLATFORM-EXPANSION/entry_in_progress)$", progress, re.MULTILINE)
+    assert re.search(r"^gate_status: (PG-D/entry_passed_with_boundary|PUB-ACCOUNT/entry_passed_with_boundary|PUB-CORE/entry_in_progress|PUB-CORE/entry_passed_with_boundary|PUB-DOUYIN/entry_in_progress|PUB-DOUYIN/entry_passed_with_boundary|PUB-DOUYIN/implementation_pass_with_boundary|PUB-DOUYIN/pg_g_in_progress|APP-CAROUSEL/entry_in_progress|APP-CAROUSEL/entry_passed_with_boundary|APP-CAROUSEL/implementation_in_progress|APP-CAROUSEL/implementation_pass_with_boundary|APP-CAROUSEL/PG-H_in_progress|APP-CAROUSEL/PG-H_passed_with_boundary|APP-IPB/entry_in_progress|APP-IPB/implementation_in_progress|APP-IPB/implementation_pass_with_boundary|PUB-INTEGRATION/pg-j-closure-entry_passed_with_boundary|PUB-INTEGRATION/pg-j-closure-implementation_pass_with_boundary_pending_review|E2E-DOUYIN/pub-5-entry_in_progress|E2E-DOUYIN/pub-5-entry_passed_with_boundary|PROGRAM-ROLLOUT/entry_passed_with_boundary|PROGRAM-ROLLOUT/implementation_in_progress|PROGRAM-ROLLOUT/PG-L_waiting_user|PLATFORM-EXPANSION/entry_in_progress|PLATFORM-EXPANSION/PG-M-PILOT-RELEASE_in_progress|PLATFORM-EXPANSION/PG-M-PILOT-RELEASE_passed_with_boundary)$", progress, re.MULTILINE)
     assert re.search(r"\| 0 \| COORD-0 \| AC-0 \+ PUB-0 \| `completed` \| PG-A \| `passed` \|", progress)
     assert re.search(r"\| 1 \| APP-SHELL \| AC-1 \| `completed` \| PG-B \| `passed_with_boundary` \|", progress)
     assert re.search(r"\| 2 \| APP-CORE \| AC-2 \| `completed` \| PG-C \| `passed_with_boundary` \|", progress)
@@ -401,8 +401,8 @@ def test_coordination_and_plan_convergence_is_explicit():
     assert re.search(r"\| 8 \| APP-IPB \| AC-5 \| `completed` \| PG-I \| `passed_with_boundary` \|", progress)
     assert re.search(r"\| 9 \| PUB-INTEGRATION \| PUB-4 \| `completed` \| PG-J \| `passed_with_boundary` \|", progress)
     assert re.search(r"\| 10 \| E2E-DOUYIN \| PUB-5 \| `completed_with_boundary` \| PG-K \| `passed_with_boundary` \|", progress)
-    assert re.search(r"\| 11 \| PROGRAM-ROLLOUT \| AC-6 \+ PUB-7D \| `implementation_in_progress` \| PG-L \| `entry_passed_with_boundary` \|", progress)
-    assert re.search(r"\| 12 \| PLATFORM-EXPANSION \| PUB-6 \+ 分平台 PUB-7 \| `completed_with_boundary` \| PG-M-\* \| `passed_with_boundary` \|", progress)
+    assert re.search(r"\| 11 \| PROGRAM-ROLLOUT \| AC-6 \+ PUB-7D \| `paused_external` \| PG-L \| `entry_passed_with_boundary` \|", progress)
+    assert re.search(r"\| 12 \| PLATFORM-EXPANSION \| PUB-6 \+ 分平台 PUB-7 \| `completed_with_boundary` \| PG-M-PILOT-RELEASE \| `passed_with_boundary` \|", progress)
     app_plan = (ROOT / "docs/superpowers/specs/2026-07-18-application-center-product-architecture-implementation-plan.md").read_text()
     publish_plan = (ROOT / "docs/reviews/2026-07-18-desktop-auto-publishing-refactor-implementation-plan.md").read_text()
     assert "video + publish_package_ref" in app_plan

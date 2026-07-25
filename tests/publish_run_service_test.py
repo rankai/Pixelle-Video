@@ -1,4 +1,5 @@
 import asyncio
+import sqlite3
 
 import pytest
 
@@ -73,11 +74,30 @@ def test_run_service_keeps_unverified_non_douyin_platforms_on_copy_fallback(tmp_
     db = tmp_path / "release-gate.sqlite"
     accounts = PublishAccountRepository(db)
     account = accounts.create_account(PublishPlatform.KUAISHOU, "快手账号", "profile_kuaishou")
+    accounts.revoke_platform_release(PublishPlatform.KUAISHOU, reason_ref="rollback/test-unverified")
     core = PublishCoreRepository(db)
     package = core.create_package(_package())
     service = PublishRunService(core, accounts, manager=TaskManager())
     with pytest.raises(PublishRunConflict, match="PLATFORM_RELEASE_NOT_READY"):
         service.create_run(package.package_id, account.account_id, PublishPlatform.KUAISHOU, "release-gate-1")
+
+
+def test_run_service_fails_closed_when_platform_release_row_is_missing(tmp_path):
+    db = tmp_path / "missing-release-gate.sqlite"
+    accounts = PublishAccountRepository(db)
+    account = accounts.create_account(PublishPlatform.KUAISHOU, "缺失状态账号", "profile_missing_release")
+    core = PublishCoreRepository(db)
+    with sqlite3.connect(db) as connection:
+        connection.execute(
+            "DELETE FROM publish_platform_release WHERE platform = ?",
+            (PublishPlatform.KUAISHOU.value,),
+        )
+        connection.commit()
+    assert accounts.get_account(account.account_id).platform_release_state == "unverified"
+    package = core.create_package(_package())
+    service = PublishRunService(core, accounts, manager=TaskManager())
+    with pytest.raises(PublishRunConflict, match="PLATFORM_RELEASE_NOT_READY"):
+        service.create_run(package.package_id, account.account_id, PublishPlatform.KUAISHOU, "missing-release-gate-1")
 
 
 def test_restart_recovery_downgrades_only_inflight_runs(tmp_path):
