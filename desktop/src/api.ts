@@ -559,6 +559,11 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   }
   if (desktopToken) {
     headers.set("X-Pixelle-Desktop-Token", desktopToken);
+    // The current desktop launch exposes one per-launch token. The sidecar
+    // accepts that token as the local capability fallback; forwarding it on
+    // the capability header keeps V2 run recovery/outcome actions usable from
+    // the desktop UI until RuntimeInfo exposes a separately-scoped capability.
+    headers.set("X-Pixelle-Local-Capability", desktopToken);
   }
   let response: Response;
   try {
@@ -719,6 +724,31 @@ export function createPublishRunV2(values: {
 
 export function listPublishRunEventsV2(runId: string, after = 0) {
   return apiFetch<{ items: PublishRunEvent[]; next_after: number }>(`/api/publish/v2/runs/${encodeURIComponent(runId)}/events?after=${after}`);
+}
+
+export function resumePublishRunV2(runId: string) {
+  return apiFetch<{ run: PublishRunV2 }>(`/api/publish/v2/runs/${encodeURIComponent(runId)}/resume`, { method: "POST" });
+}
+
+export function retryPublishRunStepV2(runId: string, step: string) {
+  return apiFetch<{ run: PublishRunV2 }>(`/api/publish/v2/runs/${encodeURIComponent(runId)}/retry-step`, {
+    method: "POST",
+    body: JSON.stringify({ step, actor_ref: "desktop_user" }),
+  });
+}
+
+export function cancelPublishRunV2(runId: string) {
+  return apiFetch<{ run: PublishRunV2 }>(`/api/publish/v2/runs/${encodeURIComponent(runId)}/cancel`, {
+    method: "POST",
+    body: JSON.stringify({ actor_ref: "desktop_user" }),
+  });
+}
+
+export function markPublishRunOutcomeV2(runId: string, outcome: "published_by_user" | "not_published") {
+  return apiFetch<{ run: PublishRunV2 }>(`/api/publish/v2/runs/${encodeURIComponent(runId)}/mark-outcome`, {
+    method: "POST",
+    body: JSON.stringify({ outcome: outcome === "not_published" ? "abandoned_by_user" : outcome, actor_ref: "desktop_user" }),
+  });
 }
 
 export function listPublishPlatforms() {

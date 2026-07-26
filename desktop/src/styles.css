@@ -4458,6 +4458,30 @@ button.asset-card {
   border-radius: 16px;
 }
 
+.publish-center-v2-batch-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 16px 0;
+  padding: 14px 16px;
+  border: 1px solid rgb(var(--app-primary-rgb) / 16%);
+  border-radius: 14px;
+  background: var(--app-primary-soft);
+}
+
+.publish-center-v2-batch-bar > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+@media (max-width: 720px) {
+  .publish-center-v2-batch-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 .publish-center-v2-account-grid {
   display: grid;
   gap: 16px;

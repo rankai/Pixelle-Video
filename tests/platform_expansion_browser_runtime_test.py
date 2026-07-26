@@ -321,6 +321,53 @@ def test_hidden_challenge_copy_does_not_override_authenticated_editor_state():
     asyncio.run(run())
 
 
+def test_is_logged_in_fails_closed_for_unknown_page_instead_of_closing_login_window():
+    class Body:
+        first = None
+
+        async def get_attribute(self, _name):
+            return None
+
+    Body.first = Body()
+
+    class EmptyLocator:
+        async def count(self):
+            return 0
+
+        def nth(self, _index):
+            return self
+
+        async def is_visible(self):
+            return False
+
+    class UnknownPage:
+        url = "https://creator.douyin.com/creator-micro/content/upload"
+
+        def is_closed(self):
+            return False
+
+        def locator(self, selector):
+            return Body.first if selector == "body" else EmptyLocator()
+
+        def get_by_text(self, _text, *, exact=False):
+            del exact
+            return EmptyLocator()
+
+        async def content(self):
+            return "<main></main>"
+
+        async def wait_for_timeout(self, _ms):
+            return None
+
+    async def run():
+        context = PlaywrightPublishContext(object(), "douyin")
+        context.page = UnknownPage()
+        assert await context.detect_state() == "unknown"
+        assert await context.is_logged_in() is False
+
+    asyncio.run(run())
+
+
 def test_kuaishou_upload_video_uses_project_playwright_filechooser_and_is_idempotent():
     async def run():
         page = _FakePage()
