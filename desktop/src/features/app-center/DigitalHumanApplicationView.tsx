@@ -984,6 +984,14 @@ export function DigitalHumanApplicationView({
         <div className="digital-human-app-field">
           <label>数字人模式</label>
           <DigitalHumanModeTabs mode={digitalHumanMode} onChange={changeDigitalHumanMode} />
+          {digitalHumanMode === "video_lipsync" && portraitMediaType !== "video" ? (
+            <Alert
+              type="info"
+              showIcon
+              message="视频模式需要已登记的视频数字人场景"
+              description="当前不会用图片场景代替视频场景；请先由资产管理员登记视频数字人场景，再回到这里选择。"
+            />
+          ) : null}
         </div>
         <div className="digital-human-app-field">
           <label>数字人形象</label>

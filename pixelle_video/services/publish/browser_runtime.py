@@ -161,6 +161,13 @@ class PlaywrightPublishContext:
         # a legitimate redirect is not reported as ``window_closed``.
         if self.page.is_closed() and self.context.pages:
             self.page = self.context.pages[-1]
+        # A persistent context launched by the sidecar can start behind the
+        # desktop app (especially on macOS when the sidecar is started from a
+        # non-UI process). Explicitly surface the navigated page so the user
+        # can see the login QR code and complete the human step.
+        bring_to_front = getattr(self.page, "bring_to_front", None)
+        if bring_to_front is not None:
+            await bring_to_front()
 
     async def _content_root(self) -> Any:
         """Return the platform editor root, including Wujie Shadow DOM."""
@@ -323,17 +330,37 @@ class PlaywrightPublishContext:
         # client-side pass; probing during that gap briefly exposes the
         # public landing page's "立即登录" marker even for a valid session.
         await self.page.wait_for_timeout(2_500 if self.platform == "kuaishou" else 1_500)
-        url = self.page.url
-        if "login" in url:
+
+        # Do not infer authentication from the absence of a login word. A
+        # blocked/blank/anti-bot page also has no such word, and treating it as
+        # authenticated closes the visible login browser before the user can
+        # scan. ``detect_state`` has the positive editor/upload markers and
+        # the explicit signed-out/challenge boundaries used by the adapters.
+        state = await self.detect_state()
+        if state in {
+            "signed_in",
+            "upload_entry",
+            "ready_for_upload",
+            "editor_ready",
+        }:
+            return True
+        if state in {"signed_out", "login_required", "captcha", "unknown", "window_closed"}:
+            return False
+
+        # Keep a conservative fallback for platform shells that report a
+        # transient custom state, but still require a known non-login URL and
+        # positive creator-page content before claiming authentication.
+        url = str(self.page.url)
+        if not url or "login" in url:
             return False
         profile = PLATFORM_ADAPTER_PROFILES.get(self.platform)
-        content = await self.page.content()
+        content = (await self.page.content()).lower()
         login_words = ["扫码登录", "登录后", "请登录", "验证码"]
         if profile:
             login_words.extend(profile.signed_out_markers)
-        if any(word in content for word in login_words):
+        if any(word.lower() in content for word in login_words):
             return False
-        return True
+        return bool(profile and any(marker.lower() in content for marker in profile.editor_markers))
 
     async def _has_uploaded_media_preview(self) -> bool:
         """Detect the current draft's media preview without broad DOM counts.
