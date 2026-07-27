@@ -24,3 +24,13 @@ def test_task_persistence_can_be_isolated_for_rollout_probes(tmp_path, monkeypat
     target = tmp_path / "isolated-tasks.sqlite"
     monkeypatch.setenv("PIXELLE_DESKTOP_TASKS_DB", str(target))
     assert TaskPersistence().db_path == target
+
+
+def test_task_persistence_uses_writable_video_root_when_desktop_db_is_unconfigured(tmp_path, monkeypatch):
+    monkeypatch.delenv("PIXELLE_DESKTOP_TASKS_DB", raising=False)
+    monkeypatch.setenv("PIXELLE_VIDEO_ROOT", str(tmp_path))
+
+    persistence = TaskPersistence()
+
+    assert persistence.db_path == tmp_path / "data" / "desktop_tasks.sqlite"
+    assert persistence.db_path.exists()
