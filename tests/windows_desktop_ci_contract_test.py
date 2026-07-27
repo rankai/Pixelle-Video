@@ -60,6 +60,16 @@ def test_windows_sidecar_runs_from_user_writable_app_data():
     assert "resources are" in source and "unavailable" in source
 
 
+def test_windows_sidecar_enables_application_registry_rollout_by_default():
+    source = TAURI_MAIN.read_text(encoding="utf-8")
+    assert 'std::env::var("PIXELLE_APP_CENTER_CONTENT_APPS")' in source
+    assert 'std::env::var("PIXELLE_APP_CENTER_DOUYIN_CAROUSEL")' in source
+    assert 'std::env::var("PIXELLE_APP_CENTER_DIGITAL_HUMAN")' in source
+    assert '.env("PIXELLE_APP_CENTER_CONTENT_APPS", app_center_content_apps)' in source
+    assert '.env("PIXELLE_APP_CENTER_DOUYIN_CAROUSEL", app_center_douyin_carousel)' in source
+    assert '.env("PIXELLE_APP_CENTER_DIGITAL_HUMAN", app_center_digital_human)' in source
+
+
 def test_artifact_manifest_requires_windows_executables_and_marks_install_pending():
     source = ARTIFACT_CHECK.read_text(encoding="utf-8")
     assert 'expected_suffix=".exe"' in source
