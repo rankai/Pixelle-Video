@@ -16,6 +16,21 @@ struct RuntimeInfo {
     desktop_token: String,
 }
 
+/// Return the origin used by the packaged Tauri webview on this platform.
+///
+/// Tauri 2 serves production assets from `http://tauri.localhost` on Windows,
+/// while macOS and Linux continue to use the `tauri://localhost` protocol.
+/// The sidecar uses this value for both CORS and local-origin checks, so a
+/// single hard-coded origin makes the Windows desktop UI look disconnected
+/// even when the API process is healthy.
+fn desktop_origin() -> &'static str {
+    if cfg!(target_os = "windows") {
+        "http://tauri.localhost"
+    } else {
+        "tauri://localhost"
+    }
+}
+
 #[tauri::command]
 fn desktop_runtime(runtime: State<RuntimeInfo>) -> RuntimeInfo {
     runtime.inner().clone()
@@ -48,7 +63,7 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
     let (_, child) = command
         .env("PIXELLE_DESKTOP_MODE", "1")
         .env("PIXELLE_DESKTOP_TOKEN", &runtime.desktop_token)
-        .env("PIXELLE_DESKTOP_ORIGIN", "tauri://localhost")
+        .env("PIXELLE_DESKTOP_ORIGIN", desktop_origin())
         .env("PIXELLE_VIDEO_ROOT", &data_root)
         .env("PIXELLE_CONFIG_PATH", &config_path)
         .env("PIXELLE_ASSET_CENTER_V2", asset_center_v2)
@@ -57,6 +72,20 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
         .spawn()
         .map_err(|error| std::io::Error::other(error.to_string()))?;
     Ok(Some(child))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::desktop_origin;
+
+    #[test]
+    fn desktop_origin_matches_tauri_platform_scheme() {
+        if cfg!(target_os = "windows") {
+            assert_eq!(desktop_origin(), "http://tauri.localhost");
+        } else {
+            assert_eq!(desktop_origin(), "tauri://localhost");
+        }
+    }
 }
 
 fn sidecar_data_root(app: &tauri::App) -> tauri::Result<PathBuf> {
