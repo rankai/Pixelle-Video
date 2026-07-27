@@ -53,6 +53,14 @@ def test_production_desktop_build_explicitly_enables_application_center_rollout(
     assert "VITE_APP_CENTER_DIGITAL_HUMAN_DUAL_MODE=true" in production_env
 
 
+def test_desktop_navigation_keeps_workspace_before_application_center():
+    source = Path("desktop/src/StudioApp.tsx").read_text(encoding="utf-8")
+    home_index = source.index('{ key: "home", icon: <Home')
+    apps_index = source.index('key: "apps", icon: <Images')
+
+    assert home_index < apps_index
+
+
 def test_app_shell_smoke_evidence_covers_flag_rollback_and_route_contract():
     evidence = json.loads(
         Path("docs/reviews/application-publishing-program/qa/AC-1-app-shell-smoke-2026-07-19.json").read_text()
@@ -124,6 +132,7 @@ def test_desktop_sidecar_persists_data_and_config_outside_the_app_bundle():
 
     assert '"PIXELLE_VIDEO_ROOT"' in rust_source
     assert '"PIXELLE_CONFIG_PATH"' in rust_source
+    assert '"PIXELLE_DESKTOP_TASKS_DB"' in rust_source
     assert 'os.environ.get("PIXELLE_CONFIG_PATH")' in config_source
 
 

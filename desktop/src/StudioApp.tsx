@@ -336,8 +336,8 @@ const emptyAssets: AssetState = {
 };
 
 const navItems: MenuProps["items"] = [
-  ...(featureFlags.appCenterShell ? [{ key: "apps", icon: <Images size={16} />, label: "应用中心" }] : []),
   { key: "home", icon: <Home size={16} />, label: "工作台" },
+  ...(featureFlags.appCenterShell ? [{ key: "apps", icon: <Images size={16} />, label: "应用中心" }] : []),
   { key: "ip", icon: <Video size={16} />, label: "口播剪辑" },
   { type: "divider" },
   { key: "assets", icon: <Package size={16} />, label: "企业资产库" },
