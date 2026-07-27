@@ -90,12 +90,14 @@ def test_tauri_debug_runtime_matches_standalone_api_port():
     assert "fn api_port" in source
 
 
-def test_tauri_sidecar_uses_a_resource_aware_working_directory():
+def test_tauri_sidecar_uses_a_user_writable_working_directory():
     source = Path("desktop/src-tauri/src/main.rs").read_text()
 
-    assert "fn sidecar_working_dir" in source
-    assert "current_dir(working_dir)" in source
-    assert 'resource_dir()' in source
+    # The sidecar receives bundled resources through Tauri's resource map, but
+    # its process cwd must stay in app-data so libraries that create relative
+    # output/config paths never attempt to write under Program Files.
+    assert "let command = command.current_dir(&data_root);" in source
+    assert "Never inherit the install directory" in source
 
 
 def test_tauri_bundle_maps_resources_to_stable_runtime_paths():
