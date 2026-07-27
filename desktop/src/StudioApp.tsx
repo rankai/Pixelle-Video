@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 56499)
-Total output lines: 6471
-
 import {
   AlertCircle,
   CheckCircle2,
@@ -2275,7 +2272,1858 @@ function VoiceStep({
                   <label>声音生成方式</label>
                   <select
                     value={selectedWorkflow}
-                    onChange={(event) => patch({ tts_workflow: event.targ…16499 tokens truncated…: "",
+                    onChange={(event) => patch({ tts_workflow: event.target.value })}
+                  >
+                    {ttsWorkflowOptions.map((workflow) => (
+                      <option key={workflow.value} value={workflow.value}>
+                        {workflow.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <p className="muted">{ttsWorkflowNotice(workflowKind)}</p>
+            </div>
+            {showReferenceLibrary ? (
+                <ReferenceVoiceSummaryCard
+                voice={selectedReferenceVoice}
+                count={voices.length}
+                onOpen={() => featureFlags.assetCenterV2 ? setReferenceVoiceV2Open(true) : setReferenceVoiceOpen(true)}
+                onManage={() => openAssetTab("voices")}
+              />
+            ) : null}
+            {workflowKind === "edge" ? (
+              <ComfyEdgeConfig session={session} patch={patch} onOpenVoicePicker={() => setSystemVoiceOpen(true)} />
+            ) : null}
+            {workflowKind === "spark" ? <SparkVoiceConfig session={session} patch={patch} /> : null}
+          </>
+        ) : null}
+
+        <div className={`generated-preview-card voice-result-card ${session.state.audio_path ? "" : "placeholder"}`}>
+          <div>
+            <strong>{session.state.audio_path ? "已生成配音" : "配音结果"}</strong>
+            <small>
+              {session.state.audio_path
+                ? "请试听确认音色、语速和情绪，没有问题再继续下一步。"
+                : "生成后这里会出现音频播放器，方便你确认声音效果。"}
+            </small>
+          </div>
+          {session.state.audio_path ? (
+            <ArtifactMediaPreview
+              sessionId={session.session_id}
+              artifactKey="audio"
+              kind="audio"
+              enabled={Boolean(session.state.audio_path)}
+            />
+          ) : (
+            <div className="preview-empty-state">等待生成配音</div>
+          )}
+        </div>
+      </section>
+
+      <div className="panel-actions">
+        <StepNavButtons step={step} goToStep={goToStep} />
+        <div className="panel-primary-actions">
+          {session.state.audio_path ? (
+            <>
+            <button className="primary" onClick={() => goToStep(step + 1)} disabled={busy}>
+              使用当前配音继续
+            </button>
+            <button className="secondary-action" onClick={() => execute("voice")} disabled={busy}>
+              重新生成
+            </button>
+            </>
+          ) : (
+            <button className="primary" onClick={() => execute("voice")} disabled={busy}>
+              {busy ? "正在生成..." : "生成配音"}
+            </button>
+          )}
+        </div>
+      </div>
+      <SystemVoicePickerModal
+        open={systemVoiceOpen}
+        mode={inferenceMode === "local" ? "local" : "workflow"}
+        session={session}
+        patch={patch}
+        onClose={() => setSystemVoiceOpen(false)}
+      />
+      {featureFlags.assetCenterV2 ? (
+        <AssetPickerDialog
+          open={referenceVoiceV2Open}
+          kind="voice"
+          selectedId={(session.state.tts_ref_audio_id as string) || ""}
+          context={{ session_id: session.session_id, step: "narration", purpose: "选择音色", slot_id: "voice", allowed_kinds: ["voice"], required_capabilities: ["preview"], selection_mode: "single" }}
+          onClose={() => setReferenceVoiceV2Open(false)}
+          onSelect={(item) => {
+            void patch({ tts_ref_audio_id: item.resource_id, tts_ref_audio_path: item.file_url || "" });
+            setReferenceVoiceV2Open(false);
+          }}
+        />
+      ) : (
+        <ReferenceVoicePickerModal
+          open={referenceVoiceOpen}
+          voices={voices}
+          selectedPath={(session.state.tts_ref_audio_path as string) || ""}
+          onClose={() => setReferenceVoiceOpen(false)}
+          onSelect={selectVoice}
+          onAdd={() => setAddVoiceOpen(true)}
+          onPreview={(voice) => setPreview({ kind: "audio", title: voice.name, src: voice.file_url })}
+        />
+      )}
+      <VoiceAssetModal
+        open={addVoiceOpen}
+        onClose={() => setAddVoiceOpen(false)}
+        onUploaded={async (voice) => {
+          await selectVoice(voice);
+          await reloadAssets();
+          setAddVoiceOpen(false);
+          setReferenceVoiceOpen(false);
+        }}
+      />
+      <AssetPreviewModal preview={preview} onClose={() => setPreview(null)} />
+    </div>
+  );
+}
+
+function VoiceChoiceSummaryCard({
+  title,
+  value,
+  description,
+  onOpen,
+}: {
+  title: string;
+  value: string;
+  description: string;
+  onOpen: () => void;
+}) {
+  return (
+    <button className="choice-summary-card voice-choice-summary" onClick={onOpen}>
+      <span className="choice-summary-icon">
+        <Mic2 size={18} />
+      </span>
+      <span>
+        <strong>{title}：{value}</strong>
+        <small>{description}</small>
+      </span>
+      <i>›</i>
+    </button>
+  );
+}
+
+function ReferenceVoiceSummaryCard({
+  voice,
+  count,
+  onOpen,
+  onManage,
+}: {
+  voice?: VoiceAsset;
+  count: number;
+  onOpen: () => void;
+  onManage: () => void;
+}) {
+  return (
+    <div className="voice-config-panel">
+      <button className="choice-summary-card voice-choice-summary" onClick={onOpen}>
+        <span className="choice-summary-icon">
+          <Mic2 size={18} />
+        </span>
+        <span>
+          <strong>参考音色：{voice?.name || "请选择老板参考音色"}</strong>
+          <small>{voice ? voice.filename : `音色库已有 ${count} 条参考音频`}</small>
+        </span>
+        <i>›</i>
+      </button>
+      <div className="choice-summary-foot">
+        <span>声音克隆会读取选中的参考音频，复杂采样参数已使用最佳配置。</span>
+        <Button size="small" onClick={onManage}>
+          管理音色库
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function SystemVoicePickerModal({
+  open,
+  mode,
+  session,
+  patch,
+  onClose,
+}: {
+  open: boolean;
+  mode: "local" | "workflow";
+  session: IpBroadcastState;
+  patch: (values: Record<string, unknown>) => Promise<void>;
+  onClose: () => void;
+}) {
+  const [category, setCategory] = useState("热门");
+  const isLocal = mode === "local";
+  const voiceOptions = isLocal ? edgeVoiceOptions : comfyEdgeVoiceOptions;
+  const selectedVoice = isLocal
+    ? ((session.state.tts_voice as string) || "zh-CN-YunjianNeural")
+    : ((session.state.tts_workflow_voice as string) || "[Chinese] zh-CN Yunjian");
+  const speedKey = isLocal ? "tts_speed" : "tts_workflow_speed";
+  const speed = Number.isFinite(session.state[speedKey] as number)
+    ? (session.state[speedKey] as number)
+    : isLocal ? 1.2 : 1;
+  const [pendingVoice, setPendingVoice] = useState(selectedVoice);
+  const [pendingSpeed, setPendingSpeed] = useState(speed);
+  const [previewAudioSrc, setPreviewAudioSrc] = useState("");
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState("");
+  const filteredOptions = voiceOptions.filter((voice) => voiceMatchesCategory(voice, category));
+
+  useEffect(() => {
+    if (open) {
+      setPendingVoice(selectedVoice);
+      setPendingSpeed(speed);
+      setPreviewAudioSrc("");
+      setPreviewError("");
+    }
+  }, [open, selectedVoice, speed]);
+
+  if (!open) return null;
+
+  async function confirmSelection() {
+    await patch({
+      [isLocal ? "tts_voice" : "tts_workflow_voice"]: pendingVoice,
+      [speedKey]: pendingSpeed,
+    });
+    onClose();
+  }
+
+  async function previewVoice() {
+    setPreviewLoading(true);
+    setPreviewError("");
+    setPreviewAudioSrc("");
+    try {
+      const result = await synthesizeTtsPreview({
+        text: voicePreviewText((session.state.final_script as string) || ""),
+        inference_mode: isLocal ? "local" : "comfyui",
+        workflow: isLocal ? undefined : ((session.state.tts_workflow as string) || "runninghub/tts_edge.json"),
+        voice: pendingVoice,
+        speed: pendingSpeed,
+        pitch: isLocal
+          ? Number(session.state.tts_pitch ?? 0)
+          : Number(session.state.tts_workflow_pitch ?? 0),
+        volume: isLocal ? Number(session.state.tts_volume ?? 0) : undefined,
+      });
+      setPreviewAudioSrc(`/api/files/${result.audio_path}`);
+    } catch (err) {
+      setPreviewError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
+  return (
+    <div className="modal-backdrop asset-modal-backdrop">
+      <section className="modal voice-picker-modal">
+        <div className="modal-title">
+          <div>
+            <h2>解说音色</h2>
+            <p>选择适合本条视频的系统音色，底部可同步调整语速。</p>
+          </div>
+          <button onClick={onClose}>关闭</button>
+        </div>
+        <div className="voice-category-tabs">
+          {["热门", "男声", "女声", "特色"].map((item) => (
+            <button
+              key={item}
+              className={category === item ? "selected" : ""}
+              onClick={() => setCategory(item)}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+        <div className="voice-picker-grid">
+          {filteredOptions.map((voice, index) => (
+            <button
+              key={voice.value}
+              className={`voice-picker-card ${pendingVoice === voice.value ? "selected" : ""}`}
+              onClick={() => setPendingVoice(voice.value)}
+            >
+              <span className="voice-avatar">{index === 0 && category === "热门" ? "荐" : voiceInitial(voice.label)}</span>
+              <strong>{voiceDisplayName(voice.label, index)}</strong>
+              <small>{voiceGenderLabel(voice.label)}</small>
+            </button>
+          ))}
+        </div>
+        <div className="voice-picker-speedbar">
+          <div className="range-field">
+            <div className="range-field-head">
+              <span>语速</span>
+              <strong>{pendingSpeed.toFixed(2)}x</strong>
+            </div>
+            <input
+              type="range"
+              min={0.5}
+              max={2}
+              step={0.05}
+              value={pendingSpeed}
+              onChange={(event) => setPendingSpeed(Number(event.target.value))}
+            />
+            <div className="range-field-foot">
+              <span>0.50x</span>
+              <em>1.0x 为正常速度</em>
+              <span>2.00x</span>
+            </div>
+          </div>
+          {previewAudioSrc || previewError ? (
+            <div className={`voice-picker-preview ${previewError ? "error" : ""}`}>
+              {previewAudioSrc ? <ProtectedMedia kind="audio" src={previewAudioSrc} /> : null}
+              {previewError ? <span>{previewError}</span> : null}
+            </div>
+          ) : null}
+          <div className="voice-picker-actions">
+            <button type="button" onClick={onClose}>
+              取消
+            </button>
+            <button type="button" className="secondary-action" onClick={previewVoice} disabled={previewLoading}>
+              {previewLoading ? "试听生成中..." : "试听音色"}
+            </button>
+            <button type="button" className="primary" onClick={confirmSelection}>
+              确认使用
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ReferenceVoicePickerModal({
+  open,
+  voices,
+  selectedPath,
+  onClose,
+  onSelect,
+  onAdd,
+  onPreview,
+}: {
+  open: boolean;
+  voices: VoiceAsset[];
+  selectedPath: string;
+  onClose: () => void;
+  onSelect: (voice: VoiceAsset) => Promise<void>;
+  onAdd: () => void;
+  onPreview: (voice: VoiceAsset) => void;
+}) {
+  const [pendingPath, setPendingPath] = useState(selectedPath);
+
+  useEffect(() => {
+    if (open) {
+      setPendingPath(selectedPath);
+    }
+  }, [open, selectedPath]);
+
+  if (!open) return null;
+
+  const pendingVoice = voices.find((voice) => voice.asset_path === pendingPath);
+
+  async function confirmSelection() {
+    if (!pendingVoice) return;
+    await onSelect(pendingVoice);
+    onClose();
+  }
+
+  return (
+    <div className="modal-backdrop asset-modal-backdrop">
+      <section className="modal voice-picker-modal reference-voice-modal">
+        <div className="modal-title">
+          <div>
+            <h2>选择参考音色</h2>
+            <p>选择一段老板本人或品牌声音参考音频，系统会按最佳配置克隆。</p>
+          </div>
+          <button onClick={onClose}>关闭</button>
+        </div>
+        <div className="reference-voice-grid">
+          {voices.map((voice) => (
+            <div
+              key={voice.reference_id}
+              className={`reference-voice-card ${pendingPath === voice.asset_path ? "selected" : ""}`}
+              role="button"
+              tabIndex={0}
+              onClick={() => setPendingPath(voice.asset_path)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  setPendingPath(voice.asset_path);
+                }
+              }}
+            >
+              <span className="choice-summary-icon">
+                <Mic2 size={18} />
+              </span>
+              <span>
+                <strong>{voice.name}</strong>
+                <small>{voice.filename}</small>
+              </span>
+              <Button
+                size="small"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onPreview(voice);
+                }}
+                disabled={!voice.file_url}
+              >
+                试听
+              </Button>
+            </div>
+          ))}
+          <AddAssetCard
+            title="添加参考音色"
+            description={voices.length ? "上传或录制新的参考音频" : "暂无音色，点击添加"}
+            onClick={onAdd}
+          />
+        </div>
+        <div className="modal-actions reference-voice-actions">
+          <button onClick={onClose}>取消</button>
+          <button className="primary" onClick={confirmSelection} disabled={!pendingVoice}>
+            确定使用
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function LocalVoiceConfig({
+  session,
+  patch,
+  onOpenVoicePicker,
+}: {
+  session: IpBroadcastState;
+  patch: (values: Record<string, unknown>) => Promise<void>;
+  onOpenVoicePicker: () => void;
+}) {
+  const selectedVoice = (session.state.tts_voice as string) || "zh-CN-YunjianNeural";
+  const selectedVoiceLabel = voiceOptionLabel(edgeVoiceOptions, selectedVoice);
+  const speed = Number.isFinite(session.state.tts_speed as number)
+    ? (session.state.tts_speed as number)
+    : 1.2;
+  return (
+    <div className="voice-config-panel">
+      <VoiceChoiceSummaryCard
+        title="解说音色"
+        value={`${selectedVoiceLabel} · ${speed.toFixed(2)}x`}
+        description="系统默认配音，适合快速生成口播。"
+        onOpen={onOpenVoicePicker}
+      />
+      <details className="advanced voice-tuning-panel">
+        <summary>更多声音参数</summary>
+        <div className="voice-param-grid">
+          <RangeField
+            label="音调"
+            value={session.state.tts_pitch as number}
+            fallback={0}
+            min={-50}
+            max={50}
+            step={1}
+            patchKey="tts_pitch"
+            patch={patch}
+            format={(item) => `${item >= 0 ? "+" : ""}${item}Hz`}
+            hint="0Hz 为原始音调"
+          />
+          <RangeField
+            label="音量增益"
+            value={session.state.tts_volume as number}
+            fallback={0}
+            min={-50}
+            max={100}
+            step={5}
+            patchKey="tts_volume"
+            patch={patch}
+            format={(item) => `${item >= 0 ? "+" : ""}${item}%`}
+            hint="0% 为原始音量"
+          />
+        </div>
+      </details>
+    </div>
+  );
+}
+
+function ComfyEdgeConfig({
+  session,
+  patch,
+  onOpenVoicePicker,
+}: {
+  session: IpBroadcastState;
+  patch: (values: Record<string, unknown>) => Promise<void>;
+  onOpenVoicePicker: () => void;
+}) {
+  const selectedVoice =
+    (session.state.tts_workflow_voice as string) || "[Chinese] zh-CN Yunjian";
+  const selectedVoiceLabel = voiceOptionLabel(comfyEdgeVoiceOptions, selectedVoice);
+  const speed = Number.isFinite(session.state.tts_workflow_speed as number)
+    ? (session.state.tts_workflow_speed as number)
+    : 1;
+  return (
+    <div className="voice-config-panel">
+      <VoiceChoiceSummaryCard
+        title="解说音色"
+        value={`${selectedVoiceLabel} · ${speed.toFixed(2)}x`}
+        description="云端默认配音，适合需要稳定音色时使用。"
+        onOpen={onOpenVoicePicker}
+      />
+      <details className="advanced voice-tuning-panel">
+        <summary>更多声音参数</summary>
+        <div className="voice-param-grid">
+          <RangeField
+            label="音调"
+            value={session.state.tts_workflow_pitch as number}
+            fallback={0}
+            min={-50}
+            max={50}
+            step={1}
+            patchKey="tts_workflow_pitch"
+            patch={patch}
+            format={(item) => `${item >= 0 ? "+" : ""}${item}Hz`}
+            hint="0Hz 为原始音调"
+          />
+        </div>
+      </details>
+    </div>
+  );
+}
+
+function SparkVoiceConfig({
+  session,
+  patch,
+}: {
+  session: IpBroadcastState;
+  patch: (values: Record<string, unknown>) => Promise<void>;
+}) {
+  return (
+    <div className="voice-config-panel">
+      <div className="voice-param-grid four">
+        <div>
+          <label>音色性别</label>
+          <select
+            value={(session.state.tts_spark_gender as string) || "male"}
+            onChange={(event) => patch({ tts_spark_gender: event.target.value })}
+          >
+            <option value="male">男声</option>
+            <option value="female">女声</option>
+          </select>
+        </div>
+        <ToneSelect label="语速" value={(session.state.tts_spark_speed as string) || "moderate"} patchKey="tts_spark_speed" patch={patch} />
+        <ToneSelect label="音调" value={(session.state.tts_spark_pitch as string) || "moderate"} patchKey="tts_spark_pitch" patch={patch} />
+        <RangeField
+          label="表现强度"
+          value={session.state.tts_temperature as number}
+          fallback={0.8}
+          min={0.2}
+          max={1.2}
+          step={0.05}
+          patchKey="tts_temperature"
+          patch={patch}
+          format={(item) => item.toFixed(2)}
+          hint="越高越有表现力"
+        />
+      </div>
+    </div>
+  );
+}
+
+function ToneSelect({
+  label,
+  value,
+  patchKey,
+  patch,
+}: {
+  label: string;
+  value: string;
+  patchKey: string;
+  patch: (values: Record<string, unknown>) => Promise<void>;
+}) {
+  return (
+    <div>
+      <label>{label}</label>
+      <select value={value} onChange={(event) => patch({ [patchKey]: event.target.value })}>
+        {toneOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function RangeField({
+  label,
+  value,
+  fallback,
+  min,
+  max,
+  step,
+  patchKey,
+  patch,
+  format,
+  hint,
+}: {
+  label: string;
+  value: number | undefined;
+  fallback: number;
+  min: number;
+  max: number;
+  step: number;
+  patchKey: string;
+  patch: (values: Record<string, unknown>) => Promise<void>;
+  format?: (value: number) => string;
+  hint?: string;
+}) {
+  const current = Number.isFinite(value) ? Number(value) : fallback;
+  const [draft, setDraft] = useState(current);
+
+  useEffect(() => {
+    setDraft(current);
+  }, [current]);
+
+  const formatted = format ? format(draft) : String(draft);
+  async function commit() {
+    await patch({ [patchKey]: draft });
+  }
+
+  return (
+    <div className="range-field">
+      <div className="range-field-head">
+        <label>{label}</label>
+        <strong>{formatted}</strong>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={draft}
+        onChange={(event) => setDraft(Number(event.target.value))}
+        onMouseUp={commit}
+        onTouchEnd={commit}
+        onBlur={commit}
+      />
+      <div className="range-field-foot">
+        <span>{format ? format(min) : min}</span>
+        <em>{hint}</em>
+        <span>{format ? format(max) : max}</span>
+      </div>
+    </div>
+  );
+}
+
+function ttsWorkflowKind(workflow: string) {
+  return getTtsWorkflow(workflow).kind;
+}
+
+function getTtsWorkflow(workflow: string) {
+  return (
+    ttsWorkflowOptions.find((item) => item.value === workflow) ||
+    ttsWorkflowOptions[0]
+  );
+}
+
+function ttsWorkflowNotice(workflowKind: string) {
+  if (workflowKind === "edge") {
+    return "使用云端默认配音，可调整音色、语速和音调，不读取参考音频。";
+  }
+  if (workflowKind === "spark") {
+    return "适合需要情绪或更强表现力的配音，可调整性别、语速、音调和表现强度。";
+  }
+  if (workflowKind === "index") {
+    return "老板声音克隆会使用参考音频复刻音色，但当前工作流不支持语速调节；需要调语速时可切换云端默认配音或情绪配音。";
+  }
+  return "当前声音生成方式会使用默认参数。";
+}
+
+function voiceOptionLabel(options: Array<{ value: string; label: string }>, value: string) {
+  return options.find((option) => option.value === value)?.label || "系统推荐";
+}
+
+function voicePreviewText(script: string) {
+  const clean = script.replace(/\s+/g, " ").trim();
+  return clean.slice(0, 80) || "你好，欢迎来到本店，今天给大家介绍一个实用建议。";
+}
+
+function scriptCharCount(value: string) {
+  return value.replace(/\s/g, "").length;
+}
+
+function voiceMatchesCategory(voice: { label: string; value: string }, category: string) {
+  if (category === "热门") return true;
+  if (category === "男声") return /男|Yun|Yunjian|Yunxi|Yunyang/i.test(voice.label);
+  if (category === "女声") return /女|Xiao|Xiaoxiao|Xiaoyi/i.test(voice.label);
+  return /Yunyang|晓伊|Xiaoyi/i.test(voice.label);
+}
+
+function voiceDisplayName(label: string, index: number) {
+  if (index === 0) return "系统推荐";
+  return label
+    .replace(/^中文\s*[·-]\s*/, "")
+    .replace(/\s*\(.*?\)\s*$/, "")
+    .replace(/\s*（.*?）\s*$/, "");
+}
+
+function voiceInitial(label: string) {
+  const name = voiceDisplayName(label, 1);
+  return name.slice(0, 1) || "声";
+}
+
+function voiceGenderLabel(label: string) {
+  if (/女|Xiao|Xiaoxiao|Xiaoyi/i.test(label)) return "女声";
+  if (/男|Yun|Yunjian|Yunxi|Yunyang/i.test(label)) return "男声";
+  return "特色音色";
+}
+
+function getDigitalHumanWorkflow(value: string) {
+  return (
+    digitalHumanWorkflowOptions.find((workflow) => workflow.value === value) ||
+    digitalHumanWorkflowOptions[0]
+  );
+}
+
+function PortraitStep({
+  session,
+  portraits,
+  patch,
+  execute,
+  busy,
+  reloadAssets,
+  openAssetTab,
+  goToStep,
+  step,
+}: {
+  session: IpBroadcastState;
+  portraits: PortraitAsset[];
+  patch: (values: Record<string, unknown>) => Promise<void>;
+  execute: (stepKey: string) => Promise<void>;
+  busy: boolean;
+  reloadAssets: () => Promise<void>;
+  openAssetTab: (tab: AssetTab) => void;
+  goToStep: (step: number) => void;
+  step: number;
+}) {
+  const [addPortraitOpen, setAddPortraitOpen] = useState(false);
+  const [portraitV2PickerOpen, setPortraitV2PickerOpen] = useState(false);
+  const [preview, setPreview] = useState<AssetPreview | null>(null);
+  const currentWorkflow = (session.state.digital_human_workflow as string) || "";
+  const workflowConfig = getDigitalHumanWorkflow(currentWorkflow);
+  const compatiblePortraits = portraits.filter((portrait) =>
+    workflowConfig.supportedMediaTypes.includes(portrait.media_type),
+  );
+  const accept = workflowConfig.supportedMediaTypes.includes("image")
+    ? workflowConfig.supportedMediaTypes.includes("video")
+      ? "image/*,video/*"
+      : "image/*"
+    : "video/*";
+  const selectedPortrait = portraits.find(
+    (portrait) => portrait.portrait_id === session.state.portrait_id,
+  );
+
+  useEffect(() => {
+    const updates: Record<string, unknown> = {};
+    if (currentWorkflow !== workflowConfig.value) {
+      updates.digital_human_workflow = workflowConfig.value;
+      if (!session.state.digital_human_width) {
+        updates.digital_human_width = workflowConfig.defaultWidth;
+      }
+      if (!session.state.digital_human_height) {
+        updates.digital_human_height = workflowConfig.defaultHeight;
+      }
+    }
+    if (
+      selectedPortrait &&
+      !workflowConfig.supportedMediaTypes.includes(selectedPortrait.media_type)
+    ) {
+      updates.portrait_id = "";
+      updates.portrait_path = "";
+      updates.portrait_media_type = "";
+    }
+    if (Object.keys(updates).length) {
+      void patch(updates);
+    }
+  }, [
+    currentWorkflow,
+    selectedPortrait?.portrait_id,
+    selectedPortrait?.media_type,
+    session.state.digital_human_width,
+    session.state.digital_human_height,
+    workflowConfig.defaultHeight,
+    workflowConfig.defaultWidth,
+    workflowConfig.value,
+  ]);
+
+  async function selectPortrait(portrait: PortraitAsset) {
+    await patch({
+      portrait_id: portrait.portrait_id,
+      portrait_path: portrait.asset_path,
+      portrait_media_type: portrait.media_type,
+    });
+  }
+
+  return (
+    <div>
+      <div className="section-title inline-section-title">
+        <span>形象库</span>
+        <Button size="small" onClick={() => openAssetTab("portraits")}>
+          管理形象库
+        </Button>
+        {featureFlags.assetCenterV2 ? <Button size="small" onClick={() => setPortraitV2PickerOpen(true)}>从统一资产库选择</Button> : null}
+      </div>
+      <div className="asset-grid portraits">
+        {compatiblePortraits.map((portrait) => (
+          <section
+            key={portrait.portrait_id}
+            className={`asset-card portrait selectable ${
+              session.state.portrait_id === portrait.portrait_id ? "selected" : ""
+            }`}
+            onClick={() => selectPortrait(portrait)}
+          >
+            {portrait.media_type === "image" ? (
+              <AssetImage src={portrait.file_url} alt={portrait.name} />
+            ) : (
+              <div className="video-thumb">VIDEO</div>
+            )}
+            <strong>{portrait.name}</strong>
+            <span>{portrait.media_type === "video" ? "视频形象" : "图片形象"}</span>
+            <div className="asset-card-actions">
+              <button
+                type="button"
+                className="asset-action preview"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setPreview({
+                    kind: portrait.media_type,
+                    title: portrait.name,
+                    src: portrait.file_url,
+                  });
+                }}
+                disabled={!portrait.file_url}
+              >
+                预览
+              </button>
+            </div>
+          </section>
+        ))}
+        {!compatiblePortraits.length ? (
+          <div className="empty-state">
+            当前出镜方式只支持
+            {workflowConfig.supportedMediaTypes.includes("video") ? "视频形象" : "图片形象"}。
+          </div>
+        ) : null}
+        <AddAssetCard
+          title="添加形象"
+          description={
+            workflowConfig.supportedMediaTypes.includes("video")
+              ? "上传视频形象，保存后自动选中"
+              : "上传图片形象，保存后自动选中"
+          }
+          onClick={() => setAddPortraitOpen(true)}
+          className="portrait"
+        />
+      </div>
+      <SimpleAssetModal
+        open={addPortraitOpen}
+        title="添加数字人形象"
+        description={
+          workflowConfig.supportedMediaTypes.includes("video")
+            ? "当前出镜方式仅支持视频形象。"
+            : "当前出镜方式仅支持图片形象。"
+        }
+        assetNameLabel="形象名称"
+        fileLabel={workflowConfig.supportedMediaTypes.includes("video") ? "视频形象" : "图片形象"}
+        accept={accept}
+        upload={uploadPortraitAsset}
+        onClose={() => setAddPortraitOpen(false)}
+        onUploaded={async (portrait) => {
+          await selectPortrait(portrait);
+          await reloadAssets();
+          setAddPortraitOpen(false);
+        }}
+      />
+      <AssetPreviewModal preview={preview} onClose={() => setPreview(null)} />
+      {featureFlags.assetCenterV2 ? (
+        <AssetPickerDialog
+          open={portraitV2PickerOpen}
+          kind="digital_human"
+          selectedId={(session.state.portrait_id as string) || ""}
+          context={{ session_id: session.session_id, step: "visual", purpose: "选择数字人", slot_id: "digital_human", allowed_kinds: ["digital_human"], required_capabilities: ["preview"], selection_mode: "single" }}
+          onClose={() => setPortraitV2PickerOpen(false)}
+          onSelect={(item) => {
+            void patch({ portrait_id: item.resource_id, portrait_path: item.file_url || "", portrait_media_type: item.summary.media_type || "image" });
+            setPortraitV2PickerOpen(false);
+          }}
+          onSelectScene={(item, sceneId) => {
+            void patch({ portrait_id: item.resource_id, portrait_path: item.file_url || "", portrait_media_type: item.summary.media_type || "image", digital_human_scene_id: sceneId });
+            setPortraitV2PickerOpen(false);
+          }}
+        />
+      ) : null}
+      <div className="grid2">
+        <div>
+          <label>出镜生成方式</label>
+          <select
+            value={workflowConfig.value}
+            onChange={(event) => {
+              const nextWorkflow = getDigitalHumanWorkflow(event.target.value);
+              const currentPortrait = portraits.find(
+                (portrait) => portrait.portrait_id === session.state.portrait_id,
+              );
+              patch({
+                digital_human_workflow: nextWorkflow.value,
+                digital_human_width: nextWorkflow.defaultWidth,
+                digital_human_height: nextWorkflow.defaultHeight,
+                ...(currentPortrait &&
+                !nextWorkflow.supportedMediaTypes.includes(currentPortrait.media_type)
+                  ? { portrait_id: "", portrait_path: "", portrait_media_type: "" }
+                  : {}),
+              });
+            }}
+          >
+            {digitalHumanWorkflowOptions.map((workflow) => (
+              <option key={workflow.value} value={workflow.value}>
+                {workflow.label}
+              </option>
+            ))}
+          </select>
+          <p className="muted">
+            {workflowConfig.description} 当前只显示
+            {workflowConfig.supportedMediaTypes.includes("video") ? "视频形象" : "图片形象"}。
+          </p>
+        </div>
+      </div>
+      {workflowConfig.supportsPrompt ? (
+        <>
+          <label>出镜动作描述</label>
+          <textarea
+            className="small-textarea"
+            defaultValue={(session.state.digital_human_prompt as string) || ""}
+            placeholder="例如：正视镜头，自然说话，头部稳定，口型清晰。"
+            onBlur={(event) => patch({ digital_human_prompt: event.target.value })}
+          />
+        </>
+      ) : (
+        <div className="inline-hint">
+          当前出镜方式不支持动作描述，系统会按默认口播动作生成。
+        </div>
+      )}
+      <details className="advanced">
+        <summary>高级出镜参数</summary>
+        <div className="voice-param-grid">
+          <div>
+            <label>视频宽度</label>
+            <input
+              type="number"
+              defaultValue={(session.state.digital_human_width as number) || 720}
+              onBlur={(event) => patch({ digital_human_width: Number(event.target.value) })}
+            />
+          </div>
+          <div>
+            <label>视频高度</label>
+            <input
+              type="number"
+              defaultValue={(session.state.digital_human_height as number) || 1280}
+              onBlur={(event) => patch({ digital_human_height: Number(event.target.value) })}
+            />
+          </div>
+        </div>
+      </details>
+      {session.state.digital_human_video_path ? (
+        <div className="generated-preview-card">
+          <div>
+            <strong>已生成出镜视频</strong>
+            <small>请预览口型、形象和画面是否正常，没有问题再进入一键成片。</small>
+          </div>
+          <ArtifactMediaPreview
+            sessionId={session.session_id}
+            artifactKey="digital_human_video"
+            kind="video"
+            enabled={Boolean(session.state.digital_human_video_path)}
+          />
+        </div>
+      ) : null}
+      <div className="panel-actions">
+        <StepNavButtons step={step} goToStep={goToStep} />
+        <div className="panel-primary-actions">
+          {session.state.digital_human_video_path ? (
+            <>
+            <button className="primary" onClick={() => goToStep(step + 1)} disabled={busy}>
+              使用当前出镜视频继续
+            </button>
+            <button className="secondary-action" onClick={() => execute("digital_human")} disabled={busy}>
+              重新生成
+            </button>
+            </>
+          ) : (
+            <button className="primary" onClick={() => execute("digital_human")} disabled={busy}>
+              {busy ? "正在生成..." : "生成出镜视频"}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PostproductionStep({
+  session,
+  templates,
+  videos,
+  bgm,
+  patch,
+  execute,
+  busy,
+  openStoryboard,
+  openAssetTab,
+  goToStep,
+  step,
+}: {
+  session: IpBroadcastState;
+  templates: IpTemplateAsset[];
+  videos: VideoAsset[];
+  bgm: BgmAsset[];
+  patch: (values: Record<string, unknown>) => Promise<void>;
+  execute: (stepKey: string) => Promise<void>;
+  busy: boolean;
+  openStoryboard: () => void;
+  openAssetTab: (tab: AssetTab) => void;
+  goToStep: (step: number) => void;
+  step: number;
+}) {
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [templateV2PickerOpen, setTemplateV2PickerOpen] = useState(false);
+  const groups = readGroups(session.state.visual_groups);
+  const segments = splitSegments((session.state.final_script as string) || "");
+  const videoPlan = readVideoPlan(session.state.video_plan);
+  const planGroups = buildGroupsFromVideoPlan(videoPlan, videos);
+  const planApplied = Boolean(session.state.video_plan_applied);
+  const visualStrategy = String(session.state.business_visual_strategy || "");
+  const selectedTemplate = templates.find((template) => template.template_id === session.state.template_id) || templates[0];
+  async function applyRecommendedPlan() {
+    await patch({
+      story_segments: segments,
+      visual_groups: planGroups,
+      overlay_enabled: planGroups.length > 0,
+      video_plan_applied: true,
+    });
+  }
+  return (
+    <div className="production-split postproduction-step-layout">
+      <section className="production-main-panel">
+        <div className="panel-titleline">
+          <div>
+            <strong>成片配置</strong>
+            <span>选择画面模板、规划覆盖素材，再生成最终视频。</span>
+          </div>
+          <Tag>{videos.length} 个视频素材</Tag>
+        </div>
+
+        <div className="template-summary-card">
+          {selectedTemplate ? (
+            <>
+              <AssetImage src={selectedTemplate.preview_url} alt={selectedTemplate.display_name} />
+              <div>
+                <label>画面模板</label>
+                <strong>{selectedTemplate.display_name}</strong>
+                <span>{selectedTemplate.short_description}</span>
+                <small>影响封面标题、字幕样式和安全区域。</small>
+              </div>
+            </>
+          ) : (
+            <div>
+              <label>画面模板</label>
+              <strong>还没有可用模板</strong>
+              <span>请先到画面模板库维护模板。</span>
+            </div>
+          )}
+          <Button onClick={() => featureFlags.assetCenterV2 ? setTemplateV2PickerOpen(true) : setTemplatePickerOpen(true)} disabled={!featureFlags.assetCenterV2 && !templates.length}>
+            更换模板
+          </Button>
+          {featureFlags.assetCenterV2 ? <Button onClick={() => setTemplateV2PickerOpen(true)}>从统一资产库选择</Button> : null}
+        </div>
+
+        <div className="video-plan-card">
+          <header className="video-plan-header">
+            <div>
+              <strong>画面规划</strong>
+              <p>
+                {videoPlan?.status === "ready"
+                  ? `系统建议：${humanVideoPlanSummary(videoPlan)}`
+                  : visualStrategy || "确认文案后，系统会根据本条视频目标生成推荐画面规划。"}
+              </p>
+            </div>
+            <Tag color={planApplied ? "success" : videoPlan?.status === "ready" ? "processing" : "default"}>
+              {planApplied ? "已使用推荐方案" : videoPlan?.status === "ready" ? "可一键使用" : "等待文案"}
+            </Tag>
+          </header>
+
+          {videoPlan?.segments?.length ? (
+            <div className="video-plan-list">
+              {videoPlan.segments.map((segment) => (
+                <div key={segment.segment_id} className="video-plan-item">
+                  <span>{segment.index}</span>
+                  <div>
+                    <strong>{humanVideoPlanStep(segment)}</strong>
+                    <em>{videoPlanMaterialHint(segment, videos)}</em>
+                  </div>
+                  <i className={`visual-type-pill ${segment.visual_type}`}>
+                    {visualTypeLabel(segment.visual_type)}
+                  </i>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          <footer className="video-plan-footer">
+            <div>
+              <strong>
+                {groups.length
+                  ? `已配置 ${groups.length} 个覆盖组`
+                  : `当前 ${segments.length} 段文案，默认全程数字人`}
+              </strong>
+              <small>
+                {groups.length
+                  ? `覆盖 ${groups.reduce((sum, group) => sum + group.segment_ids.length, 0)} 段文案。`
+                  : visualStrategy || "可打开画面规划，按段选择视频素材覆盖数字人画面。"}
+              </small>
+            </div>
+            <Space wrap>
+              <Button disabled={!videoPlan || !planGroups.length || planApplied} onClick={applyRecommendedPlan}>
+                按方案生成
+              </Button>
+              <Button onClick={openStoryboard}>{videoPlan ? "手动调整" : "打开画面规划"}</Button>
+            </Space>
+          </footer>
+        </div>
+
+        <PostproductionMoreSettings
+          session={session}
+          selectedTemplate={selectedTemplate}
+          bgm={bgm}
+          patch={patch}
+        />
+
+        <div className="summary-box subtle">
+          <span>
+            视频素材库：{videos.length} 个素材可用于画面规划。最终成片固定为 {selectedTemplate?.render_canvas?.width || 1080}×
+            {selectedTemplate?.render_canvas?.height || 1920}，字幕与封面使用同一画布坐标。
+          </span>
+          <Button size="small" onClick={() => openAssetTab("videos")}>
+            管理视频素材库
+          </Button>
+        </div>
+      </section>
+
+      <aside className="production-preview-panel video-preview-panel">
+        <div className="panel-titleline">
+          <div>
+            <strong>成片预览</strong>
+            <span>{session.state.final_video_path ? "最终视频已生成，请确认画面和字幕。" : "生成中和生成后都会在这里展示。"}</span>
+          </div>
+          <Tag color={session.state.final_video_path ? "success" : busy ? "processing" : "default"}>
+            {session.state.final_video_path ? "已生成" : busy ? "生成中" : "待生成"}
+          </Tag>
+        </div>
+        <div className="vertical-preview-shell">
+          {session.state.final_video_path ? (
+            <ArtifactMediaPreview
+              sessionId={session.session_id}
+              artifactKey="final_video"
+              kind="video"
+              enabled={Boolean(session.state.final_video_path)}
+            />
+          ) : selectedTemplate ? (
+            <div className="template-preview-placeholder">
+              <AssetImage src={selectedTemplate.preview_url} alt={selectedTemplate.display_name} />
+              <strong>{selectedTemplate.display_name}</strong>
+              <span>{selectedTemplate.short_description}</span>
+            </div>
+          ) : (
+            <div className="preview-empty-state">选择模板后可预览大致效果</div>
+          )}
+          {busy ? (
+            <div className="preview-progress-overlay">
+              <Loader2 className="spin" size={22} />
+              <strong>正在生成成片</strong>
+              <span>正在合成字幕、BGM 和画面规划...</span>
+            </div>
+          ) : null}
+        </div>
+        <div className="preview-meta-list">
+          <div>
+            <span>模板</span>
+            <strong>{selectedTemplate?.display_name || "未选择"}</strong>
+          </div>
+          <div>
+            <span>覆盖组</span>
+            <strong>{groups.length} 组</strong>
+          </div>
+          <div>
+            <span>BGM</span>
+            <strong>{session.state.bgm_path ? "已选择" : "无 BGM"}</strong>
+          </div>
+        </div>
+      </aside>
+
+      <div className="panel-actions">
+        <StepNavButtons step={step} goToStep={goToStep} />
+        <div className="panel-primary-actions">
+          {session.state.final_video_path ? (
+            <>
+            <button className="primary" onClick={() => goToStep(step + 1)} disabled={busy}>
+              查看发布素材
+            </button>
+            <button className="secondary-action" onClick={() => execute("postproduction")} disabled={busy}>
+              重新成片
+            </button>
+            </>
+          ) : (
+            <button className="primary" onClick={() => execute("postproduction")} disabled={busy}>
+              {busy ? "正在成片..." : "一键成片"}
+            </button>
+          )}
+        </div>
+      </div>
+      {featureFlags.assetCenterV2 ? (
+        <AssetPickerDialog
+          open={templateV2PickerOpen}
+          kind="template"
+          selectedId={(session.state.template_id as string) || ""}
+          context={{ session_id: session.session_id, step: "postproduction", purpose: "选择模板", slot_id: "template", allowed_kinds: ["template"], required_capabilities: ["preview"], selection_mode: "single" }}
+          onClose={() => setTemplateV2PickerOpen(false)}
+          onSelect={(item) => { void patch({ template_id: item.resource_id }); setTemplateV2PickerOpen(false); }}
+        />
+      ) : (
+        <TemplatePickerModal
+          open={templatePickerOpen}
+          templates={templates}
+          selectedId={(selectedTemplate?.template_id as string) || ""}
+          onClose={() => setTemplatePickerOpen(false)}
+          onSelect={async (template) => {
+            await patch({ template_id: template.template_id });
+            setTemplatePickerOpen(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function PostproductionMoreSettings({
+  session,
+  selectedTemplate,
+  bgm,
+  patch,
+}: {
+  session: IpBroadcastState;
+  selectedTemplate?: IpTemplateAsset;
+  bgm: BgmAsset[];
+  patch: (values: Record<string, unknown>) => Promise<void>;
+}) {
+  const [bgmPickerOpen, setBgmPickerOpen] = useState(false);
+  const selectedBgm = bgm.find((item) => item.path === session.state.bgm_path);
+  const bgmVolume = Number.isFinite(session.state.bgm_volume as number)
+    ? (session.state.bgm_volume as number)
+    : 0.3;
+  const templateSubtitleStyle = readSubtitleStyle(
+    selectedTemplate?.render_subtitle_style ?? selectedTemplate?.subtitle_style,
+    {
+      font_size: 28,
+      margin_v: 180,
+    },
+  );
+  const subtitleStyle = readSubtitleStyle(session.state.subtitle_style, templateSubtitleStyle);
+
+  function patchSubtitleStyle(key: "font_size" | "margin_v", value: number) {
+    return patch({
+      subtitle_style: {
+        ...readRecord(session.state.subtitle_style),
+        [key]: value,
+      },
+    });
+  }
+
+  return (
+    <section className="more-settings-card">
+      <header>
+        <strong>更多配置</strong>
+        <span>常用开关直接调，低频参数保持轻量。</span>
+      </header>
+      <div className="more-toggle-row">
+        <span>添加解说字幕</span>
+        <Switch
+          checked={(session.state.subtitle_enabled as boolean) ?? true}
+          onChange={(checked) => patch({ subtitle_enabled: checked })}
+        />
+        <span>剪辑静音停顿</span>
+        <Switch
+          checked={(session.state.remove_silence as boolean) || false}
+          onChange={(checked) => patch({ remove_silence: checked })}
+        />
+      </div>
+      <div className="more-settings-grid">
+        <div className="subtitle-style-controls">
+          <label className="subtitle-style-control">
+            <span>字幕字号</span>
+            <input
+              type="range"
+              min={16}
+              max={72}
+              step={1}
+              value={subtitleStyle.font_size}
+              onChange={(event) => patchSubtitleStyle("font_size", Number(event.target.value))}
+            />
+            <strong>{subtitleStyle.font_size}px</strong>
+          </label>
+          <label className="subtitle-style-control">
+            <span>字幕底部距离</span>
+            <input
+              type="range"
+              min={0}
+              max={320}
+              step={5}
+              value={subtitleStyle.margin_v}
+              onChange={(event) => patchSubtitleStyle("margin_v", Number(event.target.value))}
+            />
+            <strong>{subtitleStyle.margin_v}px</strong>
+          </label>
+        </div>
+        <button className="more-setting-tile clickable" onClick={() => setBgmPickerOpen(true)}>
+          <span className="compact-setting-icon">♪</span>
+          <div>
+            <strong>背景音乐：{selectedBgm?.name || "不使用 BGM"}</strong>
+          </div>
+          <i>›</i>
+        </button>
+        <div className="bgm-volume-compact">
+          <span>音乐音量</span>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.05}
+            value={bgmVolume}
+            onChange={(event) => patch({ bgm_volume: Number(event.target.value) })}
+          />
+          <strong>{Math.round(bgmVolume * 100)}%</strong>
+        </div>
+      </div>
+      {featureFlags.assetCenterV2 ? (
+        <AssetPickerDialog
+          open={bgmPickerOpen}
+          kind="audio"
+          selectedId={String(session.state.bgm_asset_id || session.state.brand_bgm_asset_id || "")}
+          context={{ session_id: session.session_id, step: "postproduction", purpose: "选择背景音乐", slot_id: "bgm", allowed_kinds: ["audio"], required_capabilities: ["preview"], selection_mode: "single" }}
+          onClose={() => setBgmPickerOpen(false)}
+          onSelect={(item) => {
+            void patch({
+              bgm_path: item.file_url || "",
+              bgm_asset_id: item.resource_id,
+              brand_bgm_asset_id: "",
+            });
+            setBgmPickerOpen(false);
+          }}
+        />
+      ) : (
+        <BgmPickerModal
+          open={bgmPickerOpen}
+          bgm={bgm}
+          selectedPath={(session.state.bgm_path as string) || ""}
+          onClose={() => setBgmPickerOpen(false)}
+          onConfirm={async ({ path, assetId }) => {
+            await patch({ bgm_path: path, bgm_asset_id: assetId || "", brand_bgm_asset_id: "" });
+            setBgmPickerOpen(false);
+          }}
+        />
+      )}
+    </section>
+  );
+}
+
+function BgmPickerModal({
+  open,
+  bgm,
+  selectedPath,
+  onClose,
+  onConfirm,
+}: {
+  open: boolean;
+  bgm: BgmAsset[];
+  selectedPath: string;
+  onClose: () => void;
+  onConfirm: (selection: { path: string; assetId?: string }) => Promise<void>;
+}) {
+  const [tab, setTab] = useState<"library" | "custom">("library");
+  const [draftPath, setDraftPath] = useState(selectedPath);
+
+  useEffect(() => {
+    if (open) {
+      setDraftPath(selectedPath);
+      setTab("library");
+    }
+  }, [open, selectedPath]);
+
+  if (!open) return null;
+
+  const items = bgm.filter((item) => (tab === "custom" ? item.source === "custom" : item.source !== "custom"));
+
+  return (
+    <div className="modal-backdrop asset-modal-backdrop">
+      <section className="modal bgm-picker-modal">
+        <div className="modal-title">
+          <div>
+            <h2>背景音乐</h2>
+            <p>试听后选择适合本条视频的背景音乐，确认后才会应用。</p>
+          </div>
+          <button onClick={onClose}>关闭</button>
+        </div>
+        <div className="bgm-tabs">
+          <button className={tab === "library" ? "selected" : ""} onClick={() => setTab("library")}>
+            音乐库
+          </button>
+          <button className={tab === "custom" ? "selected" : ""} onClick={() => setTab("custom")}>
+            我上传的
+          </button>
+        </div>
+        <div className="bgm-picker-list">
+          {tab === "library" ? (
+            <button
+              className={`bgm-picker-item ${draftPath === "" ? "selected" : ""}`}
+              onClick={() => setDraftPath("")}
+            >
+              <span className="choice-summary-icon">无</span>
+              <span>
+                <strong>不使用 BGM</strong>
+                <small>只保留口播原声和字幕。</small>
+              </span>
+            </button>
+          ) : null}
+          {items.map((item) => (
+            <button
+              key={`${item.source}-${item.path}`}
+              className={`bgm-picker-item ${draftPath === item.path ? "selected" : ""}`}
+              onClick={() => setDraftPath(item.path)}
+            >
+              <span className="choice-summary-icon">♪</span>
+              <span>
+                <strong>{item.name}</strong>
+                <small>{item.source === "custom" ? "我上传的音乐" : "系统音乐库"}</small>
+              </span>
+              <BgmAudioPreview path={item.path} />
+            </button>
+          ))}
+          {!items.length && tab === "custom" ? (
+            <div className="empty-state">还没有上传的背景音乐。本轮先支持选择已有音乐，上传入口后续接入。</div>
+          ) : null}
+        </div>
+        <div className="modal-actions">
+          <Button onClick={onClose}>取消</Button>
+          <Button
+            type="primary"
+            onClick={() => {
+              const selected = items.find((item) => item.path === draftPath);
+              void onConfirm({ path: draftPath, assetId: selected?.asset_id });
+            }}
+          >
+            确认使用
+          </Button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function BgmAudioPreview({ path }: { path: string }) {
+  const source = path.startsWith("/api/") ? path : `/api/files/${path}`;
+  return (
+    <span
+      className="bgm-audio-preview"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <ProtectedMedia kind="audio" src={source} />
+    </span>
+  );
+}
+
+function PublishStep({
+  session,
+  downloadFinalVideo,
+}: {
+  session: IpBroadcastState;
+  downloadFinalVideo: () => Promise<void>;
+}) {
+  const [publishLoadingPlatform, setPublishLoadingPlatform] = useState<PublishPlatform | null>(null);
+  const [publishResult, setPublishResult] = useState<PublishResult | null>(null);
+  const publishPackage = (session.state.publish_package as Record<string, unknown>) || {};
+  const platformSuggestions =
+    (publishPackage.platform_suggestions as Record<string, Record<string, unknown>>) ||
+    ((session.state.platform_suggestions as Record<string, Record<string, unknown>>) ?? {});
+  const title = (publishPackage.title as string) || (session.state.title as string) || "";
+  const coverTitle = (publishPackage.cover_title as string) || title;
+  const description =
+    (publishPackage.description as string) || (session.state.description as string) || "";
+  const commentCta = (publishPackage.comment_cta as string) || "";
+  const hashtags = ((publishPackage.hashtags as string[]) || (session.state.hashtags as string[]) || []).join(
+    " ",
+  );
+  const script = (publishPackage.script as string) || (session.state.final_script as string) || "";
+  const publishReady = Boolean(session.artifacts.final_video || session.state.final_video_path);
+  const coverReady = Boolean(session.artifacts.cover || session.state.cover_path);
+  const finalVideoPath = (session.state.final_video_path as string) || "";
+  const coverPath = (session.state.cover_path as string) || "";
+  const fullPackageText = [
+    coverTitle ? `封面大字：${coverTitle}` : "",
+    title ? `标题：${title}` : "",
+    description ? `描述：${description}` : "",
+    commentCta ? `评论区引导：${commentCta}` : "",
+    hashtags ? `话题标签：${hashtags}` : "",
+    finalVideoPath ? `最终视频路径：${finalVideoPath}` : "最终视频：请先下载最终视频后上传。",
+    coverPath ? `封面路径：${coverPath}` : "封面：请先下载封面后上传。",
+    script ? `口播文案：\n${script}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+  const deliveryItems = [
+    { label: "视频", ready: publishReady },
+    { label: "封面", ready: coverReady },
+    { label: "标题", ready: Boolean(title) },
+    { label: "描述", ready: Boolean(description) },
+    { label: "标签", ready: Boolean(hashtags) },
+    { label: "口播文案", ready: Boolean(script) },
+  ];
+  const preferredPlatforms = readStringArray(
+    publishPackage.preferred_platforms || session.state.business_publish_platforms,
+  );
+  const platformEntries = Object.entries(platformSuggestions);
+  const preferredPlatformEntries = preferredPlatforms.length
+    ? platformEntries.filter(([platform]) => preferredPlatforms.includes(platform))
+    : platformEntries;
+  const otherPlatformEntries = preferredPlatforms.length
+    ? platformEntries.filter(([platform]) => !preferredPlatforms.includes(platform))
+    : [];
+  const primaryPlatform = (preferredPlatforms.find(isPublishPlatform) || "douyin") as PublishPlatform;
+  const renderPlatformCard = ([platform, value]: [string, Record<string, unknown>]) => {
+    const platformText = buildPlatformMaterialText({
+      platform,
+      title: String(value.title || title || ""),
+      description: String(value.description || description || ""),
+      hashtags,
+      commentCta,
+      finalVideoPath,
+      coverPath,
+    });
+    return (
+      <section key={platform} className="platform-card">
+        <div className="platform-capability-head">
+          <Tag color="processing">{platformLabel(platform)}</Tag>
+          <Tag color={platform === "douyin" ? "success" : "default"}>{publishCapabilityLabel(platform)}</Tag>
+        </div>
+        <strong>{String(value.title || "") || "暂无标题建议"}</strong>
+        <p>{String(value.description || "") || "暂无描述建议"}</p>
+        <small>{publishCapabilityDescription(platform)}</small>
+        <Space wrap>
+          {platform === "douyin" ? (
+            <Button
+              type="primary"
+              disabled={!publishReady || !finalVideoPath}
+              loading={publishLoadingPlatform === platform}
+              onClick={() => preparePlatformDraft(platform)}
+            >
+              打开{platformLabel(platform)}发布助手
+            </Button>
+          ) : null}
+          <CopyButton text={platformText} label="复制该平台素材" disabled={!publishReady} />
+        </Space>
+      </section>
+    );
+  };
+  async function preparePlatformDraft(platform: PublishPlatform) {
+    if (!finalVideoPath) return;
+    setPublishLoadingPlatform(platform);
+    setPublishResult(null);
+    setPublishResult({
+      status: "failed",
+      platform,
+      message: "旧发布入口已停用，请从统一发布中心选择账号；当前平台未通过独立 live gate 时仅支持复制素材回退。",
+      requires_human_confirmation: true,
+    });
+    setPublishLoadingPlatform(null);
+  }
+  return (
+    <div className="publish-workbench">
+      {publishResult ? (
+        <Alert
+          className="step-notice"
+          type={publishResult.status === "failed" ? "error" : "info"}
+          showIcon
+          title={publishResult.message || publishStatusLabel(publishResult.status)}
+        />
+      ) : null}
+      {publishReady ? (
+        <Alert
+          className="step-notice"
+          type="info"
+          showIcon
+          title="发布助手会打开独立浏览器，自动填写目标平台所需信息；最终发布始终由你本人确认点击。"
+          description="支持抖音、小红书、视频号和快手。若平台页面变化导致自动填充失败，其他平台复制素材手动发布仍可作为安全回退。这不是全平台自动发布，也不会绕过平台风控。登录数据只保存在本机 data/publish_browser/。"
+        />
+      ) : null}
+
+      <div className="publish-layout">
+        <div className="publish-main">
+          <Card className={`publish-hero ${publishReady ? "" : "pending"}`} variant="borderless">
+            <div className="publish-ready-head">
+              <div>
+                <Typography.Title level={4}>
+                  {publishReady ? "发布任务就绪" : "还不能发布"}
+                </Typography.Title>
+                <Typography.Text type="secondary">
+                  {publishReady
+                    ? "视频、文案和平台素材已整理好，确认后可打开发布助手。"
+                    : "请先完成一键成片，系统会生成最终视频和发布素材。"}
+                </Typography.Text>
+              </div>
+              <Tag color={publishReady ? "success" : "default"}>
+                {publishReady ? "可发布" : "待成片"}
+              </Tag>
+            </div>
+            <PublishDeliveryChecklist items={deliveryItems} />
+          </Card>
+
+          <Card title="发布文案" variant="borderless">
+            <PublishField
+              label="封面大字"
+              value={coverTitle}
+              minRows={1}
+              singleLine
+              copyLabel="复制封面大字"
+              disabled={!publishReady}
+            />
+            <PublishField label="标题" value={title} minRows={2} copyLabel="复制标题" disabled={!publishReady} />
+            <PublishField label="描述" value={description} minRows={4} copyLabel="复制描述" disabled={!publishReady} />
+            <PublishField
+              label="评论区引导"
+              value={commentCta}
+              minRows={1}
+              singleLine
+              copyLabel="复制引导语"
+              disabled={!publishReady}
+            />
+            <PublishField
+              label="标签"
+              value={hashtags}
+              minRows={1}
+              singleLine
+              copyLabel="复制标签"
+              disabled={!publishReady}
+            />
+            <PublishField
+              label="口播文案"
+              value={script}
+              minRows={6}
+              copyLabel="复制文案"
+              disabled={!publishReady}
+              extra={
+                session.artifacts.script ? (
+                  <Button onClick={() => downloadArtifact(session.session_id, "script")}>
+                    下载文案
+                  </Button>
+                ) : null
+              }
+            />
+          </Card>
+
+          <Card title="发布平台" variant="borderless">
+            <div className="platform-grid">
+              {preferredPlatformEntries.map(renderPlatformCard)}
+              {!Object.keys(platformSuggestions).length ? (
+                <div className="empty-state">暂无平台建议。请先完成一键成片生成发布素材。</div>
+              ) : null}
+            </div>
+            {otherPlatformEntries.length ? (
+              <details className="platform-more">
+                <summary>更多平台建议</summary>
+                <div className="platform-grid">{otherPlatformEntries.map(renderPlatformCard)}</div>
+              </details>
+            ) : null}
+          </Card>
+        </div>
+
+        <aside className="publish-aside">
+          <Card className="publish-preview-card" title="发布预览" variant="borderless">
+            <ArtifactVideoPreview
+              sessionId={session.session_id}
+              artifactKey="final_video"
+              enabled={publishReady}
+            />
+            {coverReady ? (
+              <>
+                <Divider />
+                <Typography.Text type="secondary">封面预览</Typography.Text>
+                <ArtifactMediaPreview
+                  sessionId={session.session_id}
+                  artifactKey="cover"
+                  kind="image"
+                  enabled={coverReady}
+                />
+              </>
+            ) : null}
+            <Divider />
+            <div className="publish-side-actions">
+              <Button
+                type="primary"
+                block
+                disabled={!publishReady || !finalVideoPath || primaryPlatform !== "douyin"}
+                loading={publishLoadingPlatform === primaryPlatform}
+                onClick={() => preparePlatformDraft(primaryPlatform)}
+              >
+                打开{platformLabel(primaryPlatform)}发布助手
+              </Button>
+              <CopyButton
+                text={fullPackageText}
+                label="复制整套素材"
+                disabled={!publishReady}
+              />
+            </div>
+            <Space direction="vertical" className="publish-file-actions">
+              {publishReady ? (
+                <Button block onClick={downloadFinalVideo}>
+                  下载最终视频
+                </Button>
+              ) : null}
+              {session.artifacts.publish_package_json ? (
+                <Button block onClick={() => downloadArtifact(session.session_id, "publish_package_json")}>
+                  下载发布素材 JSON
+                </Button>
+              ) : null}
+            </Space>
+            <Divider />
+            <Typography.Text type="secondary">最终视频路径</Typography.Text>
+            <p className="result-path">{(session.state.final_video_path as string) || "暂无最终视频"}</p>
+          </Card>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function PublishField({
+  label,
+  value,
+  minRows,
+  singleLine = false,
+  extra,
+  disabled = false,
+  copyLabel = "复制",
+}: {
+  label: string;
+  value: string;
+  minRows: number;
+  singleLine?: boolean;
+  extra?: ReactNode;
+  disabled?: boolean;
+  copyLabel?: string;
+}) {
+  return (
+    <section className="publish-field">
+      <div className="publish-field-title">
+        <strong>{label}</strong>
+        <Space>
+          {extra}
+          <CopyButton text={value} label={copyLabel} disabled={disabled} />
+        </Space>
+      </div>
+      {singleLine ? <input readOnly value={value} /> : <textarea readOnly value={value} rows={minRows} />}
+    </section>
+  );
+}
+
+function PublishDeliveryChecklist({ items }: { items: Array<{ label: string; ready: boolean }> }) {
+  return (
+    <section className="publish-delivery-checklist" aria-label="发布素材交付清单">
+      {items.map((item) => (
+        <div key={item.label} className={item.ready ? "ready" : "missing"}>
+          <span>{item.label}</span>
+          <Tag color={item.ready ? "success" : "default"}>{item.ready ? "已准备" : "缺失"}</Tag>
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function CopyButton({
+  text,
+  label = "复制",
+  disabled = false,
+}: {
+  text: string;
+  label?: string;
+  disabled?: boolean;
+}) {
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  async function copyText() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setStatus("success");
+    } catch {
+      setStatus("error");
+    }
+    window.setTimeout(() => setStatus("idle"), 1800);
+  }
+  return (
+    <Button onClick={copyText} disabled={disabled || !text} danger={status === "error"}>
+      {status === "success" ? "已复制" : status === "error" ? "复制失败" : label}
+    </Button>
+  );
+}
+
+function platformLabel(platform: string) {
+  return (
+    {
+      douyin: "抖音",
+      xiaohongshu: "小红书",
+      shipinhao: "视频号",
+      kuaishou: "快手",
+    }[platform] || platform
+  );
+}
+
+function publishCapabilityLabel(platform: string) {
+  return platform === "douyin" ? "抖音发布助手" : "复制素材手动发布";
+}
+
+function publishCapabilityDescription(platform: string) {
+  return platform === "douyin"
+    ? "自动填充视频、标题、描述和标签，最终发布按钮必须人工点击。"
+    : "请复制标题、描述、标签和视频素材到平台后台手动发布。";
+}
+
+function isPublishPlatform(platform: string): platform is PublishPlatform {
+  return ["douyin", "xiaohongshu", "shipinhao", "kuaishou"].includes(platform);
+}
+
+function buildPlatformMaterialText({
+  platform,
+  title,
+  description,
+  hashtags,
+  commentCta,
+  finalVideoPath,
+  coverPath,
+}: {
+  platform: string;
+  title: string;
+  description: string;
+  hashtags: string;
+  commentCta: string;
+  finalVideoPath: string;
+  coverPath: string;
+}) {
+  return [
+    `平台：${platformLabel(platform)}`,
+    `发布方式：${publishCapabilityLabel(platform)}`,
+    title ? `标题：${title}` : "",
     description ? `描述：${description}` : "",
     hashtags ? `话题标签：${hashtags}` : "",
     commentCta ? `评论区引导：${commentCta}` : "",
