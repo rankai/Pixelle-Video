@@ -49,6 +49,7 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
     let data_root = sidecar_data_root(app)?;
     let config_path = data_root.join("config.yaml");
     let task_db_path = data_root.join("data").join("desktop_tasks.sqlite");
+    let app_center_db_path = data_root.join("data").join("app_center.sqlite");
     let port = api_port(&runtime.api_base_url);
     // Prefer the read-only Tauri resource directory for bundled templates and
     // workflows, but never inherit the install directory when resources are
@@ -71,6 +72,7 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
         .env("PIXELLE_VIDEO_ROOT", &data_root)
         .env("PIXELLE_CONFIG_PATH", &config_path)
         .env("PIXELLE_DESKTOP_TASKS_DB", &task_db_path)
+        .env("PIXELLE_APP_CENTER_DB", &app_center_db_path)
         .env("PIXELLE_RESOURCE_ROOT", &resource_root)
         .env("PIXELLE_ASSET_CENTER_V2", asset_center_v2)
         .env("PIXELLE_ASSET_CENTER_SMB_UX", asset_center_smb_ux)
