@@ -24,7 +24,18 @@ export type IpBroadcastState = {
 };
 
 export type DesktopConfig = {
+  llm_source: "shared" | "custom";
   llm: {
+    base_url: string;
+    api_key: string;
+    model: string;
+  };
+  llm_shared: {
+    base_url: string;
+    api_key: string;
+    model: string;
+  };
+  llm_custom: {
     base_url: string;
     api_key: string;
     model: string;
