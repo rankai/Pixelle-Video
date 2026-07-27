@@ -1,5 +1,5 @@
 use serde::Serialize;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use tauri::{Manager, State};
 use tauri_plugin_shell::process::CommandChild;
@@ -14,6 +14,21 @@ struct BackendProcess(Mutex<Option<CommandChild>>);
 struct RuntimeInfo {
     api_base_url: String,
     desktop_token: String,
+}
+
+/// Return the origin used by the packaged Tauri webview on this platform.
+///
+/// Tauri 2 serves production assets from `http://tauri.localhost` on Windows,
+/// while macOS and Linux continue to use the `tauri://localhost` protocol.
+/// The sidecar uses this value for both CORS and local-origin checks, so a
+/// single hard-coded origin makes the Windows desktop UI look disconnected
+/// even when the API process is healthy.
+fn desktop_origin() -> &'static str {
+    if cfg!(target_os = "windows") {
+        "http://tauri.localhost"
+    } else {
+        "tauri://localhost"
+    }
 }
 
 #[tauri::command]
@@ -34,11 +49,11 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
     let data_root = sidecar_data_root(app)?;
     let config_path = data_root.join("config.yaml");
     let port = api_port(&runtime.api_base_url);
-    let command = if let Some(working_dir) = sidecar_working_dir(app) {
-        command.current_dir(working_dir)
-    } else {
-        command
-    };
+    // Prefer the read-only Tauri resource directory for bundled templates and
+    // workflows, but never inherit the install directory when resources are
+    // unavailable. Generated data is redirected to app-data below.
+    let resource_root = sidecar_resource_root(app, &data_root);
+    let command = command.current_dir(&resource_root);
     // Keep the API feature gate aligned with the frontend launch flag. The
     // desktop binary is often started with PIXELLE_ASSET_CENTER_V2=true for
     // staged rollout, but child processes do not inherit that flag through
@@ -48,15 +63,30 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
     let (_, child) = command
         .env("PIXELLE_DESKTOP_MODE", "1")
         .env("PIXELLE_DESKTOP_TOKEN", &runtime.desktop_token)
-        .env("PIXELLE_DESKTOP_ORIGIN", "tauri://localhost")
+        .env("PIXELLE_DESKTOP_ORIGIN", desktop_origin())
         .env("PIXELLE_VIDEO_ROOT", &data_root)
         .env("PIXELLE_CONFIG_PATH", &config_path)
+        .env("PIXELLE_RESOURCE_ROOT", &resource_root)
         .env("PIXELLE_ASSET_CENTER_V2", asset_center_v2)
         .env("PIXELLE_ASSET_CENTER_SMB_UX", asset_center_smb_ux)
         .args(["--host", "127.0.0.1", "--port", port.as_str()])
         .spawn()
         .map_err(|error| std::io::Error::other(error.to_string()))?;
     Ok(Some(child))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::desktop_origin;
+
+    #[test]
+    fn desktop_origin_matches_tauri_platform_scheme() {
+        if cfg!(target_os = "windows") {
+            assert_eq!(desktop_origin(), "http://tauri.localhost");
+        } else {
+            assert_eq!(desktop_origin(), "tauri://localhost");
+        }
+    }
 }
 
 fn sidecar_data_root(app: &tauri::App) -> tauri::Result<PathBuf> {
@@ -69,20 +99,15 @@ fn sidecar_data_root(app: &tauri::App) -> tauri::Result<PathBuf> {
     Ok(root)
 }
 
-fn sidecar_working_dir(app: &tauri::App) -> Option<PathBuf> {
-    // In development the Tauri CLI starts from `desktop/`, while the API
-    // resolves `templates/`, `workflows/`, and the local config relative to
-    // the repository root. In a packaged app those resources are copied into
-    // Tauri's resource directory instead.
-    let repository_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
-    if cfg!(debug_assertions) && repository_root.join("templates").is_dir() {
-        return Some(repository_root);
-    }
-
+fn sidecar_resource_root(app: &tauri::App, data_root: &Path) -> PathBuf {
     app.path()
         .resource_dir()
         .ok()
-        .filter(|resource_dir| resource_dir.join("templates").is_dir())
+        .filter(|resource_root| {
+            resource_root.join("templates").is_dir()
+                || resource_root.join("workflows").is_dir()
+        })
+        .unwrap_or_else(|| data_root.to_path_buf())
 }
 
 fn api_port(api_base_url: &str) -> String {

@@ -5,6 +5,7 @@ WORKFLOW = Path(".github/workflows/windows-desktop-build.yml")
 ARTIFACT_CHECK = Path("scripts/windows_desktop_artifact_check.py")
 PACKAGE_LOCK = Path("desktop/package-lock.json")
 WINDOWS_ICON = Path("desktop/src-tauri/icons/icon.ico")
+TAURI_MAIN = Path("desktop/src-tauri/src/main.rs")
 
 
 def test_windows_ci_uses_a_windows_runner_and_builds_both_targets():
@@ -41,6 +42,22 @@ def test_cross_platform_rolldown_bindings_are_optional_in_lockfile():
 def test_windows_bundle_has_a_native_ico_resource():
     assert WINDOWS_ICON.exists()
     assert WINDOWS_ICON.stat().st_size > 0
+
+
+def test_windows_tauri_webview_uses_the_http_localhost_origin_for_sidecar_cors():
+    source = TAURI_MAIN.read_text(encoding="utf-8")
+    assert 'cfg!(target_os = "windows")' in source
+    assert '"http://tauri.localhost"' in source
+    assert '"tauri://localhost"' in source
+    assert '.env("PIXELLE_DESKTOP_ORIGIN", desktop_origin())' in source
+
+
+def test_windows_sidecar_runs_from_user_writable_app_data():
+    source = TAURI_MAIN.read_text(encoding="utf-8")
+    assert "fn sidecar_resource_root" in source
+    assert "let command = command.current_dir(&resource_root);" in source
+    assert '.env("PIXELLE_RESOURCE_ROOT", &resource_root)' in source
+    assert "resources are" in source and "unavailable" in source
 
 
 def test_artifact_manifest_requires_windows_executables_and_marks_install_pending():
