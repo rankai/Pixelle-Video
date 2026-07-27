@@ -107,7 +107,7 @@ fn sidecar_resource_root(app: &tauri::App, data_root: &Path) -> PathBuf {
             resource_root.join("templates").is_dir()
                 || resource_root.join("workflows").is_dir()
         })
-        .unwrap_or_else(|| data_root.clone())
+        .unwrap_or_else(|| data_root.to_path_buf())
 }
 
 fn api_port(api_base_url: &str) -> String {
