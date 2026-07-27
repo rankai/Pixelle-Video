@@ -60,6 +60,9 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
     // tauri-plugin-shell unless it is explicitly forwarded.
     let asset_center_v2 = std::env::var("PIXELLE_ASSET_CENTER_V2").unwrap_or_else(|_| "1".to_string());
     let asset_center_smb_ux = std::env::var("PIXELLE_ASSET_CENTER_SMB_UX").unwrap_or_else(|_| "0".to_string());
+    let app_center_content_apps = std::env::var("PIXELLE_APP_CENTER_CONTENT_APPS").unwrap_or_else(|_| "1".to_string());
+    let app_center_douyin_carousel = std::env::var("PIXELLE_APP_CENTER_DOUYIN_CAROUSEL").unwrap_or_else(|_| "1".to_string());
+    let app_center_digital_human = std::env::var("PIXELLE_APP_CENTER_DIGITAL_HUMAN").unwrap_or_else(|_| "1".to_string());
     let (_, child) = command
         .env("PIXELLE_DESKTOP_MODE", "1")
         .env("PIXELLE_DESKTOP_TOKEN", &runtime.desktop_token)
@@ -69,6 +72,9 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
         .env("PIXELLE_RESOURCE_ROOT", &resource_root)
         .env("PIXELLE_ASSET_CENTER_V2", asset_center_v2)
         .env("PIXELLE_ASSET_CENTER_SMB_UX", asset_center_smb_ux)
+        .env("PIXELLE_APP_CENTER_CONTENT_APPS", app_center_content_apps)
+        .env("PIXELLE_APP_CENTER_DOUYIN_CAROUSEL", app_center_douyin_carousel)
+        .env("PIXELLE_APP_CENTER_DIGITAL_HUMAN", app_center_digital_human)
         .args(["--host", "127.0.0.1", "--port", port.as_str()])
         .spawn()
         .map_err(|error| std::io::Error::other(error.to_string()))?;
