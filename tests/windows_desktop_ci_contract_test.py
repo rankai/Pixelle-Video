@@ -70,6 +70,14 @@ def test_windows_sidecar_enables_application_registry_rollout_by_default():
     assert '.env("PIXELLE_APP_CENTER_DIGITAL_HUMAN", app_center_digital_human)' in source
 
 
+def test_windows_sidecar_keeps_publish_v2_backend_gate_in_sync_with_desktop_shell():
+    source = TAURI_MAIN.read_text(encoding="utf-8")
+    assert 'std::env::var("PIXELLE_PUBLISH_V2_ENABLED")' in source
+    assert 'unwrap_or_else(|_| "1".to_string())' in source
+    assert '.env("PIXELLE_PUBLISH_V2_ENABLED", publish_v2_enabled)' in source
+    assert "explicit" in source and "rollback switch" in source
+
+
 def test_artifact_manifest_requires_windows_executables_and_marks_install_pending():
     source = ARTIFACT_CHECK.read_text(encoding="utf-8")
     assert 'expected_suffix=".exe"' in source
