@@ -44,6 +44,22 @@ def get_pixelle_video_root_path() -> str:
     return str(Path.cwd())
 
 
+def get_pixelle_resource_root_path() -> Optional[str]:
+    """Return the read-only root containing packaged templates/workflows.
+
+    Desktop builds keep generated files under ``PIXELLE_VIDEO_ROOT`` but ship
+    bundled resources in Tauri's resource directory.  Keeping the two roots
+    separate prevents a packaged app from writing into ``Program Files``
+    while still allowing resource lookups to work after installation.
+    """
+    env_root = os.environ.get("PIXELLE_RESOURCE_ROOT")
+    if env_root:
+        root = Path(env_root).expanduser()
+        if root.exists():
+            return str(root.resolve())
+    return None
+
+
 def ensure_pixelle_video_root_path() -> str:
     """
     Ensure Pixelle-Video root path exists and return the path
@@ -358,13 +374,18 @@ def get_resource_path(resource_type: Literal["bgm", "templates", "workflows"], *
     # Build custom path (data/*)
     custom_path = get_data_path(resource_type, *paths)
     
-    # Build default path (root/*)
+    # Build packaged-resource and development fallback paths.
+    resource_root = get_pixelle_resource_root_path()
+    packaged_path = Path(resource_root, resource_type, *paths) if resource_root else None
     default_path = get_root_path(resource_type, *paths)
     
     # Priority: custom > default
     if os.path.exists(custom_path):
         return custom_path
-    
+
+    if packaged_path is not None and packaged_path.exists():
+        return str(packaged_path)
+
     if os.path.exists(default_path):
         return default_path
     
@@ -373,7 +394,8 @@ def get_resource_path(resource_type: Literal["bgm", "templates", "workflows"], *
         f"Resource not found: {os.path.join(resource_type, *paths)}\n"
         f"  Searched locations:\n"
         f"    1. {custom_path} (custom)\n"
-        f"    2. {default_path} (default)"
+        f"    2. {packaged_path or '<unset>'} (packaged)\n"
+        f"    3. {default_path} (default)"
     )
 
 
@@ -407,15 +429,25 @@ def list_resource_files(
     """
     files = {}  # Use dict to track source priority: {filename: path}
     
-    # Build directory paths
+    # Build directory paths. Packaged resources are a fallback between the
+    # user data overrides and the source-tree defaults.
     default_dir = Path(get_root_path(resource_type, subdir)) if subdir else Path(get_root_path(resource_type))
+    resource_root = get_pixelle_resource_root_path()
+    packaged_dir = (
+        Path(resource_root, resource_type, subdir)
+        if resource_root and subdir
+        else Path(resource_root, resource_type)
+        if resource_root
+        else None
+    )
     custom_dir = Path(get_data_path(resource_type, subdir)) if subdir else Path(get_data_path(resource_type))
-    
-    # Scan default directory first (lower priority)
-    if default_dir.exists() and default_dir.is_dir():
-        for item in default_dir.iterdir():
-            if item.is_file():
-                files[item.name] = str(item)
+
+    # Scan source-tree and packaged directories first (lower priority).
+    for candidate_dir in (default_dir, packaged_dir):
+        if candidate_dir is not None and candidate_dir.exists() and candidate_dir.is_dir():
+            for item in candidate_dir.iterdir():
+                if item.is_file():
+                    files[item.name] = str(item)
     
     # Scan custom directory (higher priority, overwrites)
     if custom_dir.exists() and custom_dir.is_dir():
@@ -451,13 +483,16 @@ def list_resource_dirs(
     
     # Build directory paths
     default_dir = Path(get_root_path(resource_type))
+    resource_root = get_pixelle_resource_root_path()
+    packaged_dir = Path(resource_root, resource_type) if resource_root else None
     custom_dir = Path(get_data_path(resource_type))
     
-    # Scan default directory
-    if default_dir.exists() and default_dir.is_dir():
-        for item in default_dir.iterdir():
-            if item.is_dir():
-                dirs.add(item.name)
+    # Scan source-tree and packaged directories.
+    for candidate_dir in (default_dir, packaged_dir):
+        if candidate_dir is not None and candidate_dir.exists() and candidate_dir.is_dir():
+            for item in candidate_dir.iterdir():
+                if item.is_dir():
+                    dirs.add(item.name)
     
     # Scan custom directory
     if custom_dir.exists() and custom_dir.is_dir():
@@ -488,6 +523,11 @@ def resource_exists(resource_type: Literal["bgm", "templates", "workflows"], *pa
     """
     custom_path = get_data_path(resource_type, *paths)
     default_path = get_root_path(resource_type, *paths)
-    
-    return os.path.exists(custom_path) or os.path.exists(default_path)
+    resource_root = get_pixelle_resource_root_path()
+    packaged_path = Path(resource_root, resource_type, *paths) if resource_root else None
 
+    return (
+        os.path.exists(custom_path)
+        or (packaged_path is not None and packaged_path.exists())
+        or os.path.exists(default_path)
+    )
