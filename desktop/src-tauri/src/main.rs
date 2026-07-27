@@ -49,11 +49,12 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
     let data_root = sidecar_data_root(app)?;
     let config_path = data_root.join("config.yaml");
     let port = api_port(&runtime.api_base_url);
-    let command = if let Some(working_dir) = sidecar_working_dir(app) {
-        command.current_dir(working_dir)
-    } else {
-        command
-    };
+    // Never inherit the install directory as the sidecar working directory.
+    // Windows installs normally live under `Program Files`, which is not
+    // writable for a standard user.  All generated data belongs under the
+    // per-user app-data root; bundled templates/workflows are resolved from
+    // the Tauri resource directory by the packaged runtime.
+    let command = command.current_dir(&data_root);
     // Keep the API feature gate aligned with the frontend launch flag. The
     // desktop binary is often started with PIXELLE_ASSET_CENTER_V2=true for
     // staged rollout, but child processes do not inherit that flag through
@@ -96,22 +97,6 @@ fn sidecar_data_root(app: &tauri::App) -> tauri::Result<PathBuf> {
     };
     std::fs::create_dir_all(&root)?;
     Ok(root)
-}
-
-fn sidecar_working_dir(app: &tauri::App) -> Option<PathBuf> {
-    // In development the Tauri CLI starts from `desktop/`, while the API
-    // resolves `templates/`, `workflows/`, and the local config relative to
-    // the repository root. In a packaged app those resources are copied into
-    // Tauri's resource directory instead.
-    let repository_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
-    if cfg!(debug_assertions) && repository_root.join("templates").is_dir() {
-        return Some(repository_root);
-    }
-
-    app.path()
-        .resource_dir()
-        .ok()
-        .filter(|resource_dir| resource_dir.join("templates").is_dir())
 }
 
 fn api_port(api_base_url: &str) -> String {
