@@ -16,7 +16,7 @@ from pixelle_video.app_center.llm_port import (
     StructuredGenerationRequest,
     StructuredGenerationResponse,
 )
-from pixelle_video.app_center.migration import AppCenterMigrationError, migrate_app_center
+from pixelle_video.app_center.migration import AppCenterMigrationError, default_db_path, migrate_app_center
 from pixelle_video.app_center.repository import (
     AppCenterRepository,
     AppCenterRepositoryError,
@@ -49,6 +49,13 @@ def _valid_copy_content() -> dict:
         full_text = hook + body + cta
         variants.append({"version_name": f"版本{index}", "angle": angle, "hook": hook, "body": body, "cta": cta, "full_text": full_text, "word_count": len(full_text), "estimated_seconds": (len(full_text) + 3) // 4})
     return {"schema_version": 1, "artifact_type": "copywriting", "variants": variants, "missing_facts": [], "risk_flags": []}
+
+
+def test_default_app_center_db_uses_writable_video_root(tmp_path, monkeypatch):
+    monkeypatch.delenv("PIXELLE_APP_CENTER_DB", raising=False)
+    monkeypatch.setenv("PIXELLE_VIDEO_ROOT", str(tmp_path))
+
+    assert default_db_path() == tmp_path / "data" / "app_center.sqlite"
 
 
 def test_repository_project_run_idempotency_and_state_machine(tmp_path):
