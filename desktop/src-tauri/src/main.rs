@@ -65,6 +65,11 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
     let app_center_content_apps = std::env::var("PIXELLE_APP_CENTER_CONTENT_APPS").unwrap_or_else(|_| "1".to_string());
     let app_center_douyin_carousel = std::env::var("PIXELLE_APP_CENTER_DOUYIN_CAROUSEL").unwrap_or_else(|_| "1".to_string());
     let app_center_digital_human = std::env::var("PIXELLE_APP_CENTER_DIGITAL_HUMAN").unwrap_or_else(|_| "1".to_string());
+    // The production desktop UI ships with Publish Center V2 enabled. Keep
+    // the sidecar gate in sync so a fresh install does not render the V2
+    // shell only to receive V2_DISABLED from the local API. An explicit
+    // PIXELLE_PUBLISH_V2_ENABLED=0 remains the rollback switch.
+    let publish_v2_enabled = std::env::var("PIXELLE_PUBLISH_V2_ENABLED").unwrap_or_else(|_| "1".to_string());
     let (_, child) = command
         .env("PIXELLE_DESKTOP_MODE", "1")
         .env("PIXELLE_DESKTOP_TOKEN", &runtime.desktop_token)
@@ -79,6 +84,7 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
         .env("PIXELLE_APP_CENTER_CONTENT_APPS", app_center_content_apps)
         .env("PIXELLE_APP_CENTER_DOUYIN_CAROUSEL", app_center_douyin_carousel)
         .env("PIXELLE_APP_CENTER_DIGITAL_HUMAN", app_center_digital_human)
+        .env("PIXELLE_PUBLISH_V2_ENABLED", publish_v2_enabled)
         .args(["--host", "127.0.0.1", "--port", port.as_str()])
         .spawn()
         .map_err(|error| std::io::Error::other(error.to_string()))?;
