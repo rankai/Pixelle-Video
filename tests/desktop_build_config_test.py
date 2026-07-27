@@ -43,6 +43,16 @@ def test_app_center_shell_defaults_off_and_uses_hash_router_boundary():
     assert "if (!featureFlags.appCenterShell)" in shell
 
 
+def test_production_desktop_build_explicitly_enables_application_center_rollout():
+    production_env = Path("desktop/.env.production").read_text(encoding="utf-8")
+
+    assert "VITE_APP_CENTER_SHELL=true" in production_env
+    assert "VITE_CONTENT_APPS=true" in production_env
+    assert "VITE_DOUYIN_CAROUSEL=true" in production_env
+    assert "VITE_APP_CENTER_DIGITAL_HUMAN=true" in production_env
+    assert "VITE_APP_CENTER_DIGITAL_HUMAN_DUAL_MODE=true" in production_env
+
+
 def test_app_shell_smoke_evidence_covers_flag_rollback_and_route_contract():
     evidence = json.loads(
         Path("docs/reviews/application-publishing-program/qa/AC-1-app-shell-smoke-2026-07-19.json").read_text()
