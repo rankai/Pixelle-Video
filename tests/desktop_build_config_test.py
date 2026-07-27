@@ -93,11 +93,12 @@ def test_tauri_debug_runtime_matches_standalone_api_port():
 def test_tauri_sidecar_uses_a_user_writable_working_directory():
     source = Path("desktop/src-tauri/src/main.rs").read_text()
 
-    # The sidecar receives bundled resources through Tauri's resource map, but
-    # its process cwd must stay in app-data so libraries that create relative
-    # output/config paths never attempt to write under Program Files.
-    assert "let command = command.current_dir(&data_root);" in source
-    assert "Never inherit the install directory" in source
+    # The sidecar reads bundled resources from Tauri's resource map, with a
+    # user-writable app-data fallback if the resource bundle is unavailable.
+    assert "fn sidecar_resource_root" in source
+    assert "let command = command.current_dir(&resource_root);" in source
+    assert '.env("PIXELLE_RESOURCE_ROOT", &resource_root)' in source
+    assert "resources are" in source and "unavailable" in source
 
 
 def test_tauri_bundle_maps_resources_to_stable_runtime_paths():
