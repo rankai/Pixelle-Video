@@ -1,5 +1,5 @@
 use serde::Serialize;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use tauri::{Manager, State};
 use tauri_plugin_shell::process::CommandChild;
@@ -49,12 +49,11 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
     let data_root = sidecar_data_root(app)?;
     let config_path = data_root.join("config.yaml");
     let port = api_port(&runtime.api_base_url);
-    // Never inherit the install directory as the sidecar working directory.
-    // Windows installs normally live under `Program Files`, which is not
-    // writable for a standard user.  All generated data belongs under the
-    // per-user app-data root; bundled templates/workflows are resolved from
-    // the Tauri resource directory by the packaged runtime.
-    let command = command.current_dir(&data_root);
+    // Prefer the read-only Tauri resource directory for bundled templates and
+    // workflows, but never inherit the install directory when resources are
+    // unavailable. Generated data is redirected to app-data below.
+    let resource_root = sidecar_resource_root(app, &data_root);
+    let command = command.current_dir(&resource_root);
     // Keep the API feature gate aligned with the frontend launch flag. The
     // desktop binary is often started with PIXELLE_ASSET_CENTER_V2=true for
     // staged rollout, but child processes do not inherit that flag through
@@ -67,6 +66,7 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
         .env("PIXELLE_DESKTOP_ORIGIN", desktop_origin())
         .env("PIXELLE_VIDEO_ROOT", &data_root)
         .env("PIXELLE_CONFIG_PATH", &config_path)
+        .env("PIXELLE_RESOURCE_ROOT", &resource_root)
         .env("PIXELLE_ASSET_CENTER_V2", asset_center_v2)
         .env("PIXELLE_ASSET_CENTER_SMB_UX", asset_center_smb_ux)
         .args(["--host", "127.0.0.1", "--port", port.as_str()])
@@ -97,6 +97,17 @@ fn sidecar_data_root(app: &tauri::App) -> tauri::Result<PathBuf> {
     };
     std::fs::create_dir_all(&root)?;
     Ok(root)
+}
+
+fn sidecar_resource_root(app: &tauri::App, data_root: &Path) -> PathBuf {
+    app.path()
+        .resource_dir()
+        .ok()
+        .filter(|resource_root| {
+            resource_root.join("templates").is_dir()
+                || resource_root.join("workflows").is_dir()
+        })
+        .unwrap_or_else(|| data_root.clone())
 }
 
 fn api_port(api_base_url: &str) -> String {
