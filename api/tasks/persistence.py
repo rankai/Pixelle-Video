@@ -13,7 +13,18 @@ from api.tasks.models import Task, TaskProgress, TaskStatus, TaskType
 
 class TaskPersistence:
     def __init__(self, db_path: str | Path | None = None):
-        configured_path = db_path or os.getenv("PIXELLE_DESKTOP_TASKS_DB") or "data/desktop_tasks.sqlite"
+        configured_path = db_path or os.getenv("PIXELLE_DESKTOP_TASKS_DB")
+        if configured_path is None:
+            # Packaged desktop launches set PIXELLE_VIDEO_ROOT to a writable
+            # per-user app-data directory while the process working directory
+            # remains under Program Files. Never create the default SQLite
+            # database relative to that read-only install directory.
+            video_root = os.getenv("PIXELLE_VIDEO_ROOT")
+            configured_path = (
+                Path(video_root) / "data" / "desktop_tasks.sqlite"
+                if video_root
+                else Path("data") / "desktop_tasks.sqlite"
+            )
         self.db_path = Path(configured_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._ensure_schema()
