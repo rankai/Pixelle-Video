@@ -52,6 +52,12 @@ def test_windows_tauri_webview_uses_the_http_localhost_origin_for_sidecar_cors()
     assert '.env("PIXELLE_DESKTOP_ORIGIN", desktop_origin())' in source
 
 
+def test_windows_sidecar_runs_from_user_writable_app_data():
+    source = TAURI_MAIN.read_text(encoding="utf-8")
+    assert "let command = command.current_dir(&data_root);" in source
+    assert "Never inherit the install directory" in source
+
+
 def test_artifact_manifest_requires_windows_executables_and_marks_install_pending():
     source = ARTIFACT_CHECK.read_text(encoding="utf-8")
     assert 'expected_suffix=".exe"' in source
