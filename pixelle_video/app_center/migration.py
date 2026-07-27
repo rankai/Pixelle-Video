@@ -22,7 +22,15 @@ class AppCenterMigrationError(RuntimeError):
 
 
 def default_db_path() -> Path:
-    return Path(os.environ.get("PIXELLE_APP_CENTER_DB", "data/app_center.sqlite"))
+    configured_path = os.environ.get("PIXELLE_APP_CENTER_DB")
+    if configured_path:
+        return Path(configured_path)
+    video_root = os.environ.get("PIXELLE_VIDEO_ROOT")
+    if video_root:
+        # Packaged desktop launches keep the working directory under
+        # Program Files but expose a writable per-user data root.
+        return Path(video_root) / "data" / "app_center.sqlite"
+    return Path("data") / "app_center.sqlite"
 
 
 @contextmanager

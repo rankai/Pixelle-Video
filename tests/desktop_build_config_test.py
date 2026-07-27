@@ -133,6 +133,7 @@ def test_desktop_sidecar_persists_data_and_config_outside_the_app_bundle():
     assert '"PIXELLE_VIDEO_ROOT"' in rust_source
     assert '"PIXELLE_CONFIG_PATH"' in rust_source
     assert '"PIXELLE_DESKTOP_TASKS_DB"' in rust_source
+    assert '"PIXELLE_APP_CENTER_DB"' in rust_source
     assert 'os.environ.get("PIXELLE_CONFIG_PATH")' in config_source
 
 
