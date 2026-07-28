@@ -59,7 +59,7 @@ LLM_PRESETS: List[Dict[str, Any]] = [
     {
         "name": "Doubao",
         "base_url": "https://ark.cn-beijing.volces.com/api/v3",
-        "model": "doubao-pro-32k",
+        "model": "doubao-seed-2-1-pro-260628",
         "api_key_url": "https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey",
     },
 ]
@@ -89,4 +89,3 @@ def find_preset_by_base_url_and_model(base_url: str, model: str) -> str | None:
         if preset["base_url"] == base_url and preset["model"] == model:
             return preset["name"]
     return None
-

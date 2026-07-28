@@ -52,6 +52,23 @@ describe("CreationWorkspace", () => {
       created_at: "now",
       updated_at: "now",
     });
+    mocks.createAppRun.mockResolvedValue({
+      app_run_id: "run-new",
+      project_id: "p1",
+      app_id: "builtin.marketing-copy",
+      app_version: "1.0.0",
+      state: "draft",
+      state_version: 1,
+      idempotency_key: "run-new",
+      input_payload: {},
+      context_snapshot_id: null,
+      output_artifact_ids: [],
+      error_code: null,
+      archived_at: null,
+      created_at: "now",
+      updated_at: "now",
+    });
+    mocks.executeAppRun.mockResolvedValue({});
     vi.clearAllMocks();
   });
 
@@ -59,9 +76,24 @@ describe("CreationWorkspace", () => {
     render(<CreationWorkspace />);
     fireEvent.change(screen.getByPlaceholderText("项目名称"), { target: { value: "新项目" } });
     fireEvent.change(screen.getByPlaceholderText("本次营销目标"), { target: { value: "目标" } });
-    fireEvent.click(screen.getByText("保存草稿"));
+    fireEvent.click(screen.getByText("保存项目"));
     await waitFor(() => expect(createContentProject).toHaveBeenCalledWith({ name: "新项目", primary_goal: "目标" }));
-    expect(screen.getByText("项目草稿")).toBeInTheDocument();
+    expect(screen.getByText("项目输入 · 新项目")).toBeInTheDocument();
+  });
+
+  it("makes the global new-project action visibly enter a fresh focused state", async () => {
+    listContentProjects.mockResolvedValue([{
+      project_id: "p1", schema_version: 1, name: "已有项目", status: "active", primary_goal: "目标",
+      brand_id: null, current_context_snapshot_id: null, created_at: "now", updated_at: "now",
+    }]);
+    render(<CreationWorkspace />);
+    await waitFor(() => expect(screen.getByDisplayValue("已有项目")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: "新建项目" }));
+
+    expect(screen.getByText("新建创作项目")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("项目名称")).toHaveValue("");
+    expect(screen.getByPlaceholderText("本次营销目标")).toHaveValue("");
   });
 
   it("creates a carousel run from artifact and registered asset references", async () => {
@@ -74,7 +106,7 @@ describe("CreationWorkspace", () => {
     render(<CreationWorkspace appId="builtin.douyin-carousel" />);
     fireEvent.change(screen.getByPlaceholderText("项目名称"), { target: { value: "图文项目" } });
     fireEvent.change(screen.getByPlaceholderText("本次营销目标"), { target: { value: "到店咨询" } });
-    fireEvent.click(screen.getByText("保存草稿"));
+    fireEvent.click(screen.getByText("保存项目"));
     await waitFor(() => expect(createContentProject).toHaveBeenCalled());
 
     await waitFor(() => expect(screen.getByLabelText("图文来源产物")).toBeInTheDocument());
@@ -89,7 +121,23 @@ describe("CreationWorkspace", () => {
     ], total: 2 });
     fireEvent.click(screen.getByText("选择图片资产"));
     fireEvent.click(screen.getByRole("button", { name: "确认选择" }));
-    fireEvent.click(screen.getByText("创建运行草稿"));
+    mocks.createAppRun.mockResolvedValue({
+      app_run_id: "carousel-run-new",
+      project_id: "p1",
+      app_id: "builtin.douyin-carousel",
+      app_version: "1.0.0",
+      state: "draft",
+      state_version: 1,
+      idempotency_key: "carousel-run-new",
+      input_payload: {},
+      context_snapshot_id: null,
+      output_artifact_ids: [],
+      error_code: null,
+      archived_at: null,
+      created_at: "now",
+      updated_at: "now",
+    });
+    fireEvent.click(screen.getByText("生成抖音图文"));
     await waitFor(() => expect(mocks.createAppRun).toHaveBeenCalledWith(expect.objectContaining({
       app_id: "builtin.douyin-carousel",
       input_payload: {
@@ -99,6 +147,7 @@ describe("CreationWorkspace", () => {
         asset_refs: ["asset:image-1", "asset:image-2"],
       },
     })));
+    await waitFor(() => expect(mocks.executeAppRun).toHaveBeenCalledWith("carousel-run-new"));
   });
 
   it("shows source metadata, recent-use state, and filters by generation time", async () => {
@@ -193,10 +242,11 @@ describe("CreationWorkspace", () => {
     expect(screen.getByText("门店图一")).toBeInTheDocument();
     expect(screen.getByText("5 页")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText("图文项目二"));
+    fireEvent.mouseDown(screen.getByLabelText("当前创作项目"));
+    fireEvent.click(await screen.findByText("图文项目二", { selector: ".ant-select-item-option-content" }));
     await waitFor(() => expect(screen.queryByDisplayValue("source-v5")).not.toBeInTheDocument());
     expect(screen.getByLabelText("图文来源产物")).toHaveValue("");
-    expect(screen.queryByText("门店图一")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText("门店图一")).not.toBeInTheDocument());
     expect(screen.getByText("3 页")).toBeInTheDocument();
   });
 

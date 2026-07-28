@@ -19,6 +19,7 @@ Supports structured output via response_type parameter (Pydantic model).
 import json
 import re
 from typing import Optional, Type, TypeVar, Union
+from urllib.parse import urlparse
 
 from loguru import logger
 from openai import AsyncOpenAI
@@ -113,6 +114,69 @@ class LLMService:
             client_kwargs["base_url"] = final_base_url
         
         return AsyncOpenAI(**client_kwargs)
+
+    @staticmethod
+    def _uses_responses_api(base_url: str | None) -> bool:
+        """Use Ark's documented Responses API for its v3 endpoint.
+
+        Volcengine Ark exposes OpenAI-compatible clients, but its current
+        ``/api/v3`` examples and Doubao Seed models use ``/responses`` rather
+        than ``/chat/completions``. Keep every other provider on the existing
+        chat-completions path so this compatibility fix does not silently
+        change their request contract.
+        """
+        if not base_url:
+            return False
+        parsed = urlparse(str(base_url))
+        return (
+            parsed.hostname == "ark.cn-beijing.volces.com"
+            and parsed.path.rstrip("/").endswith("/api/v3")
+        )
+
+    @staticmethod
+    def _response_output_text(response: object) -> str:
+        """Extract text from both SDK Response objects and compatible mocks."""
+        direct = getattr(response, "output_text", None)
+        if isinstance(direct, str) and direct:
+            return direct
+        chunks: list[str] = []
+        for item in getattr(response, "output", None) or []:
+            for content in getattr(item, "content", None) or []:
+                text = getattr(content, "text", None)
+                if isinstance(text, str) and text:
+                    chunks.append(text)
+                elif text is not None:
+                    value = getattr(text, "value", None)
+                    if isinstance(value, str) and value:
+                        chunks.append(value)
+        return "".join(chunks)
+
+    async def _call_with_responses_api(
+        self,
+        *,
+        client: AsyncOpenAI,
+        model: str,
+        prompt: str,
+    ) -> str:
+        """Call Ark with the request shape from its Responses API contract."""
+        response = await client.responses.create(
+            model=model,
+            input=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": prompt,
+                        }
+                    ],
+                }
+            ],
+        )
+        content = self._response_output_text(response)
+        if not content:
+            raise ValueError("Responses API returned no output text")
+        return content
     
     async def __call__(
         self,
@@ -171,6 +235,21 @@ class LLMService:
         logger.debug(f"LLM call: model={final_model}, base_url={client.base_url}, response_type={response_type}")
         
         try:
+            if self._uses_responses_api(str(client.base_url)):
+                response_prompt = (
+                    f"{prompt}\n\n{self._get_json_schema_instruction(response_type)}"
+                    if response_type is not None
+                    else prompt
+                )
+                content = await self._call_with_responses_api(
+                    client=client,
+                    model=final_model,
+                    prompt=response_prompt,
+                )
+                if response_type is not None:
+                    return self._parse_response_as_model(content, response_type)
+                logger.debug(f"LLM Responses API output length: {len(content)} chars")
+                return content
             if response_type is not None:
                 # Structured output mode - try beta.chat.completions.parse first
                 return await self._call_with_structured_output(
@@ -340,4 +419,3 @@ You MUST respond with ONLY a valid JSON object (no markdown, no extra text)."""
         model = self.active
         base_url = self._get_config_value("base_url", "default")
         return f"<LLMService model={model!r} base_url={base_url!r}>"
-

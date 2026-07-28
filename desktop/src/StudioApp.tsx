@@ -338,7 +338,7 @@ const emptyAssets: AssetState = {
 const navItems: MenuProps["items"] = [
   { key: "home", icon: <Home size={16} />, label: "工作台" },
   ...(featureFlags.appCenterShell ? [{ key: "apps", icon: <Images size={16} />, label: "应用中心" }] : []),
-  { key: "ip", icon: <Video size={16} />, label: "口播剪辑" },
+  { key: "ip", icon: <Video size={16} />, label: "即刻成片" },
   { type: "divider" },
   { key: "assets", icon: <Package size={16} />, label: "企业资产库" },
   { type: "divider" },
@@ -350,7 +350,7 @@ const navItems: MenuProps["items"] = [
 function viewTitle(view: View, assetTab: AssetTab) {
   if (view === "apps") return "应用中心";
   if (view === "application_workflow") return "应用流程";
-  if (view === "ip") return "口播剪辑";
+  if (view === "ip") return "即刻成片";
   if (view === "digital_human_app") return "数字人口播视频";
   if (view === "assets") return `企业资产库 · ${{ videos: "视频", images: "图片", voices: "音色", portraits: "数字人", templates: "模板", brands: "品牌" }[assetTab]}`;
   return { home: "企业视频工作台", publish_accounts: "发布中心", tasks: "任务记录", config: "系统设置", diagnostics: "启动自检" }[view] || "Pixelle Video";
@@ -3986,7 +3986,7 @@ function PublishStep({
                 disabled={!publishReady}
               />
             </div>
-            <Space direction="vertical" className="publish-file-actions">
+            <Space orientation="vertical" className="publish-file-actions">
               {publishReady ? (
                 <Button block onClick={downloadFinalVideo}>
                   下载最终视频
@@ -6006,6 +6006,11 @@ function ConfigView({
             updateConfigDraft({ ...config, llm: { ...config.llm, base_url: event.target.value } })
           }
         />
+        {config.llm.base_url.includes("ark.cn-beijing.volces.com/api/v3") ? (
+          <Typography.Text type="secondary">
+            已识别火山方舟 Ark v3，内容应用将自动使用 Responses API。
+          </Typography.Text>
+        ) : null}
         <label>LLM API Key（已配置时仅显示首尾字符）</label>
         <input
           placeholder={config.llm.api_key || "请输入 API Key"}
@@ -6040,11 +6045,16 @@ function ConfigView({
             })
           }
         />
-        <div className="config-check-actions">
-          <Button onClick={runConfigCheck} loading={checkingConfig}>
-            检查当前配置
+        <div className="config-action-bar">
+          <div className="config-check-actions">
+            <Button onClick={runConfigCheck} loading={checkingConfig}>
+              检查当前配置
+            </Button>
+            <span>配置项已填写，尚未验证服务账号是否可用。</span>
+          </div>
+          <Button type="primary" onClick={save}>
+            保存配置
           </Button>
-          <span>配置项已填写，尚未验证服务账号是否可用。</span>
         </div>
         {checkResult ? (
           <div className="config-check-list">
@@ -6053,9 +6063,6 @@ function ConfigView({
             ))}
           </div>
         ) : null}
-        <Button type="primary" onClick={save}>
-          保存配置
-        </Button>
         {saved ? <Alert className="step-notice" type="success" showIcon title={saved} /> : null}
       </Card>
     </section>

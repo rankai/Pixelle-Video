@@ -58,13 +58,13 @@ describe("CreationWorkspace synthetic internal precheck", () => {
   });
 
   it.each(scenarios)("%s completes the first-copy flow without helper text", async (persona, goal, product) => {
-    const draftRun = {
+    const reviewRun = {
       app_run_id: "simulation-run",
       project_id: "simulation-project",
       app_id: "builtin.marketing-copy",
       app_version: "1.0.0",
-      state: "draft" as const,
-      state_version: 1,
+      state: "needs_review" as const,
+      state_version: 2,
       idempotency_key: `simulation-${persona}`,
       input_payload: {},
       context_snapshot_id: null,
@@ -74,22 +74,20 @@ describe("CreationWorkspace synthetic internal precheck", () => {
       created_at: "now",
       updated_at: "now",
     };
-    const reviewRun = { ...draftRun, state: "needs_review" as const, state_version: 2 };
-    mocks.listAppRuns.mockResolvedValueOnce([draftRun]).mockResolvedValueOnce([reviewRun]).mockResolvedValueOnce([{ ...reviewRun, state: "completed" as const, state_version: 3 }]);
+    mocks.listAppRuns
+      .mockResolvedValueOnce([reviewRun])
+      .mockResolvedValueOnce([{ ...reviewRun, state: "completed" as const, state_version: 3 }]);
 
     render(<CreationWorkspace />);
     fireEvent.change(screen.getByPlaceholderText("项目名称"), { target: { value: persona } });
     fireEvent.change(screen.getByPlaceholderText("本次营销目标"), { target: { value: goal } });
     fireEvent.change(screen.getByPlaceholderText("产品或服务"), { target: { value: product } });
-    fireEvent.click(screen.getByText("保存草稿"));
+    fireEvent.click(screen.getByText("生成营销文案"));
     await waitFor(() => expect(mocks.createContentProject).toHaveBeenCalledWith({ name: persona, primary_goal: goal }));
-
-    fireEvent.click(screen.getByText("创建运行草稿"));
     await waitFor(() => expect(mocks.createAppRun).toHaveBeenCalledWith(expect.objectContaining({
       app_id: "builtin.marketing-copy",
       input_payload: expect.objectContaining({ goal, product_or_service: product }),
     })));
-    fireEvent.click(await screen.findByRole("button", { name: /执\s*行/ }));
     await waitFor(() => expect(mocks.executeAppRun).toHaveBeenCalledWith("simulation-run"));
     fireEvent.click(await screen.findByRole("button", { name: "确认完成" }));
     await waitFor(() => expect(mocks.completeAppRun).toHaveBeenCalledWith("simulation-run"));
