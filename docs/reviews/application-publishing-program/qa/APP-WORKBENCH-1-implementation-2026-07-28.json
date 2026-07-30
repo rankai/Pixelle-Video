@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "stage": "APP-WORKBENCH-1",
+  "gate": "PG-AW-B",
+  "status": "passed_with_boundary",
+  "feature_flag": {
+    "frontend": "VITE_APP_WORKBENCH_V2",
+    "contract_alias": "PIXELLE_APP_WORKBENCH_V2",
+    "default": false,
+    "conflict_behavior": false
+  },
+  "routes": [
+    "/apps/marketing-copy",
+    "/apps/viral-titles",
+    "/apps/douyin-carousel",
+    "/apps/digital-human-video"
+  ],
+  "visual_checks": {
+    "browser": "Codex in-app browser",
+    "requested_viewports": [
+      "1440x900",
+      "1280x800",
+      "900x760",
+      "390x844"
+    ],
+    "desktop_two_panes_visible": true,
+    "narrow_input_default": true,
+    "narrow_result_tab_switch": true,
+    "horizontal_overflow_detected": false,
+    "disabled_button_style": {
+      "background": "rgb(238, 241, 246)",
+      "color": "rgb(138, 148, 166)",
+      "text_visible": true
+    },
+    "comparison": "Current baseline and final implementation were reviewed together at the same 1440x900 viewport for marketing copy and digital human.",
+    "files": [
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/marketing-copy-1440x900.jpg",
+        "image_pixels": "1425x891",
+        "sha256": "527ba06bb8967254534e76e84155b88217633e2a0775f19741709952a44460e3"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/viral-titles-1440x900.jpg",
+        "image_pixels": "1425x891",
+        "sha256": "4335ef3b59731dc5f7cad380b92186037c0967b359e3e40c4b7e5fc848f51ab8"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/douyin-carousel-1440x900.jpg",
+        "image_pixels": "1425x891",
+        "sha256": "ab963125cdfa34476ac0f9dc680c024759e363c07a558618e56a55358fd06846"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/digital-human-1440x900.jpg",
+        "image_pixels": "1425x891",
+        "sha256": "57de020f0d16c8af24ed5865cda0e6d7dd3eda275233260131e5440acbf33745"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/marketing-copy-1280x800.jpg",
+        "image_pixels": "1265x791",
+        "sha256": "f967fdf738154844257f09f18f85558c790df958e44f5559e0258f0ab62c5f1a"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/viral-titles-1280x800.jpg",
+        "image_pixels": "1265x791",
+        "sha256": "ee88b9ad63f67c485ec3ca65361b7bb15a55762b9e35d604b81ce94dc214e49b"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/douyin-carousel-1280x800.jpg",
+        "image_pixels": "1265x791",
+        "sha256": "ecf9dbe1d69cf709ba12c8ea3f1f4815b8215163b51c0097f46ca464ae33bcf3"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/digital-human-1280x800.jpg",
+        "image_pixels": "1265x791",
+        "sha256": "6fbea2d00623513fea9cf3c5e8dd36711497333562fe5d06eeb14511429b65a4"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/marketing-copy-900x760.jpg",
+        "image_pixels": "885x747",
+        "sha256": "4376a6dc0784e28822a0ff0c80a05de1bca91f86e70d36fc88582f42fb60f595"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/viral-titles-900x760.jpg",
+        "image_pixels": "885x747",
+        "sha256": "e1e1faf6e155b8789aa44df4340539271be36226b9342c0c957bd305d82af0ce"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/douyin-carousel-900x760.jpg",
+        "image_pixels": "885x747",
+        "sha256": "d323892c33493523540b00042af15bf86187607cafca68b39f65847691a9722d"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/digital-human-900x760.jpg",
+        "image_pixels": "885x747",
+        "sha256": "a974e1b408563999c14d7b8d9290c9a4f91002796567c87187aa785d08c98514"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/marketing-copy-390x844.jpg",
+        "image_pixels": "375x812",
+        "sha256": "cbce20c7db7b95ea4ea5bd276ad940d2fbb647498c17503a7ff971039bc43676"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/viral-titles-390x844.jpg",
+        "image_pixels": "375x812",
+        "sha256": "548332f5081975543f96673a1e9c881f23e4f6a3a98407bf2d57abd770c4b00c"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/douyin-carousel-390x844.jpg",
+        "image_pixels": "375x812",
+        "sha256": "4afc802608788e4cc13a080c26d088ea1961969b6bff68f27841ca52b450eecc"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/digital-human-390x844.jpg",
+        "image_pixels": "375x812",
+        "sha256": "63251fe58c80f025545f3ffdfe4b800f3c771ab2417415a128389565f5fd7011"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/marketing-copy-900x760-result.jpg",
+        "image_pixels": "900x760",
+        "sha256": "af7e2425b3c174744d312cd05299132944c7ba54550c611235377e96530cacb0"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-1-visual-2026-07-28/digital-human-390x844-result.jpg",
+        "image_pixels": "390x844",
+        "sha256": "c17d00aa3c8f77da62b1c69ba68c6d61f1e3707d2944c2ed9fbc43c83fd00082"
+      }
+    ]
+  },
+  "tests": {
+    "desktop_vitest": "13 files, 82 passed",
+    "targeted_workbench_vitest": "4 files, 38 passed",
+    "desktop_build": "passed",
+    "typescript": "passed",
+    "diff_check": "passed"
+  },
+  "external_actions": {
+    "llm_calls": 0,
+    "runninghub_calls": 0,
+    "platform_mutations": 0,
+    "final_publish_clicks": 0
+  },
+  "boundaries": [
+    "Four applications still use their existing data loaders, API calls and executors.",
+    "ContextSnapshot v2 persistence and domain-specific v2 forms remain for later stages.",
+    "The rollout flag remains default false and restores the legacy one-column view.",
+    "Windows user-device acceptance, product sign-off and real rollback/WebView SLA remain paused under PG-L."
+  ]
+}

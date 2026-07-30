@@ -1,20 +1,22 @@
 # 应用中心与桌面自动发布 Program 进度台账
 
 current_stage: PROGRAM-ROLLOUT
-current_substage: PG-L
-current_stage_status: waiting_user
+current_substage: PG-L-BRAND-ROLLOUT
+current_stage_status: delivery_in_progress
 program_status: in_progress
-gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user
-completed_subplan_gate: PG-DH-E_video_stable_non_default
+gate_status: PROGRAM-ROLLOUT/implementation_pass_with_boundary
+completed_subplan_gate: PG-BP-F_passed_with_boundary
+paused_checkpoint: none
 
 - 日期：2026-07-18
 - 上位方案：`docs/superpowers/specs/2026-07-18-application-center-publishing-program-master-plan.md`
 - 执行模式：单 Luna 严格串行
 - 当前 Program 状态：`in_progress`
 - 启动审查结论：`conditional_go_for_coord_0_only`
-- 当前 Stage：`PROGRAM-ROLLOUT/PG-L`
-- 当前 Stage 状态：`waiting_user`（CR-PLATFORM-PILOT-001 已完成：快手、视频号、小红书均登记为与抖音同级的 `pilot`/人工发布前状态；复用已完成的三平台真实 Playwright 证据，不重复第三方上传；平台特定边界、最终发布自动点击关闭、默认 Publish V2 rollout 关闭。PG-L 的 Windows 实机、产品签字、真实 rollback/WebView 外部边界仍保持暂停）
-- 最后更新时间：2026-07-25（CR-PLATFORM-PILOT-001 完成独立六维复审并回到 PG-L）
+- 当前 Stage：`PROGRAM-ROLLOUT/PG-L-BRAND-ROLLOUT`
+- 当前 Stage 状态：`delivery_in_progress`（正式启用独立六维复审已通过；正在分批提交、PR 合并和构建 Windows 安装包）
+- 暂停 checkpoint：无；`PROGRAM-ROLLOUT/PG-L` 已恢复为当前入口
+- 最后更新时间：2026-07-30（用户批准 `CR-BRAND-PROJECT-ROLLOUT-001`；品牌项目开发 Gate 已通过，当前只执行正式启用和交付，不扩大产品范围）
 - 更新人：主线程/协调层
 
 ## 1. 使用规则
@@ -43,7 +45,7 @@ completed_subplan_gate: PG-DH-E_video_stable_non_default
 | 8 | APP-IPB | AC-5 | `completed` | PG-I | `passed_with_boundary` | 2026-07-20 | 2026-07-20 | [`PG-I-closure-review-2026-07-20.md`](application-publishing-program/PG-I-closure-review-2026-07-20.md)；[`AC-5-implementation-batch-7-implementation-review-2026-07-20.md`](application-publishing-program/AC-5-implementation-batch-7-implementation-review-2026-07-20.md)；AC-5/既有口播 280 passed、batch7 前端 32、后端 52 |
 | 9 | PUB-INTEGRATION | PUB-4 | `completed` | PG-J | `passed_with_boundary` | 2026-07-20 | 2026-07-21 | [`PUB-4-entry-2026-07-20.md`](application-publishing-program/PUB-4-entry-2026-07-20.md)；[`PUB-4-implementation-batch-1-review-2026-07-20.md`](application-publishing-program/PUB-4-implementation-batch-1-review-2026-07-20.md)；[`PUB-4-implementation-batch-2-review-2026-07-20.md`](application-publishing-program/PUB-4-implementation-batch-2-review-2026-07-20.md)；[`PUB-4-implementation-batch-3-entry-review-2026-07-20.md`](application-publishing-program/PUB-4-implementation-batch-3-entry-review-2026-07-20.md)；[`PUB-4-implementation-batch-3-review-2026-07-20.md`](application-publishing-program/PUB-4-implementation-batch-3-review-2026-07-20.md)；[`PUB-4-implementation-batch-4-entry-2026-07-21.md`](application-publishing-program/PUB-4-implementation-batch-4-entry-2026-07-21.md)；[`PUB-4-implementation-batch-4-entry-review-2026-07-21.md`](application-publishing-program/PUB-4-implementation-batch-4-entry-review-2026-07-21.md)；[`PUB-4-implementation-batch-4-review-2026-07-21.md`](application-publishing-program/PUB-4-implementation-batch-4-review-2026-07-21.md)；[`PUB-4-PG-J-closure-entry-2026-07-21.md`](application-publishing-program/PUB-4-PG-J-closure-entry-2026-07-21.md)；[`PUB-4-PG-J-closure-entry-review-2026-07-21.md`](application-publishing-program/PUB-4-PG-J-closure-entry-review-2026-07-21.md)；[`PUB-4-PG-J-closure-2026-07-21.md`](application-publishing-program/PUB-4-PG-J-closure-2026-07-21.md)；[`PUB-4-PG-J-closure-review-2026-07-21.md`](application-publishing-program/PUB-4-PG-J-closure-review-2026-07-21.md)；[`PUB-4-PG-J-closure-2026-07-21.json`](application-publishing-program/qa/PUB-4-PG-J-closure-2026-07-21.json)；batch4 Python 20、Vitest 8 files/45、closure Tauri/sidecar 2 cycles、build/Ruff/diff；PG-J `passed_with_boundary` |
 | 10 | E2E-DOUYIN | PUB-5 | `completed_with_boundary` | PG-K | `passed_with_boundary` | 2026-07-21 | 2026-07-21 | [`PUB-5-entry-2026-07-21.md`](application-publishing-program/PUB-5-entry-2026-07-21.md)；[`PUB-5-entry-review-2026-07-21.md`](application-publishing-program/PUB-5-entry-review-2026-07-21.md)；[`PUB-5-stateful-executor-batch-1-2026-07-21.md`](application-publishing-program/PUB-5-stateful-executor-batch-1-2026-07-21.md)；[`PUB-5-stateful-executor-batch-1-review-2026-07-21.md`](application-publishing-program/PUB-5-stateful-executor-batch-1-review-2026-07-21.md)；[`qa/PUB-5-stateful-headful-2026-07-21.json`](application-publishing-program/qa/PUB-5-stateful-headful-2026-07-21.json)；123 publish tests、sidecar restart/readback；独立第二轮复审 P0/P1=0；最终发布未执行 |
-| 11 | PROGRAM-ROLLOUT | AC-6 + PUB-7D | `paused_external` | PG-L | `entry_passed_with_boundary` | 2026-07-21 | - | [`PROGRAM-ROLLOUT-entry-2026-07-21.md`](application-publishing-program/PROGRAM-ROLLOUT-entry-2026-07-21.md)；[`program-rollout-entry.contract.json`](../contracts/publishing/program-rollout-entry.contract.json)；Windows Runner 构建已通过，PG-L 保持 open；由 CR-DH-DUAL-MODE-001 暂停，Windows 外部边界原样保留 |
+| 11 | PROGRAM-ROLLOUT | AC-6 + PUB-7D | `delivery_in_progress` | PG-L | `implementation_pass_with_boundary` | 2026-07-21 | - | [`PROGRAM-ROLLOUT-entry-2026-07-21.md`](application-publishing-program/PROGRAM-ROLLOUT-entry-2026-07-21.md)；[`program-rollout-entry.contract.json`](../contracts/publishing/program-rollout-entry.contract.json)；[`PROGRAM-ROLLOUT-brand-project-enable-review-2026-07-30.md`](application-publishing-program/PROGRAM-ROLLOUT-brand-project-enable-review-2026-07-30.md)；正式启用独立六维 P0/P1/P2=0，正在提交合并和安装包构建；Windows 实机、产品签字、真实 rollback/WebView SLA 仍 open |
 | 12 | PLATFORM-EXPANSION | PUB-6 + 分平台 PUB-7 | `completed_with_boundary` | PG-M-PILOT-RELEASE | `passed_with_boundary` | 2026-07-22 | 2026-07-25 | [`PLATFORM-EXPANSION-entry-2026-07-22.md`](application-publishing-program/PLATFORM-EXPANSION-entry-2026-07-22.md)；[`PLATFORM-EXPANSION-pilot-release-2026-07-25.md`](application-publishing-program/PLATFORM-EXPANSION-pilot-release-2026-07-25.md)；[`PLATFORM-EXPANSION-pilot-release-review-2026-07-25.md`](application-publishing-program/PLATFORM-EXPANSION-pilot-release-review-2026-07-25.md)；[`qa/PLATFORM-EXPANSION-pilot-release-2026-07-25.json`](application-publishing-program/qa/PLATFORM-EXPANSION-pilot-release-2026-07-25.json)；三平台既有真实 live evidence、pilot contract/fixture |
 | 13 | DH-DUAL-MODE | AC-5.1 数字人双模式与质量优化 | `completed_with_boundary` | PG-DH-C | `passed_with_boundary` | 2026-07-24 | 2026-07-24 | [`2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md`](../superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md)；[`DH-DUAL-2-entry-2026-07-24.md`](application-publishing-program/DH-DUAL-2-entry-2026-07-24.md)；[`DH-DUAL-2-implementation-2026-07-24.md`](application-publishing-program/DH-DUAL-2-implementation-2026-07-24.md)；[`DH-DUAL-2-implementation-review-2026-07-24.md`](application-publishing-program/DH-DUAL-2-implementation-review-2026-07-24.md)；67 Vitest、desktop build、110 backend；真实图片回填、视频模式禁用边界和改后“开始生成”证据；独立复审 P0/P1/实质性P2=0 |
 | 14 | DH-QUALITY-1 | AC-5.1 文案、标题、封面与字幕 | `implementation_in_progress` | PG-DH-D | `implementation_in_progress` | 2026-07-24 | - | [`2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md`](../superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md) §9.4；[`DH-QUALITY-1-entry-2026-07-24.md`](application-publishing-program/DH-QUALITY-1-entry-2026-07-24.md)；[`DH-QUALITY-1-entry-review-2026-07-24.md`](application-publishing-program/DH-QUALITY-1-entry-review-2026-07-24.md)；Entry 已通过，正在实现后端 delivery 归一化、来源/标题绑定、短封面标题、readable_v2 字幕与 Artifact 完整性；独立六维复审按用户要求延后至 Program 完成 |
@@ -51,6 +53,12 @@ completed_subplan_gate: PG-DH-E_video_stable_non_default
 | 15 | DH-QUALITY-2 | AC-5.1 工作流 A/B 与媒体质量 | `completed_with_boundary` | PG-DH-E | `passed_with_boundary` | 2026-07-24 | 2026-07-24 | [`2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md`](../superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md) §9.5；[`DH-QUALITY-2-entry-2026-07-24.md`](application-publishing-program/DH-QUALITY-2-entry-2026-07-24.md)；[`DH-QUALITY-2-implementation-2026-07-24.md`](application-publishing-program/DH-QUALITY-2-implementation-2026-07-24.md)；[`DH-QUALITY-2-video-live-gate-2026-07-24.md`](application-publishing-program/DH-QUALITY-2-video-live-gate-2026-07-24.md)；[`qa/DH-QUALITY-2-video-live-gate-2026-07-24.json`](application-publishing-program/qa/DH-QUALITY-2-video-live-gate-2026-07-24.json)；真实视频 Provider task 1 次成功、0 次重试；ffprobe/字幕/抽帧/封面/四 Artifact 通过；视频 `stable`，但 `default_mode=false` |
 | 16 | DH-DUAL-3 | AC-5.1 恢复、失败与真实桌面验收 | `completed_with_boundary` | PG-DH-F | `implementation_pass_with_boundary` | 2026-07-24 | 2026-07-24 | [`2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md`](../superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md) §9.6；[`DH-DUAL-3-entry-2026-07-24.md`](application-publishing-program/DH-DUAL-3-entry-2026-07-24.md)；[`DH-DUAL-3-implementation-2026-07-24.md`](application-publishing-program/DH-DUAL-3-implementation-2026-07-24.md)；[`qa/DH-DUAL-3-implementation-2026-07-24.json`](application-publishing-program/qa/DH-DUAL-3-implementation-2026-07-24.json)；恢复/失败专测 6、聚合 138 passed/12 warnings、Ruff/format/JSON/diff clean；真实 Provider/桌面外部证据保留边界 |
 | 17 | DH-DUAL-4 | AC-5.1 灰度与收口 | `completed_with_boundary` | PG-DH-G | `implementation_pass_with_boundary` | 2026-07-24 | 2026-07-24 | [`DH-DUAL-4-implementation-2026-07-24.md`](application-publishing-program/DH-DUAL-4-implementation-2026-07-24.md)；[`qa/DH-DUAL-4-implementation-2026-07-24.json`](application-publishing-program/qa/DH-DUAL-4-implementation-2026-07-24.json)；数字人聚合 141 passed/12 warnings，Desktop 11 files/68 passed，build、Ruff/format/JSON/diff clean；默认 flag 关闭、视频经后续质量门为 `stable` 但不默认、最终发布 0 |
+| 18 | APP-WORKBENCH | 应用工作台体验优化 | `completed_with_boundary` | PG-AW-F | `passed` | 2026-07-28 | 2026-07-28 | [`APP-WORKBENCH-5-implementation-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-5-implementation-2026-07-28.md)；[`APP-WORKBENCH-5-implementation-review-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-5-implementation-review-2026-07-28.md)；[`qa/APP-WORKBENCH-5-entry-2026-07-28.json`](application-publishing-program/qa/APP-WORKBENCH-5-entry-2026-07-28.json)；Desktop 15 files/95 passed、backend targeted 90 passed、build/Ruff/diff clean；取消态重试为非阻塞边界 |
+| 19 | APP-WORKBENCH | 交付与跨应用 | `completed_with_boundary` | PG-AW-G | `passed_with_boundary` | 2026-07-28 | 2026-07-28 | [`APP-WORKBENCH-6-entry-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-6-entry-2026-07-28.md)；[`APP-WORKBENCH-6-implementation-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-6-implementation-2026-07-28.md)；[`qa/APP-WORKBENCH-6-implementation-2026-07-28.json`](application-publishing-program/qa/APP-WORKBENCH-6-implementation-2026-07-28.json)；独立六维复审 PASS（P0/P1=0）；来源失效 fail-closed、手动重选恢复、发布按钮点击=0 |
+| 20 | APP-WORKBENCH | 灰度、视觉终审与收口 | `completed_with_boundary` | PG-AW-H | `passed_with_boundary` | 2026-07-28 | 2026-07-28 | [`APP-WORKBENCH-7-entry-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-7-entry-2026-07-28.md)；[`APP-WORKBENCH-7-implementation-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-7-implementation-2026-07-28.md)；[`APP-WORKBENCH-7-implementation-review-2026-07-29.md`](application-publishing-program/APP-WORKBENCH-7-implementation-review-2026-07-29.md)；四应用×4视口截图 16 张；独立六维复审 P0/P1=0 |
+| 21 | BRAND-PROJECT | 品牌包—我的项目领域边界收口 | `completed_with_boundary` | PG-BP-D | `passed_with_boundary` | 2026-07-29 | 2026-07-30 | [`BRAND-PROJECT-3-implementation-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-3-implementation-2026-07-29.md)；[`qa/BRAND-PROJECT-3-implementation-2026-07-29.json`](application-publishing-program/qa/BRAND-PROJECT-3-implementation-2026-07-29.json)；独立六维终验 P0/P1/P2=0 |
+| 22 | BRAND-PROJECT | 四应用固定品牌上下文与交付 | `completed_with_boundary` | PG-BP-E | `passed_with_boundary` | 2026-07-30 | 2026-07-30 | [`BRAND-PROJECT-4-implementation-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-4-implementation-2026-07-30.md)；[`qa/BRAND-PROJECT-4-implementation-2026-07-30.json`](application-publishing-program/qa/BRAND-PROJECT-4-implementation-2026-07-30.json)；Python full split 931、Desktop 123、build、sidecar 与真实交付证据通过；独立六维终验 P0/P1/P2=0 |
+| 23 | BRAND-PROJECT | 受控启用、回滚与收口 | `completed_with_boundary` | PG-BP-F | `passed_with_boundary` | 2026-07-30 | 2026-07-30 | [`BRAND-PROJECT-5-implementation-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-5-implementation-2026-07-30.md)；[`BRAND-PROJECT-5-final-review-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-5-final-review-2026-07-30.md)；[`qa/BRAND-PROJECT-5-implementation-2026-07-30.json`](application-publishing-program/qa/BRAND-PROJECT-5-implementation-2026-07-30.json)；最终独立六维终验 `PASS with boundary`，P0/P1/实质性 P2=0 |
 
 原始 Program Gate 进度：`9 / 12`；本次新增增强 Stage 尚未计入已通过 Gate，不改变 PG-L 或原始 Program 结论。
 
@@ -374,11 +382,62 @@ completed_subplan_gate: PG-DH-E_video_stable_non_default
 - 外部暂停点：真实 QR/第三方授权、真实上传/字段变更、挑战/登录过期、最终发布按钮、RunningHub 余额/云生产阻塞；到达即暂停并通知用户。
 - 下一步：按总队列切换到 PROGRAM-ROLLOUT Entry。最终发布仍是人工门，不自动点击；不得把 waiting_for_human 误记为平台已发布。
 
-### 当前 Stage 控制卡：PROGRAM-ROLLOUT（AC-6 + PUB-7D）
+### 已通过 Stage 控制卡：BRAND-PROJECT-0
+
+- Stage：`BRAND-PROJECT-0`
+- 来源：`CR-BRAND-PROJECT-BOUNDARY-001`
+- 状态：`completed_with_boundary`
+- Gate：`PG-BP-A_passed_with_boundary`（独立终验 `PASS P0/P1/P2=0`）
+- 当前方案：[`BRAND-PROJECT-boundary-closeout-plan-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-boundary-closeout-plan-2026-07-29.md)
+- 暂停 checkpoint：`PROGRAM-ROLLOUT/PG-L paused_external`；Windows 实机、产品签字、真实 rollback/WebView SLA 的状态和证据均不改变。
+- Entry 目标：冻结品牌包/项目/快照三类领域所有权、BrandKit 1:N ContentProject、ContextSnapshot v3、品牌 domain/media revision 固定、显式同步、v2 projection、`brand_id=null` 兼容、默认关闭 flag 和“读不静默写”数据库基线。
+- 允许范围：`docs/contracts/app-center/**`、`docs/reviews/**`、独立 Entry 契约测试和临时 SQLite 只读基线；可以在 feature-flag matrix 登记默认关闭 flag，但不得接入运行时。
+- 禁止范围：不修改业务 UI、业务写逻辑、生产数据库和现有项目；不调用 LLM/TTS/RunningHub；仅允许本地页面只读视觉基线，不打开第三方平台、不扫码/授权/上传；最终发布点击为 0。
+- PG-BP-A 放行条件：v3 stored/write-request schema、server-only resolver 信任边界、完整 rollback、zero/one/multiple/null fixture、错误码与成功 result code、flag/v2 projection、API 双库无写测试、视觉/hash/Stage 归因证据全部通过，JSON/Ruff/diff clean；Entry 通过仍不代表绑定、同步或 UI 已实现。
+
+### 已通过 Stage 控制卡：BRAND-PROJECT-1
+
+- Stage：`BRAND-PROJECT-1`
+- 来源：`CR-BRAND-PROJECT-BOUNDARY-001`
+- 状态：`completed_with_boundary`
+- Gate：`PG-BP-B_passed_with_boundary`
+- 前置 Gate：`PG-BP-A_passed_with_boundary`
+- 当前方案：[`BRAND-PROJECT-boundary-closeout-plan-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-boundary-closeout-plan-2026-07-29.md)
+- 实现范围：指定 brand domain revision 历史读取；`ProjectContextResolver`；创建项目时显式绑定品牌并原子初始化 ContextSnapshot v3；固定 Logo/BGM 当前媒体 revision；显式绑定/更换/解除绑定命令；服务端拒绝客户端 source revision/`brand_context` 伪造；v1/v2/v3 读取兼容；所有读接口零写。
+- 禁止范围：不修改业务 UI；不实现同步品牌资料或差异预览（留 BRAND-PROJECT-2）；不调用 LLM/TTS/RunningHub/第三方平台；不扫码/授权/上传；最终发布点击为 0。
+- PG-BP-B 放行条件：领域/API/迁移与兼容测试通过；绑定/更换/解绑和 v3 创建在 AppDB 内保持单事务原子性，AssetDB guard 与 AppDB 写入按明确顺序执行且不声称跨库原子；品牌 domain/media revision 可复现；读接口数据库 before/after 相等；Entry 默认关闭 flag 和 PG-L paused checkpoint 不改变。
+
+### 已通过 Stage 控制卡：BRAND-PROJECT-2
+
+- Stage：`BRAND-PROJECT-2`
+- 来源：`CR-BRAND-PROJECT-BOUNDARY-001`
+- 状态：`completed_with_boundary`
+- Gate：`PG-BP-C_passed_with_boundary`（独立终验 `PASS P0/P1/P2=0`）
+- 前置 Gate：`PG-BP-B_passed_with_boundary`
+- 当前方案：[`BRAND-PROJECT-boundary-closeout-plan-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-boundary-closeout-plan-2026-07-29.md)
+- 实现范围：只读品牌差异 preview；显式 `brand-sync`；expected current snapshot 并发保护与 idempotency key；保留项目覆盖和业务资料；同步非覆盖字段及最新 Logo/BGM revision；no_change 成功结果不追加快照；`brand_id=null`、v1/v2/v3 双读、flag 开关和重启回滚；同步前后旧 Snapshot/AppRun/Artifact 不变。
+- 禁止范围：不修改业务 UI（留 BRAND-PROJECT-3）；不调用 LLM/TTS/RunningHub/第三方平台；不扫码/授权/上传；最终发布点击为 0；不提交 Git。
+- PG-BP-C 放行条件：preview 零写；sync 原子追加且幂等；品牌归档/缺 revision/并发更新失败关闭；flag-off 禁止 sync 但可读 v3 projection；旧数据库迁移/重启恢复；历史 Snapshot/AppRun/Artifact 不变；独立六维复审 P0/P1=0。
+
+### 已完成子计划控制卡：BRAND-PROJECT-5
+
+- Stage：`BRAND-PROJECT-5`
+- 来源：`CR-BRAND-PROJECT-BOUNDARY-001`
+- 状态：`completed_with_boundary`
+- Gate：`PG-BP-F_passed_with_boundary`
+- 前置 Gate：`PG-BP-E_passed_with_boundary`
+- 当前方案：[`BRAND-PROJECT-boundary-closeout-plan-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-boundary-closeout-plan-2026-07-29.md)
+- 实现范围：默认关闭的 `brandProjectBoundaryV1` 仅在隔离环境受控开启；验证 flag on/off 双向回滚、数据库/快照/历史产物不丢失、重启恢复、无静默写入、完整回归与性能预算；形成最终实施和回滚证据。
+- 产品边界：不增加新功能或新字段；不把项目变成资产；普通用户继续不见 ID/revision/snapshot/fingerprint；历史 AppRun/Artifact 继续不可变。
+- 禁止范围：不扫码/第三方授权/自动上传/自动点击最终发布；不修改产品默认 flag；不借 Stage5 关闭 Windows 实机、产品签字或真实平台 rollback/WebView SLA；不提交 Git。
+- PG-BP-F 放行条件：受控启用、开关回滚、迁移副本、重启恢复、性能和完整回归均有证据；无静默数据迁移或读写混用；最终独立六维终审 P0/P1/实质性 P2=0。
+- 实施证据：[`BRAND-PROJECT-5-implementation-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-5-implementation-2026-07-30.md)、[`BRAND-PROJECT-5-final-review-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-5-final-review-2026-07-30.md) 与 [`qa/BRAND-PROJECT-5-implementation-2026-07-30.json`](application-publishing-program/qa/BRAND-PROJECT-5-implementation-2026-07-30.json)；默认 false、on→off→on 真实 Browser/DB、旧库副本迁移/失败回滚、显式同步后继续运行、10 次 sidecar、性能与完整回归均已完成；最终独立六维终验 `PASS with boundary`，P0/P1/实质性 P2=0。
+
+### 当前 Stage 控制卡：PROGRAM-ROLLOUT / PG-L-BRAND-ROLLOUT
 
 - Stage：`PROGRAM-ROLLOUT`
 - 来源阶段：`AC-6 工作台、遥测与正式启用` + `PUB-7D 抖音灰度、性能与发布证据`
-- 状态：`waiting_user`（当前工作停在 Windows 人工外部边界）
+- 状态：`delivery_in_progress`（`CR-BRAND-PROJECT-ROLLOUT-001` 独立六维 `PASS with boundary`；正在提交、合并和构建安装包）
 - 前置 Gate：`PG-K passed_with_boundary`
 - 当前 Entry：[`PROGRAM-ROLLOUT-entry-2026-07-21.md`](application-publishing-program/PROGRAM-ROLLOUT-entry-2026-07-21.md)；contract [`program-rollout-entry.contract.json`](../contracts/publishing/program-rollout-entry.contract.json)
 - Entry 目标：冻结工作台正式入口、feature flags、遥测/诊断脱敏、打包/sidecar 生命周期、10×重启/10×bounded run、1/15/60 秒性能、双向 V1/V2 rollback 和抖音独立灰度边界。
@@ -477,12 +536,122 @@ PG-A 交接边界：task8 恢复、DOM 行为 harness、真实 Guard/live smoke�
 - Gate 结果：`PG-DH-G=implementation_pass_with_boundary`；双开关联合门、默认关闭、旧路由保留、图片 natural candidate / 视频 stable 但不默认的 release state 和最终发布安全边界已由 contract/fixture/回归固定；视频真实质量门另见 [`DH-QUALITY-2-video-live-gate-2026-07-24.md`](application-publishing-program/DH-QUALITY-2-video-live-gate-2026-07-24.md)。
 - 边界：PG-DH-G 只关闭数字人双模式方案，不关闭上位 Program 的 Windows、产品签字、真实 rollback/WebView 或平台外部边界；独立六维复审按用户要求延后至 Program 完成。
 
-### 当前 Stage 控制卡：PROGRAM-ROLLOUT/PG-L（上位外部等待）
+### 已归档 Stage 控制卡：APP-WORKBENCH-0
+
+- Stage：`APP-WORKBENCH-0`
+- 来源：`CR-APP-WORKBENCH-001` / [`Pixelle Video 应用工作台体验优化实施方案`](../superpowers/specs/2026-07-28-application-workbench-experience-optimization-implementation-plan.md)
+- 状态：`completed_with_boundary`
+- Gate：`PG-AW-A_passed_with_boundary`
+- 方案自审：[`APP-WORKBENCH-0-plan-self-review-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-0-plan-self-review-2026-07-28.md)，`passed_for_entry_with_boundary`，P0/P1=0
+- 当前目标：冻结项目上下文 v2、StylePreset Registry、四应用输入 schema v2、结果状态、ArtifactVersion 与 typed handoff、feature flags、迁移和回滚；保存当前四应用 1440×900、1280×800、900×760 基线；建立 contract fixture 与 Entry tests。
+- 允许修改：本方案、台账、`docs/contracts/app-center/**`、fixture、Entry test、基线截图/结构审查和 APP-WORKBENCH-0 证据；只允许必要的只读代码核对。
+- 明确禁止：不修改业务 UI，不调用真实 LLM/RunningHub/发布平台，不改默认 feature flags，不执行数据库破坏性迁移，不自动点击最终发布，不提前进入 APP-WORKBENCH-1。
+- Gate 放行条件：需求、数据所有权、错误码、兼容、迁移和回滚自洽；Entry tests、JSON、Ruff、diff check 通过；APP-WORKBENCH-0 自审 P0/P1=0。
+- Gate 结论：项目上下文 v2、StylePreset Registry、四应用输入 schema v2、统一结果状态、ArtifactVersion/handoff、feature flag、迁移/回滚和 12 张视觉基线均已冻结；83 项聚合回归、Ruff、JSON 和 diff check 通过；P0/P1=0。
+- 边界：本阶段未修改业务 UI、未执行数据库迁移、未调用 LLM/RunningHub/发布平台，最终发布点击=0；不得解释为四应用优化已经实现。
+- 证据：[`APP-WORKBENCH-0-entry-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-0-entry-2026-07-28.md)；[`APP-WORKBENCH-0-entry-review-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-0-entry-review-2026-07-28.md)；[`qa/APP-WORKBENCH-0-entry-2026-07-28.json`](application-publishing-program/qa/APP-WORKBENCH-0-entry-2026-07-28.json)。
+
+### 已归档 Stage 控制卡：APP-WORKBENCH-1
+
+- Stage：`APP-WORKBENCH-1`
+- 来源：`CR-APP-WORKBENCH-001` / 方案 §14.2
+- 状态：`completed_with_boundary`
+- Gate：`PG-AW-B_passed_with_boundary`
+- 前置：`PG-AW-A=passed_with_boundary`
+- 当前目标：建立共享 `AppWorkbenchShell`，在桌面宽度呈现左侧输入/右侧结果；统一 empty/running/failed/needs_review/saved 状态区、sticky 主动作和状态恢复；在窄屏用输入/结果 Tab，保持无横向溢出。
+- 允许修改：应用工作台共享组件、tokens 的复用接线、四应用页面壳层接入、对应前端 test/fixture/视觉证据；四应用继续复用现有数据、API 和 executor。
+- 明确禁止：不实现 ContextSnapshot v2 数据迁移，不重写四应用 prompt/executor，不调用真实 Provider，不改变模型配置事实源，不执行平台动作，不自动点击最终发布。
+- Feature flag：`PIXELLE_APP_WORKBENCH_V2` 默认关闭；关闭时必须完整回到现有单列 UI，运行中 AppRun 和生成文件不受影响。
+- Gate 放行条件：1440×900、1280×800、900×760 和 390×844 的结构/交互验收；键盘/焦点/错误/恢复状态；定向 Vitest、现有四应用回归、desktop build、diff check；六维审查 P0/P1=0。
+- Gate 结论：共享 `AppWorkbenchShell` 已由默认关闭 flag 接入四应用；桌面左右布局、900/390 Tab 降级、真实状态标签、键盘/focus、disabled 文案可见和旧 UI 回滚通过；Desktop 13 files/82 tests、production build、18 张视觉证据和 diff check 通过；P0/P1=0。
+- 边界：四应用仍复用旧 API/executor；ContextSnapshot v2、风格、应用专属输入/结果和 typed handoff 后置；Provider/平台动作/最终发布点击=0。
+- 证据：[`APP-WORKBENCH-1-implementation-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-1-implementation-2026-07-28.md)；[`APP-WORKBENCH-1-implementation-review-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-1-implementation-review-2026-07-28.md)；[`qa/APP-WORKBENCH-1-implementation-2026-07-28.json`](application-publishing-program/qa/APP-WORKBENCH-1-implementation-2026-07-28.json)。
+
+### 已完成 Stage 控制卡：APP-WORKBENCH-2
+
+- Stage：`APP-WORKBENCH-2`
+- 来源：`CR-APP-WORKBENCH-001` / 方案 §10.3
+- 状态：`completed_with_boundary`
+- Gate：`PG-AW-C_passed_with_boundary`
+- 前置：`PG-AW-B=passed_with_boundary`
+- Gate 结论：ContextSnapshot v2 追加写入、v1 显式升级预览、项目切换/草稿/重启恢复、事实/跨项目/资产 revision 校验和四应用新运行快照绑定已完成；真实本机数据库迁移、浏览器交互和三个视口通过；六维自审 P0/P1=0。
+- 测试：后端 54 passed；Desktop 14 files/89 passed；production build、Ruff、diff check 通过；SQLite foreign key check empty。
+- 边界：未修改 StylePreset/prompt；LLM、RunningHub、平台动作和最终发布点击均为 0；v1、旧 Run、Artifact 和媒体文件未覆盖；flag 继续默认关闭。
+- 证据：[`APP-WORKBENCH-2-implementation-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-2-implementation-2026-07-28.md)；[`APP-WORKBENCH-2-implementation-review-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-2-implementation-review-2026-07-28.md)；[`qa/APP-WORKBENCH-2-implementation-2026-07-28.json`](application-publishing-program/qa/APP-WORKBENCH-2-implementation-2026-07-28.json)。
+
+### 已完成 Stage 控制卡：APP-WORKBENCH-3
+
+- Stage：`APP-WORKBENCH-3`
+- 来源：`CR-APP-WORKBENCH-001` / 方案 §10.4
+- 状态：`completed_with_boundary`
+- Gate：`PG-AW-D_passed_with_boundary`
+- 前置：`PG-AW-C=passed_with_boundary`
+- Gate 结论：StylePresetRegistry、文案/标题 input v2、结构化结果卡、AppEvent、ArtifactVersion 和文案→标题 typed handoff 已完成；两个互不重复的目的性 Doubao/Ark Responses API 用例均一次成功；六维自审 P0/P1=0。
+- 测试：后端应用中心聚合 174 passed/12 个既有警告；Desktop 15 files/93 passed；production build、Ruff、迁移和 diff check 通过。
+- 真实证据：文案 Run `run_24b3563bf7294a44b9caad98178069d6`、handoff `handoff_1d125eb4d63f40b3a65f0dd0b66fca9b`、标题 Run `run_541c38f2177645d8be3cb95e42155428`；选择/事件/刷新恢复/窄屏结果切换通过。
+- 边界：结果保持 `needs_review`；flag 默认关闭；RunningHub、平台动作和最终发布点击均为 0；长期模型质量不属于本 Gate。
+- 证据：[`APP-WORKBENCH-3-implementation-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-3-implementation-2026-07-28.md)；[`APP-WORKBENCH-3-implementation-review-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-3-implementation-review-2026-07-28.md)；[`qa/APP-WORKBENCH-3-implementation-2026-07-28.json`](application-publishing-program/qa/APP-WORKBENCH-3-implementation-2026-07-28.json)。
+
+### 已完成 Stage 控制卡：APP-WORKBENCH-4
+
+- Stage：`APP-WORKBENCH-4`
+- 来源：`CR-APP-WORKBENCH-001` / 方案 §10.5
+- 状态：`completed_with_boundary`
+- Gate：`PG-AW-E_passed_with_boundary`
+- 前置：`PG-AW-D=passed_with_boundary`
+- 当前目标：把既有抖音图文计划、3/5/8 页渲染、单页重试和 PublishPackage handoff 重新组织为统一左右工作台；左侧聚合来源、资产、风格、页数和模板，右侧展示分页计划、页面预览、局部编辑与下载。
+- 允许修改：抖音图文 v2 输入/恢复、资产选择、图文工作台结果交互、既有 carousel executor/renderer 的局部重渲染接线、ArtifactVersion/PublishPackage handoff、对应 test/fixture/证据。
+- 明确禁止：不重构数字人工作台；不新增图片生成 Provider；不打开抖音或其他发布平台；不自动点击最终发布；不改发布中心人工确认边界。
+- Gate 放行条件：单页重试和局部重渲染；ZIP、页序、发布文案和 Artifact 完整；来源版本/资产重启恢复；资产缺失、字体和文本溢出可见；handoff 到发布中心正确且不打开平台；六维自审 P0/P1=0。
+- 当前实现：图文 input v2、固定 ContextSnapshot/来源/asset revision、风格/页数/模板、plan/page/package 结果、真实预览、单页重渲染、下载和发布中心 handoff 已接线；单页重渲染现在会重建当前 ZIP，旧包保留用于审计/回滚；首次并发启动的迁移锁竞态已收敛；宽屏工作台最大宽度由 1380px 调整为 1640px，窄屏断点和左右比例不变。
+- 定向验证：真实 Run `run_127222d5c60e403fa7677eb1aa3a7227` 产出 3 页；当前 package v3 的 ZIP 与 page-01-v3/page-02/page-03 字节哈希一致；后端相关 48 passed/12 warnings，桌面工作台/图文/数字人/路由 45 passed，生产 build、Ruff、diff check 通过；独立六维复审 PASS，P0/P1=0。
+- 边界：未打开任何发布平台，未自动点击最终发布；完整三视口截图哈希未作为唯一 Gate 依据；Pydantic 既有弃用警告保留。
+- 下一步：唯一入口切换到 `APP-WORKBENCH-5/PG-AW-F_entry_in_progress`，按方案 §10.6 执行数字人领域工作台 Entry/实现；不得提前进入 Stage 6。
+
+### 已归档 Stage 控制卡：APP-WORKBENCH-5
+
+- Stage：`APP-WORKBENCH-5`
+- 状态：`completed_with_boundary`
+- Gate：`PG-AW-F=passed`
+- 证据：[`APP-WORKBENCH-5-implementation-review-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-5-implementation-review-2026-07-28.md)
+- 边界：V2 cancelled 运行通过“新建运行”重做，不沿用可能残留 Provider task 的旧 AppRun；Pydantic/Vite warnings 保留。
+
+### 已归档 Stage 控制卡：APP-WORKBENCH-6
+
+- Stage：`APP-WORKBENCH-6`
+- 来源：`CR-APP-WORKBENCH-001` / 方案 §10.7
+- 状态：`completed_with_boundary`
+- Gate：`PG-AW-G=passed_with_boundary`
+- 前置：`PG-AW-F=passed`
+- 当前目标：统一 ArtifactActions、VersionSwitcher、HandoffActions，打通文案→标题/图文/数字人、标题→图文/数字人、图文/数字人→发布中心的版本固定与交付链路。
+- Entry 首要检查：来源版本固定、目标 draft 带入内容、重复点击幂等、来源更新提示、发布中心接收正确 package、最终发布点击=0。
+- 允许修改：跨应用 handoff schema/API、Artifact 版本切换与交付 UI、四应用结果动作、对应测试/fixture/证据。
+- 明确禁止：不重写各应用 Provider；不改变数字人默认图片/视频 stable 非默认；不打开第三方平台；不自动点击最终发布；不进入 APP-WORKBENCH-7 灰度/视觉终审。
+- Gate 放行条件：来源版本固定且可回读；目标 draft 内容来源正确；重复点击不重复创建 Run/Handoff；来源更新有提示；发布中心只接收正确 PublishPackage；独立六维复审 P0/P1=0。
+- 当前实现：共享 ArtifactActions/VersionSwitcher/HandoffActions、文案/标题/图文/数字人跨应用 handoff、`source_version_id` 路由固定、标题选择版本幂等、来源更新提示、数字人结果到 PublishPackage 与行内视频下载已落地；修复复验后桌面 104 tests、后端核心定向 62 tests、生产 build、diff check 与 in-app browser 1280px visual smoke 均通过；无效/归档/跨项目来源 fail-closed；未打开第三方平台，最终发布点击为 0。
+- 独立复审：六维 PASS（P0/P1=0）；P2 为异步快速切换 active 二次检查，已补；Vite chunk/Pydantic warnings 仍为既有非阻塞边界。
+- 当前证据：[`APP-WORKBENCH-6-implementation-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-6-implementation-2026-07-28.md)；[`qa/APP-WORKBENCH-6-implementation-2026-07-28.json`](application-publishing-program/qa/APP-WORKBENCH-6-implementation-2026-07-28.json)；独立复审结论见本线程审查记录。
+
+### 已归档 Stage 控制卡：APP-WORKBENCH-7
+
+- Stage：`APP-WORKBENCH-7`
+- 来源：`CR-APP-WORKBENCH-001` / 方案 §10.8
+- 状态：`completed_with_boundary`
+- Gate：`PG-AW-H=passed_with_boundary`
+- 前置：`PG-AW-G=passed_with_boundary`
+- 当前目标：四应用分应用灰度、多视口真实可视化验收、重启恢复、回滚 smoke、性能/错误/迁移记录与收口。
+- Entry 首要检查：1440×900、1280×800、900×760 主流程证据；empty/project/input/running/result/editing/handoff/narrow 状态；无错行、无横向溢出、disabled 可读；发布最终点击=0。
+- 允许修改：灰度 flags、可视化证据与小范围布局/状态修复、恢复/回滚测试与文档；不改 Provider 业务。
+- 明确禁止：不新增付费 Provider 调用；不打开第三方平台；不自动点击最终发布；不把 Hosted Runner 当 Windows 实机验收。
+- Gate 放行条件：四应用主流程可视化证据完整、P0/P1=0、真实文本 smoke 通过、数字人不新增 Provider 风险、安装包构建与回滚 smoke 通过；之后唯一入口回到 `PROGRAM-ROLLOUT/PG-L`。
+- 当前证据：[`APP-WORKBENCH-7-entry-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-7-entry-2026-07-28.md)；[`APP-WORKBENCH-7-implementation-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-7-implementation-2026-07-28.md)；[`APP-WORKBENCH-7-implementation-review-2026-07-29.md`](application-publishing-program/APP-WORKBENCH-7-implementation-review-2026-07-29.md)；[`qa/APP-WORKBENCH-7-implementation-2026-07-28.json`](application-publishing-program/qa/APP-WORKBENCH-7-implementation-2026-07-28.json)；[`qa/APP-WORKBENCH-7-visual-2026-07-28/manifest.json`](application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/manifest.json)。独立复审 P0/P1=0。
+
+### 当前 Stage 补充边界：PROGRAM-ROLLOUT/PG-L（上位外部等待）
 
 - Stage：`PROGRAM-ROLLOUT/PG-L`
 - 状态：`waiting_user`
-- 前置：原 Program PG-K、平台扩展和数字人 PG-DH-G 均已按边界收口；`CR-DH-DUAL-MODE-001` 不改变 PG-L 原结论。
-- 当前唯一允许动作：等待用户回传 Windows 实机安装器 SHA、启动/关闭重开两轮、sidecar health/端口释放、产品签字和真实 rollback/WebView SLA 结论；收到后只执行一次定向复验和 Gate 更新。
+- 前置：原 Program PG-K、平台扩展、数字人、APP-WORKBENCH 与 BRAND-PROJECT 均已按边界收口；增强 CR 已退出，不改变 PG-L 原结论。
+- 外部边界：Windows hotfix 已由 Hosted Runner 完成 NSIS 安装和两轮生命周期 smoke；产品签字、真实用户 Windows 设备、真实 rollback/WebView SLA 仍 open。
 - 明确禁止：不把 hosted Windows Runner smoke、本机隔离测试或数字人历史 Provider 证据当作 Windows 实机/产品签字；不恢复默认 Publish V2，不开启最终发布自动点击，不做真实平台发布。
 
 兼容历史契约投影（仅供旧 Entry contract 断言，不是当前状态）：
@@ -511,6 +680,8 @@ PG-A 交接边界：task8 恢复、DOM 行为 harness、真实 Guard/live smoke�
 | R-016 | 双模式增强范围与 AC-5/PG-L 外部边界混淆 | open/CR | Luna/协调层 | 以 `CR-DH-DUAL-MODE-001` 暂停 PG-L 外部等待但不改其结论；DH-DUAL 独立建 Stage/Gate；Provider、平台和最终发布按独立暂停点执行 |
 | R-017 | 图片生成质量被误报为视频数字人质量 | open/entry | Luna/独立审查 | 图片/视频模式分别做真实 smoke 和五维质量记录；未通过的模式保持测试中，不提升 Registry release state |
 | R-018 | 三平台已有有界 live evidence 但仍显示未验证，用户无法按抖音同级进入发布前填充 | open/CR | Luna/协调层 | 以 `CR-PLATFORM-PILOT-001` 仅提升至 pilot/manual 状态；保留平台特定边界、重启 fail-closed、最终点击 0 和默认 rollout 关闭 |
+| R-019 | 四应用继续各自堆叠输入、结果和项目状态，造成交互不一致和跨应用复制 | open/CR | Luna/协调层 | 以 `CR-APP-WORKBENCH-001` 建立共享 AppWorkbench、ContextSnapshot v2、ArtifactVersion 和 typed handoff；每 Stage 单独 Gate，旧 UI 可回滚 |
+| R-020 | 品牌包与项目资料重复维护，项目未真正绑定品牌 revision，品牌更新可能导致生成事实漂移 | open/CR | Luna/协调层 | 以 `CR-BRAND-PROJECT-BOUNDARY-001` 建立品牌 1:N 项目、ContextSnapshot v3、显式同步、项目覆盖和读不写 Gate；旧 `brand_id=null` 不自动绑定 |
 
 ## 5. Change Request
 
@@ -556,6 +727,39 @@ CR-DH-DUAL-MODE-001：数字人应用升级为图片/视频双模式并修复成
 - 测试影响：先做 contract、fixture、V1 normalize、mode/media/workflow 负例、结果预览和回滚测试；确定性测试全部通过后，图片模式和视频模式各做一次有目的真实 Provider smoke；失败先诊断，禁止无分析连续重试；最终发布 click=0。
 - 回滚：关闭新增双模式 flag；保留当前图片模式和旧 `/ip`；回退 DH-DUAL 业务改动；恢复 `current_stage=PROGRAM-ROLLOUT`、`current_stage_status=waiting_user`、`gate_status=PROGRAM-ROLLOUT/PG-L_waiting_user`；不删除已生成 Artifact 和历史证据。
 - 批准结论：用户于 2026-07-24 明确授权；主线程作为协调层已登记本 CR 并切换当前入口；PG-DH-A 通过前不进入双模式业务实现。
+
+CR-APP-WORKBENCH-001：四应用升级为统一项目化左右工作台（2026-07-28，用户批准）
+
+- 问题与证据：当前四应用虽然具备生成能力，但项目资料过轻、输入与结果上下堆叠、风格样例不足、结果默认偏技术记录，跨应用复用需要用户重复操作。用户提供的万相营造截图和 51.688 秒功能视频证明“业务对象优先、左侧输入、右侧结果、风格样例、逐条结果操作”更适合高频创作任务。
+- 受影响 Stage/契约/文件：新增 `APP-WORKBENCH-0` 至 `APP-WORKBENCH-7`；ContextSnapshot v2、StylePreset Registry、四应用 input schema v2、AppWorkbench UI、ArtifactVersion 结果组件和 typed handoff；当前模型管理、FastAPI/Python、SQLite、资产库、数字人 Provider adapter 和发布人工确认边界不变。
+- 备选方案：A. 只修当前错行和按钮样式（无法解决项目上下文与结果传递）；B. 为每个应用各做一套页面（继续扩大不一致）；C. 以共享领域契约和工作台外壳串行升级四应用，并保留旧 UI feature flag 回滚（选定）。
+- 选定方案：用户授权先完成详细方案和自审，再由 Luna 执行。协调层将唯一入口从 `PROGRAM-ROLLOUT/PG-L_waiting_user` 切换到 `APP-WORKBENCH-0/PG-AW-A_entry_in_progress`；PG-L 标记 `paused_external`，其 Windows 实机、产品签字、真实 rollback/WebView SLA 结论不改变。
+- 数据与迁移影响：APP-WORKBENCH-0 不执行数据库迁移；后续以新 ContextSnapshot/input schema 版本兼容旧项目、Run 和 Artifact，不覆盖历史快照或删除本地媒体；风格 Registry 为受信版本化定义，自定义参考仅属于单次 AppRun。
+- 测试影响：先完成 contract、fixture、错误/恢复/回滚矩阵、四视口基线和 Entry tests；后续每 Stage 包含定向测试、production build、真实渲染和 Gate。文案与标题各只做一次有目的真实 Provider smoke；数字人契约未改变时复用既有真实质量证据，不重复付费调用。
+- 回滚：关闭新增 AppWorkbench UI flag 回到旧工作区；保留新 ContextSnapshot、ArtifactVersion 和运行中 AppRun；不删除已生成文件，不改变发布人工确认。
+- 批准结论：用户于 2026-07-28 明确授权；优化方案六维自审 `passed_for_entry_with_boundary`，P0/P1=0；协调层已切换到 APP-WORKBENCH-0，PG-AW-A 通过前不允许修改业务 UI。
+
+CR-BRAND-PROJECT-BOUNDARY-001：品牌包—我的项目领域边界与实施收口（2026-07-29，用户批准）
+
+- 问题与证据：`ContentProject.brand_id`、ContextSnapshot 品牌来源列和 `brand_kits_v2/domain_revisions` 已存在，但当前应用创建流程通常未传 `brand_id`，项目资料仍重复填写品牌名称、地址和联系方式；品牌 domain revision、Logo/BGM 媒体 revision、显式同步和旧项目兼容尚未形成闭环。
+- 受影响 Stage/契约/文件：新增 `BRAND-PROJECT-0` 至 `BRAND-PROJECT-5`；ContextSnapshot v3、品牌历史 revision 读取、ProjectContextResolver、绑定/同步 API、轻量项目 UI 和四应用上下文消费；品牌包继续属于企业资产库，项目不得成为资产类型。
+- 备选方案：A. 删除项目或品牌包（破坏两类不同生命周期）；B. 只在 UI 自动填充（无法固定生成版本）；C. 建立品牌 1:N 项目、不可变快照和显式同步并保留 feature flag 回滚（选定）。
+- 选定方案：将唯一入口从 `PROGRAM-ROLLOUT/PG-L paused_external` 切换到 `BRAND-PROJECT-0/PG-BP-A_entry_in_progress`；PG-L 的 Windows 实机、产品签字、真实 rollback/WebView SLA 继续作为暂停 checkpoint，不修改原结论。
+- 数据与迁移影响：BRAND-PROJECT-0 不执行业务迁移或生产写入；只冻结 v3 schema/fixture/v2 projection。后续只追加快照，不覆盖历史；旧 `brand_id=null` 不在读取时自动绑定。
+- 测试影响：Entry 必须以临时 SQLite 验证品牌、项目和快照读取不产生业务写入；冻结 0/1/多品牌、domain/media revision、覆盖、同步、并发、归档、v1/v2/v3 和 flag 回滚矩阵。
+- 回滚：关闭 `brandProjectBoundaryV1` 回到旧交互；v3 双读永久保留；不删除项目、品牌、快照、AppRun、Artifact 或媒体；恢复 `PROGRAM-ROLLOUT/PG-L paused_external` checkpoint。
+- 批准结论：用户于 2026-07-29 明确批准七条产品原则并要求独立线程形成方案和实施收口；PG-BP-A 通过前禁止修改业务 UI和业务写逻辑，禁止真实外部动作。
+
+CR-BRAND-PROJECT-ROLLOUT-001：品牌项目新版正式启用与 Windows 交付（2026-07-30，用户批准）
+
+- 问题与证据：`PG-BP-F` 已完成受控 on→off→on 回滚和独立六维终验，但桌面生产构建仍未把应用工作台与品牌项目新版作为正式入口；若只打开 WebView 前端开关而未同步 FastAPI sidecar，会产生前端可见、API disabled 的半启用状态。
+- 受影响 Stage/契约/文件：只恢复上位 `PROGRAM-ROLLOUT/PG-L`；修改 `desktop/.env.production`、Tauri sidecar 环境透传、构建/Windows 契约测试、发布证据和台账；不新增业务 Schema、字段、应用、Provider 或发布动作。
+- 备选方案：A. 继续默认关闭，要求用户手动配置（无法形成可安装交付）；B. 只打开前端（会产生半启用故障）；C. 桌面生产前端与打包 sidecar 同步开启，standalone FastAPI 保持默认关闭并支持显式环境变量回滚（选定）。
+- 选定方案：桌面生产构建开启四项应用工作台开关和 `VITE_BRAND_PROJECT_BOUNDARY_V1`；Tauri 默认向 sidecar 传入 `PIXELLE_BRAND_PROJECT_BOUNDARY_V1=1`；显式 `0/false` 保留旧交互回滚。
+- 数据与迁移影响：不执行生产数据清理或覆盖；沿用已通过的 v3 双读、不可变快照和失败回滚；关闭开关不删除项目、品牌、快照、AppRun、Artifact 或媒体。
+- 测试影响：执行生产配置/Windows sidecar 同步契约、Desktop 全量、production build、Tauri 编译单测、四应用真实桌面/窄屏可视化和独立六维复审；合并后由 GitHub Windows Runner 生成 NSIS 安装包，再进入真实 Windows 人工验收。
+- 回滚：启动桌面时显式设置 `PIXELLE_BRAND_PROJECT_BOUNDARY_V1=0`；必要时回退本 CR 的生产开关提交；不回滚或删除已生成的历史数据。
+- 批准结论：用户于 2026-07-30 明确要求“确认启用品牌项目新版 → 分批提交推送并合并 → 构建新版安装包 → 最终可视化与 Windows 验收”；当前唯一入口切换为 `PROGRAM-ROLLOUT/PG-L-BRAND-ROLLOUT`。
 
 新增时使用：
 
@@ -742,3 +946,31 @@ CR ID：
 | 2026-07-24 | DH-DUAL-3/DH-DUAL-4 数字人增强方案整体实现收口 | 完成恢复/失败/人工接收矩阵、资产 revision 重校验、Provider task 复用与一次 retry、四 Artifact accept 指纹、双开关灰度 contract；数字人聚合 141 passed/12 warnings，Desktop 全量 11 files/68 passed，build、Ruff/format/JSON/diff clean；默认 flag 关闭、视频 candidate、最终发布点击=0 | [`DH-DUAL-3-implementation-2026-07-24.md`](application-publishing-program/DH-DUAL-3-implementation-2026-07-24.md)；[`DH-DUAL-4-implementation-2026-07-24.md`](application-publishing-program/DH-DUAL-4-implementation-2026-07-24.md)；[`qa/DH-DUAL-3-implementation-2026-07-24.json`](application-publishing-program/qa/DH-DUAL-3-implementation-2026-07-24.json)；[`qa/DH-DUAL-4-implementation-2026-07-24.json`](application-publishing-program/qa/DH-DUAL-4-implementation-2026-07-24.json) | `PG-DH-F/G=implementation_pass_with_boundary`；真实 Provider/桌面设备/平台外部证据不冒充完成；独立六维复审按用户要求后置 | 数字人双模式方案已闭环并回到 `PROGRAM-ROLLOUT/PG-L_waiting_user`；只等待 Windows 实机、产品签字、真实 rollback/WebView 外部证据，收到后再做一次定向复验 |
 | 2026-07-24 | DH-DUAL 整体收口后的回归复验 | 再次执行数字人/应用中心后端聚合 141 passed、Desktop 11 files/68 passed、生产 build；Ruff check/format、JSON parse、`git diff --check` 全部通过；没有修改默认 flags、视频 release state、平台动作或最终发布安全边界 | 本轮命令输出；[`DH-DUAL-4-implementation-2026-07-24.md`](application-publishing-program/DH-DUAL-4-implementation-2026-07-24.md)；[`qa/DH-DUAL-4-implementation-2026-07-24.json`](application-publishing-program/qa/DH-DUAL-4-implementation-2026-07-24.json) | 仍是 `implementation_pass_with_boundary`；六维独立评审按用户要求延后；全 Program 仍被 PG-L Windows 实机/产品签字/真实 rollback-WebView 外部边界阻塞 | 维持唯一入口 `PROGRAM-ROLLOUT/PG-L_waiting_user`；不得虚构外部证据或自动点击最终发布，收到 Windows/产品证据后再定向复验并推进 Gate |
 | 2026-07-24 | DH-QUALITY-2 视频模式真实质量门收口 | 使用干净真人视频素材完成一次有目的的真实本地 Edge TTS→RunningHub 视频唇形同步→后期字幕/封面合成；Provider task `2080534254718251010` 成功、创建 1 次、重试 0 次；四 Artifact 完整；1080×1920 H.264/AAC；25/50/75% 抽帧逐项确认字幕可读、人物边缘稳定、口型自然、背景连续、封面短标题可读 | [`DH-QUALITY-2-video-live-gate-2026-07-24.md`](application-publishing-program/DH-QUALITY-2-video-live-gate-2026-07-24.md)；[`qa/DH-QUALITY-2-video-live-gate-2026-07-24.json`](application-publishing-program/qa/DH-QUALITY-2-video-live-gate-2026-07-24.json)；[`qa/DH-QUALITY-2-video-live-gate-2026-07-24/`](application-publishing-program/qa/DH-QUALITY-2-video-live-gate-2026-07-24/)；质量门回归 3 tests、数字人/发布聚合 144 passed/12 warnings；Desktop 定向 3 files/19 passed、build passed；Ruff/format/JSON/diff clean | `PG-DH-E=passed_with_boundary`；按用户授权视频 `video_lipsync/natural` 从 `candidate` 提升为 `stable`，但 `default_mode=false` 仍由图片模式默认；平台动作=0、最终发布点击=0；Program 级独立六维终审仍延后 | 当前唯一入口仍为 `PROGRAM-ROLLOUT/PG-L_waiting_user`；上位 Windows 实机、产品签字、真实 rollback/WebView 外部边界不变；若更换 workflow/素材/字幕模板需重新执行质量门 |
+| 2026-07-28 | Windows hotfix 安装器构建与下载复核 | 分支 `codex/publish-v2-sidecar-gate@8de798d2` 的 Windows Hosted Runner 成功构建 NSIS 安装器和 sidecar；静默安装、两轮启动/关闭/重开、health、监听归属和端口释放通过；artifact 下载到 macOS 后重新计算 installer/sidecar SHA，与 manifest 一致 | [`PROGRAM-ROLLOUT-windows-hotfix-build-2026-07-28.md`](application-publishing-program/PROGRAM-ROLLOUT-windows-hotfix-build-2026-07-28.md)；Run [`30320633215`](https://github.com/rankai/Pixelle-Video/actions/runs/30320633215)；installer SHA `b9e6fbaf…`；sidecar SHA `07fb8368…` | 用户明确不进行本次真实设备测试；Hosted Runner 不替代 Windows 用户设备、产品签字或真实 rollback/WebView SLA；最终点击=0 | 归档安装包证据，保持 PG-L `paused_external`；按用户授权登记 APP-WORKBENCH 优化 CR |
+| 2026-07-28 | CR-APP-WORKBENCH-001 登记并切换 APP-WORKBENCH-0 | 完成万相营造参考材料结构审查、1118 行优化方案和六维自审；修复自定义风格范围、虚假进度、快速切换旧请求回写三项 P2；P0/P1=0；协调层将唯一入口切换到 APP-WORKBENCH-0 | [`2026-07-28-application-workbench-experience-optimization-implementation-plan.md`](../superpowers/specs/2026-07-28-application-workbench-experience-optimization-implementation-plan.md)；[`APP-WORKBENCH-0-plan-self-review-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-0-plan-self-review-2026-07-28.md)；方案 SHA `ca54be8b…`；`git diff --check` 待 Entry 收口复跑 | 当前只放行 Entry；未修改业务 UI、未调用 LLM/RunningHub/平台、未改变默认 flags；PG-L 外部边界原样暂停 | Luna 执行 APP-WORKBENCH-0：冻结契约/fixture/基线/回滚并运行 Entry tests；PG-AW-A 通过前不得进入业务实现 |
+| 2026-07-28 | APP-WORKBENCH-0 Entry 收口并切换 APP-WORKBENCH-1 | 冻结 ContextSnapshot v2、StylePreset Registry、四应用输入 schema v2、统一结果状态、ArtifactVersion/handoff、四个默认关闭 feature flag、迁移/回滚和 stale response/重复提交边界；保存四应用三视口共 12 张真实页面 JPEG 基线并登记 SHA | [`APP-WORKBENCH-0-entry-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-0-entry-2026-07-28.md)；[`APP-WORKBENCH-0-entry-review-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-0-entry-review-2026-07-28.md)；[`qa/APP-WORKBENCH-0-entry-2026-07-28.json`](application-publishing-program/qa/APP-WORKBENCH-0-entry-2026-07-28.json)；83 passed/12 existing warnings、Ruff、8 JSON、diff clean | `PG-AW-A=passed_with_boundary`；业务 UI/数据库/Provider/平台动作=0；最终发布点击=0；PG-L 外部边界不变 | 唯一入口切换 APP-WORKBENCH-1；只实现共享左右壳层与结果状态，不提前进入四应用业务 v2 |
+| 2026-07-28 | APP-WORKBENCH-1 共享工作台收口并切换 APP-WORKBENCH-2 | 新增共享左右工作台、真实结果状态、900/390 输入/结果 Tab、键盘方向键/Home/End、sticky 输入动作和四应用 flag 接入；修复跨应用运行混入结果区和 Tab 双层边框；旧容器保持回退 | [`APP-WORKBENCH-1-implementation-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-1-implementation-2026-07-28.md)；[`APP-WORKBENCH-1-implementation-review-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-1-implementation-review-2026-07-28.md)；[`qa/APP-WORKBENCH-1-implementation-2026-07-28.json`](application-publishing-program/qa/APP-WORKBENCH-1-implementation-2026-07-28.json)；Desktop 13 files/82 passed、build、18 visual hashes、diff clean | `PG-AW-B=passed_with_boundary`；四应用 executor/API 未改；LLM/RunningHub/平台动作=0；最终发布点击=0；PG-L 外部边界不变 | 唯一入口切换 APP-WORKBENCH-2；只实现项目上下文 v2、切换/草稿/恢复和输入绑定，不提前进入风格或应用 prompt |
+| 2026-07-28 | APP-WORKBENCH-2 项目上下文收口并切换 APP-WORKBENCH-3 | 完成 ContextSnapshot v2 追加写入、v1 显式升级、共享项目资料编辑、草稿/重启恢复、stale response 隔离、事实/跨项目/资产 revision 校验及四应用新运行快照绑定；真实本机数据库与浏览器完成 v1/v2、草稿和三个视口验证 | [`APP-WORKBENCH-2-implementation-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-2-implementation-2026-07-28.md)；[`APP-WORKBENCH-2-implementation-review-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-2-implementation-review-2026-07-28.md)；[`qa/APP-WORKBENCH-2-implementation-2026-07-28.json`](application-publishing-program/qa/APP-WORKBENCH-2-implementation-2026-07-28.json)；后端 54、Desktop 14 files/89、build/Ruff/diff/FK check 通过 | `PG-AW-C=passed_with_boundary`；StylePreset/prompt 未改；LLM/RunningHub/平台/最终发布点击=0；flag 默认关闭；PG-L 外部边界不变 | 唯一入口切换 APP-WORKBENCH-3；先冻结 StylePreset 与文案/标题 v2 Entry，再实现结果交互、typed handoff 和一次有目的的 Doubao smoke |
+| 2026-07-28 | APP-WORKBENCH-3 文案/标题收口并切换 APP-WORKBENCH-4 | 完成受信 StylePresetRegistry、文案/标题 input v2、结构化结果卡、编辑/选择/反馈、ArtifactVersion 和文案→标题 typed handoff；分别一次目的性 Doubao/Ark 调用，结果、刷新恢复和窄屏交互通过 | [`APP-WORKBENCH-3-implementation-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-3-implementation-2026-07-28.md)；[`APP-WORKBENCH-3-implementation-review-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-3-implementation-review-2026-07-28.md)；[`qa/APP-WORKBENCH-3-implementation-2026-07-28.json`](application-publishing-program/qa/APP-WORKBENCH-3-implementation-2026-07-28.json)；后端 174、Desktop 15 files/93、build/Ruff/migration/diff 通过 | `PG-AW-D=passed_with_boundary`；结果仍 needs_review；RunningHub/平台/最终发布点击=0；flag 默认关闭；PG-L 外部边界不变 | 唯一入口切换 APP-WORKBENCH-4；复用既有 AC-4 renderer 和 PublishPackage，不重写已通过能力 |
+| 2026-07-28 | APP-WORKBENCH-4 图文真实闭环、局部重渲染与独立六维复审 | 完成一次有目的真实图文 Run；3 页 PNG、ZIP、分页计划、发布文案与 Artifact 交付；编辑第一页仅追加受影响页版本并同步重建当前 ZIP，旧包保留用于审计/回滚；修复并发首次迁移锁竞态；工作台宽屏最大宽度调整为 1640px，窄屏断点和两栏比例不变 | [`APP-WORKBENCH-4-implementation-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-4-implementation-2026-07-28.md)；[`APP-WORKBENCH-4-implementation-review-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-4-implementation-review-2026-07-28.md)；[`qa/APP-WORKBENCH-4-implementation-2026-07-28.json`](application-publishing-program/qa/APP-WORKBENCH-4-implementation-2026-07-28.json)；后端相关 48 passed/12 warnings、桌面 45 passed、build/Ruff/diff clean；ZIP page-01/02/03 顺序与当前页版本一致 | `PG-AW-E=passed_with_boundary`；独立审查 P0/P1=0；平台动作、最终发布点击=0；完整三视口截图哈希未作为唯一 Gate 依据，Pydantic 弃用警告保留 | 唯一入口切换 `APP-WORKBENCH-5/PG-AW-F_entry_in_progress`；先执行数字人工作台 Entry，不进入跨应用交付 |
+| 2026-07-28 | APP-WORKBENCH-5 Entry 冻结 | 复用双模式、质量、恢复、rollout 既有契约；冻结图片默认/视频 stable 非默认、四 Artifact、readable_v2 字幕、更多配置开关、幂等恢复和最终发布 0；新增工作台四 Artifact 状态展示和字幕开关的向后兼容 pending 归一化；Entry 定向 84 passed/7 warnings | [`APP-WORKBENCH-5-entry-2026-07-28.md`](application-publishing-program/APP-WORKBENCH-5-entry-2026-07-28.md)；[`qa/APP-WORKBENCH-5-entry-2026-07-28.json`](application-publishing-program/qa/APP-WORKBENCH-5-entry-2026-07-28.json)；数字人/质量/Artifact/桌面 Entry 测试 | `PG-AW-F_entry_in_progress`；不调用 Provider、不打开平台、不自动发布；Pydantic 既有警告保留 | 启动独立 Stage5 六维审查；通过后继续 Stage5 视觉/交付验收，不进入 APP-WORKBENCH-6 |
+| 2026-07-29 | CR-BRAND-PROJECT-BOUNDARY-001 登记与 BRAND-PROJECT-0 Entry 冻结 | 切换唯一入口并保留 PG-L paused checkpoint；冻结 ContextSnapshot v3、1:N 所有权、domain/media revision、错误码、默认关闭 flag、v2 纯读投影、旧 `brand_id=null` 兼容和真实临时 SQLite 读不写基线；未改业务 UI/写逻辑 | [`BRAND-PROJECT-0-entry-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-0-entry-2026-07-29.md)；[`qa/BRAND-PROJECT-0-entry-2026-07-29.json`](application-publishing-program/qa/BRAND-PROJECT-0-entry-2026-07-29.json)；19/27 passed、JSON/Ruff/diff clean | Gate 建议 `PG-BP-A=passed_with_boundary`，等待独立复审；生产数据库/LLM/RunningHub/平台/最终点击均为 0；PG-L 外部边界不变 | 独立审查确认 PG-BP-A 后才可进入 BRAND-PROJECT-1；当前不实现绑定、同步或 UI |
+| 2026-07-29 | BRAND-PROJECT-0 首轮独立审查修复 | 针对 P0=0/P1=5/P2=2 补齐完整 rollback、server-only resolver 信任边界、客户端伪造负例、zero/one/multiple/null 创建矩阵、sync no-change 成功 result code、API 双 SQLite 全表 before/after、当前视觉/hashes 与 Entry commit/禁止文件归因；`offer.required` 唯一性由测试锁定 | [`BRAND-PROJECT-0-entry-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-0-entry-2026-07-29.md)；[`qa/BRAND-PROJECT-0-entry-attribution-baseline-2026-07-29.json`](application-publishing-program/qa/BRAND-PROJECT-0-entry-attribution-baseline-2026-07-29.json)；[`qa/BRAND-PROJECT-0-visual-baseline-2026-07-29/manifest.json`](application-publishing-program/qa/BRAND-PROJECT-0-visual-baseline-2026-07-29/manifest.json)；42 passed/12 existing warnings | Gate 仍为 `PG-BP-A_entry_in_progress`，建议独立复审后 `passed_with_boundary`；真实桌面进程 before/after、flag 切换和重启恢复明确归 `BRAND-PROJECT-3/PG-BP-D`；业务 UI/写逻辑/生产库未改，外部平台动作=0 | 主线程启动同一严格审查线程复验；通过前不得进入 BRAND-PROJECT-1 |
+| 2026-07-29 | BRAND-PROJECT-0 第二轮剩余覆盖语义修复 | 根据复验 P1=1/P2=1 冻结 `brand_binding=null => project_overrides={}`；无品牌业务字段继续保存到 `project_brief`；项目级 Logo/BGM 不支持 `null` clear，删除覆盖字段恢复品牌默认，无 Logo/BGM 需在企业资产库修改品牌包，未来显式 clear 需独立 CR | [`context-snapshot-v3-write-request.schema.json`](../contracts/app-center/context-snapshot-v3-write-request.schema.json)；[`brand-project-boundary-entry-fixtures.json`](../contracts/app-center/fixtures/brand-project-boundary-entry-fixtures.json)；[`BRAND-PROJECT-0-entry-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-0-entry-2026-07-29.md)；14 定向 / 42 合并回归 passed | Gate 仍为 `PG-BP-A_entry_in_progress`，无业务代码、UI、生产库或外部动作变更 | 交回独立线程再次复审；通过前不得进入 BRAND-PROJECT-1 |
+| 2026-07-29 | PG-BP-A 独立终验通过并切换 BRAND-PROJECT-1 | 严格审查确认 Entry `PASS P0/P1/P2=0`；保持 PG-L paused checkpoint，唯一入口切换到 Stage1，仅实现品牌 revision/resolver/原子绑定与 v3 | [`BRAND-PROJECT-0-entry-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-0-entry-2026-07-29.md)；[`qa/BRAND-PROJECT-0-entry-2026-07-29.json`](application-publishing-program/qa/BRAND-PROJECT-0-entry-2026-07-29.json) | `PG-BP-A=passed_with_boundary`；UI、同步/差异预览、外部动作继续禁止 | 执行 BRAND-PROJECT-1，完成领域/API/迁移测试和实施证据后交回审查 |
+| 2026-07-29 | BRAND-PROJECT-1 后端实现完成并交回 PG-BP-B 独立复审 | 完成 strict 品牌 revision、ProjectContextResolver、AssetDB revision guard→AppDB 单库原子写入、品牌绑定/更换/解绑、Logo/BGM revision 固定、显式 v2 projection fingerprint、v1/v2 source 兼容与 v3 trust boundary、IN(1,2,3) 安全迁移和稳定只读 API；ready 品牌缺历史 revision 一致失败关闭 | [`BRAND-PROJECT-1-implementation-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-1-implementation-2026-07-29.md)；[`qa/BRAND-PROJECT-1-implementation-2026-07-29.json`](application-publishing-program/qa/BRAND-PROJECT-1-implementation-2026-07-29.json)；107 passed/12 existing warnings；Ruff format/JSON schema/diff/hash clean | `PG-BP-B_implementation_review_pending`；不声称跨库原子；业务 UI、同步/差异预览、生产库、LLM/RunningHub/平台动作、最终发布点击均为 0；默认 flag false；PG-L checkpoint 不变 | 终验剩余 P1=1 已修复，启动独立复审；P0/P1/P2 闭环前不得进入 BRAND-PROJECT-2 |
+| 2026-07-29 | PG-BP-B 独立终验通过并切换 BRAND-PROJECT-2 | 独立六维终验确认 Stage1 `PASS P0/P1/P2=0`；唯一入口串行切换 Stage2，仅实施显式 preview/sync、兼容、迁移与回滚 | [`BRAND-PROJECT-1-implementation-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-1-implementation-2026-07-29.md)；107 passed/12 existing warnings；Ruff/format/JSON/schema/SQL/hash/diff clean | `PG-BP-B=passed_with_boundary`；PG-L paused checkpoint 不变；UI/LLM/RunningHub/平台/最终发布继续禁止 | 执行 BRAND-PROJECT-2，完成后停 PG-BP-C review pending，独立复审前不得进入 Stage3 |
+| 2026-07-29 | BRAND-PROJECT-2 差异预览与显式同步实现完成 | 完成只读 preview、expected snapshot CAS、持久化幂等 brand-sync、覆盖项/业务资料保留、非覆盖项和 Logo/BGM revision 同步、no-change 零快照、v1/v2/v3/null brand、flag/restart rollback、历史 Snapshot/AppRun/Artifact 不变与失败关闭 | [`BRAND-PROJECT-2-implementation-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-2-implementation-2026-07-29.md)；[`qa/BRAND-PROJECT-2-implementation-2026-07-29.json`](application-publishing-program/qa/BRAND-PROJECT-2-implementation-2026-07-29.json)；117 passed/12 existing warnings；Ruff/format/JSON/schema/SQL/FK/hash/diff clean | `PG-BP-C_implementation_review_pending`；不声称跨库原子；业务 UI、生产库、LLM/TTS/RunningHub/平台动作、最终发布点击、Git 提交均为 0；PG-L checkpoint 不变 | 交回独立六维复审；P0/P1 闭环前不得进入 BRAND-PROJECT-3 |
+| 2026-07-29 | BRAND-PROJECT-2 首轮独立审查 P1/P2 修复 | 对 P0=0/P1=2/P2=1 补齐候选非覆盖 Logo/BGM 的 AssetDB guard ready/kind/current/exact CAS；历史 snapshot 媒体覆盖 exact-only 复制；新覆盖继续要求 ready/current；新增未绑定与 flag-off 独立错误码/准确中文 | [`BRAND-PROJECT-2-implementation-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-2-implementation-2026-07-29.md)；[`qa/BRAND-PROJECT-2-implementation-2026-07-29.json`](application-publishing-program/qa/BRAND-PROJECT-2-implementation-2026-07-29.json)；Logo/BGM×归档/新增 revision 4 组故障注入、归档 override 2 组、新覆盖 current 约束与 API 契约；124 passed/12 existing warnings | `PG-BP-C_implementation_review_pending` 不变；AppDB 竞态失败全表零写；UI/生产库/外部动作/最终发布/Git 提交均为 0 | 交回同一独立六维复审；通过前不得进入 BRAND-PROJECT-3 |
+| 2026-07-29 | PG-BP-C 独立终验通过并切换 BRAND-PROJECT-3 | 独立六维终验确认 Stage2 `PASS P0/P1/P2=0`；唯一入口串行切换 Stage3，仅实施品牌—项目轻量 UI、项目覆盖/恢复、显式同步与本地视觉验收 | [`BRAND-PROJECT-2-implementation-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-2-implementation-2026-07-29.md)；[`qa/BRAND-PROJECT-2-implementation-2026-07-29.json`](application-publishing-program/qa/BRAND-PROJECT-2-implementation-2026-07-29.json)；124 passed/12 existing warnings；Ruff/format/JSON/schema/SQL/FK/hash/diff clean | `PG-BP-C=passed_with_boundary`；PG-L paused checkpoint 不变；默认 flag、LLM/RunningHub/平台/最终发布边界不变 | 执行 BRAND-PROJECT-3，完成后停 `PG-BP-D_implementation_review_pending`，独立复审前不得进入后续阶段 |
+| 2026-07-29 | BRAND-PROJECT-3 轻量项目 UI 实施完成 | 完成 0/1/多品牌新建、单品牌自动选中零静默写、品牌摘要、项目业务字段、折叠覆盖/逐项与全部恢复、只读变化预览/显式同步、旧项目明确关联、四应用共享接线和 flag-off 回退；真实 900 reload P1 已修并复验 | [`BRAND-PROJECT-3-implementation-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-3-implementation-2026-07-29.md)；[`qa/BRAND-PROJECT-3-implementation-2026-07-29.json`](application-publishing-program/qa/BRAND-PROJECT-3-implementation-2026-07-29.json)；Desktop 5 files/59、后端聚合 127、build/Ruff/format/diff、1440/1280/900/390 通过 | `PG-BP-D_implementation_review_pending`；默认 flag false；控制台仅既有 AntD List deprecated P2；LLM/TTS/RunningHub/平台/上传/授权/最终发布/Git commit 均为 0；PG-L 不变 | 交回独立六维复审；P0/P1 闭环前不得进入 BRAND-PROJECT-4 |
+| 2026-07-29 | BRAND-PROJECT-3 首轮独立审查 P1/P2 修复 | 对 P0=0/P1=4/P2=1 补齐 null/v1/v2 四应用显式关联卡、精确 Logo revision 只读接口与安全占位、归档/缺失/网络业务错误、历史摘要保留与同步禁用/重新关联、品牌搜索和零品牌资产库入口 | [`BRAND-PROJECT-3-implementation-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-3-implementation-2026-07-29.md)；[`qa/BRAND-PROJECT-3-implementation-2026-07-29.json`](application-publishing-program/qa/BRAND-PROJECT-3-implementation-2026-07-29.json)；Desktop 5 files/68、后端聚合 128、build/Ruff/format/diff、四 route、1440/1280/900/390、归档错误态、键盘焦点和 console clean | `PG-BP-D_implementation_review_pending` 不变；数字人 route 仅在受控 fixture 打开既有 Registry flags；默认 flag false，Stage4/外部生成/发布/Git commit 均为 0 | 交回同一独立六维审查线程复验；通过前不得进入 BRAND-PROJECT-4 |
+| 2026-07-29 | BRAND-PROJECT-3 终验剩余归档告警 P1 修复 | 归档品牌 warning Alert 改为正文完整宽度、action 置底且按钮可换行，避免 1440/1280 中窄创作栏把正文压成逐字竖排；不修改全局 Alert | [`BRAND-PROJECT-3-implementation-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-3-implementation-2026-07-29.md)；[`qa/BRAND-PROJECT-3-implementation-2026-07-29.json`](application-publishing-program/qa/BRAND-PROJECT-3-implementation-2026-07-29.json)；四张归档态截图；1440/1280 section 291px、Alert 214px，900 section 685px，390 section 199px；四视口无横向溢出；Desktop 5 files/68、build/Ruff/format/hash/diff clean | `PG-BP-D_implementation_review_pending` 不变；控制台仅既有 AntD List deprecated；Stage4/外部生成/发布/Git commit 均为 0 | 交回同一独立终验线程确认剩余 P1=0；通过前不得进入 BRAND-PROJECT-4 |
+| 2026-07-30 | PG-BP-D 独立终验通过并切换 BRAND-PROJECT-4 | 网络恢复后由新的独立严格审查线程复验 Stage3 全部证据及归档 Alert 剩余 P1；六维确认 P0/P1/P2=0，四视口正文水平可读、操作区置底换行、无横向溢出，局部 CSS 未污染全局 Alert | [`BRAND-PROJECT-3-implementation-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-3-implementation-2026-07-29.md)；[`qa/BRAND-PROJECT-3-implementation-2026-07-29.json`](application-publishing-program/qa/BRAND-PROJECT-3-implementation-2026-07-29.json)；独立审查 `/root/brand_project_stage3_final_reviewer_v2`：`PG-BP-D PASS` | 既有 AntD `List` deprecated warning 登记为非 Stage3 引入边界；默认 flag、外部平台、最终发布、Git 边界不变；PG-L paused checkpoint 不变 | 唯一入口切换为 BRAND-PROJECT-4；完成四应用统一上下文消费、双运行版本隔离、实际交付验证后停 PG-BP-E 独立复审 |
+| 2026-07-30 | BRAND-PROJECT-4 四应用固定上下文实施完成 | 文案、标题、图文、数字人统一由服务端固定 ContextSnapshot；ArtifactVersion/handoff 持久化运行和源/目标快照血缘；同步前后双运行及旧来源 handoff 不漂移；图文实际渲染固定颜色/Logo，数字人实际交付品牌封面、固定 BGM 和哈希回执；补齐数字人 API top-level context snapshot 恢复闭环 | [`BRAND-PROJECT-4-implementation-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-4-implementation-2026-07-30.md)；[`qa/BRAND-PROJECT-4-implementation-2026-07-30.json`](application-publishing-program/qa/BRAND-PROJECT-4-implementation-2026-07-30.json)；后端 172/12 warnings、Desktop 定向 49/全量 123、build 4610 modules、sidecar 两周期、Browser 4/4 无横向溢出；Logo/封面/BGM/回执 SHA 已登记 | `PG-BP-E_implementation_review_pending`；受控本地 fixture 的临时数字人 localStorage 指针已复原；默认 flags、PG-L paused、平台/授权/上传/最终发布/Git 边界不变 | 交回独立六维复审；P0/P1 闭环前不得进入 BRAND-PROJECT-5 |
+| 2026-07-30 | BRAND-PROJECT-4 首轮独立复审 P1/P2 修复 | P0=0/P1=1/P2=3：新 typed handoff 对 null provenance、target mismatch、cross-project、mixed snapshot 全部在写入前稳定失败；既有 null handoff 只读不回填；AppRun repository 信任边界区分普通 current、typed source 精确旧快照和幂等重放；轮播 fixture 改走真实 renderer/AppRunner；本地数字人接收后 1–6 步统一完成 | [`BRAND-PROJECT-4-implementation-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-4-implementation-2026-07-30.md)；[`qa/BRAND-PROJECT-4-implementation-2026-07-30.json`](application-publishing-program/qa/BRAND-PROJECT-4-implementation-2026-07-30.json)；后端聚合 176/12 warnings、Stage4 9、Desktop 18 files/123、build 4610、sidecar 双周期；页面实载 3 张 1080×1440 图文并保存成品截图；数字人 completed + 1–6 done 由 repository/session/test 交叉验证 | `PG-BP-E_remediation_review_pending`；数字人新版 Browser 补图因安全策略禁止写入恢复指针而未取得，未绕过、未伪报；默认 flags、PG-L paused、平台/授权/上传/最终发布/Git 边界不变 | 交回同一独立六维复审线程；通过前不得进入 BRAND-PROJECT-5 |
+| 2026-07-30 | BRAND-PROJECT-4 full split 复验夹具修复 | 复验非浏览器组 `797 passed / 2 failed` 定位为两个 App Workbench 图文 V2 用例仍直接创建 null provenance `selected_title`；仅迁移测试夹具为可信同项目、同快照 `AppRun → Artifact → ArtifactVersion`，保留原 style/fact 断言；新增 public append 可保存 legacy null、但新 typed run/handoff 必须显式映射并 fail-closed 的回归 | [`BRAND-PROJECT-4-implementation-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-4-implementation-2026-07-30.md)；[`qa/BRAND-PROJECT-4-implementation-2026-07-30.json`](application-publishing-program/qa/BRAND-PROJECT-4-implementation-2026-07-30.json)；两项定向 2 passed；Stage4 聚合 179 passed/12 warnings；同口径 full split 非浏览器 800、浏览器/慢组 131，合计 931 passed/0 failed | `PG-BP-E_remediation_review_pending` 不变；生产 `PROJECT_CONTEXT_LEGACY_MAPPING_REQUIRED` 未放宽；无 Browser、外部调用、发布或 Git 动作 | 交回同一独立六维复审线程；通过前不得进入 BRAND-PROJECT-5 |
+| 2026-07-30 | PG-BP-E 独立终验通过并切换 BRAND-PROJECT-5 | 同一独立严格审查线程确认 Stage4 全部整改闭环：typed handoff/仓储运行信任边界、legacy null 只读兼容、双运行隔离、四应用消费和实际交付均通过；P0/P1/P2=0 | [`BRAND-PROJECT-4-implementation-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-4-implementation-2026-07-30.md)；[`qa/BRAND-PROJECT-4-implementation-2026-07-30.json`](application-publishing-program/qa/BRAND-PROJECT-4-implementation-2026-07-30.json)；Python full split 931、Stage4+carousel 179、Desktop 123、build、35/35 hashes；独立审查 `/root/brand_project_stage4_strict_reviewer`：`PG-BP-E PASS with boundary` | 数字人新版 Browser 补图受安全策略限制，但持久化 session、1–6 done 幂等测试和封面/BGM/回执构成交叉证据；默认 flags、PG-L paused、外部平台和 Git 边界不变 | 唯一入口切换 BRAND-PROJECT-5；只实施受控启用、回归、性能、重启与 rollback，最终 PG-BP-F 前不得恢复 PROGRAM-ROLLOUT |
+| 2026-07-30 | BRAND-PROJECT-5 受控启用、回滚与本地实施收口 | 默认 flag 后端/契约/前端均保持 false；隔离环境完成 on→off→on-again 真实 Browser/DB 回滚，旧 UI v3 项目与历史结果非空且零写；真实历史 SQLite 副本迁移、失败注入回滚、显式同步后新增 snapshot/run/artifact/version、既有行逐行哈希不变；10 次 sidecar 和 repository/API 各 10 次基准通过 | [`BRAND-PROJECT-5-implementation-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-5-implementation-2026-07-30.md)；[`qa/BRAND-PROJECT-5-implementation-2026-07-30.json`](application-publishing-program/qa/BRAND-PROJECT-5-implementation-2026-07-30.json)；[`qa/BRAND-PROJECT-5-2026-07-30/browser-rollback-manifest.json`](application-publishing-program/qa/BRAND-PROJECT-5-2026-07-30/browser-rollback-manifest.json)；Python 800+131=931、Desktop 18 files/123、build 4610、Ruff/format/JSON/diff/hash clean | `PG-BP-F_implementation_review_pending`；初始 on 为真实 DOM-only，off/on-again 有真实截图；性能预算仅宽松本地 regression guard，非 SLA；默认 flags、PG-L paused、Windows/产品签字/真实平台 rollback、外部平台、最终发布、Git 边界不变 | 交最终独立六维终审；P0/P1/实质性 P2=0 前不关闭 PG-BP-F、不恢复 PROGRAM-ROLLOUT |
+| 2026-07-30 | PG-BP-F 最终独立终验通过并恢复 PROGRAM-ROLLOUT/PG-L | 严格只读审查确认品牌包唯一资料源、项目工作流边界、固定 revision、显式同步、历史不可变、四应用统一消费及 on/off 回滚完整闭环；P0/P1/实质性 P2=0；品牌子计划关闭为 `completed_with_boundary` | [`BRAND-PROJECT-5-final-review-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-5-final-review-2026-07-30.md)；[`BRAND-PROJECT-5-implementation-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-5-implementation-2026-07-30.md)；独立审查 `/root/brand_project_stage5_final_reviewer`：`PG-BP-F PASS with boundary` | 初始 on 仅 DOM 证据、性能仅本地 guard；Windows 实机、产品签字、真实平台 rollback/WebView SLA 仍 open；PG-L 未通过；默认 Publish V2 与最终自动点击仍关闭 | 唯一入口恢复 `PROGRAM-ROLLOUT/PG-L_waiting_user`，等待外部验收，不启动新业务 Stage |
+| 2026-07-30 | CR-BRAND-PROJECT-ROLLOUT-001 正式启用独立六维终审通过 | 桌面生产构建同步开启应用工作台与品牌项目新版；Tauri `desktop_runtime` 与 FastAPI sidecar 使用同一运行时解析结果，`0/false` 前后端同步回滚；修复 375px 旧项目提示按钮挤压正文和数字人来源 Tab 裁切；数字人普通 UI 移除技术词；独立审查确认无范围偏离 | [`PROGRAM-ROLLOUT-brand-project-enable-2026-07-30.md`](application-publishing-program/PROGRAM-ROLLOUT-brand-project-enable-2026-07-30.md)；[`PROGRAM-ROLLOUT-brand-project-enable-review-2026-07-30.md`](application-publishing-program/PROGRAM-ROLLOUT-brand-project-enable-review-2026-07-30.md)；[`qa/PROGRAM-ROLLOUT-brand-project-enable-2026-07-30/manifest.json`](application-publishing-program/qa/PROGRAM-ROLLOUT-brand-project-enable-2026-07-30/manifest.json)；Python 137、Desktop 125、Tauri 2、build 4610；P0/P1/P2=0 | `PROGRAM-ROLLOUT/implementation_pass_with_boundary`；Windows 实机、产品签字、真实平台 rollback/WebView SLA 仍 open；最终发布自动点击不变 | 分批提交、推送、更新现有 PR #16 并合并；以合并提交构建 Windows NSIS 安装包 |

@@ -1,0 +1,54 @@
+- complementary:
+  - generic: PV
+  - strong: Pixelle Video
+  - generic: 企业视频工作台
+  - menu:
+    - menuitem "工作台":
+      - generic: 工作台
+    - menuitem "应用中心":
+      - generic: 应用中心
+    - menuitem "即刻成片":
+      - generic: 即刻成片
+    - separator
+    - menuitem "企业资产库":
+      - generic: 企业资产库
+    - separator
+    - menuitem "发布中心":
+      - generic: 发布中心
+    - menuitem "任务记录":
+      - generic: 任务记录
+    - menuitem "系统设置":
+      - generic: 系统设置
+- banner:
+  - heading "应用流程" [level=3]
+  - text: 按应用完成输入、生成、审核和交接。
+  - generic: 本机安全模式
+- main:
+  - region "门店营销文案应用流程":
+    - generic: 文案创作
+    - heading "门店营销文案" [level=2]
+    - generic: 选好项目和表达风格，生成可以直接修改和继续使用的营销文案。
+    - button "返回应用中心":
+      - generic: 返回应用中心
+    - generic: 开始创作
+    - alert:
+      - img "close-circle":
+      - generic: 后端服务未连接，请确认 API 服务已启动。
+    - generic "应用中心全局项目":
+      - strong: 选择项目 *
+      - generic: 从这里创建第一个项目
+      - combobox "当前创作项目"
+      - img "down":
+      - button "我的项目":
+        - generic: 我的项目
+    - textbox "项目名称"
+    - textbox "本次营销目标"
+    - generic: 本次主推 *
+    - textbox "本次主推 *":
+      - /placeholder: 选择项目后会自动带入商品或服务
+    - generic "更多选项"
+    - button "生成营销文案" [disabled]:
+      - generic: 生成营销文案
+    - generic "项目操作"
+    - heading "先选择或新建项目" [level=4]
+    - generic: 项目确定后，这里会显示生成进度、内容结果和下一步操作。

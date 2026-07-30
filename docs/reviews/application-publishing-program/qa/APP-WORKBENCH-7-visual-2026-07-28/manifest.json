@@ -1,0 +1,491 @@
+{
+  "stage": "APP-WORKBENCH-7",
+  "captured_at": "2026-07-28",
+  "method": "in-app-browser CDP Emulation.setDeviceMetricsOverride + tab.screenshot",
+  "viewports": [
+    {
+      "w": 1440,
+      "h": 900,
+      "label": "1440x900"
+    },
+    {
+      "w": 1280,
+      "h": 800,
+      "label": "1280x800"
+    },
+    {
+      "w": 900,
+      "h": 760,
+      "label": "900x760"
+    },
+    {
+      "w": 390,
+      "h": 844,
+      "label": "390x844"
+    }
+  ],
+  "records": [
+    {
+      "slug": "marketing-copy",
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "label": "1440x900"
+      },
+      "file": "/Users/nickfury/projects/pixelle-video/docs/reviews/application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/marketing-copy-1440x900.png",
+      "docHeight": 900,
+      "docWidth": 1425,
+      "errorCount": 0,
+      "grid": {
+        "height": 2334,
+        "width": 1161,
+        "x": 244,
+        "y": 195
+      },
+      "innerHeight": 900,
+      "innerWidth": 1440,
+      "overflow": false,
+      "scrollHeight": 2625,
+      "scrollWidth": 1425,
+      "shell": {
+        "height": 2441,
+        "width": 1161,
+        "x": 244,
+        "y": 88
+      },
+      "title": ""
+    },
+    {
+      "slug": "viral-titles",
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "label": "1440x900"
+      },
+      "file": "/Users/nickfury/projects/pixelle-video/docs/reviews/application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/viral-titles-1440x900.png",
+      "docHeight": 900,
+      "docWidth": 1425,
+      "errorCount": 0,
+      "grid": {
+        "height": 2476,
+        "width": 1161,
+        "x": 244,
+        "y": 195
+      },
+      "innerHeight": 900,
+      "innerWidth": 1440,
+      "overflow": false,
+      "scrollHeight": 2767,
+      "scrollWidth": 1425,
+      "shell": {
+        "height": 2583,
+        "width": 1161,
+        "x": 244,
+        "y": 88
+      },
+      "title": ""
+    },
+    {
+      "slug": "douyin-carousel",
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "label": "1440x900"
+      },
+      "file": "/Users/nickfury/projects/pixelle-video/docs/reviews/application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/douyin-carousel-1440x900.png",
+      "docHeight": 900,
+      "docWidth": 1425,
+      "errorCount": 0,
+      "grid": {
+        "height": 2435,
+        "width": 1161,
+        "x": 244,
+        "y": 195
+      },
+      "innerHeight": 900,
+      "innerWidth": 1440,
+      "overflow": false,
+      "scrollHeight": 2726,
+      "scrollWidth": 1425,
+      "shell": {
+        "height": 2542,
+        "width": 1161,
+        "x": 244,
+        "y": 88
+      },
+      "title": ""
+    },
+    {
+      "slug": "digital-human-video",
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "label": "1440x900"
+      },
+      "file": "/Users/nickfury/projects/pixelle-video/docs/reviews/application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/digital-human-video-1440x900.png",
+      "docHeight": 900,
+      "docWidth": 1425,
+      "errorCount": 0,
+      "grid": null,
+      "innerHeight": 900,
+      "innerWidth": 1440,
+      "overflow": false,
+      "scrollHeight": 2468,
+      "scrollWidth": 1425,
+      "shell": {
+        "height": 2284,
+        "width": 1161,
+        "x": 244,
+        "y": 88
+      },
+      "title": ""
+    },
+    {
+      "slug": "marketing-copy",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "label": "1280x800"
+      },
+      "file": "/Users/nickfury/projects/pixelle-video/docs/reviews/application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/marketing-copy-1280x800.png",
+      "docHeight": 800,
+      "docWidth": 1265,
+      "errorCount": 0,
+      "grid": {
+        "height": 2640,
+        "width": 1001,
+        "x": 244,
+        "y": 195
+      },
+      "innerHeight": 800,
+      "innerWidth": 1280,
+      "overflow": false,
+      "scrollHeight": 2931,
+      "scrollWidth": 1265,
+      "shell": {
+        "height": 2747,
+        "width": 1001,
+        "x": 244,
+        "y": 88
+      },
+      "title": ""
+    },
+    {
+      "slug": "viral-titles",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "label": "1280x800"
+      },
+      "file": "/Users/nickfury/projects/pixelle-video/docs/reviews/application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/viral-titles-1280x800.png",
+      "docHeight": 800,
+      "docWidth": 1265,
+      "errorCount": 0,
+      "grid": {
+        "height": 2712,
+        "width": 1001,
+        "x": 244,
+        "y": 195
+      },
+      "innerHeight": 800,
+      "innerWidth": 1280,
+      "overflow": false,
+      "scrollHeight": 3003,
+      "scrollWidth": 1265,
+      "shell": {
+        "height": 2819,
+        "width": 1001,
+        "x": 244,
+        "y": 88
+      },
+      "title": ""
+    },
+    {
+      "slug": "douyin-carousel",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "label": "1280x800"
+      },
+      "file": "/Users/nickfury/projects/pixelle-video/docs/reviews/application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/douyin-carousel-1280x800.png",
+      "docHeight": 800,
+      "docWidth": 1265,
+      "errorCount": 0,
+      "grid": {
+        "height": 2841,
+        "width": 1001,
+        "x": 244,
+        "y": 195
+      },
+      "innerHeight": 800,
+      "innerWidth": 1280,
+      "overflow": false,
+      "scrollHeight": 3131,
+      "scrollWidth": 1265,
+      "shell": {
+        "height": 2947,
+        "width": 1001,
+        "x": 244,
+        "y": 88
+      },
+      "title": ""
+    },
+    {
+      "slug": "digital-human-video",
+      "viewport": {
+        "width": 1280,
+        "height": 800,
+        "label": "1280x800"
+      },
+      "file": "/Users/nickfury/projects/pixelle-video/docs/reviews/application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/digital-human-video-1280x800.png",
+      "docHeight": 800,
+      "docWidth": 1265,
+      "errorCount": 0,
+      "grid": null,
+      "innerHeight": 800,
+      "innerWidth": 1280,
+      "overflow": false,
+      "scrollHeight": 2534,
+      "scrollWidth": 1265,
+      "shell": {
+        "height": 2350,
+        "width": 1001,
+        "x": 244,
+        "y": 88
+      },
+      "title": ""
+    },
+    {
+      "slug": "marketing-copy",
+      "viewport": {
+        "width": 900,
+        "height": 760,
+        "label": "900x760"
+      },
+      "file": "/Users/nickfury/projects/pixelle-video/docs/reviews/application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/marketing-copy-900x760.png",
+      "docHeight": 760,
+      "docWidth": 885,
+      "errorCount": 0,
+      "grid": {
+        "height": 2038,
+        "width": 769,
+        "x": 96,
+        "y": 247
+      },
+      "innerHeight": 760,
+      "innerWidth": 900,
+      "overflow": false,
+      "scrollHeight": 2380,
+      "scrollWidth": 885,
+      "shell": {
+        "height": 2196,
+        "width": 769,
+        "x": 96,
+        "y": 88
+      },
+      "title": ""
+    },
+    {
+      "slug": "viral-titles",
+      "viewport": {
+        "width": 900,
+        "height": 760,
+        "label": "900x760"
+      },
+      "file": "/Users/nickfury/projects/pixelle-video/docs/reviews/application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/viral-titles-900x760.png",
+      "docHeight": 760,
+      "docWidth": 885,
+      "errorCount": 0,
+      "grid": {
+        "height": 2143,
+        "width": 769,
+        "x": 96,
+        "y": 247
+      },
+      "innerHeight": 760,
+      "innerWidth": 900,
+      "overflow": false,
+      "scrollHeight": 2486,
+      "scrollWidth": 885,
+      "shell": {
+        "height": 2302,
+        "width": 769,
+        "x": 96,
+        "y": 88
+      },
+      "title": ""
+    },
+    {
+      "slug": "douyin-carousel",
+      "viewport": {
+        "width": 900,
+        "height": 760,
+        "label": "900x760"
+      },
+      "file": "/Users/nickfury/projects/pixelle-video/docs/reviews/application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/douyin-carousel-900x760.png",
+      "docHeight": 760,
+      "docWidth": 885,
+      "errorCount": 0,
+      "grid": {
+        "height": 2238,
+        "width": 769,
+        "x": 96,
+        "y": 247
+      },
+      "innerHeight": 760,
+      "innerWidth": 900,
+      "overflow": false,
+      "scrollHeight": 2581,
+      "scrollWidth": 885,
+      "shell": {
+        "height": 2397,
+        "width": 769,
+        "x": 96,
+        "y": 88
+      },
+      "title": ""
+    },
+    {
+      "slug": "digital-human-video",
+      "viewport": {
+        "width": 900,
+        "height": 760,
+        "label": "900x760"
+      },
+      "file": "/Users/nickfury/projects/pixelle-video/docs/reviews/application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/digital-human-video-900x760.png",
+      "docHeight": 760,
+      "docWidth": 885,
+      "errorCount": 0,
+      "grid": null,
+      "innerHeight": 760,
+      "innerWidth": 900,
+      "overflow": false,
+      "scrollHeight": 2405,
+      "scrollWidth": 885,
+      "shell": {
+        "height": 2221,
+        "width": 769,
+        "x": 96,
+        "y": 88
+      },
+      "title": ""
+    },
+    {
+      "slug": "marketing-copy",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "label": "390x844"
+      },
+      "file": "/Users/nickfury/projects/pixelle-video/docs/reviews/application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/marketing-copy-390x844.png",
+      "docHeight": 844,
+      "docWidth": 375,
+      "errorCount": 0,
+      "grid": {
+        "height": 3209,
+        "width": 283,
+        "x": 84,
+        "y": 313
+      },
+      "innerHeight": 844,
+      "innerWidth": 390,
+      "overflow": false,
+      "scrollHeight": 3562,
+      "scrollWidth": 375,
+      "shell": {
+        "height": 3442,
+        "width": 283,
+        "x": 84,
+        "y": 80
+      },
+      "title": ""
+    },
+    {
+      "slug": "viral-titles",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "label": "390x844"
+      },
+      "file": "/Users/nickfury/projects/pixelle-video/docs/reviews/application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/viral-titles-390x844.png",
+      "docHeight": 844,
+      "docWidth": 375,
+      "errorCount": 0,
+      "grid": {
+        "height": 3368,
+        "width": 283,
+        "x": 84,
+        "y": 313
+      },
+      "innerHeight": 844,
+      "innerWidth": 390,
+      "overflow": false,
+      "scrollHeight": 3721,
+      "scrollWidth": 375,
+      "shell": {
+        "height": 3601,
+        "width": 283,
+        "x": 84,
+        "y": 80
+      },
+      "title": ""
+    },
+    {
+      "slug": "douyin-carousel",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "label": "390x844"
+      },
+      "file": "/Users/nickfury/projects/pixelle-video/docs/reviews/application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/douyin-carousel-390x844.png",
+      "docHeight": 844,
+      "docWidth": 375,
+      "errorCount": 0,
+      "grid": {
+        "height": 3237,
+        "width": 283,
+        "x": 84,
+        "y": 313
+      },
+      "innerHeight": 844,
+      "innerWidth": 390,
+      "overflow": false,
+      "scrollHeight": 3590,
+      "scrollWidth": 375,
+      "shell": {
+        "height": 3470,
+        "width": 283,
+        "x": 84,
+        "y": 80
+      },
+      "title": ""
+    },
+    {
+      "slug": "digital-human-video",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "label": "390x844"
+      },
+      "file": "/Users/nickfury/projects/pixelle-video/docs/reviews/application-publishing-program/qa/APP-WORKBENCH-7-visual-2026-07-28/digital-human-video-390x844.png",
+      "docHeight": 844,
+      "docWidth": 375,
+      "errorCount": 0,
+      "grid": null,
+      "innerHeight": 844,
+      "innerWidth": 390,
+      "overflow": false,
+      "scrollHeight": 2955,
+      "scrollWidth": 375,
+      "shell": {
+        "height": 2835,
+        "width": 283,
+        "x": 84,
+        "y": 80
+      },
+      "title": ""
+    }
+  ],
+  "final_publish_click_count": 0,
+  "third_party_open_count": 0
+}

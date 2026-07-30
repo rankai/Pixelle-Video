@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "stage": "BRAND-PROJECT-0",
+  "capture_mode": "read_only_current_local_page_and_user_supplied_current_page_screenshots",
+  "business_ui_changes_during_capture": 0,
+  "local_runtime": {
+    "url": "http://127.0.0.1:1420/#/apps/marketing-copy",
+    "captured_backend_state": "disconnected",
+    "note": "The current Vite page was already running on 1420; 1421 was unavailable. No form was submitted and no project, brand, snapshot or artifact was written."
+  },
+  "files": [
+    {
+      "path": "marketing-copy-current-full.jpg",
+      "sha256": "cb4a4b07a8ea09308cd750c14108db738f6e4781fb0f905bd5c263e7f2fc3296",
+      "source": "read-only browser full-page capture",
+      "evidence": [
+        "project selector",
+        "project name and marketing goal repeated in the application route",
+        "project operation disclosure",
+        "backend disconnected banner"
+      ]
+    },
+    {
+      "path": "marketing-copy-current-dom.txt",
+      "sha256": "ba71046590c7b95ab352278ef20bcbd127755c28a9183d768d8b9c8141b634c5",
+      "source": "read-only browser DOM snapshot",
+      "evidence": [
+        "选择项目",
+        "项目名称",
+        "本次营销目标",
+        "项目操作"
+      ]
+    },
+    {
+      "path": "technical-version-controls-current.png",
+      "sha256": "50dda445d158181b9ee6926d3e2fd6d92acd9b50f146656497ea3cf0a4989c02",
+      "source": "user-supplied screenshot of the current local application page",
+      "evidence": [
+        "内容来源",
+        "已有文案版本",
+        "文案产物",
+        "固定内容版本"
+      ]
+    },
+    {
+      "path": "duplicate-project-operations-current.png",
+      "sha256": "ea2b84b9ed414357bee9a64564fbbb4066bc52752c1e28e70513cdcaa6a75944",
+      "source": "user-supplied screenshot of the current local application page",
+      "evidence": [
+        "project information repeated inside an application",
+        "保存项目",
+        "归档项目",
+        "项目操作 exposed below the generation action"
+      ]
+    }
+  ],
+  "baseline_only": true,
+  "remediation_owner_stage": "BRAND-PROJECT-3"
+}

@@ -1,0 +1,81 @@
+{
+  "fixture": "BRAND-PROJECT-4",
+  "project_id": "project_4fef6d655939482b9cf6a42ec962e7d3",
+  "old_context_snapshot_id": "context_57beda5c57cd44f39ad8d7332cc74a4f",
+  "current_context_snapshot_id": "context_9b13b82280ba4148a7d03a8500e8ada7",
+  "old_marketing_run_id": "run_eee1d20b751545e3b81e9a15b99b36a2",
+  "old_marketing_artifact_version_id": "artifact_version_9c879c6e9d06465aacf59041efc1a262",
+  "new_marketing_run_id": "run_eee267c9325b4bab8b227f900c3473f0",
+  "new_marketing_artifact_version_id": "artifact_version_32364ed23c644744a8e44e6e90ebaea4",
+  "title_run_id": "run_c9aed789f01f4f1789eaf919a9d8e037",
+  "title_artifact_id": "artifact_8660dbe64ec24d079361215e18ce7785",
+  "title_artifact_version_id": "artifact_version_53e950e6b4904c07981215e49256e5a4",
+  "carousel_run_id": "run_6327649aed87447c9023946ad99e6631",
+  "carousel_artifact_id": "artifact_00954897457a467b806d285864a6595e",
+  "carousel_artifact_version_id": "artifact_version_ec02042173f14be9b4abd2189c719939",
+  "carousel_page_artifact_ids": [
+    "artifact_680cc09e643e4b28ad99d4e7687c5697",
+    "artifact_a7e4ff164fab4b808ebd971456edd22f",
+    "artifact_b39726d75ccc41e8bad840c5623c55c3"
+  ],
+  "carousel_page_artifact_version_ids": [
+    "artifact_version_391e5e7668df41fc9417e466a1273a00",
+    "artifact_version_ac263124d434483e81210f4457cd6031",
+    "artifact_version_e81ce4892fa948a0903d423b7133eea2"
+  ],
+  "carousel_page_file_refs": [
+    {
+      "file_key": "page-01.png",
+      "height": 1440,
+      "kind": "image",
+      "mime_type": "image/png",
+      "page_index": 1,
+      "relative_path": "run_6327649aed87447c9023946ad99e6631/pages/page-01.png",
+      "sha256": "sha256:a26568db6f1e469342d24a3388e33c2f041d583a1b3585c484f31a1c34aecd7d",
+      "size_bytes": 33005,
+      "width": 1080
+    },
+    {
+      "file_key": "page-02.png",
+      "height": 1440,
+      "kind": "image",
+      "mime_type": "image/png",
+      "page_index": 2,
+      "relative_path": "run_6327649aed87447c9023946ad99e6631/pages/page-02.png",
+      "sha256": "sha256:559de4689db9959ce665928d90eae9cc9bd9219e106173e488e66a1a8cc4a65c",
+      "size_bytes": 34683,
+      "width": 1080
+    },
+    {
+      "file_key": "page-03.png",
+      "height": 1440,
+      "kind": "image",
+      "mime_type": "image/png",
+      "page_index": 3,
+      "relative_path": "run_6327649aed87447c9023946ad99e6631/pages/page-03.png",
+      "sha256": "sha256:adb5fdc33686124884010ace75192094b7e553df11d268d804c3b3a91844520c",
+      "size_bytes": 35338,
+      "width": 1080
+    }
+  ],
+  "digital_run_id": "run_d3fa01bc325f44a5b0bee4a831e75a8c",
+  "digital_session_id": "0963b86461fb41348ca7ea883f5adcea",
+  "digital_source_revision": "sha256:7411a13ac6cc400bec6c73bebc77eb132af8732a1cf2a7eb6d60a76b30920726",
+  "digital_step_status": {
+    "1": "done",
+    "2": "done",
+    "3": "done",
+    "4": "done",
+    "5": "done",
+    "6": "done"
+  },
+  "digital_artifact_versions": {
+    "video": "artifact_version_cb4d3f5cb64e4ddf8cc4ae6e0f26f0db",
+    "cover": "artifact_version_95bb0a0a1cec439a8b7fb1391b0a9e9d",
+    "publish_copy": "artifact_version_e827237b0dd4460990d3910428899192"
+  },
+  "new_logo_asset_id": "media-1e6b18f62e1e4dd08c2609d0bd2d4f7b",
+  "new_bgm_asset_id": "media-3598d9ac054944e5817c6dc7128183c1",
+  "external_actions": 0,
+  "platform_publish_actions": 0
+}

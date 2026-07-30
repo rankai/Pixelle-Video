@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "stage": "PROGRAM-ROLLOUT",
+  "change_request": "CR-BRAND-PROJECT-ROLLOUT-001",
+  "captured_at": "2026-07-30",
+  "source": {
+    "ui_url": "http://127.0.0.1:1420",
+    "api_url": "http://127.0.0.1:8100",
+    "runtime": "in_app_browser_real_local_fastapi_and_vite",
+    "mocked_page": false
+  },
+  "assertions": {
+    "desktop_client_width": 1265,
+    "desktop_scroll_width": 1265,
+    "mobile_client_width": 375,
+    "mobile_scroll_width": 375,
+    "horizontal_overflow": false,
+    "ordinary_ui_technical_terms_visible": false,
+    "legacy_alert_section_width_px": 199,
+    "legacy_alert_section_top_px": 495.4453125,
+    "legacy_alert_action_top_px": 616.5859375,
+    "legacy_alert_action_below_copy": true,
+    "digital_human_tabs_desktop_client_width": 337,
+    "digital_human_tabs_desktop_scroll_width": 337,
+    "digital_human_tabs_mobile_client_width": 245,
+    "digital_human_tabs_mobile_scroll_width": 245,
+    "digital_human_tabs_all_inside_desktop": true,
+    "digital_human_tabs_all_inside_mobile": true,
+    "runtime_error_alerts": 0,
+    "console_errors": 0,
+    "console_boundary": "only_existing_antd_deprecation_warnings"
+  },
+  "screenshots": [
+    {
+      "path": "1265-app-center.png",
+      "width": 1265,
+      "height": 712,
+      "sha256": "b831233162126754bde5dd3afd8d1be14aa045a9e7a0d0f33fedb44bed43ffc3"
+    },
+    {
+      "path": "1265-marketing-copy.png",
+      "width": 1265,
+      "height": 712,
+      "sha256": "3c9ff229b9c4b99ca106293494c44865a4bf4d2c92fdbc911a657811d1f88f35"
+    },
+    {
+      "path": "1265-viral-titles.png",
+      "width": 1265,
+      "height": 712,
+      "sha256": "71e8d90d1a81e698d4129380848a5bebdccc0a71d72a5c446b4f5b6978008cf5"
+    },
+    {
+      "path": "1265-douyin-carousel.png",
+      "width": 1265,
+      "height": 712,
+      "sha256": "a20b13d696a640bc6c810dada75dcf5a5b239ea4912fb48e2a5e30475519b6e3"
+    },
+    {
+      "path": "1265-digital-human.png",
+      "width": 1265,
+      "height": 712,
+      "sha256": "0a62685a22913f3d38eaf993573323c19e9c4f1a3f4f3d0fd0762fdf98db0f1c"
+    },
+    {
+      "path": "1265-my-projects-entry.png",
+      "width": 1265,
+      "height": 712,
+      "sha256": "8d81cfa0b26a9ddca7ca8e286ee92c82e5b5da2bbf0698f3abec0441799e4f0a"
+    },
+    {
+      "path": "375-old-project-brand-alert.png",
+      "width": 375,
+      "height": 812,
+      "sha256": "4a78d96305270dd4d753d2a4f15db45c7500a603cc7cf6751a972866a6ed2b79"
+    },
+    {
+      "path": "375-digital-human-source-tabs.png",
+      "width": 375,
+      "height": 812,
+      "sha256": "3f26c683175dc39e89a159e08a2d17d2dd1b9bf466ab4f50a0aeccb9f847d698"
+    }
+  ],
+  "mutations": {
+    "project_writes": 0,
+    "brand_writes": 0,
+    "provider_calls": 0,
+    "publish_clicks": 0
+  }
+}

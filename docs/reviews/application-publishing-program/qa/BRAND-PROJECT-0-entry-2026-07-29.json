@@ -1,0 +1,191 @@
+{
+  "schema_version": 2,
+  "stage": "BRAND-PROJECT-0",
+  "gate": "PG-BP-A",
+  "status": "entry_remediated_pending_independent_re_review",
+  "gate_recommendation": "passed_with_boundary",
+  "change_request": "CR-BRAND-PROJECT-BOUNDARY-001",
+  "independent_review": {
+    "first_pass": {
+      "p0": 0,
+      "p1": 5,
+      "p2": 2,
+      "result": "blocked"
+    },
+    "second_pass": {
+      "p0": 0,
+      "p1": 1,
+      "p2": 1,
+      "result": "blocked"
+    },
+    "remediation_status": "complete_pending_re_review"
+  },
+  "paused_checkpoint": {
+    "stage": "PROGRAM-ROLLOUT",
+    "gate": "PG-L",
+    "status": "paused_external",
+    "unchanged_boundaries": [
+      "Windows real user device acceptance",
+      "product owner sign-off",
+      "real platform rollback and WebView SLA"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "docs/reviews/application-publishing-program/BRAND-PROJECT-boundary-closeout-plan-2026-07-29.md",
+      "sha256": "dd940187f109f5df95336b181edb985b36961dbb143470f0b6fb1635659cb3e2"
+    },
+    {
+      "path": "docs/contracts/app-center/context-snapshot-v3.schema.json",
+      "sha256": "a673bf20b7c78cd3f5cefa887aabf001728e12f291156140c0e9646ba19d8703"
+    },
+    {
+      "path": "docs/contracts/app-center/context-snapshot-v3-write-request.schema.json",
+      "sha256": "6bc40e0dde14625f228e66c2cc0e91ba9f4067d70a9741812f95ea117be6629a"
+    },
+    {
+      "path": "docs/contracts/app-center/brand-project-boundary-entry.contract.json",
+      "sha256": "e55ad26702861d606f2f96035e15842a0ac052e9bfdccbd915dbbef99cc63c26"
+    },
+    {
+      "path": "docs/contracts/app-center/fixtures/brand-project-boundary-entry-fixtures.json",
+      "sha256": "68322af6ecc9122891b0fd2d8e9175e49364448e38d97b2a7f7c06fc321e4c08"
+    },
+    {
+      "path": "docs/contracts/app-center/feature-flag-matrix.json",
+      "sha256": "7bd7f0e6e8acb1b257d71feb656e9db2c8112a6bd76744d3a9db01fd7f490ca8"
+    },
+    {
+      "path": "tests/brand_project_boundary_entry_contract_test.py",
+      "sha256": "3448f4a612e38e9361ba7ed6a9dc83f6a5bb01230d788b72c476a4439ede95a1"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/BRAND-PROJECT-0-entry-2026-07-29.md",
+      "sha256": "4c7454d6e8a05a2d2de9e147708f0ba34efbae27cde812b73cfc6a3d3d7e51ef"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-0-entry-attribution-baseline-2026-07-29.json",
+      "sha256": "4af2c85269f122a4daea325a1215ff556316f0b4ea3cb352bb2dd803b1ec5d04"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-0-visual-baseline-2026-07-29/manifest.json",
+      "sha256": "6a1ea250591384983e1a6abc9cb2426dc253b3a13b73d2f57cd74b2f9ad3d0be"
+    }
+  ],
+  "contracts": {
+    "brand_is_enterprise_asset_source": true,
+    "project_is_workflow_not_asset": true,
+    "relationship": "BrandKit 1:N ContentProject; ContentProject 0..1 BrandKit",
+    "ready_brand_creation_cases": [
+      "zero",
+      "one",
+      "multiple",
+      "legacy_null"
+    ],
+    "single_brand_auto_select_only_during_explicit_create": true,
+    "read_auto_bind": false,
+    "legacy_null_brand_id_auto_bind": false,
+    "brand_domain_revision_pinned": true,
+    "logo_media_revision_pinned": true,
+    "default_bgm_media_revision_pinned": true,
+    "project_override_label": "仅本项目使用",
+    "project_override_writes_brand": false,
+    "explicit_sync_required": true,
+    "historical_snapshot_mutation": false,
+    "v3_to_v2_projection_read_only": true,
+    "ordinary_user_technical_fields_hidden": true,
+    "stored_brand_context_server_resolver_only": true,
+    "client_brand_context_rejected": true,
+    "unbranded_project_overrides_must_be_empty": true,
+    "unbranded_business_fields_remain_in_project_brief": true,
+    "non_overridden_values_equal_pinned_revision": true,
+    "offer_required_fields_unique": true,
+    "sync_no_change_is_result_not_error": true,
+    "project_logo_null_clear_supported": false,
+    "project_default_bgm_null_clear_supported": false,
+    "restore_brand_default_by_removing_override": true,
+    "brand_level_no_logo_or_bgm_owned_by_asset_library": true
+  },
+  "rollback": {
+    "flag_off_keeps_legacy_interaction": true,
+    "v3_permanently_readable": true,
+    "flag_off_blocks_new_v3_writes": true,
+    "flag_off_blocks_brand_sync": true,
+    "failed_sync_does_not_move_brand_id": true,
+    "failed_sync_does_not_move_current_snapshot": true,
+    "failed_sync_does_not_append_snapshot": true,
+    "deletes": 0,
+    "restart_recovers_last_commit": true,
+    "reenable_continues_from_last_commit": true,
+    "runtime_failure_injection_owner_gate": "BRAND-PROJECT-3/PG-BP-D"
+  },
+  "read_no_write_baseline": {
+    "database": "isolated pytest temporary SQLite only",
+    "repository_read_cycles": 3,
+    "api_read_cycles": 3,
+    "api_routes": [
+      "GET /api/content-projects",
+      "GET /api/content-projects/{project_id}",
+      "GET /api/content-projects/{project_id}/context-snapshots",
+      "GET /api/v2/library/items?kind=brand",
+      "GET /api/v2/library/items/{brand_id}"
+    ],
+    "app_center_all_tables_unchanged": true,
+    "asset_library_all_tables_unchanged": true,
+    "desktop_get_function_ownership_static_check": true,
+    "desktop_live_db_before_after": "deferred_to_BRAND-PROJECT-3/PG-BP-D",
+    "production_database_writes": 0
+  },
+  "visual_and_attribution": {
+    "current_local_page_captured_read_only": true,
+    "user_current_page_screenshots_archived": 2,
+    "visual_manifest_hashes_verified": true,
+    "entry_starting_commit": "8de798d260459bb0e62d44b0bb7ab670f4b8b92f",
+    "prohibited_business_files_hashed": 11,
+    "prohibited_business_files_unchanged": true,
+    "business_ui_changes": 0,
+    "business_write_logic_changes": 0
+  },
+  "tests": {
+    "entry_targeted": {
+      "command": "uv run pytest -q tests/brand_project_boundary_entry_contract_test.py",
+      "result": "14 passed, 12 existing warnings"
+    },
+    "entry_coordination_regression": {
+      "command": "uv run pytest -q tests/brand_project_boundary_entry_contract_test.py tests/app_workbench_entry_contract_test.py tests/coord0_contract_test.py",
+      "result": "42 passed, 12 existing warnings"
+    },
+    "json_parse": "passed",
+    "json_schema_self_check": "passed",
+    "ruff_check": "passed",
+    "new_entry_test_format_check": "passed",
+    "controlled_diff_check": "passed",
+    "artifact_hash_check": "passed"
+  },
+  "feature_flag": {
+    "name": "brandProjectBoundaryV1",
+    "env": "PIXELLE_BRAND_PROJECT_BOUNDARY_V1",
+    "default": false,
+    "runtime_wiring_in_entry": false,
+    "v3_read_controlled_by_flag": false
+  },
+  "external_actions": {
+    "llm_calls": 0,
+    "tts_calls": 0,
+    "runninghub_calls": 0,
+    "third_party_browser_or_platform_actions": 0,
+    "local_read_only_browser_captures": 1,
+    "authorizations": 0,
+    "uploads": 0,
+    "final_publish_clicks": 0
+  },
+  "entry_boundaries": [
+    "No business UI changed.",
+    "No business write logic changed.",
+    "No production database migration or write executed.",
+    "No v3 runtime resolver or write path implemented.",
+    "Desktop live DB before/after and runtime rollback verification remain PG-BP-D blockers.",
+    "PG-BP-A remains pending independent re-review.",
+    "PROGRAM-ROLLOUT/PG-L external checkpoint remains paused and open."
+  ]
+}

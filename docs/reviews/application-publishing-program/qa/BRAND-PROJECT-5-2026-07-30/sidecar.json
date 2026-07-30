@@ -1,0 +1,271 @@
+{
+  "stage": "BRAND-PROJECT-5",
+  "phase": "sidecar_lifecycle",
+  "cycles": [
+    {
+      "cycle": 1,
+      "flag_enabled": false,
+      "health": {
+        "status": "healthy",
+        "version": "0.1.0",
+        "service": "Pixelle-Video API"
+      },
+      "health_status": 200,
+      "apps_status": 200,
+      "app_count": 0,
+      "projects_status": 200,
+      "project_count": 1,
+      "port_open": true,
+      "returncode": -15,
+      "port_released": true
+    },
+    {
+      "cycle": 2,
+      "flag_enabled": false,
+      "health": {
+        "status": "healthy",
+        "version": "0.1.0",
+        "service": "Pixelle-Video API"
+      },
+      "health_status": 200,
+      "apps_status": 200,
+      "app_count": 0,
+      "projects_status": 200,
+      "project_count": 1,
+      "port_open": true,
+      "returncode": -15,
+      "port_released": true
+    },
+    {
+      "cycle": 3,
+      "flag_enabled": false,
+      "health": {
+        "status": "healthy",
+        "version": "0.1.0",
+        "service": "Pixelle-Video API"
+      },
+      "health_status": 200,
+      "apps_status": 200,
+      "app_count": 0,
+      "projects_status": 200,
+      "project_count": 1,
+      "port_open": true,
+      "returncode": -15,
+      "port_released": true
+    },
+    {
+      "cycle": 4,
+      "flag_enabled": false,
+      "health": {
+        "status": "healthy",
+        "version": "0.1.0",
+        "service": "Pixelle-Video API"
+      },
+      "health_status": 200,
+      "apps_status": 200,
+      "app_count": 0,
+      "projects_status": 200,
+      "project_count": 1,
+      "port_open": true,
+      "returncode": -15,
+      "port_released": true
+    },
+    {
+      "cycle": 5,
+      "flag_enabled": false,
+      "health": {
+        "status": "healthy",
+        "version": "0.1.0",
+        "service": "Pixelle-Video API"
+      },
+      "health_status": 200,
+      "apps_status": 200,
+      "app_count": 0,
+      "projects_status": 200,
+      "project_count": 1,
+      "port_open": true,
+      "returncode": -15,
+      "port_released": true
+    },
+    {
+      "cycle": 6,
+      "flag_enabled": true,
+      "health": {
+        "status": "healthy",
+        "version": "0.1.0",
+        "service": "Pixelle-Video API"
+      },
+      "health_status": 200,
+      "apps_status": 200,
+      "app_count": 0,
+      "projects_status": 200,
+      "project_count": 1,
+      "port_open": true,
+      "returncode": -15,
+      "port_released": true
+    },
+    {
+      "cycle": 7,
+      "flag_enabled": true,
+      "health": {
+        "status": "healthy",
+        "version": "0.1.0",
+        "service": "Pixelle-Video API"
+      },
+      "health_status": 200,
+      "apps_status": 200,
+      "app_count": 0,
+      "projects_status": 200,
+      "project_count": 1,
+      "port_open": true,
+      "returncode": -15,
+      "port_released": true
+    },
+    {
+      "cycle": 8,
+      "flag_enabled": true,
+      "health": {
+        "status": "healthy",
+        "version": "0.1.0",
+        "service": "Pixelle-Video API"
+      },
+      "health_status": 200,
+      "apps_status": 200,
+      "app_count": 0,
+      "projects_status": 200,
+      "project_count": 1,
+      "port_open": true,
+      "returncode": -15,
+      "port_released": true
+    },
+    {
+      "cycle": 9,
+      "flag_enabled": true,
+      "health": {
+        "status": "healthy",
+        "version": "0.1.0",
+        "service": "Pixelle-Video API"
+      },
+      "health_status": 200,
+      "apps_status": 200,
+      "app_count": 0,
+      "projects_status": 200,
+      "project_count": 1,
+      "port_open": true,
+      "returncode": -15,
+      "port_released": true
+    },
+    {
+      "cycle": 10,
+      "flag_enabled": true,
+      "health": {
+        "status": "healthy",
+        "version": "0.1.0",
+        "service": "Pixelle-Video API"
+      },
+      "health_status": 200,
+      "apps_status": 200,
+      "app_count": 0,
+      "projects_status": 200,
+      "project_count": 1,
+      "port_open": true,
+      "returncode": -15,
+      "port_released": true
+    }
+  ],
+  "cycles_passed": 10,
+  "off_cycles": 5,
+  "on_cycles": 5,
+  "project_state_before": {
+    "project_id": "project_4fef6d655939482b9cf6a42ec962e7d3",
+    "tables": {
+      "content_projects": {
+        "rows": 1,
+        "sha256": "080d686e01dfe221748d1d84ed36df81c8191ed428cc8cff8ba5ee208b6ed98f"
+      },
+      "context_snapshots": {
+        "rows": 3,
+        "sha256": "5367ff8adae68a2df880e229dd0add187d7bf58f590c40afffe32abd4e53422d"
+      },
+      "app_runs": {
+        "rows": 6,
+        "sha256": "9a9ec49c80a614279afa285ee0af20b0a5d9303aa94107bf5938c7e1b3bd2611"
+      },
+      "artifacts": {
+        "rows": 12,
+        "sha256": "a00eedffaca42e61824be90b9f980c9f161f4b58e914014b6bc086db0b0a40de"
+      },
+      "artifact_versions": {
+        "rows": 12,
+        "sha256": "50fdea55ff8778f61f7fcbf56733eca8a3bd9117c5e67e79c3f5a7254d3cc046"
+      },
+      "artifact_handoffs": {
+        "rows": 1,
+        "sha256": "189c8392797d45619ec2d6e852631c626337783f8d0244bf22e7470ab17fd8af"
+      }
+    },
+    "project_business_sha256": "a67524d4aab47679b189a6e58116cfb48c55bbc27cee15dbbd166527216035fe"
+  },
+  "project_state_after": {
+    "project_id": "project_4fef6d655939482b9cf6a42ec962e7d3",
+    "tables": {
+      "content_projects": {
+        "rows": 1,
+        "sha256": "080d686e01dfe221748d1d84ed36df81c8191ed428cc8cff8ba5ee208b6ed98f"
+      },
+      "context_snapshots": {
+        "rows": 3,
+        "sha256": "5367ff8adae68a2df880e229dd0add187d7bf58f590c40afffe32abd4e53422d"
+      },
+      "app_runs": {
+        "rows": 6,
+        "sha256": "9a9ec49c80a614279afa285ee0af20b0a5d9303aa94107bf5938c7e1b3bd2611"
+      },
+      "artifacts": {
+        "rows": 12,
+        "sha256": "a00eedffaca42e61824be90b9f980c9f161f4b58e914014b6bc086db0b0a40de"
+      },
+      "artifact_versions": {
+        "rows": 12,
+        "sha256": "50fdea55ff8778f61f7fcbf56733eca8a3bd9117c5e67e79c3f5a7254d3cc046"
+      },
+      "artifact_handoffs": {
+        "rows": 1,
+        "sha256": "189c8392797d45619ec2d6e852631c626337783f8d0244bf22e7470ab17fd8af"
+      }
+    },
+    "project_business_sha256": "a67524d4aab47679b189a6e58116cfb48c55bbc27cee15dbbd166527216035fe"
+  },
+  "startup_and_reads_zero_business_write": true,
+  "interface_benchmark": {
+    "list_projects": {
+      "samples": 10,
+      "p50_ms": 0.942,
+      "p95_ms": 1.217,
+      "max_ms": 1.217,
+      "budget_ms": 500.0,
+      "within_budget": true,
+      "budget_kind": "wide_local_regression_guard_not_sla"
+    },
+    "get_project": {
+      "samples": 10,
+      "p50_ms": 0.771,
+      "p95_ms": 0.975,
+      "max_ms": 0.975,
+      "budget_ms": 500.0,
+      "within_budget": true,
+      "budget_kind": "wide_local_regression_guard_not_sla"
+    },
+    "list_context_snapshots": {
+      "samples": 10,
+      "p50_ms": 0.983,
+      "p95_ms": 1.316,
+      "max_ms": 1.316,
+      "budget_ms": 500.0,
+      "within_budget": true,
+      "budget_kind": "wide_local_regression_guard_not_sla"
+    }
+  },
+  "external_actions": 0,
+  "final_publish_clicks": 0
+}

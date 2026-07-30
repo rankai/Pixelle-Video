@@ -1,0 +1,28 @@
+{
+  "fixture": "BRAND-PROJECT-4",
+  "project_id": "project_bd8ff077e6494004bc662b27394aae2e",
+  "old_context_snapshot_id": "context_78cdf764a6014cf4a1d0de46a3161aec",
+  "current_context_snapshot_id": "context_dca16e6ed6624b85b15292c6977325f3",
+  "old_marketing_run_id": "run_5e00001425a2454199bc0af20b1857d9",
+  "old_marketing_artifact_version_id": "artifact_version_74a58ddf99d145d4866326c76b34f827",
+  "new_marketing_run_id": "run_56e37a2fa04345d2bd689d834e0295e2",
+  "new_marketing_artifact_version_id": "artifact_version_289bec095f0a488cba2c9d4928fca3fd",
+  "title_run_id": "run_5b114e27f2ea40da8a18bd4b7ac5dc25",
+  "title_artifact_id": "artifact_798fcfffd88e497197891c4db76f2a73",
+  "title_artifact_version_id": "artifact_version_7e6ee00c5d79423299e333d945abf503",
+  "carousel_run_id": "run_ba13daab186b463883c6b444abb3c2d9",
+  "carousel_artifact_id": "artifact_e7b43b757c5b4b5685847c369eee01e4",
+  "carousel_artifact_version_id": "artifact_version_3c6ac24fa6ab4da488ebee839a0e7a72",
+  "digital_run_id": "run_fc919d197c7f4ea9a6341392c1062a87",
+  "digital_session_id": "b80b88c3a148441b9e1381095793d667",
+  "digital_source_revision": "sha256:7411a13ac6cc400bec6c73bebc77eb132af8732a1cf2a7eb6d60a76b30920726",
+  "digital_artifact_versions": {
+    "video": "artifact_version_dbbb8d197839459fb07b92a2cd5ca92a",
+    "cover": "artifact_version_9c6e010fa8f8492099998afbe800f12b",
+    "publish_copy": "artifact_version_e7c9c8677bba4d9f95631108a9d7c9c3"
+  },
+  "new_logo_asset_id": "media-654144f12e5c4d8aa336516cb295fd30",
+  "new_bgm_asset_id": "media-216bc71c8b3e444ba0a8bfd14f30a4a1",
+  "external_actions": 0,
+  "platform_publish_actions": 0
+}

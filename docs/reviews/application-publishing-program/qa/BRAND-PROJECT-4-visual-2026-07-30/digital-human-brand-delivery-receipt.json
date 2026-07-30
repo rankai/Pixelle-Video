@@ -1,0 +1,42 @@
+{
+  "app_run_id": "run_fc919d197c7f4ea9a6341392c1062a87",
+  "artifact_type": "digital_human_brand_delivery",
+  "audio_bed": {
+    "applied": true,
+    "asset_ref": {
+      "asset_id": "media-216bc71c8b3e444ba0a8bfd14f30a4a1",
+      "asset_revision": "revision-e924501743254da6b6118e535c113a34"
+    },
+    "input_sha256": "sha256:2976da01e205a110c9fa41d47659e238a5c6d3c3f3137582f2949853faa201dd",
+    "operation": "stage_pinned_bgm_track",
+    "output_sha256": "sha256:2976da01e205a110c9fa41d47659e238a5c6d3c3f3137582f2949853faa201dd"
+  },
+  "context_snapshot_id": "context_dca16e6ed6624b85b15292c6977325f3",
+  "cover": {
+    "logo_overlay": {
+      "applied": true,
+      "asset_ref": {
+        "asset_id": "media-654144f12e5c4d8aa336516cb295fd30",
+        "asset_revision": "revision-b73e3f4f3d4443898b1fc8c311767f9e"
+      },
+      "input_sha256": "sha256:1842be99536ac941b53348ad3d976a580f8c9539f0c4b2c59de9e914f0cca949",
+      "operation": "render_pinned_logo_overlay"
+    },
+    "output_sha256": "sha256:3d780d727932500b417cff2a2e4b33f816eda6b4f60038f6aedbef7cf7ffed98",
+    "primary_color": "#0F766E",
+    "secondary_color": "#ECFDF5"
+  },
+  "ending_card": {
+    "applied_to": "delivery_configuration",
+    "coupon_phrase": "到店出示视频享新品礼",
+    "phone": "021-88886666",
+    "store_address": "江湾路 18 号夏日快闪店",
+    "text": "仅本项目：夏日快闪店见"
+  },
+  "overridden_fields": [
+    "ending_card_text",
+    "store_address"
+  ],
+  "project_id": "project_bd8ff077e6494004bc662b27394aae2e",
+  "schema_version": 1
+}
