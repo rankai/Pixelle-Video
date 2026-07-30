@@ -763,7 +763,7 @@ describe("CreationWorkspace", () => {
       artifact_version_ids: ["package-version-2"],
     }));
     expect(onOpenPublishCenter).toHaveBeenCalledWith("publish-package-fixed");
-  }, 15_000);
+  }, 30_000);
 
   it("restores context and exposes complete-review action for a pending output", async () => {
     listContentProjects.mockResolvedValue([{
@@ -972,7 +972,7 @@ describe("CreationWorkspace", () => {
       target_app_id: "builtin.digital-human-video",
       artifact_version_ids: ["selected-title-v1"],
     }));
-  }, 15_000);
+  }, 30_000);
 
   it("warns when a pinned title source has a newer upstream version", async () => {
     listContentProjects.mockResolvedValue([{

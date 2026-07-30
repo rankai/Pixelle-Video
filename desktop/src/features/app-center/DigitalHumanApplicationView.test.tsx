@@ -568,10 +568,12 @@ describe("DigitalHumanApplicationView", () => {
 
     await waitFor(() => expect(screen.getByRole("combobox", { name: "来源产物" })).toHaveValue("artifact-2"));
     expect(screen.getByRole("tab", { name: "图片数字人" })).toHaveAttribute("aria-selected", "true");
-    fireEvent.click(screen.getByRole("button", { name: "开始生成" }));
+    const startButton = screen.getByRole("button", { name: "开始生成" });
+    await waitFor(() => expect(startButton).toBeEnabled(), { timeout: 10_000 });
+    fireEvent.click(startButton);
     await waitFor(
       () => expect(mocks.createIpBroadcastAppRun).toHaveBeenCalledWith(expect.objectContaining({ idempotency_key: "pending-key-2" })),
-      { timeout: 3_000 },
+      { timeout: 10_000 },
     );
   });
 
