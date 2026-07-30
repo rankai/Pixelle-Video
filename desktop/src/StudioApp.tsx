@@ -98,6 +98,7 @@ import { createAntdTheme, readStoredThemeSkin, themeSkins, type ThemeSkin } from
 import { AssetCenterV2 } from "./features/assets/components/AssetCenterV2";
 import { AssetPickerDialog } from "./features/assets/components/AssetPickerDialog";
 import { ApplicationCenterView } from "./features/app-center/ApplicationCenterView";
+import { applicationIdForRoute, applicationRouteForId } from "./features/app-center/applicationRoutes";
 import { DigitalHumanApplicationView } from "./features/app-center/DigitalHumanApplicationView";
 import { CreationWorkspace } from "./features/creation/CreationWorkspace";
 import { PublishCenterView } from "./features/publishing/PublishCenterView";
@@ -439,23 +440,18 @@ export function StudioApp() {
   const [appRecovering, setAppRecovering] = useState(false);
   const [workflowError, setWorkflowError] = useState("");
   const [storyboardOpen, setStoryboardOpen] = useState(false);
-  const [creationAppId, setCreationAppId] = useState(() => appIdForPath(router?.pathname || "") || "builtin.marketing-copy");
+  const [creationAppId, setCreationAppId] = useState(() => applicationIdForRoute(router?.pathname || "") || "builtin.marketing-copy");
   const [creationSourceArtifactVersionId, setCreationSourceArtifactVersionId] = useState("");
-
-  function appIdForPath(pathname: string): string | null {
-    const basePath = pathname.split("?", 1)[0];
-    return {
-      "/apps/marketing-copy": "builtin.marketing-copy",
-      "/apps/viral-titles": "builtin.viral-titles",
-      "/apps/douyin-carousel": "builtin.douyin-carousel",
-    }[basePath] || null;
-  }
+  const [digitalHumanSourceArtifactVersionId, setDigitalHumanSourceArtifactVersionId] = useState("");
 
   useEffect(() => {
     if (!router) return;
     setView(viewForPath(router.pathname));
-    const routedAppId = appIdForPath(router.pathname);
+    const routedAppId = applicationIdForRoute(router.pathname);
     if (routedAppId) setCreationAppId(routedAppId);
+    const sourceVersionId = new URLSearchParams(router.pathname.split("?", 2)[1] || "").get("source_version_id") || "";
+    if (routedAppId === "builtin.digital-human-video") setDigitalHumanSourceArtifactVersionId(sourceVersionId);
+    else if (routedAppId) setCreationSourceArtifactVersionId(sourceVersionId);
   }, [router?.pathname]);
 
   useEffect(() => {
@@ -775,13 +771,25 @@ export function StudioApp() {
             {view === "apps" ? (
               <ApplicationCenterView onOpenApp={(application) => {
                 setCreationAppId(application.appId);
+                setCreationSourceArtifactVersionId("");
+                setDigitalHumanSourceArtifactVersionId("");
                 if (application.routePath && router) router.navigate(application.routePath);
                 else navigateToView("home");
               }} />
             ) : null}
 
             {view === "digital_human_app" ? (
-              <DigitalHumanApplicationView onBack={() => navigateToView("apps")} />
+              <DigitalHumanApplicationView
+                onBack={() => { setDigitalHumanSourceArtifactVersionId(""); navigateToView("apps"); }}
+                initialSourceArtifactVersionId={digitalHumanSourceArtifactVersionId}
+                onOpenApp={(nextAppId, sourceVersionId) => {
+                  if (nextAppId === "builtin.digital-human-video") setDigitalHumanSourceArtifactVersionId(sourceVersionId || "");
+                  else setCreationSourceArtifactVersionId(sourceVersionId || "");
+                  setCreationAppId(nextAppId);
+                  router?.navigate(`${applicationRouteForId(nextAppId)}${sourceVersionId ? `?source_version_id=${encodeURIComponent(sourceVersionId)}` : ""}`);
+                }}
+                onOpenPublishCenter={openPublishCenter}
+              />
             ) : null}
 
             {view === "ip" && session ? (
@@ -845,8 +853,10 @@ export function StudioApp() {
             onOpenApp={(nextAppId, sourceVersionId) => {
               setCreationAppId(nextAppId);
               setCreationSourceArtifactVersionId(sourceVersionId || "");
-              router?.navigate(nextAppId === "builtin.douyin-carousel" ? "/apps/douyin-carousel" : "/apps");
+              setDigitalHumanSourceArtifactVersionId("");
+              router?.navigate(`${applicationRouteForId(nextAppId)}${sourceVersionId ? `?source_version_id=${encodeURIComponent(sourceVersionId)}` : ""}`);
             }}
+            onOpenPublishCenter={openPublishCenter}
           />
         </Suspense>
       ) : null}

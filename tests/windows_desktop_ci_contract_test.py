@@ -66,7 +66,8 @@ def test_windows_sidecar_enables_application_registry_rollout_by_default():
     assert 'std::env::var("PIXELLE_APP_CENTER_DOUYIN_CAROUSEL")' in source
     assert 'std::env::var("PIXELLE_APP_CENTER_DIGITAL_HUMAN")' in source
     assert '.env("PIXELLE_APP_CENTER_CONTENT_APPS", app_center_content_apps)' in source
-    assert '.env("PIXELLE_APP_CENTER_DOUYIN_CAROUSEL", app_center_douyin_carousel)' in source
+    assert '"PIXELLE_APP_CENTER_DOUYIN_CAROUSEL"' in source
+    assert "app_center_douyin_carousel" in source
     assert '.env("PIXELLE_APP_CENTER_DIGITAL_HUMAN", app_center_digital_human)' in source
 
 
@@ -76,6 +77,21 @@ def test_windows_sidecar_keeps_publish_v2_backend_gate_in_sync_with_desktop_shel
     assert 'unwrap_or_else(|_| "1".to_string())' in source
     assert '.env("PIXELLE_PUBLISH_V2_ENABLED", publish_v2_enabled)' in source
     assert "explicit" in source and "rollback switch" in source
+
+
+def test_windows_sidecar_keeps_brand_project_gate_in_sync_with_desktop_shell():
+    source = TAURI_MAIN.read_text(encoding="utf-8")
+    main_source = Path("desktop/src/main.tsx").read_text(encoding="utf-8")
+    feature_source = Path("desktop/src/featureFlags.ts").read_text(encoding="utf-8")
+    assert 'std::env::var("PIXELLE_BRAND_PROJECT_BOUNDARY_V1")' in source
+    assert '"PIXELLE_BRAND_PROJECT_BOUNDARY_V1"' in source
+    assert "feature_flags: RuntimeFeatureFlags" in source
+    assert "parse_env_flag(" in source
+    assert "brand_project_boundary_v1," in source
+    assert "initializeDesktopRuntime" in main_source
+    assert "applyRuntimeFeatureFlags(runtime.featureFlags)" in main_source
+    assert "mergeRuntimeFeatureFlags" in feature_source
+    assert "legacy interaction" in source
 
 
 def test_artifact_manifest_requires_windows_executables_and_marks_install_pending():

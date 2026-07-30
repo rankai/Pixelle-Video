@@ -3,10 +3,16 @@ import { useEffect, useState } from "react";
 import { artifactBlobUrl } from "../../api";
 import type { IpBroadcastAppRun } from "../../api";
 
-export function DigitalHumanResultPanel({ run, busy, onDownload }: { run: IpBroadcastAppRun; busy: boolean; onDownload: () => void }) {
+export function DigitalHumanResultPanel({ run, busy, onDownload }: { run: IpBroadcastAppRun; busy: boolean; onDownload: (artifactKey?: string) => void }) {
   const hasFinalVideo = run.artifact_keys?.includes("final_video") || run.artifact_keys?.includes("video");
+  const finalVideoKey = run.artifact_keys?.includes("final_video") ? "final_video" : "video";
+  const hasCover = run.artifact_keys?.includes("cover");
+  const publishCopy = run.artifact_details?.publish_copy?.content || {};
+  const spokenScript = run.artifact_details?.spoken_script?.content || {};
   const [previewUrl, setPreviewUrl] = useState("");
   const [previewError, setPreviewError] = useState("");
+  const [coverUrl, setCoverUrl] = useState("");
+  const [coverError, setCoverError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -14,7 +20,7 @@ export function DigitalHumanResultPanel({ run, busy, onDownload }: { run: IpBroa
     setPreviewUrl("");
     setPreviewError("");
     if (!hasFinalVideo || !["needs_review", "completed"].includes(run.state)) return () => undefined;
-    void artifactBlobUrl(run.session_id, "final_video")
+    void artifactBlobUrl(run.session_id, finalVideoKey)
       .then((url) => {
         if (!active) { URL.revokeObjectURL(url); return; }
         resolvedUrl = url;
@@ -27,30 +33,90 @@ export function DigitalHumanResultPanel({ run, busy, onDownload }: { run: IpBroa
       active = false;
       if (resolvedUrl) URL.revokeObjectURL(resolvedUrl);
     };
-  }, [hasFinalVideo, run.session_id, run.state]);
+  }, [finalVideoKey, hasFinalVideo, run.session_id, run.state]);
+
+  useEffect(() => {
+    let active = true;
+    let resolvedUrl = "";
+    setCoverUrl("");
+    setCoverError("");
+    if (!hasCover || !["needs_review", "completed"].includes(run.state)) return () => undefined;
+    void artifactBlobUrl(run.session_id, "cover")
+      .then((url) => {
+        if (!active) { URL.revokeObjectURL(url); return; }
+        resolvedUrl = url;
+        setCoverUrl(url);
+      })
+      .catch((error: unknown) => {
+        if (active) setCoverError(error instanceof Error ? error.message : String(error));
+      });
+    return () => {
+      active = false;
+      if (resolvedUrl) URL.revokeObjectURL(resolvedUrl);
+    };
+  }, [hasCover, run.session_id, run.state]);
+
+  async function copyText(value: string) {
+    if (!value) return;
+    try {
+      await navigator.clipboard?.writeText(value);
+    } catch {
+      // Clipboard permission is optional in a desktop WebView; the artifact
+      // remains available through the download action.
+    }
+  }
+
+  const publishText = [
+    typeof publishCopy.title === "string" ? `标题：${publishCopy.title}` : "",
+    typeof publishCopy.description === "string" ? `描述：${publishCopy.description}` : "",
+    Array.isArray(publishCopy.hashtags) ? `话题：${publishCopy.hashtags.join(" ")}` : "",
+  ].filter(Boolean).join("\n");
+  const scriptText = typeof spokenScript.spoken_script === "string" ? spokenScript.spoken_script : "";
 
   return (
     <div className="digital-human-app-result" aria-label="生成结果">
       <div className="digital-human-app-result-heading">
         <Typography.Text strong>结果交付</Typography.Text>
-        <Tag color="processing">默认预览：final_video</Tag>
-        {hasFinalVideo ? <Button size="small" onClick={onDownload} disabled={busy}>下载最终视频</Button> : null}
+        <Tag color="processing">默认预览：最终视频</Tag>
+        {hasFinalVideo ? <Button size="small" onClick={() => onDownload(finalVideoKey)} disabled={busy}>下载最终视频</Button> : null}
       </div>
       <div className="digital-human-app-result-list">
         {[
-          ["final_video", "最终视频", hasFinalVideo],
+          [finalVideoKey, "最终视频", hasFinalVideo],
           ["cover", "封面", run.artifact_keys?.includes("cover")],
           ["publish_copy", "发布文案", run.artifact_keys?.includes("publish_copy")],
+          ["spoken_script", "口播稿", run.artifact_keys?.includes("spoken_script")],
         ].map(([key, label, available]) => (
           <div key={String(key)} className="digital-human-app-result-item">
             <span>{label}</span>
-            <Tag color={available ? "success" : "default"}>{available ? "已生成" : "待生成"}</Tag>
+            <div className="digital-human-app-result-item-actions">
+              <Tag color={available ? "success" : "default"}>{available ? "已生成" : "待生成"}</Tag>
+              {available ? <Button size="small" onClick={() => onDownload(String(key))} disabled={busy}>{key === finalVideoKey ? "下载" : "查看/下载"}</Button> : null}
+            </div>
           </div>
         ))}
       </div>
       {hasFinalVideo ? (
-        <div className="digital-human-app-result-preview" aria-label="final_video 预览">
-          {previewUrl ? <video src={previewUrl} controls muted preload="metadata" /> : <Typography.Text type="secondary">{previewError ? "final_video 预览暂不可用，仍可下载最终视频。" : "正在加载 final_video 预览…"}</Typography.Text>}
+        <div className="digital-human-app-result-preview" aria-label="最终视频预览">
+          {previewUrl ? <video src={previewUrl} controls muted preload="metadata" /> : <Typography.Text type="secondary">{previewError ? "最终视频预览暂不可用，仍可下载最终视频。" : "正在加载最终视频预览…"}</Typography.Text>}
+        </div>
+      ) : null}
+      {hasCover ? (
+        <div className="digital-human-app-result-content" aria-label="封面预览">
+          <div className="digital-human-app-result-content-heading"><Typography.Text strong>封面预览</Typography.Text><Button size="small" onClick={() => onDownload("cover")} disabled={busy}>下载封面</Button></div>
+          {coverUrl ? <img src={coverUrl} alt="生成封面" /> : <Typography.Text type="secondary">{coverError ? "封面预览暂不可用，仍可下载封面。" : "正在加载封面预览…"}</Typography.Text>}
+        </div>
+      ) : null}
+      {publishText ? (
+        <div className="digital-human-app-result-content" aria-label="发布文案内容">
+          <div className="digital-human-app-result-content-heading"><Typography.Text strong>发布文案</Typography.Text><Button size="small" onClick={() => void copyText(publishText)} disabled={busy}>复制文案</Button></div>
+          <pre>{publishText}</pre>
+        </div>
+      ) : null}
+      {scriptText ? (
+        <div className="digital-human-app-result-content" aria-label="口播稿内容">
+          <div className="digital-human-app-result-content-heading"><Typography.Text strong>口播稿</Typography.Text><Button size="small" onClick={() => void copyText(scriptText)} disabled={busy}>复制口播稿</Button></div>
+          <pre>{scriptText}</pre>
         </div>
       ) : null}
       {run.artifact_keys?.includes("digital_human_video") ? (

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveFeatureFlags } from "./flagResolver";
+import { mergeRuntimeFeatureFlags, resolveFeatureFlags } from "./flagResolver";
 
 describe("resolveFeatureFlags", () => {
   it("uses canonical names and preserves safe defaults", () => {
@@ -12,6 +12,10 @@ describe("resolveFeatureFlags", () => {
       publishCenterV2: true,
       contentApps: false,
       digitalHumanInAppCenter: false,
+      appWorkbenchV2: false,
+      appWorkbenchTextV2: false,
+      appWorkbenchCarouselV2: false,
+      appWorkbenchDigitalHumanV2: false,
       assetCenterV2: true,
     });
   });
@@ -40,6 +44,25 @@ describe("resolveFeatureFlags", () => {
 
   it("fails closed for unknown values", () => {
     expect(resolveFeatureFlags({ VITE_PUBLISH_CENTER_V2: "maybe" }).publishCenterV2).toBe(false);
+    expect(resolveFeatureFlags({ VITE_APP_WORKBENCH_V2: "maybe" }).appWorkbenchV2).toBe(false);
+  });
+
+  it("resolves application workbench flags and rejects conflicting rollout aliases", () => {
+    expect(resolveFeatureFlags({
+      VITE_APP_WORKBENCH_V2: "true",
+      VITE_APP_WORKBENCH_TEXT_V2: "1",
+      VITE_APP_WORKBENCH_CAROUSEL_V2: "on",
+      VITE_APP_WORKBENCH_DIGITAL_HUMAN_V2: "yes",
+    })).toMatchObject({
+      appWorkbenchV2: true,
+      appWorkbenchTextV2: true,
+      appWorkbenchCarouselV2: true,
+      appWorkbenchDigitalHumanV2: true,
+    });
+    expect(resolveFeatureFlags({
+      VITE_APP_WORKBENCH_V2: "true",
+      PIXELLE_APP_WORKBENCH_V2: "false",
+    }).appWorkbenchV2).toBe(false);
   });
 
   it("fails closed for present non-string values, including the true-default asset flag", () => {
@@ -53,5 +76,26 @@ describe("resolveFeatureFlags", () => {
       VITE_PUBLISH_CENTER_V2: { enabled: true },
       VITE_PUBLISH_V2_ENABLED: "true",
     }).publishCenterV2).toBe(false);
+  });
+
+  it("keeps the packaged brand-project flag aligned with the desktop runtime", () => {
+    const enabledBuild = resolveFeatureFlags({
+      VITE_BRAND_PROJECT_BOUNDARY_V1: "true",
+    });
+    expect(mergeRuntimeFeatureFlags(enabledBuild, {
+      brandProjectBoundaryV1: true,
+    }).brandProjectBoundaryV1).toBe(true);
+    expect(mergeRuntimeFeatureFlags(enabledBuild, {
+      brandProjectBoundaryV1: false,
+    }).brandProjectBoundaryV1).toBe(false);
+  });
+
+  it("never lets the desktop runtime enable a capability absent from the bundle", () => {
+    const disabledBuild = resolveFeatureFlags({
+      VITE_BRAND_PROJECT_BOUNDARY_V1: "false",
+    });
+    expect(mergeRuntimeFeatureFlags(disabledBuild, {
+      brandProjectBoundaryV1: true,
+    }).brandProjectBoundaryV1).toBe(false);
   });
 });

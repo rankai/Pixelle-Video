@@ -1,21 +1,25 @@
-import { Alert, Button, Card, Input, Tag, Typography } from "antd";
+import { Alert, Button, Card, Checkbox, Input, Tag, Typography } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import {
   acceptIpBroadcastAppRun,
   cancelIpBroadcastAppRun,
   createContentProject,
   createIpBroadcastAppRun,
+  createPublishPackageV2,
   downloadArtifact,
   executeIpBroadcastAppRun,
+  getCurrentContextSnapshot,
   getIpBroadcastAppRun,
   listApplications,
   listArtifactVersions,
   listContentProjects,
   listProjectArtifacts,
+  prepareIpBroadcastRetryPlan,
   retryIpBroadcastAppRun,
   type ArtifactSummary,
   type ArtifactVersion,
   type ContentProject,
+  type ContextSnapshot,
   type IpBroadcastAppRun,
 } from "../../api";
 import { featureFlags } from "../../featureFlags";
@@ -23,6 +27,14 @@ import { AssetPickerDialog } from "../assets/components/AssetPickerDialog";
 import type { LibraryItemV2 } from "../../api";
 import { DigitalHumanModeTabs, type DigitalHumanMode } from "./DigitalHumanModeTabs";
 import { DigitalHumanResultPanel } from "./DigitalHumanResultPanel";
+import { AppWorkbenchShell, type WorkbenchViewState } from "../app-workbench/AppWorkbenchShell";
+import { ProjectBriefEditor } from "../app-workbench/ProjectBriefEditor";
+import { ProjectBriefDisclosure } from "../app-workbench/ProjectBriefDisclosure";
+import { ProjectContextSelector } from "../app-workbench/ProjectContextSelector";
+import {
+  BrandProjectContextPanel,
+  BrandProjectCreateDialog,
+} from "../app-workbench/BrandProjectContext";
 
 const STORAGE_KEY = "pixelle_ip_broadcast_app_state_v1";
 const PENDING_STORAGE_KEY = "pixelle_ip_broadcast_app_pending_v1";
@@ -83,6 +95,8 @@ type StoredPointer = {
   publish_description?: string;
   cover_title?: string;
   hashtags?: string[];
+  subtitle_enabled?: boolean;
+  selling_points?: string;
 };
 
 type StoredPending = {
@@ -92,6 +106,7 @@ type StoredPending = {
   source_artifact_id: string | null;
   idempotency_key: string;
   input_payload: Record<string, unknown>;
+  context_snapshot_id: string | null;
   phase?: "create" | "execute";
   app_run_id?: string;
 };
@@ -126,6 +141,8 @@ function readStoredPointer(): StoredPointer | null {
       publish_description: typeof value.publish_description === "string" ? value.publish_description : undefined,
       cover_title: typeof value.cover_title === "string" ? value.cover_title : undefined,
       hashtags: Array.isArray(value.hashtags) && value.hashtags.every((item) => typeof item === "string") ? value.hashtags : undefined,
+      subtitle_enabled: typeof value.subtitle_enabled === "boolean" ? value.subtitle_enabled : undefined,
+      selling_points: typeof value.selling_points === "string" ? value.selling_points : undefined,
     } as StoredPointer;
   } catch {
     return null;
@@ -167,6 +184,10 @@ function writeStoredPointer(run: IpBroadcastAppRun, sourceMode: SourceMode, inpu
   const publishDescription = typeof inputPayload?.publish_description === "string" ? inputPayload.publish_description : typeof delivery?.publish_description === "string" ? delivery.publish_description : "";
   const coverTitle = typeof inputPayload?.cover_title === "string" ? inputPayload.cover_title : typeof delivery?.cover_title === "string" ? delivery.cover_title : "";
   const hashtags = Array.isArray(inputPayload?.hashtags) ? inputPayload.hashtags : Array.isArray(delivery?.hashtags) ? delivery.hashtags : [];
+  const subtitleEnabled = typeof delivery?.subtitle_enabled === "boolean" ? delivery.subtitle_enabled : true;
+  const sellingPoints = typeof inputPayload?.selling_points === "string"
+    ? inputPayload.selling_points
+    : typeof contentSource?.selling_points === "string" ? contentSource.selling_points : "";
   const goal = typeof inputPayload?.goal === "string" && inputPayload.goal
     ? inputPayload.goal
     : contentSource?.mode === "custom_script" && typeof contentSource.script === "string" && contentSource.script
@@ -194,6 +215,8 @@ function writeStoredPointer(run: IpBroadcastAppRun, sourceMode: SourceMode, inpu
     ...(publishDescription ? { publish_description: publishDescription } : {}),
     ...(coverTitle ? { cover_title: coverTitle } : {}),
     ...(hashtags.length ? { hashtags } : {}),
+    subtitle_enabled: subtitleEnabled,
+    ...(sellingPoints ? { selling_points: sellingPoints } : {}),
   };
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(pointer));
 }
@@ -213,7 +236,12 @@ function readStoredPending(): StoredPending | null {
     if (value.source_artifact_id !== null && typeof value.source_artifact_id !== "string") return null;
     if (value.phase !== undefined && value.phase !== "create" && value.phase !== "execute") return null;
     if (value.app_run_id !== undefined && typeof value.app_run_id !== "string") return null;
-    return { ...value, phase: value.phase || "create" } as StoredPending;
+    if (value.context_snapshot_id !== undefined && value.context_snapshot_id !== null && typeof value.context_snapshot_id !== "string") return null;
+    return {
+      ...value,
+      context_snapshot_id: value.context_snapshot_id || null,
+      phase: value.phase || "create",
+    } as StoredPending;
   } catch {
     return null;
   }
@@ -225,6 +253,7 @@ function writeStoredPending(
   sourceArtifactId: string | null,
   idempotencyKey: string,
   inputPayload: Record<string, unknown>,
+  contextSnapshotId: string | null,
   phase: "create" | "execute" = "create",
   appRunId?: string,
 ) {
@@ -235,6 +264,7 @@ function writeStoredPending(
     source_artifact_id: sourceArtifactId,
     idempotency_key: idempotencyKey,
     input_payload: inputPayload,
+    context_snapshot_id: contextSnapshotId,
     phase,
     ...(appRunId ? { app_run_id: appRunId } : {}),
   };
@@ -257,7 +287,7 @@ function randomIdempotencyKey(projectId: string) {
 }
 
 function artifactLabel(artifact: ArtifactSummary) {
-  return `${artifact.name} · ${artifact.artifact_type}`;
+  return artifact.name;
 }
 
 function latestVersion(versions: ArtifactVersion[]) {
@@ -266,19 +296,34 @@ function latestVersion(versions: ArtifactVersion[]) {
 
 export function DigitalHumanApplicationView({
   onBack,
+  onOpenApp,
+  onOpenPublishCenter,
+  initialSourceArtifactVersionId = "",
   allowLocalExecute = false,
   desktopEnabled = featureFlags.digitalHumanInAppCenter && featureFlags.digitalHumanDualModeV2,
+  workbenchV2 = featureFlags.appWorkbenchV2,
+  brandProjectV1 = featureFlags.brandProjectBoundaryV1,
 }: {
   onBack: () => void;
+  onOpenApp?: (appId: string, sourceArtifactVersionId?: string) => void;
+  onOpenPublishCenter?: (packageId: string) => void;
+  initialSourceArtifactVersionId?: string;
   allowLocalExecute?: boolean;
   desktopEnabled?: boolean;
+  workbenchV2?: boolean;
+  brandProjectV1?: boolean;
 }) {
   const [projects, setProjects] = useState<ContentProject[]>([]);
   const [projectId, setProjectId] = useState("");
+  const [contextSnapshot, setContextSnapshot] = useState<ContextSnapshot | null>(null);
+  const [contextDirty, setContextDirty] = useState(false);
+  const [projectDetailsOpen, setProjectDetailsOpen] = useState(false);
+  const [projectCreateOpen, setProjectCreateOpen] = useState(false);
   const [artifacts, setArtifacts] = useState<ArtifactSummary[]>([]);
   const [versions, setVersions] = useState<ArtifactVersion[]>([]);
   const [sourceMode, setSourceMode] = useState<SourceMode>("blank_project");
   const [goal, setGoal] = useState("");
+  const [sellingPoints, setSellingPoints] = useState("");
   const [artifactId, setArtifactId] = useState("");
   const [copyArtifactId, setCopyArtifactId] = useState("");
   const [copyVersions, setCopyVersions] = useState<ArtifactVersion[]>([]);
@@ -292,6 +337,7 @@ export function DigitalHumanApplicationView({
   const [publishDescription, setPublishDescription] = useState("");
   const [coverTitle, setCoverTitle] = useState("");
   const [hashtagsText, setHashtagsText] = useState("");
+  const [subtitleEnabled, setSubtitleEnabled] = useState(true);
   const [portraitId, setPortraitId] = useState("");
   const [portraitSceneId, setPortraitSceneId] = useState("");
   const [portraitAssetRevisionId, setPortraitAssetRevisionId] = useState("");
@@ -307,6 +353,8 @@ export function DigitalHumanApplicationView({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [retryRootCause, setRetryRootCause] = useState("");
+  const [retryReason, setRetryReason] = useState("");
 
   const selectedArtifactType = sourceMode === "blank_project" || sourceMode === "selected_title" ? "selected_title" : "copywriting";
   const sourceArtifacts = useMemo(
@@ -314,9 +362,25 @@ export function DigitalHumanApplicationView({
     [artifacts, selectedArtifactType],
   );
   const selectedVersion = versions.find((version) => version.artifact_version_id === versionId) || null;
+  const selectedProject = projects.find((project) => project.project_id === projectId) || null;
   const variants = Array.isArray(selectedVersion?.content?.variants) ? selectedVersion.content.variants : [];
   const selectedCopyVersion = copyVersions.find((version) => version.artifact_version_id === copyVersionId) || null;
   const copyVariants = Array.isArray(selectedCopyVersion?.content?.variants) ? selectedCopyVersion.content.variants : [];
+  const pinnedSourceArtifact = sourceArtifacts.find((artifact) => artifact.artifact_id === pinnedSourceArtifactId) || null;
+  const sourceUpdateAvailable = Boolean(
+    pinnedSourceVersionId && pinnedSourceArtifact?.current_version_id && pinnedSourceArtifact.current_version_id !== pinnedSourceVersionId,
+  );
+  const projectSellingPointSuggestions = useMemo(() => {
+    const payload = contextSnapshot?.payload;
+    const brief = payload?.project_brief && typeof payload.project_brief === "object"
+      ? payload.project_brief as Record<string, unknown>
+      : payload;
+    const value = brief?.selling_points;
+    if (!Array.isArray(value)) return [];
+    return value
+      .map((item) => item && typeof item === "object" ? String((item as Record<string, unknown>).text || "").trim() : "")
+      .filter(Boolean);
+  }, [contextSnapshot]);
   const canStart = Boolean(
     projectId.trim() &&
       (sourceMode === "blank_project"
@@ -324,8 +388,37 @@ export function DigitalHumanApplicationView({
         : sourceMode === "selected_title"
           ? artifactId && versionId && copyArtifactId && copyVersionId && copyVariants[variantIndex]
           : artifactId && versionId && variants[variantIndex]) &&
-      portraitId && portraitSceneId && portraitAssetRevisionId,
+      portraitId && portraitSceneId && portraitAssetRevisionId &&
+      !contextDirty &&
+      !sourceRecoveryBlocked,
   );
+
+  useEffect(() => {
+    if (run?.state !== "failed") return;
+    setRetryRootCause((current) => current || run.error_code || "上次执行失败");
+    setRetryReason((current) => current || "复用固定输入重新执行一次");
+  }, [run?.state, run?.error_code]);
+
+  useEffect(() => {
+    if (!desktopEnabled || !projectId) {
+      setContextSnapshot(null);
+      return;
+    }
+    let active = true;
+    void getCurrentContextSnapshot(projectId)
+      .then((snapshot) => {
+        if (active) {
+          setContextSnapshot(snapshot);
+          if (brandProjectV1 && snapshot?.schema_version === 3) setProjectDetailsOpen(true);
+        }
+      })
+      .catch((loadError) => {
+        if (active) setError(errorMessage(loadError));
+      });
+    return () => {
+      active = false;
+    };
+  }, [brandProjectV1, desktopEnabled, projectId]);
 
   useEffect(() => {
     if (!desktopEnabled) {
@@ -354,6 +447,7 @@ export function DigitalHumanApplicationView({
           setProjectId(pointer.project_id);
           setSourceMode(pointer.source_mode);
           if (pointer.goal) setGoal(pointer.goal);
+          if (pointer.selling_points) setSellingPoints(pointer.selling_points);
           if (pointer.source_artifact_id) {
             setArtifactId(pointer.source_artifact_id);
             setPinnedSourceArtifactId(pointer.source_artifact_id);
@@ -366,6 +460,7 @@ export function DigitalHumanApplicationView({
           if (pointer.publish_description) setPublishDescription(pointer.publish_description);
           if (pointer.cover_title) setCoverTitle(pointer.cover_title);
           if (pointer.hashtags) setHashtagsText(pointer.hashtags.join(" "));
+          if (typeof pointer.subtitle_enabled === "boolean") setSubtitleEnabled(pointer.subtitle_enabled);
           if (typeof pointer.selected_variant_index === "number" && Number.isInteger(pointer.selected_variant_index) && pointer.selected_variant_index >= 0) {
             setVariantIndex(pointer.selected_variant_index);
           }
@@ -414,6 +509,7 @@ export function DigitalHumanApplicationView({
               : v2Content?.mode === "custom_script" && typeof v2Content.script === "string" ? v2Content.script : "";
             if (pendingGoal) setGoal(pendingGoal);
           }
+          if (typeof v2Content?.selling_points === "string") setSellingPoints(v2Content.selling_points);
           const sourceVersion = typeof v2Content?.source_artifact_version_id === "string"
             ? v2Content.source_artifact_version_id
             : Array.isArray(payload.source_artifact_version_ids) ? payload.source_artifact_version_ids[0] : null;
@@ -447,6 +543,7 @@ export function DigitalHumanApplicationView({
           if (typeof pendingDelivery?.publish_description === "string") setPublishDescription(pendingDelivery.publish_description);
           if (typeof pendingDelivery?.cover_title === "string") setCoverTitle(pendingDelivery.cover_title);
           if (Array.isArray(pendingDelivery?.hashtags)) setHashtagsText(pendingDelivery.hashtags.filter((item): item is string => typeof item === "string").join(" "));
+          if (typeof pendingDelivery?.subtitle_enabled === "boolean") setSubtitleEnabled(pendingDelivery.subtitle_enabled);
           setNotice("上次提交尚未收到确认；点击开始生成将复用同一幂等键，不会随机创建第二个运行。 ");
         } else if (loadedProjects[0]) {
           setProjectId(loadedProjects[0].project_id);
@@ -472,14 +569,41 @@ export function DigitalHumanApplicationView({
     }
     let active = true;
     listProjectArtifacts(projectId)
-      .then((items) => {
-        if (active) {
-          setArtifacts(items);
-          if (!items.length) {
+      .then(async (items) => {
+        if (!active) return;
+        setArtifacts(items);
+        if (!items.length) {
+          setArtifactId("");
+          setVersionId("");
+          setVersions([]);
+          return;
+        }
+        if (initialSourceArtifactVersionId && !run && !pending && !pinnedSourceVersionId) {
+          const candidates = items.filter((item) => ["copywriting", "selected_title"].includes(item.artifact_type) && item.status !== "archived");
+          const matches = await Promise.all(candidates.map(async (item) => {
+            try {
+              const itemVersions = await listArtifactVersions(item.artifact_id);
+              return itemVersions.some((version) => version.artifact_version_id === initialSourceArtifactVersionId) ? item : null;
+            } catch {
+              return null;
+            }
+          }));
+          if (!active) return;
+          const match = matches.find((item): item is typeof candidates[number] => Boolean(item));
+          if (!match) {
             setArtifactId("");
             setVersionId("");
             setVersions([]);
+            setSourceRecoveryBlocked(true);
+            setError("带入的数字人来源版本不存在或已归档；已安全停手，请重新选择来源版本。 ");
+            return;
           }
+          setSourceMode(match.artifact_type === "selected_title" ? "selected_title" : "copywriting");
+          setArtifactId(match.artifact_id);
+          setPinnedSourceArtifactId(match.artifact_id);
+          setVersionId(initialSourceArtifactVersionId);
+          setPinnedSourceVersionId(initialSourceArtifactVersionId);
+          setNotice("已带入上游固定版本；上游后续修改不会热更新本次数字人输入。 ");
         }
       })
       .catch((loadError) => {
@@ -488,7 +612,7 @@ export function DigitalHumanApplicationView({
     return () => {
       active = false;
     };
-  }, [desktopEnabled, projectId]);
+  }, [desktopEnabled, initialSourceArtifactVersionId, pending, pinnedSourceVersionId, projectId, run]);
 
   useEffect(() => {
     if (!desktopEnabled || !pending?.source_artifact_id) return;
@@ -623,6 +747,10 @@ export function DigitalHumanApplicationView({
   }, [artifacts, copyArtifactId, desktopEnabled, pending, projectId, sourceMode]);
 
   async function createProject() {
+    if (brandProjectV1) {
+      setProjectCreateOpen(true);
+      return;
+    }
     const name = window.prompt("项目名称", "数字人口播灰度项目")?.trim();
     if (!name) return;
     setBusy(true);
@@ -631,12 +759,39 @@ export function DigitalHumanApplicationView({
       const created = await createContentProject({ name, primary_goal: "制作一条门店数字人口播视频" });
       setProjects((current) => [created, ...current]);
       setProjectId(created.project_id);
+      setContextSnapshot(null);
+      setContextDirty(false);
+      setProjectDetailsOpen(false);
       setNotice("项目已创建；请先选择来源，再点击开始生成。 ");
     } catch (createError) {
       setError(errorMessage(createError));
     } finally {
       setBusy(false);
     }
+  }
+
+  function handleBrandProjectCreated(created: ContentProject) {
+    setProjects((current) => [created, ...current.filter((item) => item.project_id !== created.project_id)]);
+    setProjectId(created.project_id);
+    setContextSnapshot(null);
+    setContextDirty(false);
+    setProjectDetailsOpen(true);
+    setProjectCreateOpen(false);
+    setNotice("项目已创建；请完善本次项目信息。");
+    void getCurrentContextSnapshot(created.project_id)
+      .then(setContextSnapshot)
+      .catch((loadError) => setError(errorMessage(loadError)));
+  }
+
+  async function reloadSelectedProjectContext() {
+    if (!projectId) return;
+    const [nextProjects, snapshot] = await Promise.all([
+      listContentProjects(),
+      getCurrentContextSnapshot(projectId),
+    ]);
+    setProjects(nextProjects);
+    setContextSnapshot(snapshot);
+    setContextDirty(false);
   }
 
   async function startGeneration() {
@@ -649,12 +804,13 @@ export function DigitalHumanApplicationView({
       setError("选定标题必须绑定一份完整文案版本后才能生成。 ");
       return;
     }
+    const sellingPointsPayload = sellingPoints.trim() ? { selling_points: sellingPoints.trim() } : {};
     const contentSource = sourceMode === "blank_project"
-      ? { mode: "custom_script", script: goal.trim() }
+      ? { mode: "custom_script", script: goal.trim(), ...sellingPointsPayload }
       : sourceMode === "selected_title"
-        ? { mode: "title_plus_copywriting", title_artifact_version_id: versionId, source_artifact_version_id: copyVersionId, selected_variant_index: variantIndex }
-        : { mode: sourceMode === "generated_marketing_copy" ? "generated_marketing_copy" : "copywriting_artifact", source_artifact_version_id: versionId, selected_variant_index: variantIndex };
-    const delivery: Record<string, unknown> = { subtitle_preset: "readable_v2" };
+        ? { mode: "title_plus_copywriting", title_artifact_version_id: versionId, source_artifact_version_id: copyVersionId, selected_variant_index: variantIndex, ...sellingPointsPayload }
+        : { mode: sourceMode === "generated_marketing_copy" ? "generated_marketing_copy" : "copywriting_artifact", source_artifact_version_id: versionId, selected_variant_index: variantIndex, ...sellingPointsPayload };
+    const delivery: Record<string, unknown> = { subtitle_preset: "readable_v2", subtitle_enabled: subtitleEnabled };
     if (publishTitle.trim()) delivery.publish_title = publishTitle.trim();
     if (publishDescription.trim()) delivery.publish_description = publishDescription.trim();
     if (coverTitle.trim()) delivery.cover_title = coverTitle.trim();
@@ -674,13 +830,22 @@ export function DigitalHumanApplicationView({
       },
       delivery,
     };
-    const pendingMatches = pending && pending.project_id === projectId && pending.source_mode === sourceMode && JSON.stringify(pending.input_payload) === JSON.stringify(inputPayload);
+    const pendingDelivery = pending?.input_payload.delivery && typeof pending.input_payload.delivery === "object"
+      ? pending.input_payload.delivery as Record<string, unknown>
+      : {};
+    const comparablePendingPayload = pending
+      ? { ...pending.input_payload, delivery: { subtitle_preset: "readable_v2", subtitle_enabled: true, ...pendingDelivery } }
+      : null;
+    const pendingMatches = pending && pending.project_id === projectId && pending.source_mode === sourceMode && JSON.stringify(comparablePendingPayload) === JSON.stringify(inputPayload);
     if (!canStart && !pendingMatches) return;
     const idempotencyKey = pendingMatches ? pending.idempotency_key : randomIdempotencyKey(projectId);
+    const contextSnapshotId = pendingMatches
+      ? pending.context_snapshot_id
+      : selectedProject?.current_context_snapshot_id || null;
     // Persist before POST: if the process dies after the server commits but
     // before the response reaches the UI, the next explicit click replays the
     // same idempotency key instead of creating a second AppRun.
-    writeStoredPending(projectId, sourceMode, artifactId || pending?.source_artifact_id || null, idempotencyKey, inputPayload);
+    writeStoredPending(projectId, sourceMode, artifactId || pending?.source_artifact_id || null, idempotencyKey, inputPayload, contextSnapshotId);
     setBusy(true);
     setError("");
     setNotice("");
@@ -689,10 +854,11 @@ export function DigitalHumanApplicationView({
         project_id: projectId,
         input_payload: inputPayload,
         idempotency_key: idempotencyKey,
+        context_snapshot_id: contextSnapshotId,
       });
       setRun(created);
       writeStoredPointer(created, sourceMode, { ...inputPayload, source_artifact_id: artifactId || pending?.source_artifact_id || "" });
-      writeStoredPending(projectId, sourceMode, artifactId || pending?.source_artifact_id || null, idempotencyKey, inputPayload, "execute", created.app_run_id);
+      writeStoredPending(projectId, sourceMode, artifactId || pending?.source_artifact_id || null, idempotencyKey, inputPayload, contextSnapshotId, "execute", created.app_run_id);
       setPending({
         route: "/apps/digital-human-video",
         project_id: projectId,
@@ -700,6 +866,7 @@ export function DigitalHumanApplicationView({
         source_artifact_id: artifactId || pending?.source_artifact_id || null,
         idempotency_key: idempotencyKey,
         input_payload: inputPayload,
+        context_snapshot_id: contextSnapshotId,
         phase: "execute",
         app_run_id: created.app_run_id,
       });
@@ -727,13 +894,13 @@ export function DigitalHumanApplicationView({
         source_artifact_id: artifactId,
         source_artifact_version_ids: versionId ? [versionId] : [],
         content_source: sourceMode === "selected_title"
-          ? { mode: "title_plus_copywriting", title_artifact_version_id: versionId, source_artifact_version_id: copyVersionId, selected_variant_index: variantIndex }
+          ? { mode: "title_plus_copywriting", title_artifact_version_id: versionId, source_artifact_version_id: copyVersionId, selected_variant_index: variantIndex, ...(sellingPoints.trim() ? { selling_points: sellingPoints.trim() } : {}) }
           : sourceMode === "blank_project"
-            ? { mode: "custom_script", script: goal }
-            : { mode: sourceMode === "generated_marketing_copy" ? "generated_marketing_copy" : "copywriting_artifact", source_artifact_version_id: versionId, selected_variant_index: variantIndex },
+            ? { mode: "custom_script", script: goal, ...(sellingPoints.trim() ? { selling_points: sellingPoints.trim() } : {}) }
+            : { mode: sourceMode === "generated_marketing_copy" ? "generated_marketing_copy" : "copywriting_artifact", source_artifact_version_id: versionId, selected_variant_index: variantIndex, ...(sellingPoints.trim() ? { selling_points: sellingPoints.trim() } : {}) },
         delivery: {
           subtitle_preset: "readable_v2",
-          subtitle_enabled: true,
+          subtitle_enabled: subtitleEnabled,
           ...(publishTitle.trim() ? { publish_title: publishTitle.trim() } : {}),
           ...(publishDescription.trim() ? { publish_description: publishDescription.trim() } : {}),
           ...(coverTitle.trim() ? { cover_title: coverTitle.trim() } : {}),
@@ -755,6 +922,10 @@ export function DigitalHumanApplicationView({
 
   async function mutateRun(action: "execute" | "cancel" | "retry" | "accept") {
     if (!run) return;
+    if (action === "execute" && run.state === "failed") {
+      setError("失败运行必须先提交受控重试计划，不能直接开始生成。 ");
+      return;
+    }
     if (action === "execute" && !portraitId) {
       setError("请先选择数字人形象，再生成真实视频。 ");
       return;
@@ -779,13 +950,13 @@ export function DigitalHumanApplicationView({
         source_artifact_id: artifactId,
         source_artifact_version_ids: versionId ? [versionId] : [],
         content_source: sourceMode === "selected_title"
-          ? { mode: "title_plus_copywriting", title_artifact_version_id: versionId, source_artifact_version_id: copyVersionId, selected_variant_index: variantIndex }
+          ? { mode: "title_plus_copywriting", title_artifact_version_id: versionId, source_artifact_version_id: copyVersionId, selected_variant_index: variantIndex, ...(sellingPoints.trim() ? { selling_points: sellingPoints.trim() } : {}) }
           : sourceMode === "blank_project"
-            ? { mode: "custom_script", script: goal }
-            : { mode: sourceMode === "generated_marketing_copy" ? "generated_marketing_copy" : "copywriting_artifact", source_artifact_version_id: versionId, selected_variant_index: variantIndex },
+            ? { mode: "custom_script", script: goal, ...(sellingPoints.trim() ? { selling_points: sellingPoints.trim() } : {}) }
+            : { mode: sourceMode === "generated_marketing_copy" ? "generated_marketing_copy" : "copywriting_artifact", source_artifact_version_id: versionId, selected_variant_index: variantIndex, ...(sellingPoints.trim() ? { selling_points: sellingPoints.trim() } : {}) },
         delivery: {
           subtitle_preset: "readable_v2",
-          subtitle_enabled: true,
+          subtitle_enabled: subtitleEnabled,
           ...(publishTitle.trim() ? { publish_title: publishTitle.trim() } : {}),
           ...(publishDescription.trim() ? { publish_description: publishDescription.trim() } : {}),
           ...(coverTitle.trim() ? { cover_title: coverTitle.trim() } : {}),
@@ -806,7 +977,73 @@ export function DigitalHumanApplicationView({
     }
   }
 
+  async function retryWithPlan() {
+    if (!run || run.state !== "failed") return;
+    if (!retryRootCause.trim() || !retryReason.trim()) {
+      setError("请先填写失败原因和本次重试理由。 ");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      await prepareIpBroadcastRetryPlan(run.app_run_id, {
+        root_cause: retryRootCause.trim(),
+        retry_reason: retryReason.trim(),
+      });
+      const next = await retryIpBroadcastAppRun(run.app_run_id);
+      setRun(next);
+      setNotice("重试计划已记录，已按固定输入提交一次受控重试；不会重复创建未授权 Provider 任务。 ");
+      setRetryRootCause("");
+      setRetryReason("");
+    } catch (retryError) {
+      setError(errorMessage(retryError));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handoffToPublishing() {
+    if (!run || !onOpenPublishCenter || !["needs_review", "completed"].includes(run.state)) return;
+    const details = run.artifact_details || {};
+    const versionIds = ["video", "final_video", "cover", "publish_copy"]
+      .map((key) => details[key]?.artifact_version_id)
+      .filter((value, index, values): value is string => typeof value === "string" && Boolean(value) && values.indexOf(value) === index);
+    if (!versionIds.some((versionId) => versionId === details.video?.artifact_version_id || versionId === details.final_video?.artifact_version_id)) {
+      setError("当前运行还没有可交付视频；请先刷新结果或确认生成完成。 ");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      const packageData = await createPublishPackageV2({
+        project_id: run.project_id,
+        artifact_version_ids: versionIds,
+      });
+      onOpenPublishCenter(packageData.package_id);
+      setNotice("数字人视频、封面和发布文案已固定交给发布中心；平台最终发布仍由你人工确认。 ");
+    } catch (handoffError) {
+      setError(errorMessage(handoffError));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function startNewRun() {
+    clearStoredPointer();
+    clearStoredPending();
+    setRun(null);
+    setPending(null);
+    setRetryRootCause("");
+    setRetryReason("");
+    setNotice("已保留历史结果；现在可以在当前项目上创建一条新任务。 ");
+    setError("");
+  }
+
   function changeSourceMode(next: SourceMode) {
+    if (pending && pending.source_mode !== next) {
+      setNotice("上次提交尚未收到确认，请先恢复或清理待提交状态，再切换来源类型。 ");
+      return;
+    }
     setSourceMode(next);
     setSourceRecoveryBlocked(false);
     setPinnedSourceArtifactId("");
@@ -820,14 +1057,16 @@ export function DigitalHumanApplicationView({
     setVersions([]);
     setVariantIndex(0);
     setError("");
-    if (pending && pending.source_mode !== next) {
-      clearStoredPending();
-      setPending(null);
-      setNotice("已切换来源类型；原待确认提交不再匹配，下一次创建将生成新的幂等键。 ");
-    }
   }
 
   function changeDigitalHumanMode(next: DigitalHumanMode) {
+    if (pending && pending.input_payload.digital_human && typeof pending.input_payload.digital_human === "object") {
+      const pendingMode = (pending.input_payload.digital_human as Record<string, unknown>).mode;
+      if (pendingMode !== next) {
+        setNotice("上次提交尚未收到确认，请先恢复或清理待提交状态，再切换数字人模式。 ");
+        return;
+      }
+    }
     setDigitalHumanMode(next);
     const expectedMedia = next === "video_lipsync" ? "video" : "image";
     if (portraitMediaType && portraitMediaType !== expectedMedia) {
@@ -843,7 +1082,11 @@ export function DigitalHumanApplicationView({
 
   function changeProject(nextProjectId: string) {
     if (nextProjectId === projectId) return;
+    if (contextDirty && !window.confirm("当前项目资料有未保存草稿（已保存在本机），确定切换吗？")) return;
     setProjectId(nextProjectId);
+    setContextSnapshot(null);
+    setContextDirty(false);
+    setProjectDetailsOpen(false);
     setSourceRecoveryBlocked(false);
     setPinnedSourceArtifactId("");
     setPinnedSourceVersionId("");
@@ -862,6 +1105,16 @@ export function DigitalHumanApplicationView({
       clearStoredPointer();
       setNotice("已切换到其他项目；旧运行指针已清理，请显式创建或恢复当前项目运行。 ");
     }
+  }
+
+  function handleContextSaved(snapshot: ContextSnapshot) {
+    setContextSnapshot(snapshot);
+    setContextDirty(false);
+    setProjects((current) => current.map((project) => (
+      project.project_id === snapshot.project_id
+        ? { ...project, current_context_snapshot_id: snapshot.context_snapshot_id }
+        : project
+    )));
   }
 
   function changeArtifact(nextArtifactId: string) {
@@ -900,7 +1153,33 @@ export function DigitalHumanApplicationView({
     );
   }
 
-  return (
+  const resultState: WorkbenchViewState = !run
+    ? "empty"
+    : run.state === "failed" || run.state === "cancelled"
+      ? "failed"
+      : run.state === "needs_review"
+        ? "needs_review"
+        : run.state === "completed"
+          ? "saved"
+          : "running";
+  const resultStatePresentation = {
+    empty: { label: "等待开始", color: "default" as const },
+    running: { label: "正在处理", color: "processing" as const },
+    failed: { label: "需要处理", color: "error" as const },
+    needs_review: { label: "等待确认", color: "warning" as const },
+    saved: { label: "已保存", color: "success" as const },
+  }[resultState];
+  const digitalHumanPrimaryActions = (
+    <div className="digital-human-app-actions">
+      {run ? (
+        <div className="digital-human-app-run-start-actions">
+          <Tag color="processing">本次任务已创建</Tag>
+          <Button onClick={startNewRun} disabled={busy}>重新制作</Button>
+        </div>
+      ) : <Button block size="large" type="primary" onClick={() => void startGeneration()} disabled={!canStart || busy} loading={busy}>开始生成</Button>}
+    </div>
+  );
+  const legacyView = (
     <section className="digital-human-app-workspace" aria-label="数字人口播应用">
       <div className="digital-human-app-heading">
         <div>
@@ -915,24 +1194,110 @@ export function DigitalHumanApplicationView({
 
       {error ? <Alert type="error" showIcon message="应用运行未完成" description={error} /> : null}
       {notice ? <Alert type="info" showIcon message={notice} /> : null}
+      {sourceUpdateAvailable ? <Alert type="warning" showIcon message="上游来源已有新版本" description={run ? "当前运行仍锁定原来源版本，不会静默切换。点击“新建运行”后重新选择版本，确认后再生成。" : "当前输入仍锁定已带入版本，不会静默切换；请重新选择来源版本后再生成。"} /> : null}
 
-      <Card title="1 · 选择项目与来源" className="digital-human-app-card">
-        <div className="digital-human-app-field">
-          <label htmlFor="digital-human-project">内容项目</label>
-          <div className="digital-human-app-inline">
-            <select id="digital-human-project" value={projectId} onChange={(event) => changeProject(event.target.value)} disabled={loading || busy}>
-              <option value="">请选择项目</option>
-              {projects.map((project) => <option key={project.project_id} value={project.project_id}>{project.name}</option>)}
-            </select>
-            <Button size="small" onClick={() => void createProject()} disabled={busy}>新建项目</Button>
+      <Card id="digital-human-workbench-input" title="开始创作" className="digital-human-app-card">
+        {workbenchV2 ? (
+          <>
+            <ProjectContextSelector
+              projects={projects}
+              value={projectId}
+              disabled={loading || busy}
+              onChange={changeProject}
+              onCreate={() => void createProject()}
+              onEdit={() => setProjectDetailsOpen(true)}
+            />
+            {brandProjectV1 && selectedProject ? (
+              <BrandProjectContextPanel
+                project={selectedProject}
+                snapshot={contextSnapshot}
+                open={contextSnapshot?.schema_version === 3 && projectDetailsOpen}
+                onOpen={() => setProjectDetailsOpen(true)}
+                onClose={() => setProjectDetailsOpen(false)}
+                onSaved={handleContextSaved}
+                onReload={reloadSelectedProjectContext}
+                onDirtyChange={setContextDirty}
+              />
+            ) : selectedProject && contextSnapshot?.schema_version !== 2 ? (
+              <ProjectBriefDisclosure ready={false}>
+                <ProjectBriefEditor
+                  projectId={selectedProject.project_id}
+                  projectName={selectedProject.name}
+                  snapshot={contextSnapshot}
+                  onSaved={handleContextSaved}
+                  onDirtyChange={setContextDirty}
+                />
+              </ProjectBriefDisclosure>
+            ) : null}
+            {selectedProject && contextSnapshot?.schema_version === 2 && projectDetailsOpen ? (
+              <section className="project-details-editor" aria-label="编辑当前项目信息">
+                <div className="project-details-editor__heading">
+                  <Typography.Text strong>编辑项目信息</Typography.Text>
+                  <Button size="small" onClick={() => setProjectDetailsOpen(false)}>完成</Button>
+                </div>
+                <ProjectBriefEditor
+                  projectId={selectedProject.project_id}
+                  projectName={selectedProject.name}
+                  snapshot={contextSnapshot}
+                  onSaved={handleContextSaved}
+                  onDirtyChange={setContextDirty}
+                />
+              </section>
+            ) : null}
+          </>
+        ) : (
+          <div className="digital-human-app-field">
+            <label htmlFor="digital-human-project">内容项目</label>
+            <div className="digital-human-app-inline">
+              <select id="digital-human-project" value={projectId} onChange={(event) => changeProject(event.target.value)} disabled={loading || busy}>
+                <option value="">请选择项目</option>
+                {projects.map((project) => <option key={project.project_id} value={project.project_id}>{project.name}</option>)}
+              </select>
+              <Button size="small" onClick={() => void createProject()} disabled={busy}>新建项目</Button>
+            </div>
           </div>
-        </div>
+        )}
+        {brandProjectV1 ? (
+          <BrandProjectCreateDialog
+            open={projectCreateOpen}
+            busy={busy}
+            onCancel={() => setProjectCreateOpen(false)}
+            onCreated={handleBrandProjectCreated}
+          />
+        ) : null}
         <div className="digital-human-app-source-tabs" role="tablist" aria-label="口播来源">
           {(["blank_project", "copywriting", "generated_marketing_copy", "selected_title"] as SourceMode[]).map((mode) => (
             <button key={mode} type="button" role="tab" aria-selected={sourceMode === mode} onClick={() => changeSourceMode(mode)}>
-              {mode === "blank_project" ? "自定义口播" : mode === "copywriting" ? "已有文案" : mode === "generated_marketing_copy" ? "自动生成文案" : "选定标题+文案"}
+              {mode === "blank_project" ? "自定义口播" : mode === "copywriting" ? "已有文案" : mode === "generated_marketing_copy" ? "自动写文案" : "标题＋文案"}
             </button>
           ))}
+        </div>
+        <div className="digital-human-app-field">
+          <label htmlFor="digital-human-selling-points">本次卖点（可选）</label>
+          <Input.TextArea id="digital-human-selling-points" rows={2} value={sellingPoints} onChange={(event) => setSellingPoints(event.target.value)} placeholder="例如：工作日下午茶套餐、现磨咖啡和当日烘焙面包" maxLength={160} />
+          {projectSellingPointSuggestions.length ? (
+            <div className="creation-quick-tags__list" aria-label="项目卖点建议">
+              {projectSellingPointSuggestions.map((item) => {
+                const selectedItems = sellingPoints.split(/[\n,，]/).map((value) => value.trim()).filter(Boolean);
+                const active = selectedItems.includes(item);
+                return (
+                  <button
+                    key={item}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => {
+                      const next = new Set(selectedItems);
+                      if (active) next.delete(item);
+                      else next.add(item);
+                      setSellingPoints(Array.from(next).join("，"));
+                    }}
+                  >
+                    {item}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
         {sourceMode === "blank_project" ? (
           <div className="digital-human-app-field">
@@ -942,45 +1307,26 @@ export function DigitalHumanApplicationView({
         ) : (
           <div className="digital-human-app-source-selects">
             <select aria-label="来源产物" value={artifactId} onChange={(event) => changeArtifact(event.target.value)} disabled={!projectId || busy}>
-              <option value="">请选择{sourceMode === "selected_title" ? "标题" : "文案"}产物</option>
+              <option value="">选择一段{sourceMode === "selected_title" ? "标题" : "文案"}</option>
               {sourceArtifacts.map((artifact) => <option key={artifact.artifact_id} value={artifact.artifact_id}>{artifactLabel(artifact)}</option>)}
             </select>
             {sourceMode === "selected_title" ? (
               <>
                 <select aria-label="完整文案产物" value={copyArtifactId} onChange={(event) => { setCopyArtifactId(event.target.value); setCopyVersionId(""); setCopyVersions([]); }} disabled={!projectId || busy}>
-                  <option value="">请选择完整文案</option>
+                  <option value="">再选择一段完整文案</option>
                   {artifacts.filter((artifact) => artifact.artifact_type === "copywriting" && artifact.status !== "archived").map((artifact) => <option key={artifact.artifact_id} value={artifact.artifact_id}>{artifactLabel(artifact)}</option>)}
                 </select>
                 <select aria-label="文案变体" value={String(variantIndex)} onChange={(event) => setVariantIndex(Number(event.target.value))} disabled={!copyVersions.length || busy}>
-                  {copyVariants.map((variant, index) => <option key={index} value={index}>变体 {index + 1} · {typeof variant === "object" && variant && "title" in variant ? String(variant.title) : "可选文案"}</option>)}
+                  {copyVariants.map((variant, index) => <option key={index} value={index}>文案方案 {index + 1} · {typeof variant === "object" && variant && "title" in variant ? String(variant.title) : "可选内容"}</option>)}
                 </select>
               </>
             ) : (
               <select aria-label="文案变体" value={String(variantIndex)} onChange={(event) => setVariantIndex(Number(event.target.value))} disabled={!versions.length || busy}>
-                {variants.map((variant, index) => <option key={index} value={index}>变体 {index + 1} · {typeof variant === "object" && variant && "title" in variant ? String(variant.title) : "可选文案"}</option>)}
+                {variants.map((variant, index) => <option key={index} value={index}>文案方案 {index + 1} · {typeof variant === "object" && variant && "title" in variant ? String(variant.title) : "可选内容"}</option>)}
               </select>
             )}
           </div>
         )}
-        <div className="digital-human-app-quality-fields" aria-label="发布与封面文案">
-          <div className="digital-human-app-field">
-            <label htmlFor="digital-human-publish-title">发布标题</label>
-            <Input id="digital-human-publish-title" value={publishTitle} onChange={(event) => setPublishTitle(event.target.value)} placeholder="可选；留空将使用来源标题或安全默认值" maxLength={55} />
-          </div>
-          <div className="digital-human-app-field">
-            <label htmlFor="digital-human-publish-description">发布描述</label>
-            <Input.TextArea id="digital-human-publish-description" rows={2} value={publishDescription} onChange={(event) => setPublishDescription(event.target.value)} placeholder="可选；建议写清门店利益点和行动引导" maxLength={180} />
-          </div>
-          <div className="digital-human-app-field">
-            <label htmlFor="digital-human-cover-title">封面标题</label>
-            <Input id="digital-human-cover-title" value={coverTitle} onChange={(event) => setCoverTitle(event.target.value)} placeholder="最多 24 个字，最多两行，每行最多 12 个字" maxLength={24} status={coverTitle.length > 24 || coverTitle.split(/\r?\n/).some((line) => line.length > 12) ? "error" : undefined} />
-          </div>
-          <div className="digital-human-app-field">
-            <label htmlFor="digital-human-hashtags">话题标签</label>
-            <Input id="digital-human-hashtags" value={hashtagsText} onChange={(event) => setHashtagsText(event.target.value)} placeholder="用空格或逗号分隔，例如：门店经营 到店优惠" />
-          </div>
-          <Typography.Text type="secondary">来源文案会锁定版本；发布标题、封面标题和话题是独立交付字段，不会把制作目标当成口播文案。</Typography.Text>
-        </div>
         <div className="digital-human-app-field">
           <label>数字人模式</label>
           <DigitalHumanModeTabs mode={digitalHumanMode} onChange={changeDigitalHumanMode} />
@@ -1001,7 +1347,7 @@ export function DigitalHumanApplicationView({
             </Button>
             {portraitSceneId ? <Tag color="processing">已选场景</Tag> : null}
             {portraitSceneId && portraitMediaType ? <Tag color="default">{portraitMediaType === "video" ? "视频场景" : "图片场景"}</Tag> : null}
-            {portraitAssetRevisionId ? <Tag color="default">revision 已锁定</Tag> : null}
+            {portraitAssetRevisionId ? <Tag color="success">素材已确认</Tag> : null}
           </div>
           {portraitId && portraitSceneId ? (
             <div className="digital-human-app-asset-summary" aria-label="数字人素材详情">
@@ -1011,12 +1357,36 @@ export function DigitalHumanApplicationView({
               {portraitDetails.quality ? <Tag color={portraitDetails.quality === "已就绪" ? "success" : "warning"}>质量：{portraitDetails.quality}</Tag> : null}
             </div>
           ) : null}
-          <Typography.Text type="secondary">生成前必须选择与当前模式匹配的已登记场景；选择后会锁定素材 revision，不接受浏览器路径或 Provider 标识。</Typography.Text>
+          <Typography.Text type="secondary">请选择与图片或视频模式一致的数字人形象。</Typography.Text>
         </div>
-        <div className="digital-human-app-actions">
-          {run ? <Tag color="processing">运行已创建 · 请在下方状态区操作</Tag> : <Button type="primary" onClick={() => void startGeneration()} disabled={!canStart || busy} loading={busy}>开始生成</Button>}
-          <Tag color="default">V2 · v{APP_VERSION}</Tag>
-        </div>
+        <details className="digital-human-more-settings">
+          <summary>发布文案与更多设置</summary>
+          <div className="digital-human-app-quality-fields" aria-label="发布与封面文案">
+            <div className="digital-human-app-field">
+              <label htmlFor="digital-human-publish-title">发布标题</label>
+              <Input id="digital-human-publish-title" value={publishTitle} onChange={(event) => setPublishTitle(event.target.value)} placeholder="可选；留空会自动生成" maxLength={55} />
+            </div>
+            <div className="digital-human-app-field">
+              <label htmlFor="digital-human-publish-description">发布描述</label>
+              <Input.TextArea id="digital-human-publish-description" rows={2} value={publishDescription} onChange={(event) => setPublishDescription(event.target.value)} placeholder="可选；留空会自动生成" maxLength={180} />
+            </div>
+            <div className="digital-human-app-field">
+              <label htmlFor="digital-human-cover-title">封面标题</label>
+              <Input id="digital-human-cover-title" value={coverTitle} onChange={(event) => setCoverTitle(event.target.value)} placeholder="可选；最多 24 个字" maxLength={24} status={coverTitle.length > 24 || coverTitle.split(/\r?\n/).some((line) => line.length > 12) ? "error" : undefined} />
+            </div>
+            <div className="digital-human-app-field">
+              <label htmlFor="digital-human-hashtags">话题标签</label>
+              <Input id="digital-human-hashtags" value={hashtagsText} onChange={(event) => setHashtagsText(event.target.value)} placeholder="可选；例如：门店经营 到店优惠" />
+            </div>
+          </div>
+          <div className="digital-human-app-more-config-row">
+            <Checkbox checked={subtitleEnabled} onChange={(event) => setSubtitleEnabled(event.target.checked)} disabled={busy}>
+              添加可读字幕
+            </Checkbox>
+          </div>
+        </details>
+        {!workbenchV2 ? digitalHumanPrimaryActions : null}
+        {contextDirty ? <Typography.Text type="warning">请先保存或放弃项目资料草稿，再开始生成。</Typography.Text> : null}
         <AssetPickerDialog
           open={portraitPickerOpen}
           kind="digital_human"
@@ -1066,32 +1436,90 @@ export function DigitalHumanApplicationView({
         />
       </Card>
 
-      <Card title="2 · 运行状态与安全停手" className="digital-human-app-card">
+      <Card
+        id="digital-human-workbench-result"
+        title="生成结果"
+        extra={workbenchV2 ? <Tag color={resultStatePresentation.color}>{resultStatePresentation.label}</Tag> : null}
+        className="digital-human-app-card"
+      >
         {run ? (
           <div className="digital-human-app-run" aria-label="应用运行状态">
-            <div className="digital-human-app-run-meta">
-              <span>AppRun：<code>{run.app_run_id}</code></span>
-              <span>Session：<code>{run.session_id}</code></span>
-              <Tag color={run.state === "completed" ? "success" : run.state === "needs_review" ? "warning" : run.state === "failed" ? "error" : "processing"}>{runStateLabels[run.state] || run.state}</Tag>
-            </div>
+            <details className="digital-human-run-record">
+              <summary>运行记录</summary>
+              <div className="digital-human-app-run-meta">
+                <span>运行：<code>{run.app_run_id}</code></span>
+                <span>任务：<code>{run.session_id}</code></span>
+              </div>
+            </details>
             <Typography.Paragraph type="secondary">{projectionLabels[run.projection.when || ""] || "状态已读取"} · {taskStatusLabels[run.projection.task_status || "pending"] || run.projection.task_status || "待执行"}</Typography.Paragraph>
             {run.error_code ? <Alert type="warning" showIcon message={run.error_code} /> : null}
-            <div className="digital-human-app-actions">
-              <Button onClick={() => void refreshRun()} disabled={busy}>刷新状态</Button>
-              <Button onClick={() => void mutateRun("cancel")} disabled={busy || ["completed", "cancelled"].includes(run.state)}>取消</Button>
-              <Button onClick={() => void mutateRun("retry")} disabled={busy || !["failed", "cancelled"].includes(run.state)}>重试</Button>
-              {allowLocalExecute || ["draft", "queued", "running", "failed"].includes(run.state) ? <Button onClick={() => void mutateRun("execute")} disabled={busy || ["completed", "cancelled", "needs_review"].includes(run.state)}>开始生成</Button> : null}
-              <Button type="primary" onClick={() => void mutateRun("accept")} disabled={busy || run.state !== "needs_review"}>确认接收结果</Button>
+            <div className="digital-human-app-progress" aria-label="数字人生成进度">
+              {[
+                [1, "项目/来源"],
+                [2, "素材"],
+                [3, "TTS"],
+                [4, "数字人"],
+                [5, "字幕与后期"],
+                [6, "结果交付"],
+              ].map(([step, label]) => {
+                const stepStatus = run.step_status[String(step)] || "pending";
+                const statusLabel = ({ pending: "待处理", ready: "已准备", running: "处理中", done: "已完成", error: "需处理" } as Record<string, string>)[stepStatus] || stepStatus;
+                return <div key={String(step)} className={`digital-human-app-progress-step digital-human-app-progress-step--${stepStatus}`}>
+                  <span className="digital-human-app-progress-index">{step}</span>
+                  <span>{label}</span>
+                  <Typography.Text type="secondary">{statusLabel}</Typography.Text>
+                </div>;
+              })}
             </div>
-            {(run.state === "needs_review" || run.state === "completed") ? <DigitalHumanResultPanel run={run} busy={busy} onDownload={() => void downloadArtifact(run.session_id, "final_video")} /> : null}
+            {run.state === "failed" ? (
+              <div className="digital-human-app-retry-plan" aria-label="受控重试计划">
+                <Typography.Text strong>失败后受控重试</Typography.Text>
+                <Typography.Text type="secondary">先记录根因和本次理由，系统才会释放一次重试；不会重复创建 Provider 任务。</Typography.Text>
+                <Input.TextArea aria-label="失败原因" rows={2} value={retryRootCause} onChange={(event) => setRetryRootCause(event.target.value)} placeholder="失败原因，例如：TTS_PROVIDER_TIMEOUT" maxLength={500} disabled={busy} />
+                <Input.TextArea aria-label="重试理由" rows={2} value={retryReason} onChange={(event) => setRetryReason(event.target.value)} placeholder="本次重试理由和修复动作" maxLength={500} disabled={busy} />
+                <Button type="primary" onClick={() => void retryWithPlan()} disabled={busy || !retryRootCause.trim() || !retryReason.trim()}>提交计划并重试</Button>
+              </div>
+            ) : null}
+            <div className="digital-human-app-actions">
+              <Button type="primary" onClick={() => void mutateRun("accept")} disabled={busy || run.state !== "needs_review"}>确认接收结果</Button>
+              {onOpenPublishCenter && ["needs_review", "completed"].includes(run.state) ? <Button onClick={() => void handoffToPublishing()} disabled={busy}>交给发布中心</Button> : null}
+              <details className="digital-human-run-actions">
+                <summary>更多操作</summary>
+                <div>
+                  <Button size="small" onClick={() => void refreshRun()} disabled={busy}>刷新状态</Button>
+                  <Button size="small" onClick={() => void mutateRun("cancel")} disabled={busy || ["completed", "cancelled"].includes(run.state)}>取消</Button>
+                  <Button size="small" onClick={() => void mutateRun("retry")} disabled={busy || run.state !== "cancelled" || run.app_version === APP_VERSION}>重试</Button>
+                  {allowLocalExecute && ["draft", "queued", "running"].includes(run.state) ? <Button size="small" onClick={() => void mutateRun("execute")} disabled={busy}>开始生成</Button> : null}
+                </div>
+              </details>
+            </div>
+            {run.state === "cancelled" && run.app_version === APP_VERSION ? <Typography.Text type="secondary">本次生成已取消；需要重新制作时，请点击“新建运行”。</Typography.Text> : null}
+            {(run.state === "needs_review" || run.state === "completed") ? <DigitalHumanResultPanel run={run} busy={busy} onDownload={(artifactKey = "final_video") => void downloadArtifact(run.session_id, artifactKey)} /> : null}
             <Typography.Text type="secondary">确认接收只完成本地人工交接，不代表抖音发布。</Typography.Text>
           </div>
         ) : (
-          <Typography.Text type="secondary">尚未开始生成。点击上方“开始生成”后会先幂等创建运行，再提交 TTS/数字人执行。</Typography.Text>
+          <Typography.Text type="secondary">选择文案和数字人形象后，生成进度和视频结果会显示在这里。</Typography.Text>
         )}
       </Card>
     </section>
   );
+  if (workbenchV2) {
+    return (
+      <AppWorkbenchShell
+        eyebrow="视频创作"
+        title="数字人口播视频"
+        description="选一段文案和数字人形象，生成带字幕、封面和发布文案的口播视频。"
+        onBack={onBack}
+        adoptedContent={legacyView}
+        adoptedInputFooter={digitalHumanPrimaryActions}
+        adoptedInputId="digital-human-workbench-input"
+        adoptedResultId="digital-human-workbench-result"
+        resultState={resultState}
+        showAdoptedState={false}
+      />
+    );
+  }
+  return legacyView;
 }
 
 function SpaceButtons({ onBack }: { onBack: () => void }) {

@@ -7,10 +7,19 @@ export type ResolvedFeatureFlags = {
   douyinCarousel: boolean;
   digitalHumanInAppCenter: boolean;
   digitalHumanDualModeV2: boolean;
+  appWorkbenchV2: boolean;
+  appWorkbenchTextV2: boolean;
+  appWorkbenchCarouselV2: boolean;
+  appWorkbenchDigitalHumanV2: boolean;
   appCenterNewNav: boolean;
   publishCenterV2: boolean;
   assetCenterV2: boolean;
   assetCenterSmbUx: boolean;
+  brandProjectBoundaryV1: boolean;
+};
+
+export type RuntimeFeatureFlags = {
+  brandProjectBoundaryV1: boolean;
 };
 
 const TRUE_VALUES = new Set(["1", "true", "yes", "on"]);
@@ -62,9 +71,54 @@ export function resolveFeatureFlags(env: FeatureFlagEnv): ResolvedFeatureFlags {
       ["VITE_DIGITAL_HUMAN_DUAL_MODE_V2"],
       false,
     ),
+    appWorkbenchV2: readCanonicalWithAliases(
+      env,
+      "VITE_APP_WORKBENCH_V2",
+      ["PIXELLE_APP_WORKBENCH_V2"],
+      false,
+    ),
+    appWorkbenchTextV2: readCanonicalWithAliases(
+      env,
+      "VITE_APP_WORKBENCH_TEXT_V2",
+      ["PIXELLE_APP_WORKBENCH_TEXT_V2"],
+      false,
+    ),
+    appWorkbenchCarouselV2: readCanonicalWithAliases(
+      env,
+      "VITE_APP_WORKBENCH_CAROUSEL_V2",
+      ["PIXELLE_APP_WORKBENCH_CAROUSEL_V2"],
+      false,
+    ),
+    appWorkbenchDigitalHumanV2: readCanonicalWithAliases(
+      env,
+      "VITE_APP_WORKBENCH_DIGITAL_HUMAN_V2",
+      ["PIXELLE_APP_WORKBENCH_DIGITAL_HUMAN_V2"],
+      false,
+    ),
     appCenterNewNav: readFlag(env, "VITE_APP_CENTER_NEW_NAV", false),
     publishCenterV2: readCanonicalWithAliases(env, "VITE_PUBLISH_CENTER_V2", ["VITE_PUBLISH_V2_ENABLED"], false),
     assetCenterV2: readFlag(env, "VITE_ASSET_CENTER_V2", true),
     assetCenterSmbUx: readFlag(env, "VITE_ASSET_CENTER_SMB_UX", false),
+    brandProjectBoundaryV1: readCanonicalWithAliases(
+      env,
+      "VITE_BRAND_PROJECT_BOUNDARY_V1",
+      ["PIXELLE_BRAND_PROJECT_BOUNDARY_V1"],
+      false,
+    ),
+  };
+}
+
+export function mergeRuntimeFeatureFlags(
+  buildFlags: ResolvedFeatureFlags,
+  runtimeFlags: RuntimeFeatureFlags,
+): ResolvedFeatureFlags {
+  return {
+    ...buildFlags,
+    // A runtime override may only narrow a capability compiled into the
+    // desktop bundle. This keeps browser development controlled by Vite
+    // flags while allowing the packaged Tauri app to roll the brand/project
+    // workflow back together with its FastAPI sidecar.
+    brandProjectBoundaryV1:
+      buildFlags.brandProjectBoundaryV1 && runtimeFlags.brandProjectBoundaryV1 === true,
   };
 }

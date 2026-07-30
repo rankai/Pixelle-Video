@@ -1,5 +1,16 @@
-/** Runtime feature flags. Unknown/conflicting aliases fail closed. */
+/** Build flags narrowed by the packaged desktop runtime. */
 
-import { resolveFeatureFlags } from "./flagResolver";
+import {
+  mergeRuntimeFeatureFlags,
+  resolveFeatureFlags,
+  type RuntimeFeatureFlags,
+} from "./flagResolver";
 
-export const featureFlags = resolveFeatureFlags(import.meta.env);
+const buildFeatureFlags = resolveFeatureFlags(import.meta.env);
+
+export let featureFlags = buildFeatureFlags;
+
+export function applyRuntimeFeatureFlags(runtimeFlags: RuntimeFeatureFlags) {
+  featureFlags = mergeRuntimeFeatureFlags(buildFeatureFlags, runtimeFlags);
+  return featureFlags;
+}

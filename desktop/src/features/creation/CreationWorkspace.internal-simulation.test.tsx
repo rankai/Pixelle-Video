@@ -81,7 +81,10 @@ describe("CreationWorkspace synthetic internal precheck", () => {
     render(<CreationWorkspace />);
     fireEvent.change(screen.getByPlaceholderText("项目名称"), { target: { value: persona } });
     fireEvent.change(screen.getByPlaceholderText("本次营销目标"), { target: { value: goal } });
-    fireEvent.change(screen.getByPlaceholderText("产品或服务"), { target: { value: product } });
+    fireEvent.change(
+      screen.getByPlaceholderText("选择项目后会自动带入商品或服务"),
+      { target: { value: product } },
+    );
     fireEvent.click(screen.getByText("生成营销文案"));
     await waitFor(() => expect(mocks.createContentProject).toHaveBeenCalledWith({ name: persona, primary_goal: goal }));
     await waitFor(() => expect(mocks.createAppRun).toHaveBeenCalledWith(expect.objectContaining({
