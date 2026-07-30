@@ -16,7 +16,12 @@ from pixelle_video.app_center.llm_port import (
     StructuredGenerationRequest,
     StructuredGenerationResponse,
 )
-from pixelle_video.app_center.migration import AppCenterMigrationError, default_db_path, migrate_app_center
+from pixelle_video.app_center.migration import (
+    AppCenterMigrationError,
+    default_db_path,
+    migrate_app_center,
+)
+from pixelle_video.app_center.project_context import ProjectContextError
 from pixelle_video.app_center.repository import (
     AppCenterRepository,
     AppCenterRepositoryError,
@@ -47,8 +52,25 @@ def _valid_copy_content() -> dict:
     for index, angle in enumerate(("利益", "好奇", "场景"), start=1):
         hook, body, cta = f"入口{index}", f"内容{index}", "到店了解"
         full_text = hook + body + cta
-        variants.append({"version_name": f"版本{index}", "angle": angle, "hook": hook, "body": body, "cta": cta, "full_text": full_text, "word_count": len(full_text), "estimated_seconds": (len(full_text) + 3) // 4})
-    return {"schema_version": 1, "artifact_type": "copywriting", "variants": variants, "missing_facts": [], "risk_flags": []}
+        variants.append(
+            {
+                "version_name": f"版本{index}",
+                "angle": angle,
+                "hook": hook,
+                "body": body,
+                "cta": cta,
+                "full_text": full_text,
+                "word_count": len(full_text),
+                "estimated_seconds": (len(full_text) + 3) // 4,
+            }
+        )
+    return {
+        "schema_version": 1,
+        "artifact_type": "copywriting",
+        "variants": variants,
+        "missing_facts": [],
+        "risk_flags": [],
+    }
 
 
 def test_default_app_center_db_uses_writable_video_root(tmp_path, monkeypatch):
@@ -70,14 +92,17 @@ def test_repository_project_run_idempotency_and_state_machine(tmp_path):
         idempotency_key="run-idempotency-1",
         context_snapshot_id=snapshot.context_snapshot_id,
     )
-    assert repository.create_app_run(
-        project.project_id,
-        "builtin.marketing-copy",
-        "1.0.0",
-        {"brief": "促销"},
-        idempotency_key="run-idempotency-1",
-        context_snapshot_id=snapshot.context_snapshot_id,
-    ).app_run_id == run.app_run_id
+    assert (
+        repository.create_app_run(
+            project.project_id,
+            "builtin.marketing-copy",
+            "1.0.0",
+            {"brief": "促销"},
+            idempotency_key="run-idempotency-1",
+            context_snapshot_id=snapshot.context_snapshot_id,
+        ).app_run_id
+        == run.app_run_id
+    )
     with pytest.raises(IdempotencyConflict):
         repository.create_app_run(
             project.project_id,
@@ -95,8 +120,16 @@ def test_repository_project_run_idempotency_and_state_machine(tmp_path):
 def test_runner_creates_artifact_and_preserves_failure_evidence(tmp_path):
     repository = AppCenterRepository(tmp_path / "app.sqlite")
     project = repository.create_project("测试项目", "运行 fake executor")
-    run = repository.create_app_run(project.project_id, "builtin.marketing-copy", "1.0.0", {}, idempotency_key="runner-idempotency-1")
-    runner = AppRunner(repository, executors={"builtin.marketing-copy": FakeExecutor()}, enforce_readiness=False)
+    run = repository.create_app_run(
+        project.project_id,
+        "builtin.marketing-copy",
+        "1.0.0",
+        {},
+        idempotency_key="runner-idempotency-1",
+    )
+    runner = AppRunner(
+        repository, executors={"builtin.marketing-copy": FakeExecutor()}, enforce_readiness=False
+    )
     result = asyncio.run(runner.run(run.app_run_id))
     assert result.state == "needs_review"
     assert len(result.output_artifact_ids) == 1
@@ -104,7 +137,13 @@ def test_runner_creates_artifact_and_preserves_failure_evidence(tmp_path):
     assert repository.list_artifact_versions(artifact.artifact_id)[0].version_number == 1
     assert runner.accept_output(result.app_run_id).state == "completed"
 
-    failed_run = repository.create_app_run(project.project_id, "builtin.marketing-copy", "1.0.0", {"__fake_error": "boom"}, idempotency_key="runner-idempotency-2")
+    failed_run = repository.create_app_run(
+        project.project_id,
+        "builtin.marketing-copy",
+        "1.0.0",
+        {"__fake_error": "boom"},
+        idempotency_key="runner-idempotency-2",
+    )
     failed = asyncio.run(runner.run(failed_run.app_run_id))
     assert failed.state == "failed"
     assert repository.list_attempts(failed.app_run_id)[0].state == "failed"
@@ -167,7 +206,13 @@ def test_structured_app_runs_are_isolated_under_concurrent_execution(tmp_path):
         "length_bucket": "short_15s",
     }
     runs = [
-        repository.create_app_run(project.project_id, "builtin.marketing-copy", "1.0.0", payload, idempotency_key=f"concurrent-{index}")
+        repository.create_app_run(
+            project.project_id,
+            "builtin.marketing-copy",
+            "1.0.0",
+            payload,
+            idempotency_key=f"concurrent-{index}",
+        )
         for index in range(2)
     ]
     valid = _valid_copy_content()
@@ -176,7 +221,11 @@ def test_structured_app_runs_are_isolated_under_concurrent_execution(tmp_path):
     port = FakeLLMPort(valid, delay=0.01)
     runner = AppRunner(
         repository,
-        executors={"builtin.marketing-copy": StructuredLLMExecutor(repository, port, app_id="builtin.marketing-copy")},
+        executors={
+            "builtin.marketing-copy": StructuredLLMExecutor(
+                repository, port, app_id="builtin.marketing-copy"
+            )
+        },
         enforce_readiness=False,
     )
 
@@ -188,7 +237,9 @@ def test_structured_app_runs_are_isolated_under_concurrent_execution(tmp_path):
     assert all(len(result.output_artifact_ids) == 1 for result in results)
     artifacts = repository.list_artifacts(project.project_id)
     assert len(artifacts) == 2
-    assert {artifact.source_app_run_id for artifact in artifacts} == {run.app_run_id for run in runs}
+    assert {artifact.source_app_run_id for artifact in artifacts} == {
+        run.app_run_id for run in runs
+    }
     for artifact in artifacts:
         assert artifact.current_version_id
         version = repository.get_artifact_version(artifact.current_version_id)
@@ -211,8 +262,14 @@ def test_structured_app_run_recovers_after_terminal_invalid_output(tmp_path):
 
         async def generate_structured(self, request, *, response_type=None):
             self.calls += 1
-            payload = {"variants": [], "missing_facts": [], "risk_flags": []} if self.calls < 3 else self.valid
-            return StructuredGenerationResponse(payload, "local-default:sequence", "fake", request_id=request.request_id)
+            payload = (
+                {"variants": [], "missing_facts": [], "risk_flags": []}
+                if self.calls < 3
+                else self.valid
+            )
+            return StructuredGenerationResponse(
+                payload, "local-default:sequence", "fake", request_id=request.request_id
+            )
 
     repository = AppCenterRepository(tmp_path / "structured-recovery.sqlite")
     project = repository.create_project("恢复文案", "验证失败后重试")
@@ -220,7 +277,12 @@ def test_structured_app_run_recovers_after_terminal_invalid_output(tmp_path):
         project.project_id,
         "builtin.marketing-copy",
         "1.0.0",
-        {"goal": "到店", "product_or_service": "咖啡", "content_format": "oral", "length_bucket": "short_15s"},
+        {
+            "goal": "到店",
+            "product_or_service": "咖啡",
+            "content_format": "oral",
+            "length_bucket": "short_15s",
+        },
         idempotency_key="structured-recovery-001",
     )
     valid = _valid_copy_content()
@@ -229,7 +291,11 @@ def test_structured_app_run_recovers_after_terminal_invalid_output(tmp_path):
     port = SequencePort(valid)
     runner = AppRunner(
         repository,
-        executors={"builtin.marketing-copy": StructuredLLMExecutor(repository, port, app_id="builtin.marketing-copy")},
+        executors={
+            "builtin.marketing-copy": StructuredLLMExecutor(
+                repository, port, app_id="builtin.marketing-copy"
+            )
+        },
         enforce_readiness=False,
     )
 
@@ -252,16 +318,29 @@ def test_structured_app_run_recovers_after_terminal_invalid_output(tmp_path):
     assert [attempt.state for attempt in attempts] == ["failed", "needs_review"]
     assert attempts[1].model_ref == "local-default:sequence"
     assert attempts[1].provider_class == "fake"
-    assert attempts[1].started_at and attempts[1].completed_at and attempts[1].duration_ms is not None
+    assert (
+        attempts[1].started_at and attempts[1].completed_at and attempts[1].duration_ms is not None
+    )
     assert port.calls == 3
 
 
 def test_runner_task_projection_is_redacted_and_keeps_domain_fact(tmp_path):
     repository = AppCenterRepository(tmp_path / "app.sqlite")
     project = repository.create_project("测试项目", "任务投影")
-    run = repository.create_app_run(project.project_id, "builtin.marketing-copy", "1.0.0", {"secret": "do-not-copy"}, idempotency_key="projection-run-1")
+    run = repository.create_app_run(
+        project.project_id,
+        "builtin.marketing-copy",
+        "1.0.0",
+        {"secret": "do-not-copy"},
+        idempotency_key="projection-run-1",
+    )
     manager = TaskManager()
-    runner = AppRunner(repository, executors={"builtin.marketing-copy": FakeExecutor()}, task_projector=AppRunTaskProjector(manager), enforce_readiness=False)
+    runner = AppRunner(
+        repository,
+        executors={"builtin.marketing-copy": FakeExecutor()},
+        task_projector=AppRunTaskProjector(manager),
+        enforce_readiness=False,
+    )
     result = asyncio.run(runner.run(run.app_run_id))
     attempt = repository.list_attempts(result.app_run_id)[0]
     task = manager.get_task(attempt.task_id or "")
@@ -275,9 +354,20 @@ def test_runner_task_projection_is_redacted_and_keeps_domain_fact(tmp_path):
 def test_task_projection_retry_clears_old_error_and_syncs_lifecycle_fields(tmp_path):
     repository = AppCenterRepository(tmp_path / "projection-retry.sqlite")
     project = repository.create_project("测试项目", "任务重试")
-    run = repository.create_app_run(project.project_id, "builtin.marketing-copy", "1.0.0", {"__fake_error": "boom"}, idempotency_key="projection-retry-1")
+    run = repository.create_app_run(
+        project.project_id,
+        "builtin.marketing-copy",
+        "1.0.0",
+        {"__fake_error": "boom"},
+        idempotency_key="projection-retry-1",
+    )
     manager = TaskManager()
-    runner = AppRunner(repository, executors={"builtin.marketing-copy": FakeExecutor()}, task_projector=AppRunTaskProjector(manager), enforce_readiness=False)
+    runner = AppRunner(
+        repository,
+        executors={"builtin.marketing-copy": FakeExecutor()},
+        task_projector=AppRunTaskProjector(manager),
+        enforce_readiness=False,
+    )
     failed = asyncio.run(runner.run(run.app_run_id))
     attempt = repository.list_attempts(failed.app_run_id)[0]
     task = manager.get_task(attempt.task_id or "")
@@ -311,7 +401,10 @@ def test_migration_rejects_future_schema_without_overwriting_database(tmp_path):
     with pytest.raises(AppCenterMigrationError, match="future app-center schema"):
         migrate_app_center(db_path)
     with sqlite3.connect(db_path) as connection:
-        assert connection.execute("SELECT schema_version FROM app_schema_migrations").fetchone()[0] == 99
+        assert (
+            connection.execute("SELECT schema_version FROM app_schema_migrations").fetchone()[0]
+            == 99
+        )
 
 
 def test_fake_llm_port_cancel_and_redaction_boundary():
@@ -321,7 +414,9 @@ def test_fake_llm_port_cancel_and_redaction_boundary():
     assert response.model_ref == "local-default:fake"
     event = asyncio.Event()
     event.set()
-    cancelled_request = StructuredGenerationRequest(**{**_request().__dict__, "cancel_event": event})
+    cancelled_request = StructuredGenerationRequest(
+        **{**_request().__dict__, "cancel_event": event}
+    )
     with pytest.raises(AppLLMPortError, match="请求已取消"):
         asyncio.run(port.generate_structured(cancelled_request))
     assert "api_key" not in port.requests[0].__dict__
@@ -342,7 +437,13 @@ def test_fake_llm_port_cancel_and_redaction_boundary():
 def test_task_projection_contains_only_redacted_fields(tmp_path):
     repository = AppCenterRepository(tmp_path / "app.sqlite")
     project = repository.create_project("测试项目", "投影")
-    run = repository.create_app_run(project.project_id, "builtin.marketing-copy", "1.0.0", {"secret": "must not project"}, idempotency_key="projection-idem-1")
+    run = repository.create_app_run(
+        project.project_id,
+        "builtin.marketing-copy",
+        "1.0.0",
+        {"secret": "must not project"},
+        idempotency_key="projection-idem-1",
+    )
     projection = project_app_run(run)
     assert projection["source_kind"] == "app_run"
     assert "request_params" not in projection
@@ -351,7 +452,12 @@ def test_task_projection_contains_only_redacted_fields(tmp_path):
 
 def test_needs_review_task_status_round_trips_through_existing_persistence(tmp_path):
     persistence = TaskPersistence(tmp_path / "tasks.sqlite")
-    task = Task(task_id="task-review", task_type=TaskType.APP_RUN, status=TaskStatus.NEEDS_REVIEW, session_id="app_run:run-1")
+    task = Task(
+        task_id="task-review",
+        task_type=TaskType.APP_RUN,
+        status=TaskStatus.NEEDS_REVIEW,
+        session_id="app_run:run-1",
+    )
     persistence.save_task(task)
     restored = persistence.load_tasks()[0]
     assert restored.status is TaskStatus.NEEDS_REVIEW
@@ -361,8 +467,23 @@ def test_needs_review_task_status_round_trips_through_existing_persistence(tmp_p
 def test_handoff_preserves_immutable_source_and_target_manifest_version(tmp_path):
     repository = AppCenterRepository(tmp_path / "app.sqlite")
     project = repository.create_project("测试项目", "交接")
-    artifact = repository.create_artifact(project.project_id, "copywriting", "文案")
-    version = repository.append_artifact_version(artifact.artifact_id, content=_valid_copy_content())
+    repository.save_context_snapshot(project.project_id, {"store_name": "固定项目资料"})
+    run = repository.create_app_run(
+        project.project_id,
+        "builtin.marketing-copy",
+        "1.0.0",
+        {"goal": "交接"},
+        idempotency_key="immutable-handoff-source-run",
+    )
+    artifact = repository.create_artifact(
+        project.project_id,
+        "copywriting",
+        "文案",
+        source_app_run_id=run.app_run_id,
+    )
+    version = repository.append_artifact_version(
+        artifact.artifact_id, content=_valid_copy_content()
+    )
     handoff = repository.create_handoff(
         project.project_id,
         artifact.artifact_id,
@@ -391,11 +512,19 @@ def test_artifact_version_rejects_provider_secrets_in_content_or_file_refs(tmp_p
     with pytest.raises(ValueError, match="forbidden field: api_key"):
         repository.append_artifact_version(artifact.artifact_id, content={"api_key": "secret"})
     with pytest.raises(ValueError, match="forbidden field: provider"):
-        repository.append_artifact_version(artifact.artifact_id, file_refs=[{"provider": "s3", "file_key": "x"}])
+        repository.append_artifact_version(
+            artifact.artifact_id, file_refs=[{"provider": "s3", "file_key": "x"}]
+        )
     with pytest.raises(AppLLMPortError, match="exactly 3 variants"):
         repository.append_artifact_version(
             artifact.artifact_id,
-            content={"schema_version": 1, "artifact_type": "copywriting", "variants": [], "missing_facts": [], "risk_flags": []},
+            content={
+                "schema_version": 1,
+                "artifact_type": "copywriting",
+                "variants": [],
+                "missing_facts": [],
+                "risk_flags": [],
+            },
         )
 
 
@@ -405,7 +534,12 @@ def test_edited_structured_version_cannot_override_validation_facts(tmp_path):
     artifact = repository.create_artifact(project.project_id, "copywriting", "文案")
     original = _valid_copy_content()
     original["validation_facts"] = {
-        "input": {"product_or_service": "咖啡", "goal": "到店", "content_format": "oral", "length_bucket": "short_15s"},
+        "input": {
+            "product_or_service": "咖啡",
+            "goal": "到店",
+            "content_format": "oral",
+            "length_bucket": "short_15s",
+        },
         "context": {"facts": []},
     }
     current = repository.append_artifact_version(
@@ -414,7 +548,9 @@ def test_edited_structured_version_cannot_override_validation_facts(tmp_path):
     )
     edited = deepcopy(original)
     edited["variants"][0]["body"] = "到店优惠99元"
-    edited["variants"][0]["full_text"] = edited["variants"][0]["hook"] + edited["variants"][0]["body"] + edited["variants"][0]["cta"]
+    edited["variants"][0]["full_text"] = (
+        edited["variants"][0]["hook"] + edited["variants"][0]["body"] + edited["variants"][0]["cta"]
+    )
     edited["validation_facts"] = {
         "input": {"product_or_service": "咖啡", "goal": "到店", "price": "99元"},
         "context": {"facts": [{"name": "price", "value": "99元"}]},
@@ -425,27 +561,74 @@ def test_edited_structured_version_cannot_override_validation_facts(tmp_path):
             content={"schema_version": 1, "artifact_type": "copywriting", **edited},
             source="edited",
         )
-    assert repository.get_artifact(artifact.artifact_id).current_version_id == current.artifact_version_id
+    assert (
+        repository.get_artifact(artifact.artifact_id).current_version_id
+        == current.artifact_version_id
+    )
 
 
 def test_handoff_rejects_untyped_copywriting_source_version(tmp_path):
     repository = AppCenterRepository(tmp_path / "handoff-untyped.sqlite")
     project = repository.create_project("测试项目", "来源 schema")
-    artifact = repository.create_artifact(project.project_id, "copywriting", "文案")
-    version = repository.append_artifact_version(artifact.artifact_id, content={"text": "legacy"}, source="imported")
+    repository.save_context_snapshot(project.project_id, {"store_name": "固定项目资料"})
+    run = repository.create_app_run(
+        project.project_id,
+        "builtin.marketing-copy",
+        "1.0.0",
+        {"goal": "来源 schema"},
+        idempotency_key="untyped-handoff-source-run",
+    )
+    artifact = repository.create_artifact(
+        project.project_id,
+        "copywriting",
+        "文案",
+        source_app_run_id=run.app_run_id,
+    )
+    version = repository.append_artifact_version(
+        artifact.artifact_id, content={"text": "legacy"}, source="imported"
+    )
     with pytest.raises(AppCenterRepositoryError, match="structured schema"):
-        repository.create_handoff(project.project_id, artifact.artifact_id, version.artifact_version_id, "builtin.viral-titles", "1.0.0", [version.artifact_version_id])
+        repository.create_handoff(
+            project.project_id,
+            artifact.artifact_id,
+            version.artifact_version_id,
+            "builtin.viral-titles",
+            "1.0.0",
+            [version.artifact_version_id],
+        )
 
 
 def test_handoff_rejects_copywriting_schema_v2_source_version(tmp_path):
     repository = AppCenterRepository(tmp_path / "handoff-schema-version.sqlite")
     project = repository.create_project("测试项目", "来源版本")
-    artifact = repository.create_artifact(project.project_id, "copywriting", "文案")
+    repository.save_context_snapshot(project.project_id, {"store_name": "固定项目资料"})
+    run = repository.create_app_run(
+        project.project_id,
+        "builtin.marketing-copy",
+        "1.0.0",
+        {"goal": "来源版本"},
+        idempotency_key="schema-v2-handoff-source-run",
+    )
+    artifact = repository.create_artifact(
+        project.project_id,
+        "copywriting",
+        "文案",
+        source_app_run_id=run.app_run_id,
+    )
     content = _valid_copy_content()
     content["schema_version"] = 2
-    version = repository.append_artifact_version(artifact.artifact_id, content=content, schema_version=2)
+    version = repository.append_artifact_version(
+        artifact.artifact_id, content=content, schema_version=2
+    )
     with pytest.raises(AppCenterRepositoryError, match="schema v1"):
-        repository.create_handoff(project.project_id, artifact.artifact_id, version.artifact_version_id, "builtin.viral-titles", "1.0.0", [version.artifact_version_id])
+        repository.create_handoff(
+            project.project_id,
+            artifact.artifact_id,
+            version.artifact_version_id,
+            "builtin.viral-titles",
+            "1.0.0",
+            [version.artifact_version_id],
+        )
 
 
 def test_migration_rejects_non_app_center_database_without_touching_it(tmp_path):
@@ -458,14 +641,21 @@ def test_migration_rejects_non_app_center_database_without_touching_it(tmp_path)
         migrate_app_center(db_path)
     with sqlite3.connect(db_path) as connection:
         assert connection.execute("SELECT value FROM user_data").fetchone()[0] == "keep"
-        assert connection.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='app_registry'").fetchone() is None
+        assert (
+            connection.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='app_registry'"
+            ).fetchone()
+            is None
+        )
 
 
 def test_runner_rejects_disabled_registry_manifest(tmp_path, monkeypatch):
     monkeypatch.delenv("PIXELLE_APP_CENTER_CONTENT_APPS", raising=False)
     repository = AppCenterRepository(tmp_path / "disabled.sqlite")
     project = repository.create_project("测试项目", "就绪检查")
-    run = repository.create_app_run(project.project_id, "builtin.marketing-copy", "1.0.0", {}, idempotency_key="disabled-run-1")
+    run = repository.create_app_run(
+        project.project_id, "builtin.marketing-copy", "1.0.0", {}, idempotency_key="disabled-run-1"
+    )
     runner = AppRunner(repository, executors={"builtin.marketing-copy": FakeExecutor()})
     with pytest.raises(AppRunnerConfigurationError, match="尚未就绪"):
         asyncio.run(runner.run(run.app_run_id))
@@ -476,11 +666,19 @@ def test_llm_request_boundary_rejects_provider_override_and_bad_timeout():
     with pytest.raises(ValueError, match="timeout_ms"):
         StructuredGenerationRequest(**{**_request().__dict__, "timeout_ms": 1})
     with pytest.raises(ValueError, match="forbidden field: api_key"):
-        StructuredGenerationRequest(**{**_request().__dict__, "context": {"nested": {"api_key": "secret"}}})
+        StructuredGenerationRequest(
+            **{**_request().__dict__, "context": {"nested": {"api_key": "secret"}}}
+        )
 
 
 def test_config_llm_prompt_wraps_reference_text_as_untrusted_data(monkeypatch):
-    monkeypatch.setattr(config_manager, "config", PixelleVideoConfig(llm={"api_key": "key", "base_url": "http://localhost", "model": "model"}))
+    monkeypatch.setattr(
+        config_manager,
+        "config",
+        PixelleVideoConfig(
+            llm={"api_key": "key", "base_url": "http://localhost", "model": "model"}
+        ),
+    )
     captured = {}
 
     class Service:
@@ -517,39 +715,93 @@ def test_repository_rejects_cross_project_context_artifact_and_handoff(tmp_path)
     first = repository.create_project("一", "目标")
     second = repository.create_project("二", "目标")
     snapshot = repository.save_context_snapshot(first.project_id, {"x": 1})
-    with pytest.raises(AppCenterRepositoryError, match="context snapshot"):
-        repository.create_app_run(second.project_id, "builtin.marketing-copy", "1.0.0", {}, idempotency_key="cross-context-1", context_snapshot_id=snapshot.context_snapshot_id)
-    run = repository.create_app_run(first.project_id, "builtin.marketing-copy", "1.0.0", {}, idempotency_key="cross-run-1")
+    with pytest.raises(ProjectContextError) as context_error:
+        repository.create_app_run(
+            second.project_id,
+            "builtin.marketing-copy",
+            "1.0.0",
+            {},
+            idempotency_key="cross-context-1",
+            context_snapshot_id=snapshot.context_snapshot_id,
+        )
+    assert context_error.value.code == "PROJECT_CONTEXT_CONFLICT"
+    run = repository.create_app_run(
+        first.project_id, "builtin.marketing-copy", "1.0.0", {}, idempotency_key="cross-run-1"
+    )
     with pytest.raises(AppCenterRepositoryError, match="source AppRun"):
-        repository.create_artifact(second.project_id, "copywriting", "错误归属", source_app_run_id=run.app_run_id)
+        repository.create_artifact(
+            second.project_id, "copywriting", "错误归属", source_app_run_id=run.app_run_id
+        )
     artifact = repository.create_artifact(first.project_id, "copywriting", "文案")
     version = repository.append_artifact_version(artifact.artifact_id, content={"text": "x"})
-    with pytest.raises(AppCenterRepositoryError, match="source artifact"):
-        repository.create_handoff(second.project_id, artifact.artifact_id, version.artifact_version_id, "builtin.viral-titles", "1.0.0", [version.artifact_version_id])
+    with pytest.raises(ProjectContextError) as handoff_error:
+        repository.create_handoff(
+            second.project_id,
+            artifact.artifact_id,
+            version.artifact_version_id,
+            "builtin.viral-titles",
+            "1.0.0",
+            [version.artifact_version_id],
+        )
+    assert handoff_error.value.code == "PROJECT_CONTEXT_CROSS_PROJECT_REF"
 
 
 def test_app_run_rejects_credentials_and_idempotency_scope_mismatch(tmp_path):
     repository = AppCenterRepository(tmp_path / "input-boundary.sqlite")
     project = repository.create_project("项目", "目标")
     with pytest.raises(ValueError, match="forbidden field: api_key"):
-        repository.create_app_run(project.project_id, "builtin.marketing-copy", "1.0.0", {"api_key": "SECRET"}, idempotency_key="secret-run-1")
-    run = repository.create_app_run(project.project_id, "builtin.marketing-copy", "1.0.0", {"brief": "x"}, idempotency_key="scope-run-1")
+        repository.create_app_run(
+            project.project_id,
+            "builtin.marketing-copy",
+            "1.0.0",
+            {"api_key": "SECRET"},
+            idempotency_key="secret-run-1",
+        )
+    run = repository.create_app_run(
+        project.project_id,
+        "builtin.marketing-copy",
+        "1.0.0",
+        {"brief": "x"},
+        idempotency_key="scope-run-1",
+    )
     other = repository.create_project("其他项目", "目标")
     with pytest.raises(IdempotencyConflict):
-        repository.create_app_run(other.project_id, "builtin.marketing-copy", "1.0.0", {"brief": "x"}, idempotency_key="scope-run-1")
+        repository.create_app_run(
+            other.project_id,
+            "builtin.marketing-copy",
+            "1.0.0",
+            {"brief": "x"},
+            idempotency_key="scope-run-1",
+        )
     assert repository.get_app_run(run.app_run_id).project_id == project.project_id
 
 
 def test_artifact_type_and_self_handoff_are_rejected(tmp_path):
     repository = AppCenterRepository(tmp_path / "handoff-boundary.sqlite")
     project = repository.create_project("项目", "目标")
-    run = repository.create_app_run(project.project_id, "builtin.marketing-copy", "1.0.0", {}, idempotency_key="self-handoff-run-1")
+    repository.save_context_snapshot(project.project_id, {"store_name": "固定项目资料"})
+    run = repository.create_app_run(
+        project.project_id,
+        "builtin.marketing-copy",
+        "1.0.0",
+        {},
+        idempotency_key="self-handoff-run-1",
+    )
     with pytest.raises(AppCenterRepositoryError, match="unknown artifact type"):
         repository.create_artifact(project.project_id, "evil", "未知")
-    artifact = repository.create_artifact(project.project_id, "copywriting", "文案", source_app_run_id=run.app_run_id)
+    artifact = repository.create_artifact(
+        project.project_id, "copywriting", "文案", source_app_run_id=run.app_run_id
+    )
     version = repository.append_artifact_version(artifact.artifact_id, content={"text": "x"})
     with pytest.raises(AppCenterRepositoryError, match="target must differ"):
-        repository.create_handoff(project.project_id, artifact.artifact_id, version.artifact_version_id, "builtin.marketing-copy", "1.0.0", [version.artifact_version_id])
+        repository.create_handoff(
+            project.project_id,
+            artifact.artifact_id,
+            version.artifact_version_id,
+            "builtin.marketing-copy",
+            "1.0.0",
+            [version.artifact_version_id],
+        )
 
 
 def test_artifact_versions_are_serialized_under_concurrent_writes(tmp_path):
@@ -558,7 +810,9 @@ def test_artifact_versions_are_serialized_under_concurrent_writes(tmp_path):
     artifact = repository.create_artifact(project.project_id, "copywriting", "文案")
 
     def append(index: int):
-        return repository.append_artifact_version(artifact.artifact_id, content={"index": index}).version_number
+        return repository.append_artifact_version(
+            artifact.artifact_id, content={"index": index}
+        ).version_number
 
     with ThreadPoolExecutor(max_workers=20) as pool:
         numbers = list(pool.map(append, range(20)))
@@ -573,8 +827,12 @@ def test_runner_cancel_race_archive_and_task_cleanup_preserve_domain_fact(tmp_pa
 
     repository = AppCenterRepository(tmp_path / "cancel-race.sqlite")
     project = repository.create_project("项目", "取消")
-    run = repository.create_app_run(project.project_id, "builtin.marketing-copy", "1.0.0", {}, idempotency_key="cancel-race-1")
-    runner = AppRunner(repository, executors={"builtin.marketing-copy": SlowExecutor()}, enforce_readiness=False)
+    run = repository.create_app_run(
+        project.project_id, "builtin.marketing-copy", "1.0.0", {}, idempotency_key="cancel-race-1"
+    )
+    runner = AppRunner(
+        repository, executors={"builtin.marketing-copy": SlowExecutor()}, enforce_readiness=False
+    )
 
     async def cancel_during_run():
         job = asyncio.create_task(runner.run(run.app_run_id))

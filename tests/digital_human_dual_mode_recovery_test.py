@@ -145,6 +145,23 @@ def test_recovery_needs_review_restart_preserves_four_artifacts(tmp_path: Path):
     assert accepted.run.state == "completed"
 
 
+def test_failed_v2_execution_requires_retry_plan(tmp_path: Path):
+    revision = {"value": "revision-a"}
+    repository, project, adapter = _adapter(tmp_path, revision)
+    created = adapter.create_or_resume(
+        project.project_id,
+        _payload(project.project_id),
+        idempotency_key="dh-recovery-failed-guard",
+    )
+    repository.transition_app_run(created.run.app_run_id, "queued")
+    repository.transition_app_run(created.run.app_run_id, "running")
+    repository.transition_app_run(created.run.app_run_id, "failed")
+    with pytest.raises(IpBroadcastSessionError, match="DH_QUALITY_RETRY_PLAN_REQUIRED"):
+        asyncio.run(adapter.execute_local(created.run.app_run_id))
+    with pytest.raises(IpBroadcastSessionError, match="DH_QUALITY_RETRY_PLAN_REQUIRED"):
+        adapter.retry(created.run.app_run_id)
+
+
 def test_recovery_rejects_incomplete_v2_artifact_set_before_accept(tmp_path: Path):
     revision = {"value": "revision-a"}
     repository, project, adapter = _adapter(tmp_path, revision)

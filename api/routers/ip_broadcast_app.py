@@ -6,13 +6,16 @@ import re
 
 from fastapi import APIRouter, HTTPException, Query, status
 
+from api.config import api_config
 from api.dependencies import get_pixelle_video
 from api.routers.app_center import get_app_center_repository
+from api.routers.assets_v2 import get_asset_repository
 from api.schemas.app_center import (
     IpBroadcastAppRunCreateRequest,
     IpBroadcastAppRunResponse,
     IpBroadcastProviderRetryPlanRequest,
 )
+from pixelle_video.app_center.brand_project import ProjectContextResolver
 from pixelle_video.app_center.ip_broadcast_adapter import (
     IpBroadcastAdapterError,
     IpBroadcastAppAdapter,
@@ -35,6 +38,7 @@ _SAFE_ARTIFACT_KEYS = frozenset(
         "final_video",
         "digital_human_video",
         "audio",
+        "spoken_script",
         "carousel_package",
         "carousel_page",
     }
@@ -44,7 +48,15 @@ _SAFE_ARTIFACT_KEYS = frozenset(
 def get_ip_broadcast_app_adapter() -> IpBroadcastAppAdapter:
     """Construct the production, flag/readiness-gated adapter per request."""
 
-    return IpBroadcastAppAdapter(get_app_center_repository())
+    repository = get_app_center_repository()
+    return IpBroadcastAppAdapter(
+        repository,
+        context_resolver=(
+            ProjectContextResolver(repository, get_asset_repository())
+            if api_config.brand_project_boundary_v1_enabled
+            else None
+        ),
+    )
 
 
 def _safe_notices(notices: dict[int, dict[str, str]]) -> dict[int, dict[str, str]]:
@@ -64,9 +76,43 @@ def _safe_notices(notices: dict[int, dict[str, str]]) -> dict[int, dict[str, str
 
 def _response(handle) -> IpBroadcastAppRunResponse:
     run = handle.run
+    repository = get_app_center_repository()
+    artifact_details: dict[str, dict[str, object]] = {}
+    for artifact_id in run.output_artifact_ids:
+        try:
+            artifact = repository.get_artifact(artifact_id)
+            if not artifact.current_version_id:
+                continue
+            version = repository.get_artifact_version(artifact.current_version_id)
+            artifact_details[artifact.artifact_type] = {
+                "artifact_id": artifact.artifact_id,
+                "artifact_version_id": version.artifact_version_id,
+                "version_number": version.version_number,
+                "content": version.content or {},
+                "file_refs": [
+                    {
+                        key: value
+                        for key, value in ref.items()
+                        if key
+                        in {
+                            "file_key",
+                            "kind",
+                            "mime_type",
+                            "sha256",
+                            "size_bytes",
+                            "width",
+                            "height",
+                        }
+                    }
+                    for ref in version.file_refs
+                ],
+            }
+        except Exception:
+            continue
     return IpBroadcastAppRunResponse(
         app_run_id=run.app_run_id,
         project_id=run.project_id,
+        context_snapshot_id=run.context_snapshot_id,
         app_id=run.app_id,
         app_version=run.app_version,
         state=run.state,
@@ -79,7 +125,12 @@ def _response(handle) -> IpBroadcastAppRunResponse:
         projection=dict(handle.projection),
         step_status={int(step): str(value) for step, value in handle.session.step_status.items()},
         notices=_safe_notices(handle.session.notices),
-        artifact_keys=sorted(set(handle.session.artifacts).intersection(_SAFE_ARTIFACT_KEYS)),
+        artifact_keys=sorted(
+            (set(handle.session.artifacts) | set(artifact_details)).intersection(
+                _SAFE_ARTIFACT_KEYS
+            )
+        ),
+        artifact_details=artifact_details,
         created_at=run.created_at,
         updated_at=run.updated_at,
     )

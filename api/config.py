@@ -29,21 +29,21 @@ def _env_flag(name: str, default: bool = False) -> bool:
 
 class APIConfig(BaseModel):
     """API configuration"""
-    
+
     # Server settings
     host: str = "0.0.0.0"
     port: int = 8000
     reload: bool = False
-    
+
     # CORS settings
     cors_enabled: bool = True
     cors_origins: list[str] = ["*"]
-    
+
     # Task settings
     max_concurrent_tasks: int = 5
     task_cleanup_interval: int = 3600  # Clean completed tasks every hour
-    task_retention_time: int = 86400   # Keep task results for 24 hours
-    
+    task_retention_time: int = 86400  # Keep task results for 24 hours
+
     # File upload settings
     max_upload_size: int = 100 * 1024 * 1024  # 100MB
 
@@ -59,7 +59,14 @@ class APIConfig(BaseModel):
         default_factory=lambda: _env_flag("PIXELLE_ASSET_CENTER_SMB_UX", False),
         description="SMB asset-center UX rollout; remains off until UX-E evidence review.",
     )
-    
+    brand_project_boundary_v1_enabled: bool = Field(
+        default_factory=lambda: _env_flag("PIXELLE_BRAND_PROJECT_BOUNDARY_V1", False),
+        description=(
+            "Server-owned brand/project v3 writes. Read compatibility remains "
+            "available when the rollout switch is off."
+        ),
+    )
+
     # API settings
     api_prefix: str = "/api"
     docs_url: Optional[str] = "/docs"

@@ -9,7 +9,13 @@ def _manager(config: PixelleVideoConfig) -> ConfigManager:
 
 
 def test_legacy_llm_is_migrated_to_shared_profile():
-    config = PixelleVideoConfig(llm={"api_key": "shared-key", "base_url": "https://shared.example/v1", "model": "shared-model"})
+    config = PixelleVideoConfig(
+        llm={
+            "api_key": "shared-key",
+            "base_url": "https://shared.example/v1",
+            "model": "shared-model",
+        }
+    )
     manager = _manager(config)
     manager._ensure_llm_profiles(config)
 
@@ -19,7 +25,13 @@ def test_legacy_llm_is_migrated_to_shared_profile():
 
 
 def test_switching_profiles_preserves_shared_and_custom_active_configs():
-    config = PixelleVideoConfig(llm={"api_key": "shared-key", "base_url": "https://shared.example/v1", "model": "shared-model"})
+    config = PixelleVideoConfig(
+        llm={
+            "api_key": "shared-key",
+            "base_url": "https://shared.example/v1",
+            "model": "shared-model",
+        }
+    )
     manager = _manager(config)
 
     manager.set_llm_source("custom")
@@ -37,3 +49,6 @@ def test_switching_profiles_preserves_shared_and_custom_active_configs():
     manager.set_llm_source("custom")
     assert config.llm.api_key == "custom-key"
     assert config.llm.model == "custom-model"
+    # ConfigManager is a process singleton; leave the active profile at the
+    # documented shared default so later API tests do not inherit test state.
+    manager.set_llm_source("shared")

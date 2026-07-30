@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/app-center/context-snapshot.v3.schema.json",
+  "title": "Pixelle brand-pinned ContentProject ContextSnapshot v3 payload",
+  "x-pixelle-write-authority": "server_brand_context_resolver_only",
+  "x-pixelle-client-contract": "context-snapshot-v3-write-request.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "brand_context",
+    "project_brief"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 3
+    },
+    "brand_context": {
+      "description": "Server-resolved and immutable. Clients must never submit this stored projection directly.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/brand_context"
+        }
+      ]
+    },
+    "project_brief": {
+      "$ref": "#/$defs/project_brief"
+    }
+  },
+  "$defs": {
+    "asset_revision_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_id",
+        "asset_revision"
+      ],
+      "properties": {
+        "asset_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "asset_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    },
+    "brand_values": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "display_name",
+        "logo_ref",
+        "store_address",
+        "phone",
+        "primary_color",
+        "secondary_color",
+        "font_family",
+        "default_subtitle_style",
+        "default_bgm_ref",
+        "ending_card_text",
+        "coupon_phrase"
+      ],
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "logo_ref": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/asset_revision_ref"
+            }
+          ]
+        },
+        "store_address": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "primary_color": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$"
+        },
+        "secondary_color": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$"
+        },
+        "font_family": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "default_subtitle_style": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "default_bgm_ref": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/asset_revision_ref"
+            }
+          ]
+        },
+        "ending_card_text": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "coupon_phrase": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "brand_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "brand_id",
+        "domain_revision",
+        "values",
+        "overridden_fields"
+      ],
+      "properties": {
+        "brand_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "domain_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "values": {
+          "$ref": "#/$defs/brand_values"
+        },
+        "overridden_fields": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 11,
+          "items": {
+            "enum": [
+              "display_name",
+              "logo_ref",
+              "store_address",
+              "phone",
+              "primary_color",
+              "secondary_color",
+              "font_family",
+              "default_subtitle_style",
+              "default_bgm_ref",
+              "ending_card_text",
+              "coupon_phrase"
+            ]
+          }
+        }
+      }
+    },
+    "context_fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fact_id",
+        "text",
+        "source"
+      ],
+      "properties": {
+        "fact_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "source": {
+          "enum": [
+            "user",
+            "brand_revision",
+            "asset_metadata",
+            "artifact_version"
+          ]
+        },
+        "source_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 200
+        }
+      }
+    },
+    "fact_list": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/context_fact"
+      }
+    },
+    "offer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "category",
+        "price_facts",
+        "promotion_facts"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "price_facts": {
+          "$ref": "#/$defs/fact_list"
+        },
+        "promotion_facts": {
+          "$ref": "#/$defs/fact_list"
+        }
+      }
+    },
+    "audience": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primary",
+        "scenes"
+      ],
+      "properties": {
+        "primary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "scenes": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        }
+      }
+    },
+    "project_brief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject_type",
+        "offer",
+        "marketing_goal",
+        "audience",
+        "selling_points",
+        "proof_points",
+        "required_facts",
+        "forbidden_claims",
+        "asset_refs"
+      ],
+      "properties": {
+        "subject_type": {
+          "enum": [
+            "store",
+            "brand",
+            "product",
+            "service",
+            "campaign"
+          ]
+        },
+        "offer": {
+          "$ref": "#/$defs/offer"
+        },
+        "marketing_goal": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "audience": {
+          "$ref": "#/$defs/audience"
+        },
+        "selling_points": {
+          "$ref": "#/$defs/fact_list"
+        },
+        "proof_points": {
+          "$ref": "#/$defs/fact_list"
+        },
+        "required_facts": {
+          "$ref": "#/$defs/fact_list"
+        },
+        "forbidden_claims": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 50,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          }
+        },
+        "asset_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/asset_revision_ref"
+          }
+        }
+      }
+    }
+  }
+}

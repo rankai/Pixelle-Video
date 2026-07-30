@@ -64,14 +64,20 @@ def harness(tmp_path):
     repository = AppCenterRepository(tmp_path / "app-center.sqlite")
     project = repository.create_project("门店项目", "到店咨询")
     copywriting = repository.create_artifact(project.project_id, "copywriting", "门店文案")
-    copy_version = repository.append_artifact_version(copywriting.artifact_id, content=_copywriting_content())
+    copy_version = repository.append_artifact_version(
+        copywriting.artifact_id, content=_copywriting_content()
+    )
     title = repository.create_artifact(project.project_id, "selected_title", "门店标题")
-    title_version = repository.append_artifact_version(title.artifact_id, content={"title": "到店前先看这件事"})
+    title_version = repository.append_artifact_version(
+        title.artifact_id, content={"title": "到店前先看这件事"}
+    )
     sessions = IpBroadcastSessionStore(tmp_path / "legacy-sessions")
     bindings = IpBroadcastBindingStore(tmp_path / "bindings.json")
     # The real adapter is flag-gated; tests explicitly opt into the local
     # implementation seam without changing the product default.
-    adapter = IpBroadcastAppAdapter(repository, session_store=sessions, binding_store=bindings, enforce_feature_flag=False)
+    adapter = IpBroadcastAppAdapter(
+        repository, session_store=sessions, binding_store=bindings, enforce_feature_flag=False
+    )
     return repository, project, copy_version, title_version, sessions, bindings, adapter
 
 
@@ -101,7 +107,12 @@ def test_production_adapter_is_fail_closed_when_feature_flag_is_off(harness, mon
     with pytest.raises(IpBroadcastAdapterError, match="APP_FEATURE_DISABLED"):
         strict.create_or_resume(
             project.project_id,
-            {"project_id": project.project_id, "source_mode": "blank_project", "goal": "默认关闭", "source_artifact_version_ids": []},
+            {
+                "project_id": project.project_id,
+                "source_mode": "blank_project",
+                "goal": "默认关闭",
+                "source_artifact_version_ids": [],
+            },
             idempotency_key="ip-flag-off-1",
         )
     retry_source = local.create_or_resume(
@@ -141,7 +152,10 @@ def test_copywriting_and_selected_title_sources_are_project_pinned(harness):
 
     title_run = adapter.create_or_resume(
         project.project_id,
-        {"source_mode": "selected_title", "source_artifact_version_ids": [title_version.artifact_version_id]},
+        {
+            "source_mode": "selected_title",
+            "source_artifact_version_ids": [title_version.artifact_version_id],
+        },
         idempotency_key="ip-title-1",
     )
     assert title_run.run.input_payload["source_mode"] == "selected_title"
@@ -151,20 +165,31 @@ def test_copywriting_and_selected_title_sources_are_project_pinned(harness):
             project.project_id,
             {
                 "source_mode": "copywriting",
-                "source_artifact_version_ids": [copy_version.artifact_version_id, title_version.artifact_version_id],
+                "source_artifact_version_ids": [
+                    copy_version.artifact_version_id,
+                    title_version.artifact_version_id,
+                ],
                 "selected_variant_index": 0,
             },
         )
     with pytest.raises(IpBroadcastInputError, match="COPYWRITING_VARIANT_REQUIRED"):
         adapter.validate_input(
             project.project_id,
-            {"source_mode": "copywriting", "source_artifact_version_ids": [copy_version.artifact_version_id]},
+            {
+                "source_mode": "copywriting",
+                "source_artifact_version_ids": [copy_version.artifact_version_id],
+            },
         )
 
     with pytest.raises(IpBroadcastInputError, match="PROJECT_ID_MISMATCH"):
         adapter.validate_input(
             project.project_id,
-            {"project_id": "another-project", "source_mode": "blank_project", "goal": "不一致", "source_artifact_version_ids": []},
+            {
+                "project_id": "another-project",
+                "source_mode": "blank_project",
+                "goal": "不一致",
+                "source_artifact_version_ids": [],
+            },
         )
 
 
@@ -261,21 +286,35 @@ def test_runtime_source_and_resume_revision_mismatch_fail_closed(harness):
     repository, project, copy_version, title_version, sessions, _, adapter = harness
     other = repository.create_project("另一项目", "到店咨询")
     other_title = repository.create_artifact(other.project_id, "selected_title", "另一项目标题")
-    other_version = repository.append_artifact_version(other_title.artifact_id, content={"title": "不得跨项目"})
+    other_version = repository.append_artifact_version(
+        other_title.artifact_id, content={"title": "不得跨项目"}
+    )
     with pytest.raises(IpBroadcastInputError, match="SOURCE_VERSION_PROJECT_MISMATCH"):
         adapter.validate_input(
             project.project_id,
-            {"source_mode": "selected_title", "source_artifact_version_ids": [other_version.artifact_version_id]},
+            {
+                "source_mode": "selected_title",
+                "source_artifact_version_ids": [other_version.artifact_version_id],
+            },
         )
     created = adapter.create_or_resume(
         project.project_id,
-        {"source_mode": "copywriting", "source_artifact_version_ids": [copy_version.artifact_version_id], "selected_variant_index": 0},
+        {
+            "source_mode": "copywriting",
+            "source_artifact_version_ids": [copy_version.artifact_version_id],
+            "selected_variant_index": 0,
+        },
         idempotency_key="ip-revision-1",
     )
     with pytest.raises(IpBroadcastSessionError, match="SOURCE_REVISION_MISMATCH"):
         adapter.create_or_resume(
             project.project_id,
-            {"session_id": created.binding.session_id, "resume_mode": "resume_existing", "source_mode": "selected_title", "source_artifact_version_ids": [title_version.artifact_version_id]},
+            {
+                "session_id": created.binding.session_id,
+                "resume_mode": "resume_existing",
+                "source_mode": "selected_title",
+                "source_artifact_version_ids": [title_version.artifact_version_id],
+            },
             idempotency_key="ip-revision-2",
         )
     assert sessions.get_session(created.binding.session_id) is not None
@@ -287,7 +326,13 @@ def test_optional_generic_task_projection_is_redacted_and_reconciled(harness, tm
     projector = AppRunTaskProjector(manager)
     sessions = IpBroadcastSessionStore(tmp_path / "projected-sessions")
     bindings = IpBroadcastBindingStore(tmp_path / "projected-bindings.json")
-    adapter = IpBroadcastAppAdapter(repository, session_store=sessions, binding_store=bindings, task_projector=projector, enforce_feature_flag=False)
+    adapter = IpBroadcastAppAdapter(
+        repository,
+        session_store=sessions,
+        binding_store=bindings,
+        task_projector=projector,
+        enforce_feature_flag=False,
+    )
     created = adapter.create_or_resume(
         project.project_id,
         {"source_mode": "blank_project", "goal": "任务投影", "source_artifact_version_ids": []},
@@ -348,7 +393,11 @@ def test_batch5_local_executor_reuses_run_session_task_and_outputs(harness):
     )
     created = adapter.create_or_resume(
         project.project_id,
-        {"source_mode": "blank_project", "goal": "隔离 executor", "source_artifact_version_ids": []},
+        {
+            "source_mode": "blank_project",
+            "goal": "隔离 executor",
+            "source_artifact_version_ids": [],
+        },
         idempotency_key="ip-batch5-local-1",
     )
     first = asyncio.run(adapter.execute_local(created.run.app_run_id))
@@ -356,14 +405,25 @@ def test_batch5_local_executor_reuses_run_session_task_and_outputs(harness):
     assert first.run.state == second.run.state == "needs_review"
     assert first.run.output_artifact_ids == second.run.output_artifact_ids
     assert len(repository.list_attempts(created.run.app_run_id)) == 1
-    assert len([item for item in repository.list_artifacts(project.project_id) if item.source_app_run_id == created.run.app_run_id]) == 3
+    assert (
+        len(
+            [
+                item
+                for item in repository.list_artifacts(project.project_id)
+                if item.source_app_run_id == created.run.app_run_id
+            ]
+        )
+        == 3
+    )
     session = sessions.get_session(created.binding.session_id)
     assert session is not None and session.step_status[6] == "ready"
     assert manager.list_tasks()[0].status.value == "needs_review"
     assert manager.list_tasks()[0].source_fact_id == created.run.app_run_id
 
 
-def test_provider_executor_runs_real_media_boundary_and_stops_for_human_review(harness, tmp_path, monkeypatch):
+def test_provider_executor_runs_real_media_boundary_and_stops_for_human_review(
+    harness, tmp_path, monkeypatch
+):
     repository, project, _, _, sessions, bindings, _ = harness
     video_path = tmp_path / "generated.mp4"
     cover_path = tmp_path / "cover.png"
@@ -381,7 +441,9 @@ def test_provider_executor_runs_real_media_boundary_and_stops_for_human_review(h
             }
         return True
 
-    monkeypatch.setattr("pixelle_video.app_center.ip_broadcast_adapter.run_ip_broadcast_step", fake_step)
+    monkeypatch.setattr(
+        "pixelle_video.app_center.ip_broadcast_adapter.run_ip_broadcast_step", fake_step
+    )
     adapter = IpBroadcastAppAdapter(
         repository,
         session_store=sessions,
@@ -396,7 +458,9 @@ def test_provider_executor_runs_real_media_boundary_and_stops_for_human_review(h
     )
     reviewed = asyncio.run(adapter.execute_provider(created.run.app_run_id, object()))
     assert reviewed.run.state == "needs_review"
-    assert {repository.get_artifact(item).artifact_type for item in reviewed.run.output_artifact_ids} == {"video", "cover", "publish_copy"}
+    assert {
+        repository.get_artifact(item).artifact_type for item in reviewed.run.output_artifact_ids
+    } == {"video", "cover", "publish_copy"}
     assert reviewed.session.step_status[6] == "ready"
     accepted = adapter.accept_generated_outputs(reviewed.run.app_run_id)
     assert accepted.run.state == "completed"
@@ -409,7 +473,11 @@ def test_provider_executor_repairs_orphaned_running_attempt_after_restart(harnes
     repository, project, _, _, sessions, _, adapter = harness
     created = adapter.create_or_resume(
         project.project_id,
-        {"source_mode": "blank_project", "goal": "恢复 provider running", "source_artifact_version_ids": []},
+        {
+            "source_mode": "blank_project",
+            "goal": "恢复 provider running",
+            "source_artifact_version_ids": [],
+        },
         idempotency_key="ip-provider-restart-running-1",
     )
     repository.transition_app_run(created.run.app_run_id, "queued")
@@ -436,18 +504,27 @@ def test_batch5_local_executor_enforces_context_and_source_binding(harness):
         context_snapshot_id=snapshot.context_snapshot_id,
     )
     with pytest.raises(IpBroadcastSessionError, match="APP_RUN_BINDING_MISMATCH"):
-        asyncio.run(adapter.execute_local(created.run.app_run_id, context_snapshot_id="snapshot-other"))
+        asyncio.run(
+            adapter.execute_local(created.run.app_run_id, context_snapshot_id="snapshot-other")
+        )
     restarted = IpBroadcastAppAdapter(
         repository,
         session_store=adapter.session_store,
         binding_store=IpBroadcastBindingStore(adapter.binding_store._path),
         enforce_feature_flag=False,
     )
-    assert restarted.binding_store.get(created.binding.session_id).context_snapshot_id == snapshot.context_snapshot_id
+    assert (
+        restarted.binding_store.get(created.binding.session_id).context_snapshot_id
+        == snapshot.context_snapshot_id
+    )
     with pytest.raises(IpBroadcastSessionError, match="SOURCE_REVISION_MISMATCH"):
         repository.update_app_run_draft(
             created.run.app_run_id,
-            input_payload={"source_mode": "blank_project", "goal": "篡改", "source_revision": "sha256:other"},
+            input_payload={
+                "source_mode": "blank_project",
+                "goal": "篡改",
+                "source_revision": "sha256:other",
+            },
             context_snapshot_id=snapshot.context_snapshot_id,
             session_id=created.binding.session_id,
         )
@@ -462,30 +539,46 @@ def test_batch5_idempotent_replay_rejects_context_snapshot_drift(harness):
         project.project_id,
         {"source_mode": "blank_project", "goal": "幂等上下文", "source_artifact_version_ids": []},
         idempotency_key="ip-batch5-context-replay-1",
-        context_snapshot_id=first_snapshot.context_snapshot_id,
+        context_snapshot_id=second_snapshot.context_snapshot_id,
     )
     with pytest.raises(IpBroadcastSessionError, match="APP_RUN_BINDING_MISMATCH"):
         adapter.create_or_resume(
             project.project_id,
-            {"source_mode": "blank_project", "goal": "幂等上下文", "source_artifact_version_ids": []},
+            {
+                "source_mode": "blank_project",
+                "goal": "幂等上下文",
+                "source_artifact_version_ids": [],
+            },
             idempotency_key="ip-batch5-context-replay-1",
-            context_snapshot_id=second_snapshot.context_snapshot_id,
+            context_snapshot_id=first_snapshot.context_snapshot_id,
         )
-    assert repository.get_app_run(created.run.app_run_id).context_snapshot_id == first_snapshot.context_snapshot_id
+    assert (
+        repository.get_app_run(created.run.app_run_id).context_snapshot_id
+        == second_snapshot.context_snapshot_id
+    )
 
 
 def test_batch5_local_executor_failure_then_retry_preserves_history(harness):
     repository, project, _, _, sessions, _, adapter = harness
     created = adapter.create_or_resume(
         project.project_id,
-        {"source_mode": "blank_project", "goal": "失败重试", "source_artifact_version_ids": [], "__local_executor_error": True},
+        {
+            "source_mode": "blank_project",
+            "goal": "失败重试",
+            "source_artifact_version_ids": [],
+            "__local_executor_error": True,
+        },
         idempotency_key="ip-batch5-retry-1",
     )
     failed = asyncio.run(adapter.execute_local(created.run.app_run_id))
     assert failed.run.state == "failed"
     assert failed.projection["completion_allowed"] is False
     assert sessions.get_session(created.binding.session_id) is not None
-    assert [item for item in repository.list_artifacts(project.project_id) if item.source_app_run_id == created.run.app_run_id] == []
+    assert [
+        item
+        for item in repository.list_artifacts(project.project_id)
+        if item.source_app_run_id == created.run.app_run_id
+    ] == []
     first_attempt = repository.list_attempts(created.run.app_run_id)[-1]
     assert first_attempt.state == "failed"
 
@@ -514,7 +607,16 @@ def test_batch5_local_executor_concurrency_has_one_attempt_and_one_output_set(ha
         first, second = list(pool.map(lambda _: run_once(), (1, 2)))
     assert first.run.output_artifact_ids == second.run.output_artifact_ids
     assert len(repository.list_attempts(created.run.app_run_id)) == 1
-    assert len([item for item in repository.list_artifacts(project.project_id) if item.source_app_run_id == created.run.app_run_id]) == 3
+    assert (
+        len(
+            [
+                item
+                for item in repository.list_artifacts(project.project_id)
+                if item.source_app_run_id == created.run.app_run_id
+            ]
+        )
+        == 3
+    )
 
 
 def test_batch5_local_accept_rechecks_fingerprint_and_exact_outputs(harness):
@@ -540,7 +642,9 @@ def test_batch5_local_accept_rechecks_fingerprint_and_exact_outputs(harness):
         for item in reviewed.run.output_artifact_ids
         if repository.get_artifact(item).artifact_type == "video"
     )
-    repository.append_artifact_version(video_artifact.artifact_id, content={"fake": "post-completion-tamper"}, source="generated")
+    repository.append_artifact_version(
+        video_artifact.artifact_id, content={"fake": "post-completion-tamper"}, source="generated"
+    )
     with pytest.raises(IpBroadcastSessionError, match="ARTIFACT_FINGERPRINT_MISMATCH"):
         adapter.accept_local_outputs(created.run.app_run_id)
 
@@ -555,7 +659,9 @@ def test_batch5_local_accept_rechecks_fingerprint_and_exact_outputs(harness):
         for item in tampered.run.output_artifact_ids
         if repository.get_artifact(item).artifact_type == "video"
     )
-    repository.append_artifact_version(video_artifact.artifact_id, content={"fake": "tampered"}, source="generated")
+    repository.append_artifact_version(
+        video_artifact.artifact_id, content={"fake": "tampered"}, source="generated"
+    )
     with pytest.raises(IpBroadcastSessionError, match="ARTIFACT_FINGERPRINT_MISMATCH"):
         asyncio.run(adapter.accept_fake(second.run.app_run_id))
 
@@ -578,7 +684,11 @@ def test_batch5_local_restart_repairs_missing_review_fingerprint(harness):
     )
     repaired = asyncio.run(restarted.execute_local(reviewed.run.app_run_id))
     assert repaired.run.state == "needs_review"
-    assert repository.list_attempts(reviewed.run.app_run_id)[-1].diagnostic.get("local_output_fingerprint", "").startswith("sha256:")
+    assert (
+        repository.list_attempts(reviewed.run.app_run_id)[-1]
+        .diagnostic.get("local_output_fingerprint", "")
+        .startswith("sha256:")
+    )
     accepted = restarted.accept_local_outputs(reviewed.run.app_run_id)
     assert accepted.run.state == "completed"
 
@@ -623,7 +733,9 @@ def test_batch5_retry_partial_executor_failure_preserves_previous_artifacts(harn
             content={"fake": True},
             related_artifacts=[
                 RelatedArtifactOutput("cover", "cover", "失败封面", content={"fake": True}),
-                RelatedArtifactOutput("bad", "unknown-artifact", "非法产物", content={"fake": True}),
+                RelatedArtifactOutput(
+                    "bad", "unknown-artifact", "非法产物", content={"fake": True}
+                ),
             ],
         )
 
@@ -631,7 +743,11 @@ def test_batch5_retry_partial_executor_failure_preserves_previous_artifacts(harn
     failed = asyncio.run(adapter.execute_local(first.run.app_run_id))
     assert failed.run.state == "failed"
     assert failed.run.output_artifact_ids == old_output_ids
-    preserved_ids = [item.artifact_id for item in repository.list_artifacts(project.project_id) if item.source_app_run_id == first.run.app_run_id]
+    preserved_ids = [
+        item.artifact_id
+        for item in repository.list_artifacts(project.project_id)
+        if item.source_app_run_id == first.run.app_run_id
+    ]
     assert set(preserved_ids) == set(old_output_ids)
 
 
@@ -669,7 +785,9 @@ def test_cancel_is_idempotent_and_retry_reuses_session_without_deleting_artifact
     assert retried.session.step_status[3] == "ready"
     assert all(notice.get("kind") != "error" for notice in retried.session.notices.values())
     assert "legacy_lifecycle_state" not in retried.session.state
-    assert before_artifacts <= {item.artifact_id for item in repository.list_artifacts(project.project_id)}
+    assert before_artifacts <= {
+        item.artifact_id for item in repository.list_artifacts(project.project_id)
+    }
 
 
 @pytest.mark.parametrize(

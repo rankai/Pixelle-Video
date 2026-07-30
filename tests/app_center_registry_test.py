@@ -67,10 +67,14 @@ def test_registry_douyin_carousel_flag_off_is_explicitly_disabled(monkeypatch):
     monkeypatch.setattr(
         config_manager,
         "config",
-        PixelleVideoConfig(llm={"api_key": "qa-key", "base_url": "http://localhost/v1", "model": "qa-model"}),
+        PixelleVideoConfig(
+            llm={"api_key": "qa-key", "base_url": "http://localhost/v1", "model": "qa-model"}
+        ),
     )
 
-    carousel = next(item for item in list_effective_apps() if item["app_id"] == "builtin.douyin-carousel")
+    carousel = next(
+        item for item in list_effective_apps() if item["app_id"] == "builtin.douyin-carousel"
+    )
 
     assert carousel["enabled"] is False
     assert carousel["readiness"]["status"] == "disabled"
@@ -85,9 +89,13 @@ def test_registry_routes_are_wired_into_fastapi():
 
 
 def test_registry_flag_env_names_match_the_shared_contract():
-    contract = json.loads(Path("docs/contracts/app-center/app-registry-semantic-contract.json").read_text())
+    contract = json.loads(
+        Path("docs/contracts/app-center/app-registry-semantic-contract.json").read_text()
+    )
 
-    assert {name: value["env"] for name, value in contract["known_feature_flags"].items()} == FEATURE_FLAG_ENV
+    assert {
+        name: value["env"] for name, value in contract["known_feature_flags"].items()
+    } == FEATURE_FLAG_ENV
     assert contract["ownership"] == {
         "manifest_source_of_truth": "pixelle_video.app_center.registry.BUILTIN_MANIFESTS",
         "sqlite_role": "read_only_versioned_snapshot",
@@ -119,14 +127,60 @@ def test_ac2_entry_sql_matches_domain_fields_and_canonical_app_run_states():
         )
     }
     assert {"app_id", "version", "manifest_json", "source"} <= columns["app_registry"]
-    assert {"schema_version", "status", "primary_goal", "brand_id", "current_context_snapshot_id"} <= columns["content_projects"]
-    assert {"schema_version", "payload_json", "source_brand_id", "source_brand_revision_id", "fingerprint"} <= columns["context_snapshots"]
-    assert {"app_version", "state", "state_version", "input_schema_version", "input_json", "context_snapshot_id", "prompt_version", "session_id", "completed_at"} <= columns["app_runs"]
-    assert {"task_id", "state", "context_snapshot_id", "diagnostic_json", "model_ref", "provider_class", "duration_ms"} <= columns["run_attempts"]
+    assert {
+        "schema_version",
+        "status",
+        "primary_goal",
+        "brand_id",
+        "current_context_snapshot_id",
+    } <= columns["content_projects"]
+    assert {
+        "schema_version",
+        "payload_json",
+        "source_brand_id",
+        "source_brand_revision_id",
+        "fingerprint",
+    } <= columns["context_snapshots"]
+    assert {
+        "app_version",
+        "state",
+        "state_version",
+        "input_schema_version",
+        "input_json",
+        "context_snapshot_id",
+        "prompt_version",
+        "session_id",
+        "completed_at",
+    } <= columns["app_runs"]
+    assert {
+        "task_id",
+        "state",
+        "context_snapshot_id",
+        "diagnostic_json",
+        "model_ref",
+        "provider_class",
+        "duration_ms",
+    } <= columns["run_attempts"]
     assert {"source_app_run_id", "name", "status"} <= columns["artifacts"]
-    assert {"project_id", "version_number", "file_refs_json", "source", "content_fingerprint"} <= columns["artifact_versions"]
-    assert {"project_id", "source_artifact_id", "source_artifact_version_id", "target_app_id", "target_app_version", "target_run_id", "mapping_version"} <= columns["artifact_handoffs"]
-    migration_columns = {row[1] for row in connection.execute("PRAGMA table_info(app_schema_migrations)")}
+    assert {
+        "project_id",
+        "version_number",
+        "file_refs_json",
+        "source",
+        "content_fingerprint",
+    } <= columns["artifact_versions"]
+    assert {
+        "project_id",
+        "source_artifact_id",
+        "source_artifact_version_id",
+        "target_app_id",
+        "target_app_version",
+        "target_run_id",
+        "mapping_version",
+    } <= columns["artifact_handoffs"]
+    migration_columns = {
+        row[1] for row in connection.execute("PRAGMA table_info(app_schema_migrations)")
+    }
     assert {"migration_id", "schema_version", "checksum", "applied_at"} <= migration_columns
 
     connection.execute(
@@ -140,7 +194,17 @@ def test_ac2_entry_sql_matches_domain_fields_and_canonical_app_run_states():
     with pytest.raises(sqlite3.IntegrityError):
         connection.execute(
             "INSERT INTO app_registry(app_id, schema_version, version, manifest_json, status, feature_flag, source, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            ("builtin.test", 1, "1.0.0", "different", "stable", "contentApps", "builtin_code", "now", "now"),
+            (
+                "builtin.test",
+                1,
+                "1.0.0",
+                "different",
+                "stable",
+                "contentApps",
+                "builtin_code",
+                "now",
+                "now",
+            ),
         )
     connection.execute(
         "INSERT INTO content_projects(project_id, name, primary_goal, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
@@ -157,19 +221,56 @@ def test_ac2_entry_sql_matches_domain_fields_and_canonical_app_run_states():
     with pytest.raises(sqlite3.IntegrityError):
         connection.execute(
             "INSERT INTO app_runs(app_run_id, app_id, project_id, app_version, state, idempotency_key, input_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            ("run_bad_version", "builtin.test", "project_1", "9.9.9", "draft", "idem-bad", "{}", "now", "now"),
+            (
+                "run_bad_version",
+                "builtin.test",
+                "project_1",
+                "9.9.9",
+                "draft",
+                "idem-bad",
+                "{}",
+                "now",
+                "now",
+            ),
         )
 
-    app_run_sql = connection.execute("SELECT sql FROM sqlite_master WHERE name='app_runs'").fetchone()[0]
-    assert all(state in app_run_sql for state in ("draft", "queued", "running", "needs_review", "completed", "failed", "cancelled"))
+    app_run_sql = connection.execute(
+        "SELECT sql FROM sqlite_master WHERE name='app_runs'"
+    ).fetchone()[0]
+    assert all(
+        state in app_run_sql
+        for state in (
+            "draft",
+            "queued",
+            "running",
+            "needs_review",
+            "completed",
+            "failed",
+            "cancelled",
+        )
+    )
     assert "succeeded" not in app_run_sql
 
 
 def test_ac2_entry_state_transition_matrix_is_explicit():
-    matrix = json.loads(Path("docs/contracts/app-center/app-run-state-transitions.json").read_text())
+    matrix = json.loads(
+        Path("docs/contracts/app-center/app-run-state-transitions.json").read_text()
+    )
 
-    assert matrix["states"] == ["draft", "queued", "running", "needs_review", "completed", "failed", "cancelled"]
+    assert matrix["states"] == [
+        "draft",
+        "queued",
+        "running",
+        "needs_review",
+        "completed",
+        "failed",
+        "cancelled",
+    ]
     assert matrix["terminal_states"] == ["completed", "failed", "cancelled"]
     assert matrix["allowed_transitions"]["failed"] == ["queued", "cancelled"]
     assert matrix["allowed_transitions"]["completed"] == []
-    assert set(matrix["forbidden_external_states"]) >= {"succeeded", "waiting_for_human", "needs_attention"}
+    assert set(matrix["forbidden_external_states"]) >= {
+        "succeeded",
+        "waiting_for_human",
+        "needs_attention",
+    }

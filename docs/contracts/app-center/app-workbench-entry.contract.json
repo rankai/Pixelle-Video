@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "change_request": "CR-APP-WORKBENCH-001",
+  "stage": "APP-WORKBENCH-0",
+  "status": "entry_contract",
+  "architecture": {
+    "frontend": "React/Tauri",
+    "api": "FastAPI",
+    "domain": "pixelle_video.app_center",
+    "database": "SQLite",
+    "model_source": "existing AppLLMPort/local-default only",
+    "asset_source": "existing AssetLibrary",
+    "publishing_boundary": "typed handoff to PublishPackage; final publish remains human"
+  },
+  "ownership": {
+    "project_long_term_context": "ContentProject + immutable ContextSnapshot",
+    "run_input": "AppRun.input_payload + context_snapshot_id",
+    "result": "Artifact + immutable ArtifactVersion",
+    "cross_app_delivery": "ArtifactHandoff pinned to source_artifact_version_id",
+    "style_registry": "trusted code registry keyed by style_id + version",
+    "custom_style_reference": "single AppRun input only; never project facts or saved style",
+    "model_credentials": "existing system configuration; never project, style, AppRun or frontend"
+  },
+  "context_snapshot": {
+    "schema_ref": "context-snapshot-v2.schema.json",
+    "v1_readable": true,
+    "v1_to_v2": "explicit preview; save creates a new v2 snapshot",
+    "old_runs_keep_old_snapshot": true,
+    "new_runs_use_selected_snapshot": true,
+    "errors": [
+      "PROJECT_CONTEXT_INVALID",
+      "PROJECT_CONTEXT_FACT_CONFLICT",
+      "PROJECT_CONTEXT_ASSET_NOT_FOUND",
+      "PROJECT_CONTEXT_CROSS_PROJECT_REF",
+      "PROJECT_CONTEXT_SCHEMA_UNSUPPORTED"
+    ]
+  },
+  "style_registry": {
+    "schema_ref": "style-preset.schema.json",
+    "identity": [
+      "style_id",
+      "version"
+    ],
+    "immutable_versions": true,
+    "frontend_receives_prompt_rules": false,
+    "facts_from_style": false,
+    "custom_reference_max_characters": 2000,
+    "custom_reference_persists_beyond_run": false,
+    "personal_style_library": "deferred"
+  },
+  "input": {
+    "schema_ref": "app-workbench-input-v2.schema.json",
+    "schemas": {
+      "builtin.marketing-copy": "marketing-copy-input.v2",
+      "builtin.viral-titles": "viral-titles-input.v2",
+      "builtin.douyin-carousel": "douyin-carousel-input.v2",
+      "builtin.digital-human-video": "digital-human-video-input.v2"
+    },
+    "run_input_immutable_after_execution": true,
+    "new_style_requires_new_run": true,
+    "reject_fields": [
+      "api_key",
+      "authorization",
+      "cookie",
+      "provider",
+      "base_url",
+      "model",
+      "browser_profile",
+      "absolute_path"
+    ]
+  },
+  "result": {
+    "schema_ref": "app-workbench-result-state.schema.json",
+    "states": [
+      "empty",
+      "running",
+      "failed",
+      "needs_review",
+      "saved"
+    ],
+    "progress_must_be_evidence_backed": true,
+    "unknown_percent_is_omitted": true,
+    "failed_run_creates_artifact": false,
+    "edit_appends_artifact_version": true,
+    "unknown_artifact_schema": "safe read-only summary"
+  },
+  "handoff": {
+    "source_version_pinned": true,
+    "same_project_required": true,
+    "retry_idempotent": true,
+    "source_update_behavior": "notify only; never hot-update target run",
+    "failure_mutates_source": false,
+    "publishing_creates_or_selects_package": true,
+    "final_publish_click": false,
+    "allowed_routes": [
+      "copywriting->viral-titles",
+      "copywriting->douyin-carousel",
+      "copywriting->digital-human-video",
+      "selected-title->douyin-carousel",
+      "selected-title->digital-human-video",
+      "carousel-package->publish-center",
+      "digital-human-delivery->publish-center"
+    ]
+  },
+  "feature_flags": {
+    "PIXELLE_APP_WORKBENCH_V2": false,
+    "PIXELLE_APP_WORKBENCH_TEXT_V2": false,
+    "PIXELLE_APP_WORKBENCH_CAROUSEL_V2": false,
+    "PIXELLE_APP_WORKBENCH_DIGITAL_HUMAN_V2": false,
+    "unknown_or_conflicting": false
+  },
+  "migration": {
+    "entry_database_writes": 0,
+    "entry_business_ui_changes": 0,
+    "old_ui_available": true,
+    "old_projects_runs_artifacts_preserved": true,
+    "running_app_run_survives_ui_rollback": true,
+    "generated_files_never_deleted_by_rollback": true
+  },
+  "concurrency": {
+    "project_switch": "AbortController or request sequence; stale response cannot write active project",
+    "generate": "idempotent save + create AppRun + execute",
+    "duplicate_submit": "reuse active request or reject; never create duplicate provider task"
+  },
+  "external_actions": {
+    "llm_calls": 0,
+    "runninghub_calls": 0,
+    "browser_or_platform_actions": 0,
+    "final_publish_clicks": 0
+  }
+}

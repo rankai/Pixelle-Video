@@ -29,6 +29,7 @@ from api.schemas.asset_library_v2 import (
     DigitalHumanV2Request,
     FavoriteRequest,
     MediaAssetPatchRequest,
+    ProjectMediaRevisionPreview,
     ResourceTagsRequest,
     ResourceUsageCreateRequest,
     SessionReconcileRequest,
@@ -38,6 +39,10 @@ from api.schemas.asset_library_v2 import (
     UploadSessionCreateRequest,
     VoiceProfileCreateRequest,
     VoiceProfilePatchRequest,
+)
+from pixelle_video.app_center.brand_project import (
+    ProjectContextError,
+    validate_brand_domain_revision,
 )
 from pixelle_video.services.asset_library_cursor import (
     CursorContractError,
@@ -96,7 +101,9 @@ def _serialize_asset(asset: dict[str, Any], repository: AssetLibraryRepository) 
         "duration_ms": asset.get("duration_ms"),
         "frame_rate": asset.get("frame_rate"),
         "has_audio": bool(asset["has_audio"]) if asset.get("has_audio") is not None else None,
-        "has_transparency": bool(asset["has_transparency"]) if asset.get("has_transparency") is not None else None,
+        "has_transparency": bool(asset["has_transparency"])
+        if asset.get("has_transparency") is not None
+        else None,
         "relative_path": asset.get("relative_path"),
     }
     variants = []
@@ -145,23 +152,37 @@ def _serialize_asset(asset: dict[str, Any], repository: AssetLibraryRepository) 
             "height": int(asset["height"]) if asset.get("height") else 0,
             "aspect_ratio": float(asset["aspect_ratio"]) if asset.get("aspect_ratio") else 0,
             "duration_ms": int(asset["duration_ms"]) if asset.get("duration_ms") else 0,
-            "has_audio": bool(asset.get("has_audio")) if asset.get("has_audio") is not None else False,
-            "transparent": bool(asset.get("has_transparency")) if asset.get("has_transparency") is not None else False,
+            "has_audio": bool(asset.get("has_audio"))
+            if asset.get("has_audio") is not None
+            else False,
+            "transparent": bool(asset.get("has_transparency"))
+            if asset.get("has_transparency") is not None
+            else False,
         },
         "display": {
-            "orientation": "portrait" if asset.get("height") and asset.get("width") and asset["height"] > asset["width"] else "landscape" if asset.get("height") and asset.get("width") and asset["width"] > asset["height"] else "square" if asset.get("height") and asset.get("width") else "unknown",
+            "orientation": "portrait"
+            if asset.get("height") and asset.get("width") and asset["height"] > asset["width"]
+            else "landscape"
+            if asset.get("height") and asset.get("width") and asset["width"] > asset["height"]
+            else "square"
+            if asset.get("height") and asset.get("width")
+            else "unknown",
             "width": int(asset["width"]) if asset.get("width") else 0,
             "height": int(asset["height"]) if asset.get("height") else 0,
             "duration_ms": int(asset["duration_ms"]) if asset.get("duration_ms") else 0,
             "bytes": int(asset.get("bytes") or 0),
-            "transparent": bool(asset.get("has_transparency")) if asset.get("has_transparency") is not None else False,
+            "transparent": bool(asset.get("has_transparency"))
+            if asset.get("has_transparency") is not None
+            else False,
         },
         "capabilities": ["preview", "use", "favorite", "archive", "edit"],
         "variants": variants,
     }
 
 
-def _decorate_library_item(item: dict[str, Any], repository: AssetLibraryRepository) -> dict[str, Any]:
+def _decorate_library_item(
+    item: dict[str, Any], repository: AssetLibraryRepository
+) -> dict[str, Any]:
     kind = str(item.get("kind") or "")
     resource_id = str(item.get("resource_id") or "")
     return {
@@ -193,6 +214,39 @@ def _serialize_upload(session: dict[str, Any]) -> dict[str, Any]:
         "expires_at": session.get("expires_at"),
         "duplicate_policy": session.get("duplicate_policy"),
     }
+
+
+def _safe_brand_values(payload: dict[str, Any]) -> dict[str, Any]:
+    """Expose only project-relevant brand fields; never filesystem metadata."""
+
+    return {
+        "brand_id": payload.get("brand_id"),
+        "brand_name": payload.get("brand_name"),
+        "logo_asset_id": payload.get("logo_asset_id"),
+        "default_bgm_asset_id": payload.get("default_bgm_asset_id"),
+        "primary_color": payload.get("primary_color"),
+        "secondary_color": payload.get("secondary_color"),
+        "font_family": payload.get("font_family"),
+        "default_subtitle_style": payload.get("default_subtitle_style"),
+        "ending_card_text": payload.get("ending_card_text"),
+        "store_address": payload.get("store_address"),
+        "phone": payload.get("phone"),
+        "coupon_phrase": payload.get("coupon_phrase"),
+        "status": payload.get("status"),
+    }
+
+
+_BRAND_PROJECT_ERROR_MESSAGES = {
+    "PROJECT_BRAND_NOT_FOUND": "这个品牌已不存在，请重新选择",
+    "PROJECT_BRAND_REVISION_NOT_FOUND": "品牌历史版本无法读取，请保留当前项目资料并联系支持",
+}
+
+
+def _brand_project_http_error(code: str, status_code: int) -> HTTPException:
+    return HTTPException(
+        status_code=status_code,
+        detail={"code": code, "message": _BRAND_PROJECT_ERROR_MESSAGES[code]},
+    )
 
 
 def _domain_library_items(
@@ -331,9 +385,13 @@ async def list_library_items(
             sort=sort,
         )
     except CursorFilterMismatchError as exc:
-        raise HTTPException(status_code=400, detail={"code": "cursor_filter_mismatch", "message": str(exc)}) from exc
+        raise HTTPException(
+            status_code=400, detail={"code": "cursor_filter_mismatch", "message": str(exc)}
+        ) from exc
     except CursorStaleError as exc:
-        raise HTTPException(status_code=409, detail={"code": "cursor_stale", "message": str(exc)}) from exc
+        raise HTTPException(
+            status_code=409, detail={"code": "cursor_stale", "message": str(exc)}
+        ) from exc
     except (CursorContractError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -361,7 +419,12 @@ async def list_library_items(
                 "favorite": False,
                 "summary": {},
             }
-        serialized.append({**_decorate_library_item(item, repository), "last_used_at": projection.get("last_used_at")})
+        serialized.append(
+            {
+                **_decorate_library_item(item, repository),
+                "last_used_at": projection.get("last_used_at"),
+            }
+        )
     page["items"] = serialized
     # Preserve the established built-in template entry point for callers
     # that open the template category directly.  The SQL cursor order remains
@@ -369,7 +432,13 @@ async def list_library_items(
     # preference only applies while the small built-in template page is
     # decorated for the legacy entry point.
     if kind == "template":
-        page["items"] = sorted(serialized, key=lambda item: (0 if item.get("resource_id") == "boss_clean" else 1, str(item.get("resource_id") or "")))
+        page["items"] = sorted(
+            serialized,
+            key=lambda item: (
+                0 if item.get("resource_id") == "boss_clean" else 1,
+                str(item.get("resource_id") or ""),
+            ),
+        )
     page["limit"] = limit
     page["offset"] = offset
     return page
@@ -379,17 +448,21 @@ def _sort_library_items(
     items: list[dict[str, Any]], sort: str, repository: AssetLibraryRepository
 ) -> list[dict[str, Any]]:
     if sort == "name":
-        return sorted(items, key=lambda item: (str(item.get("name") or "").lower(), item.get("resource_id") or ""))
+        return sorted(
+            items,
+            key=lambda item: (str(item.get("name") or "").lower(), item.get("resource_id") or ""),
+        )
     if sort != "recent":
         return items
     order = {
-        key: index
-        for index, key in enumerate(repository.recent_resource_keys(max(len(items), 1)))
+        key: index for index, key in enumerate(repository.recent_resource_keys(max(len(items), 1)))
     }
     fallback = len(order) + 1
     return sorted(
         items,
-        key=lambda item: order.get((str(item.get("kind") or ""), str(item.get("resource_id") or "")), fallback),
+        key=lambda item: order.get(
+            (str(item.get("kind") or ""), str(item.get("resource_id") or "")), fallback
+        ),
     )
 
 
@@ -412,6 +485,70 @@ async def create_domain_brand(payload: BrandKitV2Request):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@router.get("/domain/brands")
+async def list_domain_brands(status: str | None = Query(default="ready")):
+    _ensure_enabled()
+    repository = get_asset_repository()
+    include_archived = status is None or status == "archived"
+    items = repository.list_domain_items("brand", "", include_archived, 500, 0)
+    if status is not None:
+        items = [item for item in items if item.get("status") == status]
+    return {
+        "items": [
+            {
+                "brand_id": item["resource_id"],
+                "name": item["name"],
+                "status": item["status"],
+                "summary": item["summary"],
+            }
+            for item in items
+        ]
+    }
+
+
+@router.get("/domain/brands/{brand_id}/project-summary")
+async def get_domain_brand_project_summary(brand_id: str):
+    _ensure_enabled()
+    repository = get_asset_repository()
+    payload = repository.domain_snapshot_metadata("brand", brand_id)
+    if not payload:
+        raise _brand_project_http_error("PROJECT_BRAND_NOT_FOUND", 404)
+    revision = payload.get("domain_revision")
+    if not isinstance(revision, int) or isinstance(revision, bool) or revision < 1:
+        raise _brand_project_http_error("PROJECT_BRAND_REVISION_NOT_FOUND", 409)
+    return {
+        "brand_id": brand_id,
+        "domain_revision": revision,
+        "values": _safe_brand_values(payload),
+    }
+
+
+@router.get("/domain/brands/{brand_id}/revisions/{revision}")
+async def get_domain_brand_revision(brand_id: str, revision: int):
+    _ensure_enabled()
+    repository = get_asset_repository()
+    if not repository.domain_snapshot_metadata("brand", brand_id):
+        raise _brand_project_http_error("PROJECT_BRAND_NOT_FOUND", 404)
+    try:
+        item = repository.get_domain_revision("brand", brand_id, revision)
+        if item is not None:
+            source = validate_brand_domain_revision(
+                item,
+                expected_brand_id=brand_id,
+                expected_revision=revision,
+            )
+    except (TypeError, ValueError, ProjectContextError) as exc:
+        raise _brand_project_http_error("PROJECT_BRAND_REVISION_NOT_FOUND", 409) from exc
+    if item is None:
+        raise _brand_project_http_error("PROJECT_BRAND_REVISION_NOT_FOUND", 409)
+    return {
+        "brand_id": brand_id,
+        "domain_revision": revision,
+        "created_at": item["created_at"],
+        "values": _safe_brand_values(source),
+    }
+
+
 @router.post("/domain/voices", status_code=status.HTTP_201_CREATED)
 async def create_domain_voice(payload: VoiceProfileCreateRequest):
     _ensure_enabled()
@@ -425,7 +562,9 @@ async def create_domain_voice(payload: VoiceProfileCreateRequest):
 async def patch_domain_voice(voice_id: str, payload: VoiceProfilePatchRequest):
     _ensure_enabled()
     try:
-        updated = get_asset_repository().patch_voice_profile(voice_id, payload.model_dump(exclude_unset=True))
+        updated = get_asset_repository().patch_voice_profile(
+            voice_id, payload.model_dump(exclude_unset=True)
+        )
     except (ValueError, OSError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     if not updated:
@@ -478,14 +617,10 @@ async def list_domain_digital_human_scenes(profile_id: str):
 
 
 @router.post("/domain/digital-humans/{profile_id}/scenes", status_code=status.HTTP_201_CREATED)
-async def create_domain_digital_human_scene(
-    profile_id: str, payload: DigitalHumanSceneV2Request
-):
+async def create_domain_digital_human_scene(profile_id: str, payload: DigitalHumanSceneV2Request):
     _ensure_enabled()
     try:
-        scene = get_asset_repository().create_digital_human_scene(
-            profile_id, payload.model_dump()
-        )
+        scene = get_asset_repository().create_digital_human_scene(profile_id, payload.model_dump())
     except (OSError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     if not scene:
@@ -506,7 +641,9 @@ async def get_domain_digital_human_scene(scene_id: str):
 async def patch_domain_digital_human_scene(scene_id: str, payload: DigitalHumanScenePatchRequest):
     _ensure_enabled()
     try:
-        updated = get_asset_repository().patch_digital_human_scene(scene_id, payload.model_dump(exclude_unset=True))
+        updated = get_asset_repository().patch_digital_human_scene(
+            scene_id, payload.model_dump(exclude_unset=True)
+        )
     except (ValueError, OSError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     if not updated:
@@ -524,10 +661,16 @@ async def archive_domain_digital_human_scene(scene_id: str):
 
 
 @router.post("/domain/digital-humans/{profile_id}/scenes/reorder")
-async def reorder_domain_digital_human_scenes(profile_id: str, payload: DigitalHumanSceneReorderRequest):
+async def reorder_domain_digital_human_scenes(
+    profile_id: str, payload: DigitalHumanSceneReorderRequest
+):
     _ensure_enabled()
     try:
-        return {"items": get_asset_repository().reorder_digital_human_scenes(profile_id, payload.scene_ids)}
+        return {
+            "items": get_asset_repository().reorder_digital_human_scenes(
+                profile_id, payload.scene_ids
+            )
+        }
     except (ValueError, OSError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -558,10 +701,21 @@ async def preview_domain_template(payload: TemplatePreviewRequest):
     try:
         contract = TemplateLayoutContract.model_validate(payload.draft_contract)
     except (TypeError, ValueError) as exc:
-        raise HTTPException(status_code=400, detail={"code": "invalid_template_layout_contract", "message": str(exc)}) from exc
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "invalid_template_layout_contract", "message": str(exc)},
+        ) from exc
     repository = get_asset_repository()
     resolved_fonts = [
-        {"token": font.token, "font_id": font.font_id, "family": font.family, "weight": font.weight, "style": font.style, "sha256": font.font_sha256, "source": "bundled_registry"}
+        {
+            "token": font.token,
+            "font_id": font.font_id,
+            "family": font.family,
+            "weight": font.weight,
+            "style": font.style,
+            "sha256": font.font_sha256,
+            "source": "bundled_registry",
+        }
         for font in contract.fonts
     ]
     preview_id = f"template-preview-{uuid.uuid4().hex}"
@@ -569,7 +723,9 @@ async def preview_domain_template(payload: TemplatePreviewRequest):
     preview_root.mkdir(parents=True, exist_ok=True)
     preview_path = preview_root / f"{preview_id}.png"
     background = ""
-    background_asset_id = payload.sample.get("background_asset_id") or payload.sample.get("video_frame_asset_id")
+    background_asset_id = payload.sample.get("background_asset_id") or payload.sample.get(
+        "video_frame_asset_id"
+    )
     if background_asset_id:
         background_path = repository.get_revision_path(str(background_asset_id))
         if background_path:
@@ -584,12 +740,18 @@ async def preview_domain_template(payload: TemplatePreviewRequest):
         )
     except (OSError, RuntimeError, ValueError, TypeError) as exc:
         preview_path.unlink(missing_ok=True)
-        raise HTTPException(status_code=400, detail={"code": "template_preview_render_failed", "message": str(exc)}) from exc
+        raise HTTPException(
+            status_code=400, detail={"code": "template_preview_render_failed", "message": str(exc)}
+        ) from exc
     return {
         "preview_url": f"/api/v2/domain/templates/preview/{preview_id}",
         "resolved_contract": contract.model_dump(mode="json"),
         "resolved_fonts": resolved_fonts,
-        "layout_boxes": {"title": contract.cover.title.model_dump(), "subtitle": contract.cover.subtitle.model_dump(), "video_subtitle": contract.video_subtitle.model_dump()},
+        "layout_boxes": {
+            "title": contract.cover.title.model_dump(),
+            "subtitle": contract.cover.subtitle.model_dump(),
+            "video_subtitle": contract.video_subtitle.model_dump(),
+        },
         "warnings": ["preview_rendered_by_authoritative_service"],
     }
 
@@ -599,7 +761,12 @@ async def get_domain_template_preview(preview_id: str):
     _ensure_enabled()
     if Path(preview_id).name != preview_id or not preview_id.startswith("template-preview-"):
         raise HTTPException(status_code=404, detail="Template preview not found")
-    path = get_asset_repository().data_root / "asset_library" / "template_previews" / f"{preview_id}.png"
+    path = (
+        get_asset_repository().data_root
+        / "asset_library"
+        / "template_previews"
+        / f"{preview_id}.png"
+    )
     if not path.is_file():
         raise HTTPException(status_code=404, detail="Template preview not found")
     return FileResponse(path, media_type="image/png", filename=path.name)
@@ -622,7 +789,9 @@ async def patch_domain_template(template_id: str, payload: TemplatePatchRequest)
 @router.patch("/domain/brands/{brand_id}")
 async def patch_domain_brand(brand_id: str, payload: BrandKitV2Request):
     _ensure_enabled()
-    updated = get_asset_repository().patch_brand_kit(brand_id, payload.model_dump(exclude_unset=True))
+    updated = get_asset_repository().patch_brand_kit(
+        brand_id, payload.model_dump(exclude_unset=True)
+    )
     if not updated:
         raise HTTPException(status_code=404, detail="Brand kit not found")
     return updated
@@ -646,7 +815,11 @@ async def get_library_item(resource_id: str):
         return _serialize_asset(asset, repository)
     for kind in ("voice", "digital_human", "brand", "template"):
         match = next(
-            (item for item in _domain_library_items(kind, repository, True) if item["resource_id"] == resource_id),
+            (
+                item
+                for item in _domain_library_items(kind, repository, True)
+                if item["resource_id"] == resource_id
+            ),
             None,
         )
         if match:
@@ -699,22 +872,40 @@ async def bulk_library_action(payload: BulkActionRequest):
         resource_id = item.resource_id
         try:
             if payload.action == "archive":
-                changed = repository.archive_asset(resource_id) if kind in {"image", "video", "audio"} else bool(repository.set_domain_status(kind, resource_id, "archived"))
+                changed = (
+                    repository.archive_asset(resource_id)
+                    if kind in {"image", "video", "audio"}
+                    else bool(repository.set_domain_status(kind, resource_id, "archived"))
+                )
             elif payload.action == "restore":
-                changed = repository.restore_asset(resource_id) if kind in {"image", "video", "audio"} else bool(repository.set_domain_status(kind, resource_id, "ready"))
+                changed = (
+                    repository.restore_asset(resource_id)
+                    if kind in {"image", "video", "audio"}
+                    else bool(repository.set_domain_status(kind, resource_id, "ready"))
+                )
             elif payload.action in {"favorite", "unfavorite"}:
                 changed = repository.set_favorite(kind, resource_id, payload.action == "favorite")
             elif payload.action in {"tag", "untag"}:
                 current = set(repository.resource_tags(kind, resource_id))
-                next_tags = current | set(payload.tags) if payload.action == "tag" else current - set(payload.tags)
+                next_tags = (
+                    current | set(payload.tags)
+                    if payload.action == "tag"
+                    else current - set(payload.tags)
+                )
                 repository.set_resource_tags(kind, resource_id, sorted(next_tags))
                 changed = True
             else:
                 changed = False
             results.append({"kind": kind, "resource_id": resource_id, "ok": bool(changed)})
         except (KeyError, OSError, ValueError) as exc:
-            results.append({"kind": kind, "resource_id": resource_id, "ok": False, "error": str(exc)})
-    return {"items": results, "succeeded": sum(1 for item in results if item["ok"]), "failed": sum(1 for item in results if not item["ok"])}
+            results.append(
+                {"kind": kind, "resource_id": resource_id, "ok": False, "error": str(exc)}
+            )
+    return {
+        "items": results,
+        "succeeded": sum(1 for item in results if item["ok"]),
+        "failed": sum(1 for item in results if not item["ok"]),
+    }
 
 
 @router.get("/library/{kind}/{resource_id}/usage")
@@ -727,7 +918,11 @@ async def list_library_usage(kind: str, resource_id: str):
 async def archive_library_item(kind: str, resource_id: str):
     _ensure_enabled()
     repository = get_asset_repository()
-    changed = repository.archive_asset(resource_id) if kind in {"image", "video", "audio"} else bool(repository.set_domain_status(kind, resource_id, "archived"))
+    changed = (
+        repository.archive_asset(resource_id)
+        if kind in {"image", "video", "audio"}
+        else bool(repository.set_domain_status(kind, resource_id, "archived"))
+    )
     if not changed:
         raise HTTPException(status_code=404, detail="Library item not found")
     return {"kind": kind, "resource_id": resource_id, "status": "archived"}
@@ -737,7 +932,11 @@ async def archive_library_item(kind: str, resource_id: str):
 async def restore_library_item(kind: str, resource_id: str):
     _ensure_enabled()
     repository = get_asset_repository()
-    changed = repository.restore_asset(resource_id) if kind in {"image", "video", "audio"} else bool(repository.set_domain_status(kind, resource_id, "ready"))
+    changed = (
+        repository.restore_asset(resource_id)
+        if kind in {"image", "video", "audio"}
+        else bool(repository.set_domain_status(kind, resource_id, "ready"))
+    )
     if not changed:
         raise HTTPException(status_code=404, detail="Library item not found")
     return {"kind": kind, "resource_id": resource_id, "status": "ready"}
@@ -748,13 +947,21 @@ async def set_library_favorite(kind: str, resource_id: str, payload: FavoriteReq
     _ensure_enabled()
     if kind not in {"image", "video", "audio", "voice", "digital_human", "brand", "template"}:
         raise HTTPException(status_code=400, detail="Unsupported library item kind")
-    return {"kind": kind, "resource_id": resource_id, "favorite": get_asset_repository().set_favorite(kind, resource_id, payload.favorite)}
+    return {
+        "kind": kind,
+        "resource_id": resource_id,
+        "favorite": get_asset_repository().set_favorite(kind, resource_id, payload.favorite),
+    }
 
 
 @router.put("/library/items/{kind}/{resource_id}/tags")
 async def set_library_tags(kind: str, resource_id: str, payload: ResourceTagsRequest):
     _ensure_enabled()
-    return {"kind": kind, "resource_id": resource_id, "tags": get_asset_repository().set_resource_tags(kind, resource_id, payload.tags)}
+    return {
+        "kind": kind,
+        "resource_id": resource_id,
+        "tags": get_asset_repository().set_resource_tags(kind, resource_id, payload.tags),
+    }
 
 
 @router.get("/collections")
@@ -769,16 +976,22 @@ async def create_collection(payload: CollectionCreateRequest):
     try:
         return get_asset_repository().create_collection(payload.name, payload.description)
     except ValueError as exc:
-        raise HTTPException(status_code=409, detail={"code": "collection_name_conflict", "message": str(exc)}) from exc
+        raise HTTPException(
+            status_code=409, detail={"code": "collection_name_conflict", "message": str(exc)}
+        ) from exc
 
 
 @router.patch("/collections/{collection_id}")
 async def patch_collection(collection_id: str, payload: CollectionPatchRequest):
     _ensure_enabled()
     try:
-        result = get_asset_repository().patch_collection(collection_id, payload.name, payload.description)
+        result = get_asset_repository().patch_collection(
+            collection_id, payload.name, payload.description
+        )
     except ValueError as exc:
-        raise HTTPException(status_code=409, detail={"code": "collection_name_conflict", "message": str(exc)}) from exc
+        raise HTTPException(
+            status_code=409, detail={"code": "collection_name_conflict", "message": str(exc)}
+        ) from exc
     if not result:
         raise HTTPException(status_code=404, detail="Collection not found")
     return result
@@ -805,7 +1018,9 @@ async def delete_collection(collection_id: str):
 async def list_collection_items(collection_id: str):
     _ensure_enabled()
     result = get_asset_repository().list_collection_items(collection_id)
-    if not result and not any(item["collection_id"] == collection_id for item in get_asset_repository().list_collections()):
+    if not result and not any(
+        item["collection_id"] == collection_id for item in get_asset_repository().list_collections()
+    ):
         raise HTTPException(status_code=404, detail="Collection not found")
     return {"items": result}
 
@@ -854,6 +1069,44 @@ async def list_media_asset_revisions(asset_id: str):
     return {"items": repository.list_revisions(asset_id)}
 
 
+@router.get(
+    "/media-assets/{asset_id}/revisions/{revision_id}/project-preview",
+    response_model=ProjectMediaRevisionPreview,
+)
+async def get_project_media_revision_preview(asset_id: str, revision_id: str):
+    """Expose only safe URLs for the exact immutable media revision in a project."""
+
+    _ensure_enabled()
+    repository = get_asset_repository()
+    revision = repository.get_asset_revision(asset_id, revision_id)
+    if not revision:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "PROJECT_BRAND_ASSET_REVISION_MISSING",
+                "message": "品牌素材版本无法读取，已显示安全占位；请重新关联品牌或到企业资产库检查",
+            },
+        )
+    query = f"?revision_id={revision_id}"
+    variants = repository.get_revision_variants(asset_id, revision_id)
+    thumbnail_role = next(
+        (item["role"] for item in variants if item.get("role") in {"thumbnail", "poster"}),
+        None,
+    )
+    return {
+        "asset_id": asset_id,
+        "asset_revision": revision_id,
+        "media_kind": revision["media_kind"],
+        "mime_type": revision["mime_type"],
+        "file_url": f"{_asset_url(asset_id)}{query}",
+        "thumbnail_url": (
+            f"{_asset_url(asset_id, f'variants/{thumbnail_role}')}{query}"
+            if thumbnail_role
+            else None
+        ),
+    }
+
+
 @router.post("/media-assets/{asset_id}/revisions")
 async def create_media_asset_revision(asset_id: str, request: Request):
     _ensure_enabled()
@@ -861,7 +1114,9 @@ async def create_media_asset_revision(asset_id: str, request: Request):
     asset = repository.get_asset(asset_id)
     if not asset:
         raise HTTPException(status_code=404, detail="Media asset not found")
-    filename = request.headers.get("x-filename") or request.query_params.get("filename") or "revision.bin"
+    filename = (
+        request.headers.get("x-filename") or request.query_params.get("filename") or "revision.bin"
+    )
     temporary = repository.incoming_root / f"revision-{uuid.uuid4().hex}.part"
     received = 0
     try:
@@ -907,7 +1162,11 @@ async def retry_media_asset_analysis(asset_id: str, revision_id: str | None = Qu
 async def get_media_asset_file(asset_id: str, revision_id: str | None = Query(default=None)):
     _ensure_enabled()
     repository = get_asset_repository()
-    asset = repository.get_asset(asset_id)
+    asset = (
+        repository.get_asset_revision(asset_id, revision_id)
+        if revision_id
+        else repository.get_asset(asset_id)
+    )
     path = repository.get_revision_path(asset_id, revision_id=revision_id)
     if not asset or not path:
         raise HTTPException(status_code=404, detail="Media asset file not found")
@@ -915,10 +1174,14 @@ async def get_media_asset_file(asset_id: str, revision_id: str | None = Query(de
 
 
 @router.get("/media-assets/{asset_id}/variants/{role}")
-async def get_media_asset_variant(asset_id: str, role: str):
+async def get_media_asset_variant(
+    asset_id: str,
+    role: str,
+    revision_id: str | None = Query(default=None),
+):
     _ensure_enabled()
     repository = get_asset_repository()
-    path = repository.get_revision_path(asset_id, role)
+    path = repository.get_revision_path(asset_id, role, revision_id=revision_id)
     if not path:
         raise HTTPException(status_code=404, detail="Media asset variant not found")
     return FileResponse(path, filename=Path(path).name)
@@ -963,7 +1226,11 @@ async def stream_upload(upload_id: str, request: Request):
         async for chunk in request.stream():
             repository.append_upload_chunk(upload_id, chunk)
         session_before_finalize = repository.get_upload_session(upload_id) or {}
-        session = repository.complete_upload_content(upload_id) if session_before_finalize.get("decision_mode") == "deferred" else repository.finalize_upload(upload_id)
+        session = (
+            repository.complete_upload_content(upload_id)
+            if session_before_finalize.get("decision_mode") == "deferred"
+            else repository.finalize_upload(upload_id)
+        )
     except HTTPException:
         raise
     except (FileNotFoundError, KeyError, ValueError, OSError) as exc:

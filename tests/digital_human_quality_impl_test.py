@@ -105,6 +105,7 @@ def test_v2_adapter_pins_delivery_and_spoken_script_into_session(tmp_path: Path)
     repository = AppCenterRepository(tmp_path / "app-center.sqlite")
     project = repository.create_project("门店项目", "到店咨询")
     payload = _payload(project.project_id)
+    payload["content_source"]["selling_points"] = "工作日下午茶套餐，现磨咖啡和当日面包"
     adapter = IpBroadcastAppAdapter(
         repository,
         session_store=IpBroadcastSessionStore(tmp_path / "sessions"),
@@ -130,6 +131,7 @@ def test_v2_adapter_pins_delivery_and_spoken_script_into_session(tmp_path: Path)
     )
     session = created.session
     assert session.state["spoken_script"] == payload["content_source"]["script"]
+    assert session.state["selling_points"] == payload["content_source"]["selling_points"]
     assert session.state["title"] == payload["delivery"]["publish_title"]
     assert session.state["description"] == payload["delivery"]["publish_description"]
     assert session.state["cover_title"] == payload["delivery"]["cover_title"]

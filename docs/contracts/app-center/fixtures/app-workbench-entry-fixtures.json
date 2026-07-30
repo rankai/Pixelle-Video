@@ -1,0 +1,370 @@
+{
+  "schema_version": 1,
+  "context_snapshot_valid": {
+    "schema_version": 2,
+    "subject_type": "store",
+    "store_or_brand": {
+      "name": "街角咖啡",
+      "industry": "餐饮",
+      "address": "示例路 8 号",
+      "contact": null
+    },
+    "offer": {
+      "name": "工作日午后咖啡套餐",
+      "category": "咖啡套餐",
+      "price_facts": [
+        {
+          "fact_id": "fact-price-1",
+          "text": "套餐价格为 29 元",
+          "source": "user",
+          "source_ref": null
+        }
+      ],
+      "promotion_facts": [
+        {
+          "fact_id": "fact-promo-1",
+          "text": "活动时间为工作日 14:00 至 17:00",
+          "source": "user",
+          "source_ref": null
+        }
+      ]
+    },
+    "audience": {
+      "primary": "附近上班族",
+      "scenes": [
+        "午后短暂休息"
+      ]
+    },
+    "selling_points": [
+      {
+        "fact_id": "fact-sell-1",
+        "text": "店内有安静座位",
+        "source": "asset_metadata",
+        "source_ref": "asset-store-photo@rev-2"
+      }
+    ],
+    "proof_points": [],
+    "required_facts": [],
+    "forbidden_claims": [
+      "全城第一"
+    ],
+    "asset_refs": [
+      {
+        "asset_id": "asset-store-photo",
+        "asset_revision": "rev-2"
+      }
+    ],
+    "brand_revision_ref": null
+  },
+  "input_valid": [
+    {
+      "schema_version": 2,
+      "app_id": "builtin.marketing-copy",
+      "input_schema_ref": "marketing-copy-input.v2",
+      "project_id": "project-cafe",
+      "context_snapshot_id": "context-cafe-v2",
+      "task_brief": {
+        "goal": "吸引附近上班族到店",
+        "offer_name": "工作日午后咖啡套餐",
+        "selling_point_fact_ids": [
+          "fact-sell-1"
+        ],
+        "benefit_tags": [
+          "到店"
+        ],
+        "audience": "附近上班族",
+        "content_format": "oral",
+        "length_bucket": "short_15s",
+        "must_include": [
+          "工作日 14:00 至 17:00"
+        ],
+        "cta": "到店了解"
+      },
+      "style_ref": {
+        "style_id": "copy.owner_voice",
+        "version": 1
+      },
+      "custom_style_reference": null,
+      "source_artifact_version_ids": []
+    },
+    {
+      "schema_version": 2,
+      "app_id": "builtin.viral-titles",
+      "input_schema_ref": "viral-titles-input.v2",
+      "project_id": "project-cafe",
+      "context_snapshot_id": "context-cafe-v2",
+      "task_brief": {
+        "platform": "douyin",
+        "objective": "store_visit",
+        "count": 5,
+        "topic": null,
+        "source_text": null,
+        "keywords": [
+          "午后",
+          "咖啡"
+        ]
+      },
+      "style_ref": {
+        "style_id": "title.identity_scene",
+        "version": 1
+      },
+      "custom_style_reference": null,
+      "source_artifact_version_ids": [
+        "artifact-version-copy-1"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "app_id": "builtin.douyin-carousel",
+      "input_schema_ref": "douyin-carousel-input.v2",
+      "project_id": "project-cafe",
+      "context_snapshot_id": "context-cafe-v2",
+      "task_brief": {
+        "goal": "解释午后套餐适合哪些场景",
+        "page_count": 5,
+        "template_id": "store-clean-v1",
+        "asset_refs": [
+          "asset-store-photo@rev-2"
+        ]
+      },
+      "style_ref": {
+        "style_id": "carousel.store_recommendation",
+        "version": 1
+      },
+      "custom_style_reference": null,
+      "source_artifact_version_ids": [
+        "artifact-version-copy-1",
+        "artifact-version-title-1"
+      ]
+    },
+    {
+      "schema_version": 2,
+      "app_id": "builtin.digital-human-video",
+      "input_schema_ref": "digital-human-video-input.v2",
+      "project_id": "project-cafe",
+      "context_snapshot_id": "context-cafe-v2",
+      "task_brief": {
+        "content_source_mode": "copywriting",
+        "custom_script": null,
+        "selling_point_fact_ids": [
+          "fact-sell-1"
+        ]
+      },
+      "style_ref": null,
+      "custom_style_reference": null,
+      "source_artifact_version_ids": [
+        "artifact-version-copy-1"
+      ],
+      "digital_human": {
+        "mode": "image",
+        "scene_id": "scene-owner-1",
+        "asset_id": "asset-owner-image",
+        "asset_revision": "rev-4",
+        "workflow_profile": "image_lipsync"
+      }
+    }
+  ],
+  "input_invalid": [
+    {
+      "id": "provider-override",
+      "expected_error": "WORKBENCH_INPUT_FORBIDDEN_FIELD",
+      "payload": {
+        "schema_version": 2,
+        "app_id": "builtin.marketing-copy",
+        "input_schema_ref": "marketing-copy-input.v2",
+        "project_id": "project-cafe",
+        "context_snapshot_id": "context-cafe-v2",
+        "task_brief": {
+          "goal": "到店",
+          "offer_name": "咖啡",
+          "selling_point_fact_ids": [],
+          "benefit_tags": [],
+          "audience": "上班族",
+          "content_format": "oral",
+          "length_bucket": "short_15s"
+        },
+        "style_ref": null,
+        "custom_style_reference": null,
+        "source_artifact_version_ids": [],
+        "provider": "custom"
+      }
+    },
+    {
+      "id": "style-and-custom-reference",
+      "expected_error": "STYLE_SOURCE_EXACTLY_ONE",
+      "payload": {
+        "schema_version": 2,
+        "app_id": "builtin.marketing-copy",
+        "input_schema_ref": "marketing-copy-input.v2",
+        "project_id": "project-cafe",
+        "context_snapshot_id": "context-cafe-v2",
+        "task_brief": {
+          "goal": "到店",
+          "offer_name": "咖啡",
+          "selling_point_fact_ids": [],
+          "benefit_tags": [],
+          "audience": "上班族",
+          "content_format": "oral",
+          "length_bucket": "short_15s"
+        },
+        "style_ref": {
+          "style_id": "copy.owner_voice",
+          "version": 1
+        },
+        "custom_style_reference": {
+          "text": "参考这种节奏，但不要复制事实",
+          "content_fingerprint": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+          "facts_imported": false
+        },
+        "source_artifact_version_ids": []
+      }
+    },
+    {
+      "id": "carousel-without-source",
+      "expected_error": "SOURCE_ARTIFACT_REQUIRED",
+      "payload": {
+        "schema_version": 2,
+        "app_id": "builtin.douyin-carousel",
+        "input_schema_ref": "douyin-carousel-input.v2",
+        "project_id": "project-cafe",
+        "context_snapshot_id": "context-cafe-v2",
+        "task_brief": {
+          "goal": "制作图文",
+          "page_count": 5,
+          "template_id": "store-clean-v1",
+          "asset_refs": [
+            "asset-store-photo@rev-2"
+          ]
+        },
+        "style_ref": null,
+        "custom_style_reference": null,
+        "source_artifact_version_ids": []
+      }
+    },
+    {
+      "id": "digital-human-style-override",
+      "expected_error": "DIGITAL_HUMAN_STYLE_UNSUPPORTED",
+      "payload": {
+        "schema_version": 2,
+        "app_id": "builtin.digital-human-video",
+        "input_schema_ref": "digital-human-video-input.v2",
+        "project_id": "project-cafe",
+        "context_snapshot_id": "context-cafe-v2",
+        "task_brief": {
+          "content_source_mode": "custom_script",
+          "custom_script": "欢迎到店了解",
+          "selling_point_fact_ids": []
+        },
+        "style_ref": {
+          "style_id": "copy.owner_voice",
+          "version": 1
+        },
+        "custom_style_reference": null,
+        "source_artifact_version_ids": [],
+        "digital_human": {
+          "mode": "image",
+          "scene_id": "scene-owner-1",
+          "asset_id": "asset-owner-image",
+          "asset_revision": "rev-4",
+          "workflow_profile": "image_lipsync"
+        }
+      }
+    }
+  ],
+  "result_valid": [
+    {
+      "schema_version": 1,
+      "view_state": "empty",
+      "app_run_id": null,
+      "app_run_state": null,
+      "steps": [],
+      "artifact_ids": [],
+      "error": null
+    },
+    {
+      "schema_version": 1,
+      "view_state": "running",
+      "app_run_id": "run-1",
+      "app_run_state": "running",
+      "steps": [
+        {
+          "step_id": "generate",
+          "label": "生成候选",
+          "state": "running",
+          "evidence_source": "run_attempt"
+        }
+      ],
+      "artifact_ids": [],
+      "error": null
+    },
+    {
+      "schema_version": 1,
+      "view_state": "needs_review",
+      "app_run_id": "run-2",
+      "app_run_state": "needs_review",
+      "steps": [
+        {
+          "step_id": "artifact",
+          "label": "准备结果",
+          "state": "completed",
+          "evidence_source": "artifact"
+        }
+      ],
+      "artifact_ids": [
+        "artifact-copy-1"
+      ],
+      "error": null
+    },
+    {
+      "schema_version": 1,
+      "view_state": "failed",
+      "app_run_id": "run-3",
+      "app_run_state": "failed",
+      "steps": [
+        {
+          "step_id": "provider",
+          "label": "生成候选",
+          "state": "failed",
+          "evidence_source": "run_attempt"
+        }
+      ],
+      "artifact_ids": [],
+      "error": {
+        "code": "LLM_PROVIDER_FAILED",
+        "message": "生成服务暂时不可用，请稍后重试",
+        "retryable": true,
+        "input_preserved": true
+      }
+    }
+  ],
+  "handoff_cases": [
+    {
+      "id": "copy-to-title-valid",
+      "valid": true,
+      "project_id": "project-cafe",
+      "source_artifact_version_id": "artifact-version-copy-1",
+      "target_app_id": "builtin.viral-titles",
+      "mapping_version": 2,
+      "same_project": true,
+      "source_version_pinned": true,
+      "final_publish_click": false
+    },
+    {
+      "id": "cross-project-invalid",
+      "valid": false,
+      "expected_error": "SOURCE_VERSION_PROJECT_MISMATCH",
+      "project_id": "project-cafe",
+      "source_project_id": "project-other",
+      "source_artifact_version_id": "artifact-version-other-1",
+      "target_app_id": "builtin.douyin-carousel"
+    },
+    {
+      "id": "source-update-not-hot-applied",
+      "valid": true,
+      "source_artifact_version_id": "artifact-version-copy-1",
+      "new_source_artifact_version_id": "artifact-version-copy-2",
+      "target_run_source_artifact_version_id": "artifact-version-copy-1",
+      "target_action": "notify_only"
+    }
+  ]
+}

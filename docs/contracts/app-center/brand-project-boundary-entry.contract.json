@@ -1,0 +1,274 @@
+{
+  "schema_version": 1,
+  "change_request": "CR-BRAND-PROJECT-BOUNDARY-001",
+  "stage": "BRAND-PROJECT-0",
+  "gate": "PG-BP-A",
+  "status": "entry_contract",
+  "ownership": {
+    "brand_kit": "Enterprise Asset Library is the only long-lived source of brand identity and defaults.",
+    "content_project": "ContentProject / My Projects is a workflow container and is never an Asset Library resource kind.",
+    "context_snapshot": "Immutable generation facts pin project facts, brand domain revision and media revisions.",
+    "relationship": "BrandKit 1:N ContentProject; ContentProject has zero or one BrandKit."
+  },
+  "field_ownership": {
+    "brand_fields": [
+      "display_name",
+      "logo_ref",
+      "store_address",
+      "phone",
+      "primary_color",
+      "secondary_color",
+      "font_family",
+      "default_subtitle_style",
+      "default_bgm_ref",
+      "ending_card_text",
+      "coupon_phrase"
+    ],
+    "project_fields": [
+      "project_name",
+      "subject_type",
+      "offer",
+      "marketing_goal",
+      "audience",
+      "selling_points",
+      "proof_points",
+      "required_facts",
+      "forbidden_claims",
+      "asset_refs"
+    ],
+    "project_override_fields": [
+      "display_name",
+      "logo_ref",
+      "store_address",
+      "phone",
+      "primary_color",
+      "secondary_color",
+      "font_family",
+      "default_subtitle_style",
+      "default_bgm_ref",
+      "ending_card_text",
+      "coupon_phrase"
+    ],
+    "override_user_label": "仅本项目使用",
+    "override_writes_brand_kit": false
+  },
+  "project_creation": {
+    "zero_ready_brands": "allow explicit unbranded project",
+    "one_ready_brand": "client auto-selects; explicit create POST carries brand_id",
+    "multiple_ready_brands": "user selects or explicitly continues without a brand",
+    "read_auto_binds_brand": false,
+    "read_creates_context_snapshot": false
+  },
+  "read_no_write": {
+    "operations": [
+      "list brands",
+      "get brand",
+      "list projects",
+      "get project",
+      "get current context snapshot",
+      "open application route",
+      "refresh desktop",
+      "restart desktop"
+    ],
+    "must_not_change": [
+      "content_projects.brand_id",
+      "content_projects.updated_at",
+      "content_projects.current_context_snapshot_id",
+      "context_snapshots row count",
+      "brand_kits_v2 rows",
+      "domain_revisions rows"
+    ],
+    "api_read_routes_verified_in_entry": [
+      "GET /api/content-projects",
+      "GET /api/content-projects/{project_id}",
+      "GET /api/content-projects/{project_id}/context-snapshots",
+      "GET /api/v2/library/items?kind=brand",
+      "GET /api/v2/library/items/{brand_id}"
+    ],
+    "desktop_read_functions_frozen_in_entry": [
+      "listContentProjects",
+      "getCurrentContextSnapshot",
+      "listLibraryItemsV2"
+    ],
+    "desktop_live_db_before_after_owner_gate": "BRAND-PROJECT-3/PG-BP-D",
+    "entry_claim_scope": "API integration has full SQLite before/after equality; desktop function-method ownership is static-only until PG-BP-D."
+  },
+  "snapshot_trust_boundary": {
+    "stored_brand_context_generation_authority": "server_resolver_only",
+    "client_write_schema": "context-snapshot-v3-write-request.schema.json",
+    "client_brand_context_field_allowed": false,
+    "unbranded_project_overrides": "must_be_empty",
+    "non_overridden_value_rule": "Each stored non-overridden brand value must exactly equal the value in the pinned brand domain revision.",
+    "overridden_value_rule": "Only fields named in overridden_fields may differ from the pinned brand domain revision, using the explicit project_overrides value.",
+    "client_forgery_result_code": "PROJECT_BRAND_CONTEXT_UNTRUSTED",
+    "resolver_owner_stage": "BRAND-PROJECT-1",
+    "entry_runtime_resolver_implemented": false
+  },
+  "override_clear_policy": {
+    "entry_supports_null_clear": false,
+    "logo_ref_null_override_allowed": false,
+    "default_bgm_ref_null_override_allowed": false,
+    "restore_brand_default": "Remove the project override field so the resolver uses the pinned brand revision value.",
+    "brand_without_logo_or_bgm": "Edit the BrandKit in Enterprise Asset Library; project-level clear is not supported.",
+    "future_extension": "A separately reviewed explicit clear action may be added in a later Change Request."
+  },
+  "revision": {
+    "brand_domain_revision_required": true,
+    "logo_media_revision_required": true,
+    "default_bgm_media_revision_required": true,
+    "app_run_pins_context_snapshot": true,
+    "historical_snapshot_mutation": false,
+    "brand_update_auto_propagates": false,
+    "sync_requires_explicit_user_confirmation": true,
+    "sync_appends_snapshot": true,
+    "sync_preserves_project_overrides": true,
+    "sync_no_change_appends_snapshot": false
+  },
+  "compatibility": {
+    "legacy_null_brand_id_auto_bind": false,
+    "context_snapshot_read_versions": [
+      1,
+      2,
+      3
+    ],
+    "context_snapshot_new_write_version": 3,
+    "v3_to_v2_projection_required_before_v3_writes": true,
+    "feature_flag_off_can_read_v3": true,
+    "archived_brand_history_readable": true
+  },
+  "rollback": {
+    "flag_off": {
+      "legacy_interaction_remains_active": true,
+      "context_snapshot_read_versions": [
+        1,
+        2,
+        3
+      ],
+      "v3_remains_permanently_readable": true,
+      "new_v3_writes_allowed": false,
+      "brand_sync_allowed": false
+    },
+    "sync_failure_atomicity": {
+      "project_brand_id_unchanged": true,
+      "current_context_snapshot_id_unchanged": true,
+      "context_snapshot_row_count_unchanged": true,
+      "historical_snapshot_rows_unchanged": true
+    },
+    "destructive_actions": {
+      "delete_project": false,
+      "delete_brand": false,
+      "delete_context_snapshot": false,
+      "archive_is_not_delete": true
+    },
+    "restart_recovery": {
+      "read_v3_after_restart": true,
+      "restore_last_committed_project_brand_id": true,
+      "restore_last_committed_current_context_snapshot_id": true,
+      "resume_half_applied_sync": false
+    },
+    "reenable": {
+      "continue_from_last_committed_state": true,
+      "rebind_or_resnapshot_on_read": false,
+      "retry_requires_explicit_user_action": true
+    },
+    "runtime_verification_owner_gate": "BRAND-PROJECT-3/PG-BP-D"
+  },
+  "v2_projection": {
+    "schema_version": 2,
+    "mapping": {
+      "subject_type": "project_brief.subject_type",
+      "store_or_brand.name": "brand_context.values.display_name or project offer name",
+      "store_or_brand.industry": "project_brief.offer.category",
+      "store_or_brand.address": "brand_context.values.store_address or null",
+      "store_or_brand.contact": "brand_context.values.phone or null",
+      "offer": "project_brief.offer",
+      "audience": "project_brief.audience",
+      "selling_points": "project_brief.selling_points",
+      "proof_points": "project_brief.proof_points",
+      "required_facts": "project_brief.required_facts",
+      "forbidden_claims": "project_brief.forbidden_claims",
+      "asset_refs": "deduplicated project_brief.asset_refs plus non-null brand logo and BGM refs",
+      "brand_revision_ref": "brand:<brand_id>@<domain_revision> or null"
+    },
+    "writes_source_snapshot": false
+  },
+  "error_codes": [
+    {
+      "code": "PROJECT_BRAND_NOT_FOUND",
+      "http_status": 404,
+      "user_message": "这个品牌已不存在，请重新选择"
+    },
+    {
+      "code": "PROJECT_BRAND_NOT_BOUND",
+      "http_status": 409,
+      "user_message": "这个项目尚未关联品牌，请先选择品牌包"
+    },
+    {
+      "code": "PROJECT_BRAND_NOT_AVAILABLE",
+      "http_status": 409,
+      "user_message": "这个品牌当前不可用于新项目"
+    },
+    {
+      "code": "PROJECT_BRAND_REVISION_NOT_FOUND",
+      "http_status": 409,
+      "user_message": "品牌历史版本无法读取，请保留当前项目资料并联系支持"
+    },
+    {
+      "code": "PROJECT_CONTEXT_CONFLICT",
+      "http_status": 409,
+      "user_message": "项目信息已在其他位置更新，请刷新后重试"
+    },
+    {
+      "code": "PROJECT_BRAND_ASSET_REVISION_MISSING",
+      "http_status": 409,
+      "user_message": "品牌素材版本不完整，请到企业资产库检查"
+    },
+    {
+      "code": "PROJECT_BRAND_CONTEXT_UNTRUSTED",
+      "http_status": 422,
+      "user_message": "品牌资料需要由系统重新校验，请刷新后重试"
+    },
+    {
+      "code": "BRAND_PROJECT_BOUNDARY_DISABLED",
+      "http_status": 404,
+      "user_message": "品牌项目功能当前未启用"
+    }
+  ],
+  "result_codes": [
+    {
+      "code": "PROJECT_BRAND_SYNC_NO_CHANGE",
+      "http_status": 200,
+      "user_message": "已是最新品牌资料",
+      "changes_committed": false
+    }
+  ],
+  "feature_flag": {
+    "name": "brandProjectBoundaryV1",
+    "env": "PIXELLE_BRAND_PROJECT_BOUNDARY_V1",
+    "default": false,
+    "owner_stage": "BRAND-PROJECT-3",
+    "controls_new_writes": true,
+    "controls_v3_read_compatibility": false,
+    "unknown_or_conflicting": false
+  },
+  "ordinary_user_hidden_fields": [
+    "brand_id",
+    "domain_revision",
+    "asset_revision",
+    "context_snapshot_id",
+    "source_brand_id",
+    "source_brand_revision_id",
+    "fingerprint"
+  ],
+  "entry_boundaries": {
+    "business_ui_changes": 0,
+    "business_write_logic_changes": 0,
+    "production_database_writes": 0,
+    "llm_calls": 0,
+    "runninghub_calls": 0,
+    "browser_or_platform_actions": 0,
+    "final_publish_clicks": 0,
+    "desktop_live_db_before_after_assertion": "deferred_to_BRAND-PROJECT-3_PG-BP-D",
+    "program_rollout_checkpoint": "PROGRAM-ROLLOUT/PG-L paused_external and unchanged"
+  }
+}
