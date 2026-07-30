@@ -3,6 +3,9 @@ import { invoke } from "@tauri-apps/api/core";
 export type RuntimeInfo = {
   apiBaseUrl: string;
   desktopToken: string;
+  featureFlags: {
+    brandProjectBoundaryV1: boolean;
+  };
 };
 
 export type IpBroadcastState = {
@@ -24,7 +27,18 @@ export type IpBroadcastState = {
 };
 
 export type DesktopConfig = {
+  llm_source: "shared" | "custom";
   llm: {
+    base_url: string;
+    api_key: string;
+    model: string;
+  };
+  llm_shared: {
+    base_url: string;
+    api_key: string;
+    model: string;
+  };
+  llm_custom: {
     base_url: string;
     api_key: string;
     model: string;
@@ -84,6 +98,54 @@ export type ContextSnapshot = {
   created_at: string;
 };
 
+export type BrandProjectListItem = {
+  brand_id: string;
+  name: string;
+  status: "ready" | "archived";
+  summary: Record<string, string | number | boolean>;
+};
+
+export type BrandProjectSummary = {
+  brand_id: string;
+  domain_revision: number;
+  values: {
+    brand_name: string;
+    logo_asset_id: string | null;
+    default_bgm_asset_id: string | null;
+    primary_color: string;
+    secondary_color: string;
+    font_family: string;
+    default_subtitle_style: string;
+    ending_card_text: string;
+    store_address: string;
+    phone: string;
+    coupon_phrase: string;
+    status: string;
+  };
+};
+
+export type BrandSyncPreview = {
+  project_id: string;
+  status: "unbound" | "no_change" | "changes_available";
+  has_changes: boolean;
+  result_code: string | null;
+  changes_committed: boolean;
+  changes: Array<{
+    field: string;
+    label: string;
+    status: "updated" | "preserved_project_override";
+  }>;
+};
+
+export type ProjectMediaRevisionPreview = {
+  asset_id: string;
+  asset_revision: string;
+  media_kind: "image" | "video" | "audio" | "font";
+  mime_type: string;
+  file_url: string;
+  thumbnail_url: string | null;
+};
+
 export type ArtifactVersion = {
   artifact_version_id: string;
   artifact_id: string;
@@ -132,6 +194,23 @@ export type AppRunExecutionAccepted = {
   state: "queued" | "running";
 };
 
+export type StylePreset = {
+  style_id: string;
+  version: number;
+  family: "copy" | "title" | "carousel";
+  name: string;
+  description: string;
+  example: string;
+};
+
+export type AppEvent = {
+  event_id: string;
+  app_run_id: string;
+  event_type: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
 export type IpBroadcastAppRun = {
   app_run_id: string;
   project_id: string;
@@ -155,6 +234,13 @@ export type IpBroadcastAppRun = {
   step_status: Record<string, string>;
   notices: Record<string, { kind?: string; message?: string; [key: string]: unknown }>;
   artifact_keys: string[];
+  artifact_details?: Record<string, {
+    artifact_id?: string;
+    artifact_version_id?: string;
+    version_number?: number;
+    content?: Record<string, unknown>;
+    file_refs?: Array<Record<string, unknown>>;
+  }>;
   context_snapshot_id?: string | null;
   created_at: string;
   updated_at: string;
@@ -477,14 +563,26 @@ export type ConfigCheckResult = {
 
 let runtime: RuntimeInfo | null = null;
 
-export async function getRuntime(): Promise<RuntimeInfo> {
-  if (runtime) return runtime;
+export async function initializeDesktopRuntime(): Promise<RuntimeInfo | null> {
   try {
     runtime = await invoke<RuntimeInfo>("desktop_runtime");
+    return runtime;
   } catch {
+    return null;
+  }
+}
+
+export async function getRuntime(): Promise<RuntimeInfo> {
+  if (runtime) return runtime;
+  const desktopRuntime = await initializeDesktopRuntime();
+  if (desktopRuntime) return desktopRuntime;
+  {
     const browserRuntime: RuntimeInfo = {
       apiBaseUrl: browserApiBaseUrl(),
       desktopToken: import.meta.env.VITE_DESKTOP_TOKEN || "",
+      featureFlags: {
+        brandProjectBoundaryV1: false,
+      },
     };
     browserRuntime.apiBaseUrl = await resolveBrowserApiBaseUrl();
     runtime = browserRuntime;
@@ -598,6 +696,14 @@ function formatHttpErrorDetail(status: number, detail: string, fallback: string)
   try {
     const payload = JSON.parse(detail) as { detail?: unknown };
     if (typeof payload.detail === "string" && payload.detail.trim()) return payload.detail;
+    if (
+      payload.detail
+      && typeof payload.detail === "object"
+      && "message" in payload.detail
+      && typeof (payload.detail as { message?: unknown }).message === "string"
+    ) {
+      return (payload.detail as { message: string }).message;
+    }
   } catch {
     // Keep non-JSON validation messages below.
   }
@@ -700,6 +806,18 @@ export function resolvePublishPackageV2(artifactId: string) {
 
 export function createPublishPackageFromSessionV2(values: { project_id: string; session_id: string; platform_copy?: { title?: string; description?: string; hashtags?: string[] } }) {
   return apiFetch<PublishPackageV2>("/api/publish/v2/packages/from-session", { method: "POST", body: JSON.stringify(values) });
+}
+
+export function createPublishPackageV2(values: {
+  project_id: string;
+  artifact_version_ids: string[];
+  platform_copy?: { title?: string; description?: string; hashtags?: string[] };
+  supersedes_package_id?: string;
+}) {
+  return apiFetch<PublishPackageV2>("/api/publish/v2/packages", {
+    method: "POST",
+    body: JSON.stringify(values),
+  });
 }
 
 export function preflightPublishPackageV2(packageId: string) {
@@ -820,6 +938,13 @@ export function retryIpBroadcastAppRun(appRunId: string) {
   });
 }
 
+export function prepareIpBroadcastRetryPlan(appRunId: string, values: { root_cause: string; retry_reason: string }) {
+  return apiFetch<IpBroadcastAppRun>(`/api/app-center/ip-broadcast/runs/${encodeURIComponent(appRunId)}/retry-plan`, {
+    method: "POST",
+    body: JSON.stringify(values),
+  });
+}
+
 export function acceptIpBroadcastAppRun(appRunId: string) {
   return apiFetch<IpBroadcastAppRun>(`/api/app-center/ip-broadcast/runs/${encodeURIComponent(appRunId)}/accept`, {
     method: "POST",
@@ -830,7 +955,14 @@ export function listContentProjects(includeArchived = false) {
   return apiFetch<ContentProject[]>(`/api/content-projects?include_archived=${includeArchived ? "true" : "false"}`);
 }
 
-export function createContentProject(values: { name: string; primary_goal: string; brand_id?: string | null }) {
+export function createContentProject(values: {
+  name: string;
+  primary_goal: string;
+  brand_id?: string | null;
+  expected_brand_domain_revision?: number;
+  project_overrides?: Record<string, unknown>;
+  project_brief?: Record<string, unknown>;
+}) {
   return apiFetch<ContentProject>("/api/content-projects", { method: "POST", body: JSON.stringify(values) });
 }
 
@@ -846,9 +978,106 @@ export function getCurrentContextSnapshot(projectId: string) {
   return apiFetch<ContextSnapshot | null>(`/api/content-projects/${projectId}/context-snapshots`);
 }
 
+export function listProjectBrands() {
+  return apiFetch<{ items: BrandProjectListItem[] }>("/api/v2/domain/brands?status=ready");
+}
+
+export function getBrandProjectSummary(brandId: string) {
+  return apiFetch<BrandProjectSummary>(
+    `/api/v2/domain/brands/${encodeURIComponent(brandId)}/project-summary`,
+  );
+}
+
+export async function getProjectMediaRevisionPreview(assetId: string, assetRevision: string) {
+  const item = await apiFetch<ProjectMediaRevisionPreview>(
+    `/api/v2/media-assets/${encodeURIComponent(assetId)}/revisions/${encodeURIComponent(assetRevision)}/project-preview`,
+  );
+  const { apiBaseUrl } = await getRuntime();
+  return {
+    ...item,
+    file_url: apiUrl(apiBaseUrl, item.file_url),
+    thumbnail_url: item.thumbnail_url ? apiUrl(apiBaseUrl, item.thumbnail_url) : null,
+  };
+}
+
+export function updateProjectMaterial(
+  projectId: string,
+  values: {
+    expected_context_snapshot_id: string;
+    project_brief: Record<string, unknown>;
+    project_overrides: Record<string, unknown>;
+  },
+) {
+  return apiFetch<ContextSnapshot>(
+    `/api/content-projects/${encodeURIComponent(projectId)}/project-material`,
+    { method: "POST", body: JSON.stringify(values) },
+  );
+}
+
+export function replaceProjectBrand(
+  projectId: string,
+  values: {
+    brand_id: string | null;
+    expected_context_snapshot_id: string | null;
+    expected_domain_revision?: number;
+    project_overrides?: Record<string, unknown>;
+  },
+) {
+  return apiFetch<ContentProject>(
+    `/api/content-projects/${encodeURIComponent(projectId)}/brand-binding`,
+    { method: "POST", body: JSON.stringify(values) },
+  );
+}
+
+export function getProjectBrandSyncPreview(projectId: string, expectedContextSnapshotId: string) {
+  const query = new URLSearchParams({ expected_context_snapshot_id: expectedContextSnapshotId });
+  return apiFetch<BrandSyncPreview>(
+    `/api/content-projects/${encodeURIComponent(projectId)}/brand-sync-preview?${query.toString()}`,
+  );
+}
+
+export function syncProjectBrand(
+  projectId: string,
+  values: { expected_context_snapshot_id: string; idempotency_key: string },
+) {
+  return apiFetch<Record<string, unknown>>(
+    `/api/content-projects/${encodeURIComponent(projectId)}/brand-sync`,
+    { method: "POST", body: JSON.stringify(values) },
+  );
+}
+
+export function saveContextSnapshot(
+  projectId: string,
+  values: {
+    schema_version: 1 | 2;
+    payload: Record<string, unknown>;
+    source_brand_id?: string | null;
+    source_brand_revision_id?: string | null;
+  },
+) {
+  return apiFetch<ContextSnapshot>(`/api/content-projects/${encodeURIComponent(projectId)}/context-snapshots`, {
+    method: "POST",
+    body: JSON.stringify(values),
+  });
+}
+
 export function listProjectArtifacts(projectId: string, includeArchived = false) {
   return apiFetch<ArtifactSummary[]>(
     `/api/content-projects/${encodeURIComponent(projectId)}/artifacts?include_archived=${includeArchived ? "true" : "false"}`,
+  );
+}
+
+export function createProjectArtifact(
+  projectId: string,
+  values: {
+    artifact_type: string;
+    name: string;
+    source_app_run_id?: string | null;
+  },
+) {
+  return apiFetch<ArtifactSummary>(
+    `/api/content-projects/${encodeURIComponent(projectId)}/artifacts`,
+    { method: "POST", body: JSON.stringify(values) },
   );
 }
 
@@ -868,6 +1097,23 @@ export function createAppRun(values: {
   return apiFetch<AppRun>("/api/app-runs", { method: "POST", body: JSON.stringify(values) });
 }
 
+export function listStylePresets(appId: string) {
+  return apiFetch<{ items: StylePreset[] }>(
+    `/api/style-presets?app_id=${encodeURIComponent(appId)}`,
+  );
+}
+
+export function recordAppEvent(
+  appRunId: string,
+  eventType: string,
+  payload: Record<string, unknown>,
+) {
+  return apiFetch<AppEvent>(`/api/app-runs/${encodeURIComponent(appRunId)}/events`, {
+    method: "POST",
+    body: JSON.stringify({ event_type: eventType, payload }),
+  });
+}
+
 export function createArtifactHandoff(values: {
   project_id: string;
   source_artifact_id: string;
@@ -876,6 +1122,7 @@ export function createArtifactHandoff(values: {
   target_app_version: string;
   artifact_version_ids: string[];
   target_run_id?: string;
+  mapping_version?: number;
 }) {
   return apiFetch<Record<string, unknown>>(`/api/artifacts/${values.source_artifact_id}/handoffs`, {
     method: "POST",
@@ -908,6 +1155,21 @@ export function completeAppRun(appRunId: string) {
 
 export function listArtifactVersions(artifactId: string) {
   return apiFetch<ArtifactVersion[]>(`/api/artifacts/${artifactId}/versions`);
+}
+
+export function retryCarouselPage(
+  artifactId: string,
+  values: { text: string; asset_refs: string[]; font_id?: string },
+) {
+  return apiFetch<{
+    page_artifact_version: ArtifactVersion;
+    package_artifact_version: ArtifactVersion;
+    publish_package: PublishPackageV2;
+    invalidated_package_ids: string[];
+  }>(`/api/artifacts/${encodeURIComponent(artifactId)}/carousel-page/retry`, {
+    method: "POST",
+    body: JSON.stringify(values),
+  });
 }
 
 export async function downloadAppArtifactFile(artifactId: string, fileKey: string) {

@@ -1,0 +1,114 @@
+{
+  "stage": "APP-WORKBENCH-2",
+  "gate": "PG-AW-C",
+  "result": "passed_with_boundary",
+  "date": "2026-07-28",
+  "scope": [
+    "ProjectContextSelector",
+    "ProjectBriefEditor",
+    "ContextSnapshot v2 append-only persistence",
+    "v1 explicit upgrade preview",
+    "draft protection and restart recovery",
+    "new AppRun snapshot binding"
+  ],
+  "automated_verification": {
+    "backend": {
+      "command": "uv run pytest -q tests/app_center_api_test.py tests/app_center_core_test.py tests/app_center_registry_test.py tests/app_workbench_entry_contract_test.py tests/app_workbench_project_context_test.py",
+      "result": "54 passed",
+      "warnings": "12 existing Pydantic deprecation warnings"
+    },
+    "frontend": {
+      "command": "npm run test -- --run",
+      "result": "14 files, 89 passed"
+    },
+    "build": {
+      "command": "npm run build",
+      "result": "passed"
+    },
+    "ruff": {
+      "command": "uv run ruff check pixelle_video/app_center/project_context.py pixelle_video/app_center/repository.py api/routers/app_center.py api/schemas/app_center.py tests/app_workbench_project_context_test.py",
+      "result": "passed"
+    },
+    "diff_check": "passed"
+  },
+  "migration_evidence": {
+    "database": "data/app_center.sqlite",
+    "migration_checksum": "sha256:4e52511c338b32266b38377cfb165bb0e9d527fa731cf5979ca9239bfe7fd9ca",
+    "context_schema_constraint": "CHECK (schema_version IN (1, 2))",
+    "foreign_key_check": "empty",
+    "snapshot_counts": {
+      "v1": 1,
+      "v2": 1
+    },
+    "backup": "data/app_center.sqlite.bak.20260728035310"
+  },
+  "controlled_local_qa": {
+    "project_id": "project_13a7f2686436443789bb1823848ceb60",
+    "project_final_status": "archived",
+    "v1_snapshot_id": "context_0f72c1b81aa2473b8fbd982eb4ef3421",
+    "v2_snapshot_id": "context_1304448388714c00b3a76f1d692b408f",
+    "pinned_run_id": "run_7774c5a4acbb4c25b91c387a7d0305e2",
+    "pinned_context_snapshot_id": "context_1304448388714c00b3a76f1d692b408f",
+    "checks": [
+      "v1 remained readable after v2 append",
+      "v1 preview required an explicit save before v2 existed",
+      "local draft survived a page reload",
+      "generation was disabled while the context draft was dirty",
+      "discard restored the current server snapshot",
+      "new AppRun bound the selected v2 snapshot",
+      "test project was archived after verification"
+    ]
+  },
+  "visual_verification": {
+    "directory": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-2-visual-2026-07-28",
+    "viewports": [
+      "1440x900",
+      "900x760",
+      "390x844"
+    ],
+    "metrics": {
+      "marketing_1440_columns_px": [
+        462.883,
+        666.117
+      ],
+      "marketing_900_columns_px": [
+        325.5,
+        325.5
+      ],
+      "marketing_390_context_columns": 1,
+      "digital_human_1440_shared_selector_count": 1,
+      "digital_human_1440_shared_editor_count": 1,
+      "digital_human_390_context_columns": 1,
+      "horizontal_overflow": false
+    },
+    "screenshots_sha256": {
+      "digital-human-context-390x844.png": "a9cc175a5242fb3fcdc0b80825fbb2eaf5c0505b3a15cb62b2c59acc6fb4f18c",
+      "digital-human-context-top-1440x900.png": "0cccc2e5e50a328dfc2f051a10aa406192085d57b2547bd21d54f24a46e3766c",
+      "marketing-context-1440x900.png": "af47d12c2afb8b0b60e080d3dcdcad6d2ad2113329350fe0c1909dea9c39a70c",
+      "marketing-context-390x844.png": "15a114fc53ec7d7bda390ab40643a7f64383c762d2be31b8032ec316d4c81ff4",
+      "marketing-context-900x760.png": "21e780de9525fd464b8d96b5e7d905f94391e712d614d1a7aa1b810da495cf43",
+      "marketing-context-draft-restored-1440x900.png": "d0624d95fb78e33e433492f9bf011e70d79c3241262a9c668a47992858f8f6c7",
+      "marketing-context-v2-saved-1440x900.png": "07698c988d0ed599e1223edd4dc8d9c18a30854636fa9a040fea237407f07cbe",
+      "marketing-context-viewport-1440x900.png": "5179a6ba4bb3ec72aa4ec8d79182bd5f75bcce59f30c7cb7ee21e5a1b1c5c2ab",
+      "reference-vs-project-context.png": "4421906bd475e0807a90f502377c917ef9cb29557e99c97393b21538cb31767f"
+    }
+  },
+  "review_fixes": [
+    "legacy v1 preview save action is enabled without requiring a fake edit",
+    "restored drafts disclose when their base snapshot is older than the server snapshot",
+    "generation explains that a context draft must be saved or discarded",
+    "project archive confirms unsaved changes and clears selected context state"
+  ],
+  "external_actions": {
+    "llm_calls": 0,
+    "runninghub_calls": 0,
+    "platform_actions": 0,
+    "final_publish_clicks": 0
+  },
+  "boundaries": [
+    "StylePreset and application prompt changes are deferred to APP-WORKBENCH-3",
+    "ProjectContext v1 records and historical AppRun bindings are not overwritten",
+    "APP-WORKBENCH_V2 remains default-off",
+    "PROGRAM-ROLLOUT PG-L external evidence remains paused"
+  ]
+}

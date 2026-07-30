@@ -23,6 +23,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Sequence
 
+from PIL import Image, ImageColor, UnidentifiedImageError
+
+from pixelle_video.app_center.brand_project import ProjectContextResolver
 from pixelle_video.app_center.digital_human_feature_gate import (
     evaluate_digital_human_feature_gate,
 )
@@ -378,6 +381,7 @@ class IpBroadcastAppAdapter:
         dual_backend_flag: bool | None = None,
         dual_desktop_flag: bool | None = None,
         dual_desktop_ready: bool | None = None,
+        context_resolver: ProjectContextResolver | None = None,
     ):
         self.repository = repository
         self.session_store = session_store or IpBroadcastSessionStore()
@@ -391,6 +395,7 @@ class IpBroadcastAppAdapter:
         self.dual_backend_flag = dual_backend_flag
         self.dual_desktop_flag = dual_desktop_flag
         self.dual_desktop_ready = dual_desktop_ready
+        self.context_resolver = context_resolver
         self._trusted_roots = self._build_trusted_roots(trusted_roots)
 
     @staticmethod
@@ -445,7 +450,11 @@ class IpBroadcastAppAdapter:
         desktop_flag = (
             self.dual_desktop_flag
             if self.dual_desktop_flag is not None
-            else os.environ.get("VITE_APP_CENTER_DIGITAL_HUMAN_DUAL_MODE", "").lower() in truthy
+            else (
+                os.environ.get("VITE_APP_CENTER_DIGITAL_HUMAN_DUAL_MODE", "").lower() in truthy
+                or os.environ.get("PIXELLE_APP_CENTER_DIGITAL_HUMAN_DESKTOP_FLAG", "").lower()
+                in truthy
+            )
         )
         backend_ready = (
             self.enforce_feature_flag
@@ -689,6 +698,20 @@ class IpBroadcastAppAdapter:
     def _revalidate_v2_snapshot(self, run: AppRun, session: IpBroadcastSession) -> None:
         """Re-check current asset/revision facts before any resumed execution."""
 
+        if self.context_resolver is not None and run.context_snapshot_id:
+            execution_context = self.context_resolver.resolve_for_application(
+                run.project_id,
+                run.context_snapshot_id,
+                app_id=self.app_id,
+            )
+            expected_brand_delivery = self._brand_delivery_manifest(execution_context)
+            if run.input_payload.get("brand_delivery_manifest") != expected_brand_delivery:
+                raise IpBroadcastSessionError("DH_QUALITY_FIXED_INPUT_MUTATED", run.app_run_id)
+            self._apply_brand_delivery_to_session(
+                session,
+                expected_brand_delivery,
+                self._brand_delivery_runtime(expected_brand_delivery),
+            )
         if run.input_payload.get("schema_version") != 2:
             return
         try:
@@ -723,6 +746,82 @@ class IpBroadcastAppAdapter:
         session.state["quality_fixed_inputs"] = fixed_inputs
         session.state["quality_input_fingerprint"] = expected_fingerprint
 
+    @staticmethod
+    def _brand_delivery_manifest(execution_context: dict[str, Any]) -> dict[str, Any]:
+        brand = execution_context.get("brand")
+        values = brand.get("values") if isinstance(brand, dict) else {}
+        values = values if isinstance(values, dict) else {}
+        logo_ref = values.get("logo_ref")
+        bgm_ref = values.get("default_bgm_ref")
+        return {
+            "context_snapshot_id": (execution_context.get("lineage") or {}).get(
+                "context_snapshot_id"
+            ),
+            "display_name": values.get("display_name") or (brand or {}).get("display_name"),
+            "store_address": values.get("store_address"),
+            "phone": values.get("phone"),
+            "primary_color": values.get("primary_color"),
+            "secondary_color": values.get("secondary_color"),
+            "font_family": values.get("font_family"),
+            "subtitle_style": values.get("default_subtitle_style"),
+            "logo_ref": logo_ref,
+            "default_bgm_ref": bgm_ref,
+            "ending_card_text": values.get("ending_card_text"),
+            "coupon_phrase": values.get("coupon_phrase"),
+            "overridden_fields": list((brand or {}).get("overridden_fields") or []),
+            "delivery_contract": {
+                "cover": {
+                    "primary_color": bool(values.get("primary_color")),
+                    "secondary_color": bool(values.get("secondary_color")),
+                    "logo_overlay": bool(logo_ref),
+                },
+                "audio_bed": {"pinned_bgm": bool(bgm_ref)},
+                "ending_card": bool(values.get("ending_card_text")),
+            },
+        }
+
+    def _brand_delivery_runtime(self, manifest: dict[str, Any]) -> dict[str, str]:
+        if self.context_resolver is None:
+            return {}
+        result: dict[str, str] = {}
+        logo_path = self.context_resolver.resolve_exact_asset_path(
+            manifest.get("logo_ref"), variant_role="thumbnail"
+        )
+        if logo_path is not None:
+            result["logo_path"] = str(logo_path)
+        bgm_path = self.context_resolver.resolve_exact_asset_path(manifest.get("default_bgm_ref"))
+        if bgm_path is not None:
+            result["bgm_path"] = str(bgm_path)
+        return result
+
+    @staticmethod
+    def _apply_brand_delivery_to_session(
+        session: IpBroadcastSession,
+        manifest: dict[str, Any],
+        runtime: dict[str, str],
+    ) -> None:
+        """Map fixed brand delivery facts onto legacy postproduction inputs."""
+
+        session.state["brand_delivery_context_snapshot_id"] = manifest.get("context_snapshot_id")
+        session.state["brand_display_name"] = manifest.get("display_name")
+        session.state["brand_primary_color"] = manifest.get("primary_color")
+        session.state["brand_secondary_color"] = manifest.get("secondary_color")
+        if "logo_path" in runtime:
+            session.state["brand_logo_path"] = runtime["logo_path"]
+        # Force the exact pinned path. Leaving the legacy asset-id selectors
+        # empty prevents their current-revision resolver from drifting later.
+        if manifest.get("default_bgm_ref"):
+            session.state["brand_bgm_asset_id"] = ""
+            session.state["bgm_asset_id"] = ""
+            if "bgm_path" in runtime:
+                session.state["bgm_path"] = runtime["bgm_path"]
+        session.state["ending_card_text"] = manifest.get("ending_card_text")
+        session.state["brand_store_address"] = manifest.get("store_address")
+        session.state["brand_phone"] = manifest.get("phone")
+        session.state["brand_coupon_phrase"] = manifest.get("coupon_phrase")
+        session.state["brand_font_family"] = manifest.get("font_family")
+        session.state["brand_subtitle_style"] = manifest.get("subtitle_style")
+
     def create_or_resume(
         self,
         project_id: str,
@@ -751,7 +850,6 @@ class IpBroadcastAppAdapter:
                     "tts_ref_audio_id": input_payload.get("tts_ref_audio_id"),
                 }
             )
-        resume_mode = normalized["resume_mode"]
         existing = next(
             (
                 run
@@ -760,6 +858,45 @@ class IpBroadcastAppAdapter:
             ),
             None,
         )
+        execution_context: dict[str, Any] | None = None
+        if self.context_resolver is not None:
+            if existing is not None:
+                if (
+                    context_snapshot_id is not None
+                    and context_snapshot_id != existing.context_snapshot_id
+                ):
+                    raise IpBroadcastSessionError("APP_RUN_BINDING_MISMATCH", idempotency_key)
+                resolved_context_snapshot_id = existing.context_snapshot_id
+                if resolved_context_snapshot_id is None:
+                    raise IpBroadcastSessionError("APP_RUN_BINDING_MISMATCH", idempotency_key)
+                source_ids = self.repository._source_artifact_version_ids(input_payload)
+                if source_ids:
+                    source_context_snapshot_id = self.repository.resolve_run_context_snapshot(
+                        project_id,
+                        input_payload,
+                        expected_context_snapshot_id=resolved_context_snapshot_id,
+                    )
+                    if source_context_snapshot_id != resolved_context_snapshot_id:
+                        raise IpBroadcastSessionError("APP_RUN_BINDING_MISMATCH", idempotency_key)
+            else:
+                resolved_context_snapshot_id = self.repository.resolve_run_context_snapshot(
+                    project_id,
+                    input_payload,
+                    expected_context_snapshot_id=context_snapshot_id,
+                )
+            execution_context = self.context_resolver.resolve_for_application(
+                project_id,
+                resolved_context_snapshot_id,
+                app_id=self.app_id,
+            )
+            context_snapshot_id = resolved_context_snapshot_id
+            normalized["brand_delivery_manifest"] = self._brand_delivery_manifest(execution_context)
+            brand_delivery_runtime = self._brand_delivery_runtime(
+                normalized["brand_delivery_manifest"]
+            )
+        else:
+            brand_delivery_runtime = {}
+        resume_mode = normalized["resume_mode"]
         if existing is not None:
             if (
                 existing.project_id != project_id
@@ -838,7 +975,12 @@ class IpBroadcastAppAdapter:
         else:
             session = self.session_store.create_session()
 
-        self._apply_input_to_session(session, normalized, input_payload)
+        self._apply_input_to_session(
+            session,
+            normalized,
+            input_payload,
+            brand_delivery_runtime=brand_delivery_runtime,
+        )
 
         run_payload = {
             **dict(input_payload),
@@ -848,6 +990,13 @@ class IpBroadcastAppAdapter:
             "project_id": project_id,
             "session_id": session.session_id,
         }
+        if self.context_resolver is not None and context_snapshot_id is not None:
+            run_payload = self.repository.canonicalize_run_input(
+                run_payload,
+                project_id=project_id,
+                app_id=self.app_id,
+                context_snapshot_id=context_snapshot_id,
+            )
         run = self.repository.create_app_run(
             project_id,
             self.app_id,
@@ -883,7 +1032,11 @@ class IpBroadcastAppAdapter:
 
     @staticmethod
     def _apply_input_to_session(
-        session: IpBroadcastSession, normalized: dict[str, Any], input_payload: dict[str, Any]
+        session: IpBroadcastSession,
+        normalized: dict[str, Any],
+        input_payload: dict[str, Any],
+        *,
+        brand_delivery_runtime: dict[str, str] | None = None,
     ) -> None:
         """Pin App Center inputs into the legacy workflow state before execution.
 
@@ -909,6 +1062,14 @@ class IpBroadcastAppAdapter:
             session.state.setdefault("provider_task_status", "not_created")
             session.state.setdefault("provider_retry_count", 0)
             session.state.setdefault("provider_retry_plan", {})
+        brand_delivery_manifest = normalized.get("brand_delivery_manifest")
+        if isinstance(brand_delivery_manifest, dict):
+            session.state["brand_delivery_manifest"] = dict(brand_delivery_manifest)
+            IpBroadcastAppAdapter._apply_brand_delivery_to_session(
+                session,
+                brand_delivery_manifest,
+                brand_delivery_runtime or {},
+            )
         if source_text:
             session.state["source_text"] = source_text
             session.state["final_script"] = source_text
@@ -924,6 +1085,8 @@ class IpBroadcastAppAdapter:
         content_source = normalized.get("content_source")
         if isinstance(content_source, dict):
             session.state["content_source"] = dict(content_source)
+            if isinstance(content_source.get("selling_points"), str):
+                session.state["selling_points"] = content_source["selling_points"].strip()[:500]
             if content_source.get("mode") == "title_plus_copywriting":
                 session.state["title_artifact_version_id"] = content_source.get(
                     "title_artifact_version_id", ""
@@ -1028,6 +1191,10 @@ class IpBroadcastAppAdapter:
                 raise IpBroadcastSessionError("BINDING_MISSING", app_run_id)
             run = self.repository.get_app_run(app_run_id)
             self._assert_execution_binding(run, binding, context_snapshot_id=context_snapshot_id)
+            if run.state == "failed" and run.input_payload.get("schema_version") == 2:
+                # A failed V2 run must go through the root-cause-bound retry
+                # plan before any TTS/provider side effect is allowed.
+                raise IpBroadcastSessionError("DH_QUALITY_RETRY_PLAN_REQUIRED", app_run_id)
             if run.input_payload.get("schema_version") == 2:
                 # Re-evaluate the joint gate at provider time as well as at
                 # creation time. A queued V2 run must not outlive a later
@@ -1227,7 +1394,7 @@ class IpBroadcastAppAdapter:
             retry_plan = session.state.get("provider_retry_plan")
             retry_approved = isinstance(retry_plan, dict) and bool(retry_plan.get("approved"))
             retry_count = int(session.state.get("provider_retry_count") or 0)
-            if provider_task_id or retry_approved or retry_count:
+            if current.state == "failed" or provider_task_id or retry_approved or retry_count:
                 if retry_count >= 1:
                     raise IpBroadcastSessionError("DH_QUALITY_RETRY_LIMIT", app_run_id)
                 if not retry_approved:
@@ -1238,7 +1405,7 @@ class IpBroadcastAppAdapter:
                         for item in session.state.get("provider_previous_task_ids", [])
                         if isinstance(item, str) and item
                     ),
-                    provider_task_id,
+                    *([provider_task_id] if provider_task_id else []),
                 ]
                 session.state["provider_task_id"] = ""
                 session.state["provider_retry_count"] = retry_count + 1
@@ -1331,6 +1498,10 @@ class IpBroadcastAppAdapter:
                 raise IpBroadcastSessionError("BINDING_MISSING", app_run_id)
             run = self.repository.get_app_run(app_run_id)
             self._assert_execution_binding(run, binding, context_snapshot_id=context_snapshot_id)
+            if run.state == "failed" and run.input_payload.get("schema_version") == 2:
+                # Keep the isolated executor behind the same retry-plan gate;
+                # tests must not accidentally bless a production bypass.
+                raise IpBroadcastSessionError("DH_QUALITY_RETRY_PLAN_REQUIRED", app_run_id)
             if run.state == "running":
                 # A running AppRun observed after a process/sidecar restart
                 # cannot safely be resumed by a new local executor instance.
@@ -1486,16 +1657,29 @@ class IpBroadcastAppAdapter:
             self.session_store.save_session(session)
             return self._handle(completed, binding)
 
-    @staticmethod
-    def _local_executor_output(run: AppRun) -> ExecutorOutput:
+    def _local_executor_output(self, run: AppRun) -> ExecutorOutput:
         source_mode = str(run.input_payload.get("source_mode") or "resume_existing")
         session_id = run.session_id or "unknown-session"
+        delivery_receipt, cover_file_refs, delivery_file_refs = self._consume_brand_delivery(run)
+        cover_content: dict[str, Any] = {"fake": True, "source_mode": source_mode}
+        video_content: dict[str, Any] = {
+            "fake": True,
+            "source_mode": source_mode,
+            "session_id": session_id,
+        }
+        if delivery_receipt:
+            cover_content["brand_delivery"] = {
+                "context_snapshot_id": delivery_receipt["context_snapshot_id"],
+                "cover": delivery_receipt["cover"],
+            }
+            video_content["brand_delivery"] = delivery_receipt
         related_artifacts = [
             RelatedArtifactOutput(
                 "cover",
                 "cover",
                 "本地隔离封面",
-                content={"fake": True, "source_mode": source_mode},
+                content=cover_content,
+                file_refs=cover_file_refs,
             ),
             RelatedArtifactOutput(
                 "publish_copy",
@@ -1529,11 +1713,185 @@ class IpBroadcastAppAdapter:
         return ExecutorOutput(
             artifact_type="video",
             name="本地隔离口播视频",
-            content={"fake": True, "source_mode": source_mode, "session_id": session_id},
+            content=video_content,
+            file_refs=delivery_file_refs,
             related_artifacts=related_artifacts,
             provider_class="local-isolated",
             model_ref="local-default:isolated",
         )
+
+    def _consume_brand_delivery(
+        self, run: AppRun
+    ) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
+        """Apply pinned brand media to deterministic local delivery products.
+
+        This is an isolated postproduction fixture, not a platform/provider
+        shortcut. It resolves the exact stored revisions, reads their bytes,
+        renders a real cover canvas, stages the exact BGM track, and writes an
+        auditable receipt without persisting local absolute paths.
+        """
+
+        manifest = run.input_payload.get("brand_delivery_manifest")
+        if not isinstance(manifest, dict) or self.context_resolver is None:
+            return {}, [], []
+        data_root = self._trusted_roots[0].path
+        output_dir = (
+            data_root
+            / "app_center"
+            / "digital_human_delivery"
+            / re.sub(r"[^A-Za-z0-9_-]", "", run.app_run_id)[:100]
+        )
+        output_dir.mkdir(parents=True, exist_ok=True)
+        primary = self._delivery_color(manifest.get("primary_color"), fallback=(31, 41, 55))
+        secondary = self._delivery_color(manifest.get("secondary_color"), fallback=(248, 245, 238))
+        cover = Image.new("RGB", (540, 720), secondary)
+        for y in range(0, 154):
+            cover.paste(primary, (0, y, 540, y + 1))
+        logo_operation: dict[str, Any] = {
+            "operation": "render_pinned_logo_overlay",
+            "applied": False,
+        }
+        logo_ref = manifest.get("logo_ref")
+        if isinstance(logo_ref, dict):
+            logo_path = self.context_resolver.resolve_exact_asset_path(
+                logo_ref, variant_role="thumbnail"
+            )
+            if logo_path is None or not logo_path.is_file():
+                raise IpBroadcastSessionError("PROJECT_BRAND_ASSET_REVISION_MISSING", "logo_ref")
+            logo_bytes = logo_path.read_bytes()
+            try:
+                with Image.open(logo_path) as logo_source:
+                    logo = logo_source.convert("RGBA")
+                    logo.thumbnail((112, 112), Image.Resampling.LANCZOS)
+                    cover.paste(logo, (540 - logo.width - 30, 21), logo)
+            except (OSError, UnidentifiedImageError) as exc:
+                raise IpBroadcastSessionError(
+                    "PROJECT_BRAND_ASSET_REVISION_MISSING", "logo_ref"
+                ) from exc
+            logo_operation = {
+                "operation": "render_pinned_logo_overlay",
+                "applied": True,
+                "asset_ref": dict(logo_ref),
+                "input_sha256": "sha256:" + hashlib.sha256(logo_bytes).hexdigest(),
+            }
+        cover_path = output_dir / "brand-cover.png"
+        cover.save(cover_path, format="PNG", optimize=True)
+        cover_ref = self._delivery_file_ref(
+            cover_path,
+            root=data_root,
+            file_key="brand-cover.png",
+            kind="image",
+            mime_type="image/png",
+            width=540,
+            height=720,
+        )
+
+        delivery_file_refs: list[dict[str, Any]] = []
+        bgm_operation: dict[str, Any] = {
+            "operation": "stage_pinned_bgm_track",
+            "applied": False,
+        }
+        bgm_ref = manifest.get("default_bgm_ref")
+        if isinstance(bgm_ref, dict):
+            bgm_path = self.context_resolver.resolve_exact_asset_path(bgm_ref)
+            if bgm_path is None or not bgm_path.is_file():
+                raise IpBroadcastSessionError(
+                    "PROJECT_BRAND_ASSET_REVISION_MISSING", "default_bgm_ref"
+                )
+            bgm_bytes = bgm_path.read_bytes()
+            suffix = bgm_path.suffix.lower()
+            if not suffix or len(suffix) > 10:
+                suffix = ".audio"
+            staged_bgm_path = output_dir / f"pinned-default-bgm{suffix}"
+            staged_bgm_path.write_bytes(bgm_bytes)
+            bgm_file_ref = self._delivery_file_ref(
+                staged_bgm_path,
+                root=data_root,
+                file_key=staged_bgm_path.name,
+                kind="audio",
+                mime_type=mimetypes.guess_type(staged_bgm_path.name)[0]
+                or "application/octet-stream",
+            )
+            delivery_file_refs.append(bgm_file_ref)
+            bgm_operation = {
+                "operation": "stage_pinned_bgm_track",
+                "applied": True,
+                "asset_ref": dict(bgm_ref),
+                "input_sha256": "sha256:" + hashlib.sha256(bgm_bytes).hexdigest(),
+                "output_sha256": bgm_file_ref["sha256"],
+            }
+        receipt = {
+            "schema_version": 1,
+            "artifact_type": "digital_human_brand_delivery",
+            "project_id": run.project_id,
+            "app_run_id": run.app_run_id,
+            "context_snapshot_id": run.context_snapshot_id,
+            "overridden_fields": list(manifest.get("overridden_fields") or []),
+            "cover": {
+                "primary_color": manifest.get("primary_color"),
+                "secondary_color": manifest.get("secondary_color"),
+                "output_sha256": cover_ref["sha256"],
+                "logo_overlay": logo_operation,
+            },
+            "audio_bed": bgm_operation,
+            "ending_card": {
+                "applied_to": "delivery_configuration",
+                "text": manifest.get("ending_card_text"),
+                "store_address": manifest.get("store_address"),
+                "phone": manifest.get("phone"),
+                "coupon_phrase": manifest.get("coupon_phrase"),
+            },
+        }
+        receipt_path = output_dir / "brand-delivery-receipt.json"
+        receipt_path.write_text(
+            json.dumps(receipt, ensure_ascii=False, sort_keys=True, indent=2),
+            encoding="utf-8",
+        )
+        delivery_file_refs.append(
+            self._delivery_file_ref(
+                receipt_path,
+                root=data_root,
+                file_key=receipt_path.name,
+                kind="manifest",
+                mime_type="application/json",
+            )
+        )
+        return receipt, [cover_ref], delivery_file_refs
+
+    @staticmethod
+    def _delivery_color(value: Any, *, fallback: tuple[int, int, int]) -> tuple[int, int, int]:
+        if not isinstance(value, str):
+            return fallback
+        try:
+            color = ImageColor.getrgb(value)
+        except ValueError:
+            return fallback
+        return color[:3] if len(color) == 4 else color
+
+    @staticmethod
+    def _delivery_file_ref(
+        path: Path,
+        *,
+        root: Path,
+        file_key: str,
+        kind: str,
+        mime_type: str,
+        width: int | None = None,
+        height: int | None = None,
+    ) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "file_key": file_key,
+            "relative_path": str(path.resolve().relative_to(root.resolve())),
+            "kind": kind,
+            "mime_type": mime_type,
+            "sha256": "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest(),
+            "size_bytes": path.stat().st_size,
+        }
+        if width is not None:
+            payload["width"] = width
+        if height is not None:
+            payload["height"] = height
+        return payload
 
     async def run_fake(self, app_run_id: str) -> IpBroadcastRunHandle:
         """Backward-compatible alias for the isolated local executor seam."""
@@ -1577,8 +1935,9 @@ class IpBroadcastAppAdapter:
                 session = self.session_store.get_session(binding.session_id)
                 if session is None:
                     raise IpBroadcastSessionError("SESSION_NOT_FOUND", binding.session_id)
-                if session.step_status.get(6) != "done":
-                    session.step_status[6] = "done"
+                if any(session.step_status.get(step) != "done" for step in range(1, 7)):
+                    for step in range(1, 7):
+                        session.step_status[step] = "done"
                     self.session_store.save_session(session)
                 return self._handle(run, binding)
             if run.state != "needs_review":
@@ -1595,7 +1954,8 @@ class IpBroadcastAppAdapter:
             session = self.session_store.get_session(binding.session_id)
             if session is None:
                 raise IpBroadcastSessionError("SESSION_NOT_FOUND", binding.session_id)
-            session.step_status[6] = "done"
+            for step in range(1, 7):
+                session.step_status[step] = "done"
             self.session_store.save_session(session)
             return self._handle(completed, binding)
 

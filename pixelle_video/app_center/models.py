@@ -85,6 +85,15 @@ class RunAttempt:
 
 
 @dataclass(frozen=True)
+class AppEvent:
+    event_id: str
+    app_run_id: str
+    event_type: str
+    payload: dict[str, Any]
+    created_at: str
+
+
+@dataclass(frozen=True)
 class Artifact:
     artifact_id: str
     project_id: str
@@ -102,6 +111,8 @@ class ArtifactVersion:
     artifact_version_id: str
     artifact_id: str
     project_id: str
+    source_app_run_id: str | None
+    context_snapshot_id: str | None
     version_number: int
     schema_version: int
     content: dict[str, Any] | None
@@ -116,11 +127,13 @@ class ArtifactHandoff:
     handoff_id: str
     project_id: str
     source_app_run_id: str | None
+    source_context_snapshot_id: str | None
     source_artifact_id: str
     source_artifact_version_id: str
     target_app_id: str
     target_app_version: str
     target_run_id: str | None
+    target_context_snapshot_id: str | None
     artifact_version_ids: list[str]
     mapping_version: int
     created_at: str

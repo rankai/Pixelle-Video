@@ -14,6 +14,13 @@ struct BackendProcess(Mutex<Option<CommandChild>>);
 struct RuntimeInfo {
     api_base_url: String,
     desktop_token: String,
+    feature_flags: RuntimeFeatureFlags,
+}
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct RuntimeFeatureFlags {
+    brand_project_boundary_v1: bool,
 }
 
 /// Return the origin used by the packaged Tauri webview on this platform.
@@ -34,6 +41,15 @@ fn desktop_origin() -> &'static str {
 #[tauri::command]
 fn desktop_runtime(runtime: State<RuntimeInfo>) -> RuntimeInfo {
     runtime.inner().clone()
+}
+
+fn parse_env_flag(value: Option<&str>, default: bool) -> bool {
+    match value.map(str::trim).map(str::to_ascii_lowercase) {
+        None => default,
+        Some(value) if matches!(value.as_str(), "1" | "true" | "yes" | "on") => true,
+        Some(value) if matches!(value.as_str(), "0" | "false" | "no" | "off") => false,
+        Some(_) => false,
+    }
 }
 
 fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Option<CommandChild>> {
@@ -60,11 +76,30 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
     // desktop binary is often started with PIXELLE_ASSET_CENTER_V2=true for
     // staged rollout, but child processes do not inherit that flag through
     // tauri-plugin-shell unless it is explicitly forwarded.
-    let asset_center_v2 = std::env::var("PIXELLE_ASSET_CENTER_V2").unwrap_or_else(|_| "1".to_string());
-    let asset_center_smb_ux = std::env::var("PIXELLE_ASSET_CENTER_SMB_UX").unwrap_or_else(|_| "0".to_string());
-    let app_center_content_apps = std::env::var("PIXELLE_APP_CENTER_CONTENT_APPS").unwrap_or_else(|_| "1".to_string());
-    let app_center_douyin_carousel = std::env::var("PIXELLE_APP_CENTER_DOUYIN_CAROUSEL").unwrap_or_else(|_| "1".to_string());
-    let app_center_digital_human = std::env::var("PIXELLE_APP_CENTER_DIGITAL_HUMAN").unwrap_or_else(|_| "1".to_string());
+    let asset_center_v2 =
+        std::env::var("PIXELLE_ASSET_CENTER_V2").unwrap_or_else(|_| "1".to_string());
+    let asset_center_smb_ux =
+        std::env::var("PIXELLE_ASSET_CENTER_SMB_UX").unwrap_or_else(|_| "0".to_string());
+    let app_center_content_apps =
+        std::env::var("PIXELLE_APP_CENTER_CONTENT_APPS").unwrap_or_else(|_| "1".to_string());
+    let app_center_douyin_carousel =
+        std::env::var("PIXELLE_APP_CENTER_DOUYIN_CAROUSEL").unwrap_or_else(|_| "1".to_string());
+    let app_center_digital_human =
+        std::env::var("PIXELLE_APP_CENTER_DIGITAL_HUMAN").unwrap_or_else(|_| "1".to_string());
+    // The reviewed brand/project workflow is enabled in packaged desktop
+    // builds. Operators can still set the variable to 0/false before launch
+    // to return both the webview and sidecar to the legacy interaction.
+    let brand_project_boundary_v1 = if runtime.feature_flags.brand_project_boundary_v1 {
+        "1"
+    } else {
+        "0"
+    };
+    // The production desktop UI ships with Publish Center V2 enabled. Keep
+    // the sidecar gate in sync so a fresh install does not render the V2
+    // shell only to receive V2_DISABLED from the local API. An explicit
+    // PIXELLE_PUBLISH_V2_ENABLED=0 remains the rollback switch.
+    let publish_v2_enabled =
+        std::env::var("PIXELLE_PUBLISH_V2_ENABLED").unwrap_or_else(|_| "1".to_string());
     let (_, child) = command
         .env("PIXELLE_DESKTOP_MODE", "1")
         .env("PIXELLE_DESKTOP_TOKEN", &runtime.desktop_token)
@@ -77,8 +112,16 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
         .env("PIXELLE_ASSET_CENTER_V2", asset_center_v2)
         .env("PIXELLE_ASSET_CENTER_SMB_UX", asset_center_smb_ux)
         .env("PIXELLE_APP_CENTER_CONTENT_APPS", app_center_content_apps)
-        .env("PIXELLE_APP_CENTER_DOUYIN_CAROUSEL", app_center_douyin_carousel)
+        .env(
+            "PIXELLE_APP_CENTER_DOUYIN_CAROUSEL",
+            app_center_douyin_carousel,
+        )
         .env("PIXELLE_APP_CENTER_DIGITAL_HUMAN", app_center_digital_human)
+        .env(
+            "PIXELLE_BRAND_PROJECT_BOUNDARY_V1",
+            brand_project_boundary_v1,
+        )
+        .env("PIXELLE_PUBLISH_V2_ENABLED", publish_v2_enabled)
         .args(["--host", "127.0.0.1", "--port", port.as_str()])
         .spawn()
         .map_err(|error| std::io::Error::other(error.to_string()))?;
@@ -87,7 +130,7 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
 
 #[cfg(test)]
 mod tests {
-    use super::desktop_origin;
+    use super::{desktop_origin, parse_env_flag};
 
     #[test]
     fn desktop_origin_matches_tauri_platform_scheme() {
@@ -96,6 +139,16 @@ mod tests {
         } else {
             assert_eq!(desktop_origin(), "tauri://localhost");
         }
+    }
+
+    #[test]
+    fn brand_project_runtime_flag_defaults_on_and_fails_closed() {
+        assert!(parse_env_flag(None, true));
+        assert!(parse_env_flag(Some("1"), true));
+        assert!(parse_env_flag(Some("true"), true));
+        assert!(!parse_env_flag(Some("0"), true));
+        assert!(!parse_env_flag(Some("false"), true));
+        assert!(!parse_env_flag(Some("invalid"), true));
     }
 }
 
@@ -114,8 +167,7 @@ fn sidecar_resource_root(app: &tauri::App, data_root: &Path) -> PathBuf {
         .resource_dir()
         .ok()
         .filter(|resource_root| {
-            resource_root.join("templates").is_dir()
-                || resource_root.join("workflows").is_dir()
+            resource_root.join("templates").is_dir() || resource_root.join("workflows").is_dir()
         })
         .unwrap_or_else(|| data_root.to_path_buf())
 }
@@ -164,9 +216,18 @@ fn default_api_base_url() -> String {
 }
 
 fn main() {
+    let brand_project_boundary_v1 = parse_env_flag(
+        std::env::var("PIXELLE_BRAND_PROJECT_BOUNDARY_V1")
+            .ok()
+            .as_deref(),
+        true,
+    );
     let runtime = RuntimeInfo {
         api_base_url: default_api_base_url(),
         desktop_token: Uuid::new_v4().to_string(),
+        feature_flags: RuntimeFeatureFlags {
+            brand_project_boundary_v1,
+        },
     };
 
     tauri::Builder::default()
@@ -185,11 +246,7 @@ fn main() {
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { .. } = event {
                 let state = window.state::<BackendProcess>();
-                let child = state
-                    .0
-                    .lock()
-                    .expect("backend state lock poisoned")
-                    .take();
+                let child = state.0.lock().expect("backend state lock poisoned").take();
                 if let Some(child) = child {
                     stop_backend(child);
                 }

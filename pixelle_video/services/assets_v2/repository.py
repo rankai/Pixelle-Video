@@ -17,9 +17,10 @@ import sqlite3
 import subprocess
 import threading
 import uuid
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 from PIL import Image
 
@@ -37,6 +38,16 @@ UPLOAD_EXTENSIONS = {
     "video": {"mp4", "mov", "webm", "m4v", "mkv", "avi"},
     "audio": {"mp3", "wav", "flac", "m4a", "aac", "ogg"},
 }
+
+
+class DomainRevisionGuardError(RuntimeError):
+    """The guarded domain resource no longer matches the resolved revision."""
+
+    def __init__(self, reason: str):
+        super().__init__(reason)
+        self.reason = reason
+
+
 LEGACY_SPECS = {
     "image": next(spec for spec in MANIFEST_SPECS if spec["resource_kind"] == "image"),
     "video": next(spec for spec in MANIFEST_SPECS if spec["resource_kind"] == "video"),
@@ -2714,6 +2725,132 @@ class AssetLibraryRepository:
             ).fetchall()
         return [self._row_to_dict(row) for row in rows]
 
+    def get_domain_revision(
+        self, kind: str, resource_id: str, revision: int
+    ) -> dict[str, Any] | None:
+        """Read one immutable domain revision without falling back to latest."""
+
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT resource_kind, resource_id, revision, payload_json, created_at
+                FROM domain_revisions
+                WHERE resource_kind = ? AND resource_id = ? AND revision = ?
+                """,
+                (kind, resource_id, revision),
+            ).fetchone()
+        if row is None:
+            return None
+        result = self._row_to_dict(row)
+        try:
+            payload = json.loads(str(result.pop("payload_json") or "{}"))
+        except json.JSONDecodeError as exc:
+            raise ValueError("domain_revision_payload_invalid") from exc
+        if not isinstance(payload, dict):
+            raise ValueError("domain_revision_payload_invalid")
+        result["payload"] = payload
+        return result
+
+    @contextmanager
+    def guard_domain_revision(
+        self,
+        kind: str,
+        resource_id: str,
+        revision: int,
+        *,
+        expected_status: str,
+        expected_payload: dict[str, Any],
+        expected_current_media: tuple[tuple[str, str, str], ...] = (),
+        expected_exact_media: tuple[tuple[str, str, str], ...] = (),
+    ) -> Iterator[None]:
+        """Hold the asset DB write lock while a separate DB records a binding.
+
+        This is deliberately not a cross-database transaction.  The guard is
+        read-only in the asset DB: it acquires ``BEGIN IMMEDIATE``, verifies
+        the current resource/status/revision and immutable revision payload,
+        then holds that lock while the caller commits its AppDB transaction.
+        A concurrent asset update either commits before this check and is
+        rejected, or waits until the already-pinned AppDB snapshot commits.
+        """
+
+        if kind != "brand":
+            raise DomainRevisionGuardError("unsupported_kind")
+        with self._lock, self._connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            resource = connection.execute(
+                "SELECT status FROM brand_kits_v2 WHERE brand_id = ?",
+                (resource_id,),
+            ).fetchone()
+            if resource is None:
+                raise DomainRevisionGuardError("not_found")
+            if resource["status"] != expected_status:
+                raise DomainRevisionGuardError("status_changed")
+            latest = connection.execute(
+                """
+                SELECT revision, payload_json
+                FROM domain_revisions
+                WHERE resource_kind = ? AND resource_id = ?
+                ORDER BY revision DESC
+                LIMIT 1
+                """,
+                (kind, resource_id),
+            ).fetchone()
+            if latest is None or latest["revision"] != revision:
+                raise DomainRevisionGuardError("revision_changed")
+            try:
+                payload = json.loads(latest["payload_json"])
+            except (json.JSONDecodeError, TypeError) as exc:
+                raise DomainRevisionGuardError("revision_invalid") from exc
+            if not isinstance(payload, dict) or payload != expected_payload:
+                raise DomainRevisionGuardError("revision_invalid")
+            for asset_id, revision_id, media_kind in expected_current_media:
+                media = connection.execute(
+                    """
+                    SELECT status, media_kind, current_revision_id
+                    FROM media_assets
+                    WHERE asset_id = ?
+                    """,
+                    (asset_id,),
+                ).fetchone()
+                if media is None:
+                    raise DomainRevisionGuardError("media_not_found")
+                if media["status"] != "ready":
+                    raise DomainRevisionGuardError("media_status_changed")
+                if media["media_kind"] != media_kind:
+                    raise DomainRevisionGuardError("media_kind_changed")
+                if media["current_revision_id"] != revision_id:
+                    raise DomainRevisionGuardError("media_revision_changed")
+                exact = connection.execute(
+                    """
+                    SELECT 1
+                    FROM asset_revisions
+                    WHERE asset_id = ? AND revision_id = ?
+                    """,
+                    (asset_id, revision_id),
+                ).fetchone()
+                if exact is None:
+                    raise DomainRevisionGuardError("media_revision_missing")
+            for asset_id, revision_id, media_kind in expected_exact_media:
+                media = connection.execute(
+                    "SELECT media_kind FROM media_assets WHERE asset_id = ?",
+                    (asset_id,),
+                ).fetchone()
+                if media is None:
+                    raise DomainRevisionGuardError("media_not_found")
+                if media["media_kind"] != media_kind:
+                    raise DomainRevisionGuardError("media_kind_changed")
+                exact = connection.execute(
+                    """
+                    SELECT 1
+                    FROM asset_revisions
+                    WHERE asset_id = ? AND revision_id = ?
+                    """,
+                    (asset_id, revision_id),
+                ).fetchone()
+                if exact is None:
+                    raise DomainRevisionGuardError("media_revision_missing")
+            yield
+
     def create_template_revision(self, values: dict[str, Any]) -> dict[str, Any]:
         now = _now()
         template_id = str(values.get("template_id") or f"template-{uuid.uuid4().hex[:12]}")
@@ -2970,6 +3107,18 @@ class AssetLibraryRepository:
             ).fetchall()
         return [self._row_to_dict(row) for row in rows]
 
+    def get_revision_variants(self, asset_id: str, revision_id: str) -> list[dict[str, Any]]:
+        """Return variants belonging to one exact asset revision."""
+
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT v.* FROM asset_variants v JOIN asset_revisions r "
+                "ON r.revision_id = v.revision_id "
+                "WHERE r.asset_id = ? AND r.revision_id = ?",
+                (asset_id, revision_id),
+            ).fetchall()
+        return [self._row_to_dict(row) for row in rows]
+
     def list_revisions(self, asset_id: str) -> list[dict[str, Any]]:
         with self._connect() as connection:
             rows = connection.execute(
@@ -3208,9 +3357,14 @@ class AssetLibraryRepository:
                 row = connection.execute(
                     "SELECT * FROM brand_kits_v2 WHERE brand_id = ?", (resource_id,)
                 ).fetchone()
-            payload = dict(row) if row else {}
+            if row is None:
+                return {}
+            payload = dict(row)
             revisions = self.list_domain_revisions(resource_kind, resource_id)
-            payload["domain_revision"] = revisions[0]["revision"] if revisions else 1
+            # A ready brand without its immutable history is corrupt.  Do not
+            # synthesize revision 1: callers must fail closed and ask the user
+            # to preserve the project while support repairs the asset store.
+            payload["domain_revision"] = revisions[0]["revision"] if revisions else None
             return payload
         if resource_kind == "digital_human":
             item = self.get_domain_item("digital_human", resource_id) or {}
@@ -3293,12 +3447,20 @@ class AssetLibraryRepository:
             relative_path = row["relative_path"]
         if variant_role:
             with self._connect() as connection:
-                variant = connection.execute(
-                    "SELECT v.relative_path FROM asset_variants v JOIN asset_revisions r "
-                    "ON r.revision_id = v.revision_id WHERE r.asset_id = ? AND v.role = ? "
-                    "ORDER BY r.version DESC LIMIT 1",
-                    (asset_id, variant_role),
-                ).fetchone()
+                if revision_id:
+                    variant = connection.execute(
+                        "SELECT v.relative_path FROM asset_variants v JOIN asset_revisions r "
+                        "ON r.revision_id = v.revision_id "
+                        "WHERE r.asset_id = ? AND r.revision_id = ? AND v.role = ?",
+                        (asset_id, revision_id, variant_role),
+                    ).fetchone()
+                else:
+                    variant = connection.execute(
+                        "SELECT v.relative_path FROM asset_variants v JOIN asset_revisions r "
+                        "ON r.revision_id = v.revision_id WHERE r.asset_id = ? AND v.role = ? "
+                        "ORDER BY r.version DESC LIMIT 1",
+                        (asset_id, variant_role),
+                    ).fetchone()
             relative_path = variant["relative_path"] if variant else None
         if not relative_path:
             return None

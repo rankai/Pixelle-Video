@@ -31,7 +31,10 @@ def test_image_transparency_is_preserved_in_revision_and_library_projection(tmp_
     completed = repository.finalize_upload(session["upload_id"])
     asset = repository.get_asset(completed["asset_id"])
     assert asset["has_transparency"] == 1
-    assert repository.list_library_page(kind="image", page_size=1)["items"][0]["resource_id"] == completed["asset_id"]
+    assert (
+        repository.list_library_page(kind="image", page_size=1)["items"][0]["resource_id"]
+        == completed["asset_id"]
+    )
 
 
 def test_legacy_image_is_migrated_with_thumbnail_and_relative_paths(tmp_path):
@@ -221,7 +224,12 @@ def test_v2_archive_restore_and_bulk_management_are_reversible(monkeypatch, tmp_
         },
     )
     assert favorite.json()["succeeded"] == 1
-    assert client.get("/api/v2/library/items", params={"kind": "image", "favorite": "true"}).json()["total"] == 1
+    assert (
+        client.get("/api/v2/library/items", params={"kind": "image", "favorite": "true"}).json()[
+            "total"
+        ]
+        == 1
+    )
 
 
 def test_v2_api_is_disabled_by_default(monkeypatch):
@@ -378,14 +386,18 @@ def test_domain_writes_share_library_projection_and_collection_ledger(tmp_path):
     repository = AssetLibraryRepository(tmp_path)
     brand = repository.create_brand_kit({"brand_name": "门店品牌", "primary_color": "#ff6b5c"})
     person = repository.create_digital_human_profile({"name": "老板数字人", "style": "稳重"})
-    template = repository.create_template_revision({"display_name": "竖屏口播", "subtitle_contract": {"font_size": 56}})
+    template = repository.create_template_revision(
+        {"display_name": "竖屏口播", "subtitle_contract": {"font_size": 56}}
+    )
     assert brand["resource_id"]
     assert person["resource_id"]
     assert template["summary"]["subtitle_font_size"] == 56
     repository.set_resource_tags("brand", brand["resource_id"], ["门店", "主推"])
     repository.set_favorite("digital_human", person["resource_id"], True)
     collection = repository.create_collection("本周生产")
-    assert repository.add_collection_item(collection["collection_id"], "brand", brand["resource_id"])
+    assert repository.add_collection_item(
+        collection["collection_id"], "brand", brand["resource_id"]
+    )
     assert repository.list_collections()[0]["item_count"] == 1
     assert repository.resource_tags("brand", brand["resource_id"]) == ["主推", "门店"]
     assert repository.is_favorite("digital_human", person["resource_id"])
@@ -480,14 +492,23 @@ def test_v2_api_writes_domain_assets_tags_favorites_and_collections(monkeypatch,
     brand = client.post("/api/v2/domain/brands", json={"brand_name": "API 品牌"})
     assert brand.status_code == 201
     brand_id = brand.json()["resource_id"]
-    assert client.put(f"/api/v2/library/items/brand/{brand_id}/favorite", json={"favorite": True}).json()["favorite"]
-    assert client.put(f"/api/v2/library/items/brand/{brand_id}/tags", json={"tags": ["门店"]}).json()["tags"] == ["门店"]
+    assert client.put(
+        f"/api/v2/library/items/brand/{brand_id}/favorite", json={"favorite": True}
+    ).json()["favorite"]
+    assert client.put(
+        f"/api/v2/library/items/brand/{brand_id}/tags", json={"tags": ["门店"]}
+    ).json()["tags"] == ["门店"]
     collection = client.post("/api/v2/collections", json={"name": "API 集合"}).json()
-    assert client.post(
-        f"/api/v2/collections/{collection['collection_id']}/items",
-        params={"kind": "brand", "resource_id": brand_id},
-    ).status_code == 200
-    item = client.get("/api/v2/library/items", params={"kind": "brand", "favorite": "true"}).json()["items"][0]
+    assert (
+        client.post(
+            f"/api/v2/collections/{collection['collection_id']}/items",
+            params={"kind": "brand", "resource_id": brand_id},
+        ).status_code
+        == 200
+    )
+    item = client.get("/api/v2/library/items", params={"kind": "brand", "favorite": "true"}).json()[
+        "items"
+    ][0]
     assert item["resource_id"] == brand_id
     assert item["tags"] == ["门店"]
     assert client.post(f"/api/v2/library/brand/{brand_id}/archive").status_code == 200
@@ -532,28 +553,92 @@ def test_v2_api_revision_facets_bulk_and_reconciliation(monkeypatch, tmp_path):
     app.include_router(module.router, prefix="/api")
     client = TestClient(app)
     payload = _image_bytes("purple")
-    created = client.post("/api/v2/uploads", json={"filename": "one.png", "declared_bytes": len(payload), "target_kind": "image"}).json()
-    asset_result = client.put(f"/api/v2/uploads/{created['upload_id']}/content", content=payload).json()["asset"]
+    created = client.post(
+        "/api/v2/uploads",
+        json={"filename": "one.png", "declared_bytes": len(payload), "target_kind": "image"},
+    ).json()
+    asset_result = client.put(
+        f"/api/v2/uploads/{created['upload_id']}/content", content=payload
+    ).json()["asset"]
     asset_id = asset_result["asset_id"]
-    revision = client.post(f"/api/v2/media-assets/{asset_id}/revisions?filename=two.png", content=_image_bytes("orange"), headers={"x-filename": "two.png"})
+    revision = client.post(
+        f"/api/v2/media-assets/{asset_id}/revisions?filename=two.png",
+        content=_image_bytes("orange"),
+        headers={"x-filename": "two.png"},
+    )
     assert revision.status_code == 200
     revisions = client.get(f"/api/v2/media-assets/{asset_id}/revisions").json()["items"]
     assert len(revisions) == 2
-    assert client.post(f"/api/v2/media-assets/{asset_id}/revisions/{revisions[-1]['revision_id']}/activate").status_code == 200
+    pinned_revision_id = revisions[-1]["revision_id"]
+    assert revisions[0]["revision_id"] != pinned_revision_id
+    preview = client.get(
+        f"/api/v2/media-assets/{asset_id}/revisions/{pinned_revision_id}/project-preview"
+    )
+    assert preview.status_code == 200
+    assert preview.json() == {
+        "asset_id": asset_id,
+        "asset_revision": pinned_revision_id,
+        "media_kind": "image",
+        "mime_type": "image/png",
+        "file_url": (f"/api/v2/media-assets/{asset_id}/file?revision_id={pinned_revision_id}"),
+        "thumbnail_url": (
+            f"/api/v2/media-assets/{asset_id}/variants/thumbnail?revision_id={pinned_revision_id}"
+        ),
+    }
+    assert client.get(preview.json()["file_url"]).content == payload
+    assert client.get(f"/api/v2/media-assets/{asset_id}/file").content != payload
+    missing_preview = client.get(
+        f"/api/v2/media-assets/{asset_id}/revisions/missing-revision/project-preview"
+    )
+    assert missing_preview.status_code == 404
+    assert missing_preview.json()["detail"] == {
+        "code": "PROJECT_BRAND_ASSET_REVISION_MISSING",
+        "message": "品牌素材版本无法读取，已显示安全占位；请重新关联品牌或到企业资产库检查",
+    }
+    assert (
+        client.post(
+            f"/api/v2/media-assets/{asset_id}/revisions/{pinned_revision_id}/activate"
+        ).status_code
+        == 200
+    )
     assert client.post(f"/api/v2/media-assets/{asset_id}/analysis/retry").status_code == 200
-    reconcile = client.post("/api/v2/sessions/session-reconcile/reconcile", json={"references": [{"resource_kind": "image", "resource_id": asset_id, "step": "postproduction", "purpose": "cover", "slot_id": "cover"}]})
+    reconcile = client.post(
+        "/api/v2/sessions/session-reconcile/reconcile",
+        json={
+            "references": [
+                {
+                    "resource_kind": "image",
+                    "resource_id": asset_id,
+                    "step": "postproduction",
+                    "purpose": "cover",
+                    "slot_id": "cover",
+                }
+            ]
+        },
+    )
     assert reconcile.status_code == 200
     assert reconcile.json()["written"] == 1
-    assert client.get(f"/api/v2/library/image/{asset_id}/usage").json()["items"][0]["purpose"] == "cover"
+    assert (
+        client.get(f"/api/v2/library/image/{asset_id}/usage").json()["items"][0]["purpose"]
+        == "cover"
+    )
     facets = client.get("/api/v2/library/facets").json()
     assert facets["kinds"]["image"] == 1
-    filtered = client.get("/api/v2/library/items", params={"kind": "image", "q": "one", "sort": "recent"})
+    filtered = client.get(
+        "/api/v2/library/items", params={"kind": "image", "q": "one", "sort": "recent"}
+    )
     assert filtered.status_code == 200
     assert filtered.json()["total"] == 1
     assert client.get("/api/v2/library/facets", params={"q": "one"}).status_code == 200
-    bulk = client.post("/api/v2/library/bulk", json={"action": "favorite", "items": [{"kind": "image", "resource_id": asset_id}]})
+    bulk = client.post(
+        "/api/v2/library/bulk",
+        json={"action": "favorite", "items": [{"kind": "image", "resource_id": asset_id}]},
+    )
     assert bulk.json()["succeeded"] == 1
-    assert client.get("/api/v2/library/items", params={"kind": "image", "sort": "recent"}).status_code == 200
+    assert (
+        client.get("/api/v2/library/items", params={"kind": "image", "sort": "recent"}).status_code
+        == 200
+    )
 
 
 def test_digital_human_scene_resolves_its_pinned_revision(tmp_path):

@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/app-center/context-snapshot.v3.write-request.schema.json",
+  "title": "Pixelle ContextSnapshot v3 client write request trust boundary",
+  "description": "Entry-only trust-boundary schema. The server resolver is the sole authority allowed to materialize stored brand_context.",
+  "x-pixelle-resolver-owner-stage": "BRAND-PROJECT-1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "brand_binding",
+    "project_overrides",
+    "project_brief"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "brand_binding": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "brand_binding"
+        ]
+      },
+      "then": {
+        "properties": {
+          "project_overrides": {
+            "maxProperties": 0
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 3
+    },
+    "brand_binding": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "brand_id",
+            "expected_domain_revision"
+          ],
+          "properties": {
+            "brand_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "expected_domain_revision": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      ]
+    },
+    "project_overrides": {
+      "description": "Overrides apply only to an associated brand. An unbranded request must send an empty object. Omitting a field restores the pinned brand default; null clear is not supported in this Stage.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "logo_ref": {
+          "$ref": "pixelle://contracts/app-center/context-snapshot.v3.schema.json#/$defs/asset_revision_ref"
+        },
+        "store_address": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "primary_color": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$"
+        },
+        "secondary_color": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$"
+        },
+        "font_family": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "default_subtitle_style": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "default_bgm_ref": {
+          "$ref": "pixelle://contracts/app-center/context-snapshot.v3.schema.json#/$defs/asset_revision_ref"
+        },
+        "ending_card_text": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "coupon_phrase": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "project_brief": {
+      "$ref": "pixelle://contracts/app-center/context-snapshot.v3.schema.json#/$defs/project_brief"
+    }
+  }
+}

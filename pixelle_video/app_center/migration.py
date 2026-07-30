@@ -16,6 +16,20 @@ from typing import Iterable
 
 from .registry import BUILTIN_MANIFESTS
 
+LEGACY_APP_CENTER_V1_CHECKSUMS = frozenset(
+    {
+        "sha256:app-center-v1",
+        # Last deployed v1 DDL before ContextSnapshot payload v2 support.
+        "sha256:cd21d2b630a7601068e60a5edb4edf3130a3661f2c74eaadd323e2420b4c0712",
+        # Last deployed DDL before server-owned ContextSnapshot payload v3.
+        "sha256:4e52511c338b32266b38377cfb165bb0e9d527fa731cf5979ca9239bfe7fd9ca",
+        # BRAND-PROJECT-1 DDL before persistent brand-sync idempotency records.
+        "sha256:2742365a5f3b4599563f263753c2695d084968fde6873ed992b1634ba9be9004",
+        # BRAND-PROJECT-3 DDL before ArtifactVersion/handoff context provenance.
+        "sha256:d2c12b60ceda60947f72668ede52273b23fbe13884cda315e066524dfc94c6c0",
+    }
+)
+
 
 class AppCenterMigrationError(RuntimeError):
     """A fail-closed migration or seed error."""
@@ -84,6 +98,20 @@ def _seed_registry(conn: sqlite3.Connection, manifests: Iterable[dict]) -> None:
                     item["produced_artifact_types"] = ["video", "cover", "publish_copy"]
                     item.pop("supported_versions", None)
                     item.pop("input_schema_by_version", None)
+            if (
+                str(manifest.get("app_id"))
+                in {
+                    "builtin.marketing-copy",
+                    "builtin.viral-titles",
+                    "builtin.douyin-carousel",
+                }
+                and str(version) == "1.0.0"
+            ):
+                # Workbench v2 adds a parallel 1.1.0 contract. Preserve
+                # the deployed 1.0.0 manifest byte-for-byte so opening an
+                # existing desktop database remains a safe additive migration.
+                item.pop("supported_versions", None)
+                item.pop("input_schema_by_version", None)
             expanded.append(item)
     manifests = tuple(expanded)
     for manifest in manifests:
@@ -178,6 +206,108 @@ def _seed_registry(conn: sqlite3.Connection, manifests: Iterable[dict]) -> None:
         raise AppCenterMigrationError("registry seed verification failed")
 
 
+def _upgrade_context_snapshots_constraint(conn: sqlite3.Connection) -> None:
+    """Allow immutable payload schemas 1, 2 and 3 without rewriting rows."""
+
+    row = conn.execute(
+        "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'context_snapshots'"
+    ).fetchone()
+    table_sql = str(row[0] if row else "")
+    normalized = " ".join(table_sql.split())
+    if "schema_version IN (1, 2, 3)" in normalized:
+        return
+    conn.execute(
+        """
+        CREATE TABLE context_snapshots_v3 (
+          context_snapshot_id TEXT PRIMARY KEY,
+          project_id TEXT NOT NULL REFERENCES content_projects(project_id),
+          schema_version INTEGER NOT NULL DEFAULT 1 CHECK (schema_version IN (1, 2, 3)),
+          payload_json TEXT NOT NULL,
+          source_brand_id TEXT,
+          source_brand_revision_id TEXT,
+          fingerprint TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
+        INSERT INTO context_snapshots_v3(
+          context_snapshot_id, project_id, schema_version, payload_json,
+          source_brand_id, source_brand_revision_id, fingerprint, created_at
+        )
+        SELECT
+          context_snapshot_id, project_id, schema_version, payload_json,
+          source_brand_id, source_brand_revision_id, fingerprint, created_at
+        FROM context_snapshots
+        """
+    )
+    conn.execute("DROP TABLE context_snapshots")
+    conn.execute("ALTER TABLE context_snapshots_v3 RENAME TO context_snapshots")
+
+
+def _upgrade_artifact_provenance_columns(conn: sqlite3.Connection) -> None:
+    """Add immutable run/context lineage without rewriting artifact content."""
+
+    version_columns = {str(row[1]) for row in conn.execute("PRAGMA table_info(artifact_versions)")}
+    if "source_app_run_id" not in version_columns:
+        conn.execute(
+            "ALTER TABLE artifact_versions ADD COLUMN source_app_run_id TEXT "
+            "REFERENCES app_runs(app_run_id)"
+        )
+    if "context_snapshot_id" not in version_columns:
+        conn.execute(
+            "ALTER TABLE artifact_versions ADD COLUMN context_snapshot_id TEXT "
+            "REFERENCES context_snapshots(context_snapshot_id)"
+        )
+    conn.execute(
+        """
+        UPDATE artifact_versions
+        SET source_app_run_id = (
+              SELECT artifacts.source_app_run_id
+              FROM artifacts
+              WHERE artifacts.artifact_id = artifact_versions.artifact_id
+            ),
+            context_snapshot_id = (
+              SELECT app_runs.context_snapshot_id
+              FROM artifacts
+              JOIN app_runs ON app_runs.app_run_id = artifacts.source_app_run_id
+              WHERE artifacts.artifact_id = artifact_versions.artifact_id
+            )
+        WHERE source_app_run_id IS NULL OR context_snapshot_id IS NULL
+        """
+    )
+
+    handoff_columns = {str(row[1]) for row in conn.execute("PRAGMA table_info(artifact_handoffs)")}
+    if "source_context_snapshot_id" not in handoff_columns:
+        conn.execute(
+            "ALTER TABLE artifact_handoffs ADD COLUMN source_context_snapshot_id TEXT "
+            "REFERENCES context_snapshots(context_snapshot_id)"
+        )
+    if "target_context_snapshot_id" not in handoff_columns:
+        conn.execute(
+            "ALTER TABLE artifact_handoffs ADD COLUMN target_context_snapshot_id TEXT "
+            "REFERENCES context_snapshots(context_snapshot_id)"
+        )
+    conn.execute(
+        """
+        UPDATE artifact_handoffs
+        SET source_context_snapshot_id = (
+              SELECT artifact_versions.context_snapshot_id
+              FROM artifact_versions
+              WHERE artifact_versions.artifact_version_id =
+                    artifact_handoffs.source_artifact_version_id
+            ),
+            target_context_snapshot_id = (
+              SELECT app_runs.context_snapshot_id
+              FROM app_runs
+              WHERE app_runs.app_run_id = artifact_handoffs.target_run_id
+            )
+        WHERE source_context_snapshot_id IS NULL OR target_context_snapshot_id IS NULL
+        """
+    )
+
+
 def migrate_app_center(
     db_path: str | Path | None = None,
     *,
@@ -231,14 +361,20 @@ def migrate_app_center(
                 ).fetchone()
                 if row and row[1] > 1:
                     raise AppCenterMigrationError("future app-center schema version")
-                if row and row[0] not in {"sha256:app-center-v1", checksum}:
+                if row and row[0] not in LEGACY_APP_CENTER_V1_CHECKSUMS | {checksum}:
                     raise AppCenterMigrationError("app-center migration checksum drift")
 
             # Keep schema creation, checksum update, registry seed, and FK
             # verification in the same staging transaction.  ``executescript``
             # normally commits around a script, so explicitly open the
             # transaction as the first statement and commit only below.
+            # The staged copy is offline. Disable FK enforcement only while
+            # rebuilding the context table constraint, then verify every
+            # relationship before the atomic replace.
+            conn.execute("PRAGMA foreign_keys = OFF")
             conn.executescript("BEGIN IMMEDIATE;\n" + script)
+            _upgrade_context_snapshots_constraint(conn)
+            _upgrade_artifact_provenance_columns(conn)
             conn.execute(
                 "UPDATE app_schema_migrations SET checksum = ? WHERE migration_id = 'app-center-v1'",
                 (checksum,),

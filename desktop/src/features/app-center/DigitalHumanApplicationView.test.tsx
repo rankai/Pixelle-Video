@@ -6,14 +6,23 @@ import {
   cancelIpBroadcastAppRun,
   createContentProject,
   createIpBroadcastAppRun,
+  createPublishPackageV2,
   downloadArtifact,
   executeIpBroadcastAppRun,
   getIpBroadcastAppRun,
+  getCurrentContextSnapshot,
+  getBrandProjectSummary,
+  getProjectBrandSyncPreview,
+  getProjectMediaRevisionPreview,
   listArtifactVersions,
   listApplications,
   listContentProjects,
+  listProjectBrands,
   listProjectArtifacts,
+  replaceProjectBrand,
   retryIpBroadcastAppRun,
+  syncProjectBrand,
+  updateProjectMaterial,
 } from "../../api";
 import { DigitalHumanApplicationView } from "./DigitalHumanApplicationView";
 
@@ -23,14 +32,24 @@ vi.mock("../../api", () => ({
   cancelIpBroadcastAppRun: vi.fn(),
   createContentProject: vi.fn(),
   createIpBroadcastAppRun: vi.fn(),
+  createPublishPackageV2: vi.fn(),
   downloadArtifact: vi.fn(),
   executeIpBroadcastAppRun: vi.fn(),
   getIpBroadcastAppRun: vi.fn(),
+  getCurrentContextSnapshot: vi.fn(),
+  getBrandProjectSummary: vi.fn(),
+  getProjectBrandSyncPreview: vi.fn(),
+  getProjectMediaRevisionPreview: vi.fn(),
+  saveContextSnapshot: vi.fn(),
   listArtifactVersions: vi.fn(),
   listApplications: vi.fn(),
   listContentProjects: vi.fn(),
+  listProjectBrands: vi.fn(),
   listProjectArtifacts: vi.fn(),
+  replaceProjectBrand: vi.fn(),
   retryIpBroadcastAppRun: vi.fn(),
+  syncProjectBrand: vi.fn(),
+  updateProjectMaterial: vi.fn(),
 }));
 
 vi.mock("../assets/components/AssetPickerDialog", () => ({
@@ -55,14 +74,23 @@ const mocks = {
   cancelIpBroadcastAppRun: vi.mocked(cancelIpBroadcastAppRun),
   createContentProject: vi.mocked(createContentProject),
   createIpBroadcastAppRun: vi.mocked(createIpBroadcastAppRun),
+  createPublishPackageV2: vi.mocked(createPublishPackageV2),
   downloadArtifact: vi.mocked(downloadArtifact),
   executeIpBroadcastAppRun: vi.mocked(executeIpBroadcastAppRun),
   getIpBroadcastAppRun: vi.mocked(getIpBroadcastAppRun),
+  getCurrentContextSnapshot: vi.mocked(getCurrentContextSnapshot),
+  getBrandProjectSummary: vi.mocked(getBrandProjectSummary),
+  getProjectBrandSyncPreview: vi.mocked(getProjectBrandSyncPreview),
+  getProjectMediaRevisionPreview: vi.mocked(getProjectMediaRevisionPreview),
   listArtifactVersions: vi.mocked(listArtifactVersions),
   listApplications: vi.mocked(listApplications),
   listContentProjects: vi.mocked(listContentProjects),
+  listProjectBrands: vi.mocked(listProjectBrands),
   listProjectArtifacts: vi.mocked(listProjectArtifacts),
+  replaceProjectBrand: vi.mocked(replaceProjectBrand),
   retryIpBroadcastAppRun: vi.mocked(retryIpBroadcastAppRun),
+  syncProjectBrand: vi.mocked(syncProjectBrand),
+  updateProjectMaterial: vi.mocked(updateProjectMaterial),
 };
 
 const project = {
@@ -92,7 +120,12 @@ const run = {
   projection: { when: "user_must_edit_or_confirm", task_status: "needs_review", app_run_state: "needs_review", completion_allowed: false },
   step_status: { "6": "ready" },
   notices: {},
-  artifact_keys: ["video", "cover", "publish_copy"],
+  artifact_keys: ["video", "cover", "publish_copy", "spoken_script"],
+  artifact_details: {
+    video: { artifact_id: "artifact-video", artifact_version_id: "video-v1" },
+    cover: { artifact_id: "artifact-cover", artifact_version_id: "cover-v1" },
+    publish_copy: { artifact_id: "artifact-copy", artifact_version_id: "copy-v1" },
+  },
   created_at: "now",
   updated_at: "now",
 };
@@ -123,9 +156,20 @@ describe("DigitalHumanApplicationView", () => {
     mocks.listProjectArtifacts.mockResolvedValue([]);
     mocks.listArtifactVersions.mockResolvedValue([]);
     mocks.createIpBroadcastAppRun.mockResolvedValue(run);
+    mocks.createPublishPackageV2.mockResolvedValue({ package_id: "publish-package-1" } as never);
     mocks.executeIpBroadcastAppRun.mockResolvedValue({ ...run, state: "queued", projection: { ...run.projection, when: "queued_for_execution", task_status: "pending", app_run_state: "queued" } });
     mocks.artifactBlobUrl.mockResolvedValue("blob:final-video");
     mocks.getIpBroadcastAppRun.mockResolvedValue(run);
+    mocks.getCurrentContextSnapshot.mockResolvedValue(null);
+    mocks.listProjectBrands.mockResolvedValue({ items: [] });
+    mocks.getProjectBrandSyncPreview.mockResolvedValue({
+      project_id: "project-1",
+      status: "no_change",
+      has_changes: false,
+      result_code: "PROJECT_BRAND_SYNC_NO_CHANGE",
+      changes_committed: false,
+      changes: [],
+    });
     mocks.cancelIpBroadcastAppRun.mockResolvedValue({ ...run, state: "cancelled" });
     mocks.retryIpBroadcastAppRun.mockResolvedValue({ ...run, state: "queued" });
     mocks.acceptIpBroadcastAppRun.mockResolvedValue({ ...run, state: "completed", projection: { ...run.projection, app_run_state: "completed", task_status: "completed", completion_allowed: true } });
@@ -137,10 +181,42 @@ describe("DigitalHumanApplicationView", () => {
     expect(mocks.listContentProjects).not.toHaveBeenCalled();
   });
 
+  it("adopts the shared workbench shell while preserving the digital-human input and result regions", async () => {
+    render(<DigitalHumanApplicationView desktopEnabled workbenchV2 onBack={vi.fn()} />);
+    expect(await screen.findByText("门店项目")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "数字人口播视频应用工作台" })).toBeInTheDocument();
+    expect(document.getElementById("digital-human-workbench-input")).toBeInTheDocument();
+    expect(document.getElementById("digital-human-workbench-result")).toBeInTheDocument();
+    expect(screen.getByText("等待开始")).toBeInTheDocument();
+  });
+
+  it("shows explicit legacy-brand association for a null-snapshot digital-human project", async () => {
+    render(
+      <DigitalHumanApplicationView
+        desktopEnabled
+        workbenchV2
+        brandProjectV1
+        onBack={vi.fn()}
+      />,
+    );
+    expect(await screen.findByText("这是旧项目")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "关联品牌包" })).toBeEnabled();
+    expect(mocks.replaceProjectBrand).not.toHaveBeenCalled();
+  });
+
   it("creates a blank-project AppRun through the new API without touching the legacy session API", async () => {
+    mocks.listContentProjects.mockResolvedValue([{
+      ...project,
+      current_context_snapshot_id: "context-v2",
+    }]);
+    mocks.createIpBroadcastAppRun.mockResolvedValue({
+      ...run,
+      context_snapshot_id: "context-v2",
+    });
     render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} />);
     expect(await screen.findByText("门店项目")).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("制作目标"), { target: { value: "开业介绍" } });
+    fireEvent.click(screen.getByLabelText("添加可读字幕"));
     fireEvent.click(screen.getByRole("button", { name: "选择数字人形象" }));
     fireEvent.click(screen.getByRole("button", { name: "测试选择图片场景" }));
     const startButton = screen.getByRole("button", { name: "开始生成" });
@@ -149,7 +225,8 @@ describe("DigitalHumanApplicationView", () => {
 
     await waitFor(() => expect(mocks.createIpBroadcastAppRun).toHaveBeenCalledWith(expect.objectContaining({
       project_id: "project-1",
-      input_payload: expect.objectContaining({ schema_version: 2, app_version: "1.1.0", project_id: "project-1", content_source: { mode: "custom_script", script: "开业介绍" }, digital_human: expect.objectContaining({ mode: "image_talking", scene_id: "scene-image", asset_revision_id: "revision-image" }) }),
+      context_snapshot_id: "context-v2",
+      input_payload: expect.objectContaining({ schema_version: 2, app_version: "1.1.0", project_id: "project-1", content_source: { mode: "custom_script", script: "开业介绍" }, digital_human: expect.objectContaining({ mode: "image_talking", scene_id: "scene-image", asset_revision_id: "revision-image" }), delivery: expect.objectContaining({ subtitle_enabled: false }) }),
     })));
     expect(mocks.createIpBroadcastAppRun).toHaveBeenCalledTimes(1);
     await waitFor(() => expect(mocks.executeIpBroadcastAppRun).toHaveBeenCalledWith("run-1"));
@@ -206,13 +283,44 @@ describe("DigitalHumanApplicationView", () => {
     }));
     render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} />);
     expect(await screen.findByLabelText("生成结果")).toBeInTheDocument();
-    expect(screen.getByText("默认预览：final_video")).toBeInTheDocument();
+    expect(screen.getByText("默认预览：最终视频")).toBeInTheDocument();
     expect(screen.getByText("最终视频")).toBeInTheDocument();
     expect(screen.getByText("封面")).toBeInTheDocument();
     expect(screen.getByText("发布文案")).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByLabelText("final_video 预览").querySelector("video")).toBeInTheDocument());
+    expect(screen.getByText("口播稿")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByLabelText("最终视频预览").querySelector("video")).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "下载最终视频" }));
-    expect(mocks.downloadArtifact).toHaveBeenCalledWith("session-1", "final_video");
+    expect(mocks.downloadArtifact).toHaveBeenCalledWith("session-1", "video");
+    const inlineVideoDownload = screen.getAllByRole("button").find((button) => button.textContent?.replace(/\s/g, "") === "下载");
+    expect(inlineVideoDownload).toBeDefined();
+    fireEvent.click(inlineVideoDownload!);
+    expect(mocks.downloadArtifact).toHaveBeenCalledWith("session-1", "video");
+  });
+
+  it("hands the completed digital-human artifacts to Publish Center without opening a platform", async () => {
+    window.localStorage.setItem("pixelle_ip_broadcast_app_state_v1", JSON.stringify({
+      route: "/apps/digital-human-video",
+      project_id: "project-1",
+      app_run_id: "run-1",
+      session_id: "session-1",
+      source_mode: "blank_project",
+      source_revision: "sha256:source",
+      context_snapshot_id: null,
+      digital_human_mode: "image_talking",
+      portrait_id: "portrait-image",
+      digital_human_scene_id: "scene-image",
+      digital_human_asset_revision_id: "revision-image",
+      digital_human_media_type: "image",
+    }));
+    const onOpenPublishCenter = vi.fn();
+    render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} onOpenPublishCenter={onOpenPublishCenter} />);
+    expect(await screen.findByLabelText("生成结果")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "交给发布中心" }));
+    await waitFor(() => expect(mocks.createPublishPackageV2).toHaveBeenCalledWith({
+      project_id: "project-1",
+      artifact_version_ids: ["video-v1", "cover-v1", "copy-v1"],
+    }));
+    expect(onOpenPublishCenter).toHaveBeenCalledWith("publish-package-1");
   });
 
   it("binds a selected title to an independent full-copy version and delivery fields", async () => {
@@ -236,7 +344,7 @@ describe("DigitalHumanApplicationView", () => {
     }]);
     render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} />);
     expect(await screen.findByText("门店项目")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: "选定标题+文案" }));
+    fireEvent.click(screen.getByRole("tab", { name: "标题＋文案" }));
     await waitFor(() => expect(screen.getByRole("combobox", { name: "来源产物" })).toHaveValue("title-1"));
     await waitFor(() => expect(screen.getByRole("combobox", { name: "完整文案产物" })).toHaveValue("copy-1"));
     fireEvent.change(screen.getByLabelText("发布标题"), { target: { value: "门店纠纷怎么处理" } });
@@ -256,6 +364,7 @@ describe("DigitalHumanApplicationView", () => {
         },
         delivery: {
           subtitle_preset: "readable_v2",
+          subtitle_enabled: true,
           publish_title: "门店纠纷怎么处理",
           publish_description: "先留证，再按流程处理。",
           cover_title: "门店纠纷先留证",
@@ -288,6 +397,28 @@ describe("DigitalHumanApplicationView", () => {
     expect(await screen.findByText("数字人口播应用暂不可用")).toBeInTheDocument();
     expect(mocks.listContentProjects).not.toHaveBeenCalled();
     expect(mocks.createIpBroadcastAppRun).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when an initial source version is missing from the current project", async () => {
+    mocks.listProjectArtifacts.mockResolvedValue([
+      { artifact_id: "copy-1", project_id: "project-1", source_app_run_id: null, artifact_type: "copywriting", name: "完整文案", status: "draft", current_version_id: "copy-v2", created_at: "now", updated_at: "now" },
+    ]);
+    mocks.listArtifactVersions.mockResolvedValue([{
+      artifact_version_id: "copy-v2",
+      artifact_id: "copy-1",
+      project_id: "project-1",
+      version_number: 2,
+      schema_version: 1,
+      content: { artifact_type: "copywriting", variants: [{ full_text: "当前文案" }] },
+      file_refs: [],
+      source: "edited",
+      content_fingerprint: "sha2",
+      created_at: "now",
+    }]);
+
+    render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} initialSourceArtifactVersionId="missing-version" />);
+    expect(await screen.findByText(/带入的数字人来源版本不存在或已归档/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "开始生成" })).toBeDisabled();
   });
 
   it("reuses the persisted AppRun/session pointer after restart instead of creating another run", async () => {
@@ -379,7 +510,7 @@ describe("DigitalHumanApplicationView", () => {
     }));
     render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} />);
 
-    expect(await screen.findByText(/历史运行引用的来源版本不存在或已归档/)).toBeInTheDocument();
+    expect(await screen.findByText(/历史运行引用的来源(版本|产物)不存在或已归档/)).toBeInTheDocument();
     expect(window.localStorage.getItem("pixelle_ip_broadcast_app_state_v1")).toBeNull();
     expect(screen.queryByText("run-1")).not.toBeInTheDocument();
   });
@@ -437,8 +568,13 @@ describe("DigitalHumanApplicationView", () => {
 
     await waitFor(() => expect(screen.getByRole("combobox", { name: "来源产物" })).toHaveValue("artifact-2"));
     expect(screen.getByRole("tab", { name: "图片数字人" })).toHaveAttribute("aria-selected", "true");
-    fireEvent.click(screen.getByRole("button", { name: "开始生成" }));
-    await waitFor(() => expect(mocks.createIpBroadcastAppRun).toHaveBeenCalledWith(expect.objectContaining({ idempotency_key: "pending-key-2" })));
+    const startButton = screen.getByRole("button", { name: "开始生成" });
+    await waitFor(() => expect(startButton).toBeEnabled(), { timeout: 10_000 });
+    fireEvent.click(startButton);
+    await waitFor(
+      () => expect(mocks.createIpBroadcastAppRun).toHaveBeenCalledWith(expect.objectContaining({ idempotency_key: "pending-key-2" })),
+      { timeout: 10_000 },
+    );
   });
 
   it("persists a pending idempotency key before POST so an unconfirmed response can be replayed", async () => {
@@ -501,7 +637,8 @@ describe("DigitalHumanApplicationView", () => {
     expect(screen.getByRole("tab", { name: "视频数字人" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("button", { name: "已选择数字人" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: "图片数字人" }));
-    expect(screen.getByRole("button", { name: "选择数字人形象" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "视频数字人" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText(/上次提交尚未收到确认，请先恢复或清理待提交状态，再切换数字人模式/)).toBeInTheDocument();
     expect(screen.getByLabelText("制作目标")).toHaveValue("打架先动手和后动手有什么区别");
   });
 });

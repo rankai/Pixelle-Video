@@ -15,7 +15,7 @@ Configuration schema with Pydantic models
 
 Single source of truth for all configuration defaults and validation.
 """
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -101,6 +101,13 @@ class PixelleVideoConfig(BaseModel):
     """Pixelle-Video main configuration"""
     project_name: str = Field(default="AI-Video-Factory", description="Project name")
     llm: LLMConfig = Field(default_factory=LLMConfig)
+    # ``llm`` remains the active profile for backwards compatibility with the
+    # existing services. The profile fields let the desktop switch between a
+    # shared team default and an optional local override without introducing a
+    # second model/provider source in the application center.
+    llm_source: Literal["shared", "custom"] = Field(default="shared", description="Active LLM profile")
+    llm_shared: Optional[LLMConfig] = Field(default=None, description="Shared LLM profile")
+    llm_custom: Optional[LLMConfig] = Field(default=None, description="Optional custom LLM profile")
     comfyui: ComfyUIConfig = Field(default_factory=ComfyUIConfig)
     template: TemplateConfig = Field(default_factory=TemplateConfig)
     digital_human_service: DigitalHumanServiceConfig = Field(default_factory=DigitalHumanServiceConfig)
@@ -120,4 +127,3 @@ class PixelleVideoConfig(BaseModel):
     def to_dict(self) -> dict:
         """Convert to dictionary (for backward compatibility)"""
         return self.model_dump()
-

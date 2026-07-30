@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "stage": "APP-WORKBENCH-7",
+  "change_request": "CR-APP-WORKBENCH-001",
+  "gate": "PG-AW-H",
+  "status": "entry_in_progress",
+  "date": "2026-07-28",
+  "precondition": "PG-AW-G=passed_with_boundary",
+  "scope": [
+    "four-app multi-viewport visual acceptance",
+    "flags and desktop recovery",
+    "rollback smoke",
+    "evidence closure"
+  ],
+  "prohibited": [
+    "provider_rewrite",
+    "new_paid_provider_call",
+    "third_party_platform",
+    "automatic_final_publish",
+    "Windows_real_device_claim"
+  ],
+  "entry_evidence": {
+    "desktop_tests_passed": 104,
+    "desktop_build": "passed",
+    "backend_targeted_tests_passed": 62,
+    "existing_warnings": 12,
+    "browser_smoke": "1280x720 two-pane, 16px gap, no horizontal overflow"
+  },
+  "review": {
+    "status": "not_started",
+    "p0": null,
+    "p1": null,
+    "p2": null
+  },
+  "next": "APP-WORKBENCH-7 implementation, multi-viewport evidence, recovery and rollback smoke"
+}

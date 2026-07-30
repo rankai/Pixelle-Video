@@ -1,3 +1,4 @@
+import re
 from types import SimpleNamespace
 
 from fastapi import FastAPI
@@ -38,8 +39,11 @@ def test_desktop_config_response_redacts_api_keys():
     assert response.status_code == 200
     payload = response.json()
     assert "api_key" in payload["llm"]
-    assert payload["llm"]["api_key"] in {"", "***redacted***"}
-    assert payload["runninghub"]["api_key"] in {"", "***redacted***"}
+    assert payload["llm"]["api_key"]
+    assert "***" in payload["llm"]["api_key"]
+    assert payload["runninghub"]["api_key"] in {"", "***redacted***"} or "***" in payload["runninghub"]["api_key"]
+    assert payload["llm_source"] == "shared"
+    assert {"llm_shared", "llm_custom"} <= set(payload)
 
 
 def test_desktop_config_patch_preserves_redacted_api_keys(monkeypatch):
@@ -108,6 +112,54 @@ def test_desktop_config_patch_preserves_redacted_api_keys(monkeypatch):
         },
         "comfyui": {"runninghub_instance_type": "lite"},
     }
+
+
+def test_desktop_config_patch_accepts_partial_secret_mask_without_overwriting(monkeypatch):
+    import api.routers.desktop as desktop_router
+
+    class FakeConfigManager:
+        def __init__(self):
+            self.config = SimpleNamespace(
+                llm=SimpleNamespace(base_url="https://old.example.com/v1", api_key="real-llm-key", model="old-model"),
+                comfyui=SimpleNamespace(runninghub_api_key="", runninghub_instance_type=""),
+            )
+            self.updates = None
+
+        def update(self, updates):
+            self.updates = updates
+
+        def save(self):
+            pass
+
+    fake = FakeConfigManager()
+    monkeypatch.setenv("PIXELLE_DESKTOP_MODE", "true")
+    monkeypatch.setattr(desktop_router, "config_manager", fake)
+
+    response = _client().patch(
+        "/api/desktop/config",
+        json={"llm": {"api_key": "rea***key"}},
+    )
+
+    assert response.status_code == 200
+    assert fake.updates is None
+
+
+def test_desktop_config_response_masks_secret_to_prefix_and_suffix(monkeypatch):
+    import api.routers.desktop as desktop_router
+
+    class FakeConfigManager:
+        config = SimpleNamespace(
+            llm_source="shared",
+            llm=SimpleNamespace(base_url="https://example.com/v1", api_key="abcdefghijk", model="demo"),
+            llm_shared=None,
+            llm_custom=None,
+            comfyui=SimpleNamespace(runninghub_api_key="", runninghub_instance_type=""),
+        )
+
+    monkeypatch.setattr(desktop_router, "config_manager", FakeConfigManager())
+    masked = _client().get("/api/desktop/config").json()["llm"]["api_key"]
+    assert masked == "abc***ijk"
+    assert re.fullmatch(r"[^*\s]{1,8}\*{3}[^*\s]{1,8}", masked)
 
 
 def test_desktop_config_patch_is_disabled_outside_desktop_mode(monkeypatch):

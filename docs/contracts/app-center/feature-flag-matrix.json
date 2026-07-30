@@ -4,7 +4,12 @@
     {"name": "contentApps", "default": false, "owner_stage": "APP-SHELL"},
     {"name": "douyinCarousel", "default": false, "owner_stage": "APP-CAROUSEL"},
     {"name": "digitalHumanInAppCenter", "default": false, "owner_stage": "APP-IPB"},
-    {"name": "publishV2", "default": false, "owner_stage": "PUB-CORE"}
+    {"name": "publishV2", "default": false, "owner_stage": "PUB-CORE"},
+    {"name": "appWorkbenchV2", "env": "PIXELLE_APP_WORKBENCH_V2", "default": false, "owner_stage": "APP-WORKBENCH-1"},
+    {"name": "appWorkbenchTextV2", "env": "PIXELLE_APP_WORKBENCH_TEXT_V2", "default": false, "owner_stage": "APP-WORKBENCH-3"},
+    {"name": "appWorkbenchCarouselV2", "env": "PIXELLE_APP_WORKBENCH_CAROUSEL_V2", "default": false, "owner_stage": "APP-WORKBENCH-4"},
+    {"name": "appWorkbenchDigitalHumanV2", "env": "PIXELLE_APP_WORKBENCH_DIGITAL_HUMAN_V2", "default": false, "owner_stage": "APP-WORKBENCH-5"},
+    {"name": "brandProjectBoundaryV1", "env": "PIXELLE_BRAND_PROJECT_BOUNDARY_V1", "default": false, "owner_stage": "BRAND-PROJECT-3"}
   ],
   "unknown_flag_behavior": "false",
   "frontend_cannot_write": true,

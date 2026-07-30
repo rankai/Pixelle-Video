@@ -1,0 +1,514 @@
+{
+  "schema_version": 1,
+  "valid": {
+    "inherited_brand": {
+      "schema_version": 3,
+      "brand_context": {
+        "brand_id": "brand-cafe",
+        "domain_revision": 4,
+        "values": {
+          "display_name": "街角咖啡",
+          "logo_ref": {
+            "asset_id": "asset-logo",
+            "asset_revision": "rev-logo-2"
+          },
+          "store_address": "示例路 8 号",
+          "phone": "021-00000000",
+          "primary_color": "#6C5CE7",
+          "secondary_color": "#F2EEFF",
+          "font_family": "noto-sans-sc-bold",
+          "default_subtitle_style": "readable_v2",
+          "default_bgm_ref": {
+            "asset_id": "asset-bgm",
+            "asset_revision": "rev-bgm-3"
+          },
+          "ending_card_text": "到店尝一杯",
+          "coupon_phrase": "工作日下午茶套餐"
+        },
+        "overridden_fields": []
+      },
+      "project_brief": {
+        "subject_type": "campaign",
+        "offer": {
+          "name": "工作日下午茶套餐",
+          "category": "咖啡餐饮",
+          "price_facts": [
+            {
+              "fact_id": "price-1",
+              "text": "套餐价格为 29 元",
+              "source": "user",
+              "source_ref": null
+            }
+          ],
+          "promotion_facts": []
+        },
+        "marketing_goal": "吸引附近上班族到店",
+        "audience": {
+          "primary": "门店三公里内上班族",
+          "scenes": [
+            "工作日下午茶"
+          ]
+        },
+        "selling_points": [
+          {
+            "fact_id": "selling-1",
+            "text": "现磨咖啡搭配当日烘焙面包",
+            "source": "user",
+            "source_ref": null
+          }
+        ],
+        "proof_points": [],
+        "required_facts": [],
+        "forbidden_claims": [
+          "全城第一"
+        ],
+        "asset_refs": [
+          {
+            "asset_id": "asset-store-photo",
+            "asset_revision": "rev-store-1"
+          }
+        ]
+      }
+    },
+    "project_overrides": {
+      "schema_version": 3,
+      "brand_context": {
+        "brand_id": "brand-cafe",
+        "domain_revision": 4,
+        "values": {
+          "display_name": "街角咖啡静安店",
+          "logo_ref": null,
+          "store_address": "静安示例路 18 号",
+          "phone": "021-11111111",
+          "primary_color": "#6C5CE7",
+          "secondary_color": "#F2EEFF",
+          "font_family": "noto-sans-sc-bold",
+          "default_subtitle_style": "readable_v2",
+          "default_bgm_ref": null,
+          "ending_card_text": "七夕到店见",
+          "coupon_phrase": "七夕双人套餐"
+        },
+        "overridden_fields": [
+          "display_name",
+          "store_address",
+          "ending_card_text",
+          "coupon_phrase"
+        ]
+      },
+      "project_brief": {
+        "subject_type": "campaign",
+        "offer": {
+          "name": "七夕双人套餐",
+          "category": "咖啡餐饮",
+          "price_facts": [],
+          "promotion_facts": []
+        },
+        "marketing_goal": "推广七夕到店套餐",
+        "audience": {
+          "primary": "附近情侣",
+          "scenes": [
+            "七夕约会"
+          ]
+        },
+        "selling_points": [],
+        "proof_points": [],
+        "required_facts": [],
+        "forbidden_claims": [],
+        "asset_refs": []
+      }
+    },
+    "unbranded_legacy_compatible": {
+      "schema_version": 3,
+      "brand_context": null,
+      "project_brief": {
+        "subject_type": "service",
+        "offer": {
+          "name": "到店咨询",
+          "category": "本地服务",
+          "price_facts": [],
+          "promotion_facts": []
+        },
+        "marketing_goal": "介绍服务并邀请用户到店咨询",
+        "audience": {
+          "primary": "附近有需求的用户",
+          "scenes": []
+        },
+        "selling_points": [],
+        "proof_points": [],
+        "required_facts": [],
+        "forbidden_claims": [],
+        "asset_refs": []
+      }
+    }
+  },
+  "invalid": [
+    {
+      "id": "brand-domain-revision-missing",
+      "expected_error": "brand context requires a fixed domain revision",
+      "from": "inherited_brand",
+      "mutation": "remove brand_context.domain_revision"
+    },
+    {
+      "id": "brand-logo-revision-missing",
+      "expected_error": "brand media requires a fixed revision",
+      "from": "inherited_brand",
+      "mutation": "remove brand_context.values.logo_ref.asset_revision"
+    },
+    {
+      "id": "duplicate-override",
+      "expected_error": "overridden fields are unique",
+      "from": "project_overrides",
+      "mutation": "duplicate brand_context.overridden_fields[0]"
+    },
+    {
+      "id": "unknown-technical-field",
+      "expected_error": "unknown fields are rejected",
+      "from": "inherited_brand",
+      "mutation": "add provider"
+    }
+  ],
+  "v2_projection": {
+    "source": "inherited_brand",
+    "expected": {
+      "schema_version": 2,
+      "subject_type": "campaign",
+      "store_or_brand": {
+        "name": "街角咖啡",
+        "industry": "咖啡餐饮",
+        "address": "示例路 8 号",
+        "contact": "021-00000000"
+      },
+      "offer": {
+        "name": "工作日下午茶套餐",
+        "category": "咖啡餐饮",
+        "price_facts": [
+          {
+            "fact_id": "price-1",
+            "text": "套餐价格为 29 元",
+            "source": "user",
+            "source_ref": null
+          }
+        ],
+        "promotion_facts": []
+      },
+      "audience": {
+        "primary": "门店三公里内上班族",
+        "scenes": [
+          "工作日下午茶"
+        ]
+      },
+      "selling_points": [
+        {
+          "fact_id": "selling-1",
+          "text": "现磨咖啡搭配当日烘焙面包",
+          "source": "user",
+          "source_ref": null
+        }
+      ],
+      "proof_points": [],
+      "required_facts": [],
+      "forbidden_claims": [
+        "全城第一"
+      ],
+      "asset_refs": [
+        {
+          "asset_id": "asset-store-photo",
+          "asset_revision": "rev-store-1"
+        },
+        {
+          "asset_id": "asset-logo",
+          "asset_revision": "rev-logo-2"
+        },
+        {
+          "asset_id": "asset-bgm",
+          "asset_revision": "rev-bgm-3"
+        }
+      ],
+      "brand_revision_ref": "brand:brand-cafe@4"
+    }
+  },
+  "read_no_write": {
+    "legacy_project_brand_id": null,
+    "single_ready_brand_id": "brand-only",
+    "auto_bind_on_read": false,
+    "create_snapshot_on_read": false,
+    "database_assertions": [
+      "content_projects rows unchanged",
+      "context_snapshots rows unchanged",
+      "brand_kits_v2 rows unchanged",
+      "domain_revisions rows unchanged"
+    ]
+  },
+  "project_creation_cases": [
+    {
+      "id": "zero-ready-brands",
+      "ready_brands": [],
+      "existing_project_brand_id": null,
+      "expected_create_default_brand_id": null,
+      "expected_existing_project_brand_id_after_read": null,
+      "requires_brand_choice": false
+    },
+    {
+      "id": "one-ready-brand",
+      "ready_brands": [
+        {
+          "brand_id": "brand-only",
+          "status": "ready"
+        }
+      ],
+      "existing_project_brand_id": null,
+      "expected_create_default_brand_id": "brand-only",
+      "expected_existing_project_brand_id_after_read": null,
+      "requires_brand_choice": false
+    },
+    {
+      "id": "multiple-ready-brands",
+      "ready_brands": [
+        {
+          "brand_id": "brand-a",
+          "status": "ready"
+        },
+        {
+          "brand_id": "brand-b",
+          "status": "ready"
+        }
+      ],
+      "existing_project_brand_id": null,
+      "expected_create_default_brand_id": null,
+      "expected_existing_project_brand_id_after_read": null,
+      "requires_brand_choice": true
+    },
+    {
+      "id": "legacy-null-brand-with-one-ready-brand",
+      "ready_brands": [
+        {
+          "brand_id": "brand-only",
+          "status": "ready"
+        }
+      ],
+      "existing_project_brand_id": null,
+      "expected_create_default_brand_id": "brand-only",
+      "expected_existing_project_brand_id_after_read": null,
+      "requires_brand_choice": false
+    }
+  ],
+  "resolver_cases": {
+    "pinned_brand_revision": {
+      "brand_id": "brand-cafe",
+      "domain_revision": 4,
+      "values": {
+        "display_name": "街角咖啡",
+        "logo_ref": {
+          "asset_id": "asset-logo",
+          "asset_revision": "rev-logo-2"
+        },
+        "store_address": "示例路 8 号",
+        "phone": "021-00000000",
+        "primary_color": "#6C5CE7",
+        "secondary_color": "#F2EEFF",
+        "font_family": "noto-sans-sc-bold",
+        "default_subtitle_style": "readable_v2",
+        "default_bgm_ref": {
+          "asset_id": "asset-bgm",
+          "asset_revision": "rev-bgm-3"
+        },
+        "ending_card_text": "到店尝一杯",
+        "coupon_phrase": "工作日下午茶套餐"
+      }
+    },
+    "valid_client_request": {
+      "schema_version": 3,
+      "brand_binding": {
+        "brand_id": "brand-cafe",
+        "expected_domain_revision": 4
+      },
+      "project_overrides": {
+        "ending_card_text": "七夕到店见"
+      },
+      "project_brief": {
+        "subject_type": "campaign",
+        "offer": {
+          "name": "七夕双人套餐",
+          "category": "咖啡餐饮",
+          "price_facts": [],
+          "promotion_facts": []
+        },
+        "marketing_goal": "推广七夕到店套餐",
+        "audience": {
+          "primary": "附近情侣",
+          "scenes": [
+            "七夕约会"
+          ]
+        },
+        "selling_points": [],
+        "proof_points": [],
+        "required_facts": [],
+        "forbidden_claims": [],
+        "asset_refs": []
+      }
+    },
+    "valid_unbranded_client_request": {
+      "schema_version": 3,
+      "brand_binding": null,
+      "project_overrides": {},
+      "project_brief": {
+        "subject_type": "service",
+        "offer": {
+          "name": "到店咨询",
+          "category": "本地服务",
+          "price_facts": [],
+          "promotion_facts": []
+        },
+        "marketing_goal": "介绍服务并邀请用户到店咨询",
+        "audience": {
+          "primary": "附近有需求的用户",
+          "scenes": []
+        },
+        "selling_points": [],
+        "proof_points": [],
+        "required_facts": [],
+        "forbidden_claims": [],
+        "asset_refs": []
+      }
+    },
+    "invalid_client_policy_cases": [
+      {
+        "id": "unbranded-project-override",
+        "from": "valid_unbranded_client_request",
+        "mutation": "set project_overrides.display_name",
+        "expected_rule": "brand_binding=null requires empty project_overrides"
+      },
+      {
+        "id": "logo-null-clear",
+        "from": "valid_client_request",
+        "mutation": "set project_overrides.logo_ref=null",
+        "expected_rule": "project-level Logo clear is unsupported"
+      },
+      {
+        "id": "bgm-null-clear",
+        "from": "valid_client_request",
+        "mutation": "set project_overrides.default_bgm_ref=null",
+        "expected_rule": "project-level BGM clear is unsupported"
+      }
+    ],
+    "expected_server_brand_context": {
+      "brand_id": "brand-cafe",
+      "domain_revision": 4,
+      "values": {
+        "display_name": "街角咖啡",
+        "logo_ref": {
+          "asset_id": "asset-logo",
+          "asset_revision": "rev-logo-2"
+        },
+        "store_address": "示例路 8 号",
+        "phone": "021-00000000",
+        "primary_color": "#6C5CE7",
+        "secondary_color": "#F2EEFF",
+        "font_family": "noto-sans-sc-bold",
+        "default_subtitle_style": "readable_v2",
+        "default_bgm_ref": {
+          "asset_id": "asset-bgm",
+          "asset_revision": "rev-bgm-3"
+        },
+        "ending_card_text": "七夕到店见",
+        "coupon_phrase": "工作日下午茶套餐"
+      },
+      "overridden_fields": [
+        "ending_card_text"
+      ]
+    },
+    "forged_client_request": {
+      "schema_version": 3,
+      "brand_binding": {
+        "brand_id": "brand-cafe",
+        "expected_domain_revision": 4
+      },
+      "project_overrides": {},
+      "brand_context": {
+        "brand_id": "brand-cafe",
+        "domain_revision": 4,
+        "values": {
+          "display_name": "伪造品牌"
+        },
+        "overridden_fields": []
+      },
+      "project_brief": {
+        "subject_type": "campaign",
+        "offer": {
+          "name": "七夕双人套餐",
+          "category": "咖啡餐饮",
+          "price_facts": [],
+          "promotion_facts": []
+        },
+        "marketing_goal": "推广七夕到店套餐",
+        "audience": {
+          "primary": "附近情侣",
+          "scenes": []
+        },
+        "selling_points": [],
+        "proof_points": [],
+        "required_facts": [],
+        "forbidden_claims": [],
+        "asset_refs": []
+      },
+      "expected_result_code": "PROJECT_BRAND_CONTEXT_UNTRUSTED"
+    }
+  },
+  "rollback_cases": [
+    {
+      "id": "flag-off-preserves-v3-read-and-legacy-interaction",
+      "flag_enabled": false,
+      "stored_snapshot_version": 3,
+      "expected_readable": true,
+      "expected_new_v3_write_allowed": false,
+      "expected_brand_sync_allowed": false,
+      "expected_interaction": "legacy"
+    },
+    {
+      "id": "failed-sync-is-atomic",
+      "before": {
+        "brand_id": "brand-cafe",
+        "current_context_snapshot_id": "snapshot-v3-4",
+        "context_snapshot_row_count": 4
+      },
+      "attempt": "sync_to_missing_brand_revision",
+      "after": {
+        "brand_id": "brand-cafe",
+        "current_context_snapshot_id": "snapshot-v3-4",
+        "context_snapshot_row_count": 4
+      },
+      "deletes": []
+    },
+    {
+      "id": "restart-recovers-last-commit",
+      "before_restart": {
+        "brand_id": "brand-cafe",
+        "current_context_snapshot_id": "snapshot-v3-4"
+      },
+      "after_restart": {
+        "brand_id": "brand-cafe",
+        "current_context_snapshot_id": "snapshot-v3-4",
+        "snapshot_readable": true
+      }
+    },
+    {
+      "id": "reenable-continues-without-read-mutation",
+      "flag_enabled": true,
+      "resume_from": {
+        "brand_id": "brand-cafe",
+        "current_context_snapshot_id": "snapshot-v3-4"
+      },
+      "expected_read_mutation": false,
+      "retry_requires_explicit_user_action": true
+    }
+  ],
+  "result_cases": [
+    {
+      "id": "sync-no-change",
+      "result_code": "PROJECT_BRAND_SYNC_NO_CHANGE",
+      "http_status": 200,
+      "changes_committed": false,
+      "is_error": false
+    }
+  ]
+}

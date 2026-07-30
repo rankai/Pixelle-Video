@@ -1,0 +1,446 @@
+{
+  "stage": "BRAND-PROJECT-4",
+  "gate": "PG-BP-E",
+  "status": "remediation_review_pending",
+  "date": "2026-07-30",
+  "scope": {
+    "applications": [
+      "builtin.marketing-copy",
+      "builtin.viral-titles",
+      "builtin.douyin-carousel",
+      "builtin.digital-human-video"
+    ],
+    "server_owned_context_resolution": true,
+    "artifact_version_run_and_context_lineage": true,
+    "handoff_source_and_target_context_lineage": true,
+    "brand_sync_dual_run_isolation": true,
+    "actual_logo_color_bgm_delivery": true,
+    "strict_typed_handoff_trust_boundary": true,
+    "repository_owned_app_run_context_resolution": true,
+    "real_carousel_page_visual_evidence": true,
+    "digital_local_all_steps_done": true,
+    "stage5_started": false
+  },
+  "independent_review_remediation": {
+    "initial_result": {
+      "p0": 0,
+      "p1": 1,
+      "p2": 3
+    },
+    "strict_handoff": {
+      "typed_null_source_code": "PROJECT_CONTEXT_LEGACY_MAPPING_REQUIRED",
+      "target_null_or_mismatch_code": "PROJECT_CONTEXT_HANDOFF_MIXED",
+      "cross_project_code": "PROJECT_CONTEXT_CROSS_PROJECT_REF",
+      "mixed_source_code": "PROJECT_CONTEXT_HANDOFF_MIXED",
+      "negative_cases_zero_writes": true,
+      "legacy_null_rows_read_only": true,
+      "legacy_null_rows_backfilled": false
+    },
+    "create_app_run_repository_boundary": {
+      "ordinary_new_run_uses_current_snapshot_only": true,
+      "typed_source_inherits_exact_old_snapshot": true,
+      "idempotent_replay_preserves_original_snapshot": true,
+      "repository_enforced_without_api_flag": true
+    },
+    "full_split_followup": {
+      "review_result_before_fix": {
+        "passed": 797,
+        "failed": 2
+      },
+      "failure_cause": "Two App Workbench carousel V2 tests created selected_title ArtifactVersions without AppRun/context provenance.",
+      "test_fixture_migrated_to_context_bound_source": true,
+      "production_fail_closed_relaxed": false,
+      "legacy_null_public_append_preserved": true,
+      "new_typed_consumers_require_explicit_mapping": true,
+      "failure_code": "PROJECT_CONTEXT_LEGACY_MAPPING_REQUIRED"
+    },
+    "visual": {
+      "carousel_real_app_runner_renderer": true,
+      "carousel_page_count": 3,
+      "carousel_page_dimensions": "1080x1440",
+      "digital_completed_step_status": {
+        "1": "done",
+        "2": "done",
+        "3": "done",
+        "4": "done",
+        "5": "done",
+        "6": "done"
+      },
+      "digital_remediation_browser_screenshot": "blocked_by_browser_security_policy",
+      "browser_policy_bypassed": false
+    }
+  },
+  "feature_flags": {
+    "backend": "PIXELLE_BRAND_PROJECT_BOUNDARY_V1",
+    "frontend": "VITE_BRAND_PROJECT_BOUNDARY_V1",
+    "default_enabled": false,
+    "registry_defaults_changed": false,
+    "isolated_visual_fixture_flags": [
+      "PIXELLE_APP_CENTER_CONTENT_APPS",
+      "PIXELLE_APP_CENTER_DOUYIN_CAROUSEL",
+      "PIXELLE_APP_CENTER_DIGITAL_HUMAN",
+      "PIXELLE_APP_CENTER_DIGITAL_HUMAN_DUAL_MODE",
+      "PIXELLE_BRAND_PROJECT_BOUNDARY_V1"
+    ]
+  },
+  "verification": {
+    "stage4_tests_passed": 10,
+    "backend_aggregate_test_files": 14,
+    "backend_aggregate_tests_passed": 179,
+    "backend_aggregate_tests_failed": 0,
+    "backend_existing_warnings": 12,
+    "desktop_targeted_test_files": 8,
+    "desktop_targeted_tests_passed": 49,
+    "desktop_targeted_tests_failed": 0,
+    "desktop_full_test_files": 18,
+    "desktop_full_tests_passed": 123,
+    "desktop_full_tests_failed": 0,
+    "desktop_full_execution": "single_worker",
+    "desktop_parallel_first_attempt": {
+      "status": "one_existing_waitfor_timing_timeout",
+      "isolated_rerun_passed": true,
+      "product_code_changed_for_flake": false
+    },
+    "desktop_build": "passed",
+    "vite_modules_transformed": 4610,
+    "desktop_build_existing_warning": "chunk size exceeds 500 kB",
+    "ruff_check": "passed",
+    "ruff_format_check": "passed",
+    "git_diff_check": "passed",
+    "full_python_split_regression": {
+      "non_browser_passed": 800,
+      "non_browser_failed": 0,
+      "browser_slow_group_files": 12,
+      "browser_slow_group_passed": 131,
+      "browser_slow_group_failed": 0,
+      "total_passed": 931,
+      "total_failed": 0,
+      "existing_warnings": 12
+    },
+    "full_python_suite_attempt": {
+      "status": "interrupted_not_claimed_as_passed",
+      "progress_when_interrupted": "77%",
+      "tests_passed_before_interrupt": 770,
+      "initial_failures": 2,
+      "initial_failure_cause": "Stage4 owner and gate contract enumeration had not been updated.",
+      "failure_fix_verified": true,
+      "interrupt_reason": "Existing long Playwright wait after the contract failures were fixed."
+    }
+  },
+  "context_lineage_fixture": {
+    "project_id": "project_bd8ff077e6494004bc662b27394aae2e",
+    "old_context_snapshot_id": "context_78cdf764a6014cf4a1d0de46a3161aec",
+    "current_context_snapshot_id": "context_dca16e6ed6624b85b15292c6977325f3",
+    "old_marketing_run_id": "run_5e00001425a2454199bc0af20b1857d9",
+    "old_marketing_artifact_version_id": "artifact_version_74a58ddf99d145d4866326c76b34f827",
+    "new_marketing_run_id": "run_56e37a2fa04345d2bd689d834e0295e2",
+    "new_marketing_artifact_version_id": "artifact_version_289bec095f0a488cba2c9d4928fca3fd",
+    "old_source_title_run_id": "run_5b114e27f2ea40da8a18bd4b7ac5dc25",
+    "old_source_title_artifact_version_id": "artifact_version_7e6ee00c5d79423299e333d945abf503",
+    "old_run_remained_old_after_sync": true,
+    "new_run_pinned_current_after_sync": true,
+    "typed_handoff_preserved_source_context": true,
+    "mixed_context_handoff_rejected": true,
+    "project_overrides_preserved": true
+  },
+  "remediation_fixture": {
+    "project_id": "project_1c45405de4ad448794978bc505eff042",
+    "old_context_snapshot_id": "context_4a43651e306247b4aaa6ced11c6b306d",
+    "current_context_snapshot_id": "context_be5b5243d8224dc89d3e93d7db329a59",
+    "old_marketing_run_id": "run_54e48d5f517d4a36b1ab80e930e7972a",
+    "new_marketing_run_id": "run_8e6743e1038d4a579689b2c8c60d1a8b",
+    "title_run_id": "run_34cf9ec5b2c741bfbc36d6184b7cd6ea",
+    "carousel_run_id": "run_20032b4f8f8c4ae19dca866ad0154a5b",
+    "carousel_artifact_version_id": "artifact_version_e69c322c2d764b0d95a3a86902f44a4a",
+    "carousel_page_artifact_version_ids": [
+      "artifact_version_e5171ff543564eb4acfedbbdfa2a109a",
+      "artifact_version_ec42a84fa18343c0b1e0f397115aab31",
+      "artifact_version_ece4e20aa6ad488fb7c213705816f9ce"
+    ],
+    "digital_run_id": "run_21d7d778928c4b9cbddaedd0788af1a6",
+    "digital_session_id": "a82feb40576845dea7c0b9b7d652cbc2",
+    "digital_step_status_all_done": true,
+    "external_actions": 0
+  },
+  "application_context_projection": {
+    "marketing_copy": [
+      "brand_display_name",
+      "store_address",
+      "phone",
+      "coupon_phrase",
+      "ending_card_text"
+    ],
+    "viral_titles": [
+      "brand_display_name"
+    ],
+    "douyin_carousel": [
+      "brand_display_name",
+      "primary_color",
+      "secondary_color",
+      "font_family",
+      "logo_ref",
+      "ending_card_text",
+      "coupon_phrase"
+    ],
+    "digital_human_video": [
+      "brand_display_name",
+      "store_address",
+      "phone",
+      "primary_color",
+      "secondary_color",
+      "font_family",
+      "subtitle_style",
+      "logo_ref",
+      "default_bgm_ref",
+      "ending_card_text",
+      "coupon_phrase"
+    ]
+  },
+  "actual_delivery": {
+    "carousel": {
+      "context_snapshot_id": "context_be5b5243d8224dc89d3e93d7db329a59",
+      "app_run_id": "run_20032b4f8f8c4ae19dca866ad0154a5b",
+      "artifact_version_id": "artifact_version_e69c322c2d764b0d95a3a86902f44a4a",
+      "page_01_sha256": "a26568db6f1e469342d24a3388e33c2f041d583a1b3585c484f31a1c34aecd7d",
+      "page_dimensions": "1080x1440",
+      "browser_preview_natural_dimensions_verified": true,
+      "primary_color_rendered": true,
+      "secondary_color_rendered": true,
+      "pinned_logo_rendered": true
+    },
+    "digital_human": {
+      "context_snapshot_id": "context_be5b5243d8224dc89d3e93d7db329a59",
+      "app_run_id": "run_21d7d778928c4b9cbddaedd0788af1a6",
+      "session_id": "a82feb40576845dea7c0b9b7d652cbc2",
+      "source_revision": "sha256:7411a13ac6cc400bec6c73bebc77eb132af8732a1cf2a7eb6d60a76b30920726",
+      "cover_dimensions": "540x720",
+      "primary_color": "#0F766E",
+      "secondary_color": "#ECFDF5",
+      "logo_input_sha256": "1842be99536ac941b53348ad3d976a580f8c9539f0c4b2c59de9e914f0cca949",
+      "cover_output_sha256": "3d780d727932500b417cff2a2e4b33f816eda6b4f60038f6aedbef7cf7ffed98",
+      "bgm_input_sha256": "2976da01e205a110c9fa41d47659e238a5c6d3c3f3137582f2949853faa201dd",
+      "bgm_output_sha256": "2976da01e205a110c9fa41d47659e238a5c6d3c3f3137582f2949853faa201dd",
+      "overridden_fields": [
+        "ending_card_text",
+        "store_address"
+      ],
+      "top_level_context_snapshot_api_response": true,
+      "local_completed_step_status_all_done": true,
+      "local_accept_replay_preserves_all_done": true,
+      "external_provider_final_video_logo_overlay_claimed": false
+    }
+  },
+  "sidecar": {
+    "isolated_root": "/tmp/pixelle-brand-project-stage4-sidecar-remediation.5kV8vL",
+    "start_cycles": 2,
+    "health_200_cycles": 2,
+    "authenticated_apps_200_after_restart": true,
+    "port_released_after_first_shutdown": true,
+    "port_released_after_second_shutdown": true
+  },
+  "browser": {
+    "api_url": "http://127.0.0.1:8104",
+    "vite_url": "http://127.0.0.1:1424",
+    "isolated_root": "/tmp/pixelle-brand-project-stage4-visual2",
+    "routes": {
+      "marketing_copy": "passed",
+      "viral_titles": "passed",
+      "douyin_carousel": "passed",
+      "digital_human_video": "passed"
+    },
+    "routes_passed": 4,
+    "routes_failed": 0,
+    "viewport_width": 1905,
+    "horizontal_overflow": false,
+    "console_product_errors": 0,
+    "console_existing_deprecations": [
+      "AntD Alert.message",
+      "AntD List",
+      "AntD Input.addonAfter"
+    ],
+    "controlled_registry_fixture": true,
+    "controlled_digital_human_local_storage_pointer": true,
+    "temporary_pointer_removed": true,
+    "viewport_reset": true,
+    "created_tabs_finalized": true
+  },
+  "browser_remediation": {
+    "api_url": "http://127.0.0.1:8105",
+    "vite_url": "http://127.0.0.1:1425",
+    "isolated_root": "/tmp/pixelle-brand-project-stage4-remediation",
+    "douyin_carousel": {
+      "route": "passed",
+      "rendered_previews": 3,
+      "all_complete": true,
+      "all_natural_width": 1080,
+      "all_natural_height": 1440,
+      "horizontal_overflow": false,
+      "console_product_errors": 0,
+      "console_existing_deprecations": [
+        "AntD List"
+      ]
+    },
+    "digital_human": {
+      "persistent_fixture_and_tests": "passed",
+      "remediation_browser_screenshot": "not_obtained",
+      "reason": "Browser security policy rejected direct localStorage restore-pointer write and prohibited raw CDP or alternate-surface circumvention.",
+      "policy_bypassed": false
+    },
+    "viewport_reset": true,
+    "created_tabs_finalized": true
+  },
+  "external_actions": {
+    "llm_calls": 0,
+    "tts_calls": 0,
+    "runninghub_calls": 0,
+    "third_party_provider_calls": 0,
+    "third_party_platform_opens": 0,
+    "uploads": 0,
+    "qr_or_authorization": 0,
+    "final_publish_clicks": 0,
+    "git_commits": 0
+  },
+  "artifacts": [
+    {
+      "path": "api/routers/app_center.py",
+      "sha256": "edfc8d70f4909828f3cfd0519ab939cbf5a73c3fdf8919f2a69f82f1210d7746"
+    },
+    {
+      "path": "api/routers/ip_broadcast_app.py",
+      "sha256": "08b51da19972289ffea1b07ad33dee7e63c121cb273d775b6c065f0fd227ca7e"
+    },
+    {
+      "path": "api/schemas/app_center.py",
+      "sha256": "320d34687aa161b063a1c3897d4ebaf90f33150d7c2628187f1d19eed34d5299"
+    },
+    {
+      "path": "docs/contracts/app-center/app-center-v1.sql",
+      "sha256": "39acf4ab79313289ea3471b70210ed5e4041c831f2bcd0dd1a50c0121102eaa0"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/BRAND-PROJECT-4-implementation-2026-07-30.md",
+      "sha256": "bed7a02bc6e26083eed1d28396dcdf457be0437e89d0f057cd18f5bab9e89c2b"
+    },
+    {
+      "path": "pixelle_video/app_center/brand_project.py",
+      "sha256": "4788a98d40ec80fd11c5cc769a9d35405681ba87cc4754cfc8f776939f322e03"
+    },
+    {
+      "path": "pixelle_video/app_center/carousel.py",
+      "sha256": "d4a686fef6d90c780d8623a3689c5f9e3d7851206c3325a0915007960e193227"
+    },
+    {
+      "path": "pixelle_video/app_center/ip_broadcast_adapter.py",
+      "sha256": "9a9dbf7426354d2f2d42a4c7ee19c7de78a8e26640dded615f01818093f9b932"
+    },
+    {
+      "path": "pixelle_video/app_center/migration.py",
+      "sha256": "c49730bad64561a6a16f7742086541e865ae6be8f07890e77449ba3eb312f4c8"
+    },
+    {
+      "path": "pixelle_video/app_center/models.py",
+      "sha256": "71be92d9af5a4de149a984c7482177214918a53622c3d80f662113200501eb5e"
+    },
+    {
+      "path": "pixelle_video/app_center/repository.py",
+      "sha256": "a9b3844b2fa44f3d4f353db4a49c19c8904e1c9d141510d936a3a860977efec3"
+    },
+    {
+      "path": "pixelle_video/app_center/structured_apps.py",
+      "sha256": "a571dafbbc1d852b0dd3775dd03fd3fd48f2a9676c7272314acbcb8f80ebf722"
+    },
+    {
+      "path": "scripts/brand_project_stage4_visual_fixture.py",
+      "sha256": "9c66e1dc24330a3a2ec84cf04ee254a890d66fbee51930955824ddcae6392ae0"
+    },
+    {
+      "path": "tests/brand_project_stage4_test.py",
+      "sha256": "4ec511570a7ef76d3b1b9ba6a4d1a31fbdcd80f7439f802d9737279d6a570a86"
+    },
+    {
+      "path": "tests/app_workbench_carousel_v2_test.py",
+      "sha256": "bbe0e9d928ce4a952a5648e6332950b9fea75360de52e9230c80b9d6bd725c60"
+    },
+    {
+      "path": "tests/app_center_core_test.py",
+      "sha256": "f87c8bbf37735c873fc6297a9af4ecb1cea79f74b8657bccc72aed32931a846e"
+    },
+    {
+      "path": "tests/app_center_carousel_renderer_test.py",
+      "sha256": "69adc36d40087d98a2025964a48e90eb00c527c863c2bca71cf9613a89b60d18"
+    },
+    {
+      "path": "tests/app_center_ip_broadcast_adapter_test.py",
+      "sha256": "a0a171f2a147006e2f7b0c8cc73e74fd44ea9703ea13bd9f3655e0c72badadac"
+    },
+    {
+      "path": "tests/app_center_ip_broadcast_api_test.py",
+      "sha256": "d4f0694830cff8ef7ee4bf3ebfe8eb8f4e2c9437412bf01634a66ec07dc8d20c"
+    },
+    {
+      "path": "tests/brand_project_boundary_entry_contract_test.py",
+      "sha256": "c7a325e82b86f2137d82479f9a4447b7a0b54e271ac972184c7c3b7d1e04871c"
+    },
+    {
+      "path": "tests/coord0_contract_test.py",
+      "sha256": "fba9f245037cc2960c165f6565c1443b3c97eda8534c8c062b7a9e547b72c8be"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-4-visual-2026-07-30/fixture.json",
+      "sha256": "59600ea09f841c9a0e444a298c3de01bdaba67c6fa4ab0b3fb0e0553a66ee140"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-4-visual-2026-07-30/marketing-copy-stage4.png",
+      "sha256": "1637c30b75d6c68b46a4cd89b8193daed53ccdba5b6a008c90f8bbd7a743e916"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-4-visual-2026-07-30/viral-titles-stage4.png",
+      "sha256": "c38cf215608c4aa858d62e96d33990e80bb6fc878f66fa02db53faef0141bf5c"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-4-visual-2026-07-30/douyin-carousel-stage4.png",
+      "sha256": "d200adb0d284520984b28bfc1e3eed4c9e38b5b65fb24585b544b093fc9c35ae"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-4-visual-2026-07-30/digital-human-stage4.png",
+      "sha256": "5bf6bb479286220a699a0df50d9a1ba307a247f5f70c18ec152ad088fdb4e971"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-4-visual-2026-07-30/digital-human-brand-cover.png",
+      "sha256": "3d780d727932500b417cff2a2e4b33f816eda6b4f60038f6aedbef7cf7ffed98"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-4-visual-2026-07-30/digital-human-pinned-default-bgm.wav",
+      "sha256": "2976da01e205a110c9fa41d47659e238a5c6d3c3f3137582f2949853faa201dd"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-4-visual-2026-07-30/digital-human-brand-delivery-receipt.json",
+      "sha256": "6ced39e8b12922d8ffdc1cb7faa8242ad947a835eed3fb8f8ca72a0abcfd45c3"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-4-visual-2026-07-30/fixture-remediation.json",
+      "sha256": "b489b00b39eb3ae62c1f5b69d05234a7850899f660bb92f81873e2f99388d79b"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-4-visual-2026-07-30/carousel-rendered-page-01-remediation.png",
+      "sha256": "a26568db6f1e469342d24a3388e33c2f041d583a1b3585c484f31a1c34aecd7d"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-4-visual-2026-07-30/douyin-carousel-rendered-page-stage4-remediation.jpg",
+      "sha256": "07a306aed190c0b87aad8a85df3815dac18ee18dea0004476cef2793baf7405d"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-4-visual-2026-07-30/digital-human-brand-cover-remediation.png",
+      "sha256": "3d780d727932500b417cff2a2e4b33f816eda6b4f60038f6aedbef7cf7ffed98"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-4-visual-2026-07-30/digital-human-pinned-default-bgm-remediation.wav",
+      "sha256": "2976da01e205a110c9fa41d47659e238a5c6d3c3f3137582f2949853faa201dd"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-4-visual-2026-07-30/digital-human-brand-delivery-receipt-remediation.json",
+      "sha256": "caff2c0fb5f35a090dd7cc7e619433248205ba0897afea53e8002d9870c6d6f4"
+    }
+  ],
+  "paused_checkpoint": "PROGRAM-ROLLOUT/PG-L_paused_external"
+}

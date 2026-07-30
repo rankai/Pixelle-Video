@@ -1,0 +1,347 @@
+{
+  "stage": "BRAND-PROJECT-3",
+  "gate": "PG-BP-D",
+  "status": "implementation_review_pending",
+  "date": "2026-07-29",
+  "feature_flags": {
+    "backend": "PIXELLE_BRAND_PROJECT_BOUNDARY_V1",
+    "frontend": "VITE_BRAND_PROJECT_BOUNDARY_V1",
+    "default_enabled": false,
+    "flag_off_legacy_ui": true
+  },
+  "verification": {
+    "desktop_test_files": 5,
+    "desktop_tests_passed": 68,
+    "desktop_tests_failed": 0,
+    "desktop_build": "passed",
+    "vite_modules_transformed": 4610,
+    "backend_test_files": 9,
+    "backend_tests_passed": 128,
+    "backend_tests_failed": 0,
+    "backend_existing_warnings": 12,
+    "ruff_check": "passed",
+    "ruff_format_check": "passed",
+    "git_diff_check": "passed"
+  },
+  "interaction_matrix": {
+    "zero_brand": "passed",
+    "one_brand_auto_selected_without_pre_submit_write": "passed",
+    "multiple_brand_explicit_choice": "passed",
+    "multiple_brand_search": "passed",
+    "zero_brand_asset_library_entry": "passed",
+    "unbound_v3_create": "passed",
+    "legacy_null_no_auto_binding": "passed",
+    "legacy_v1_v2_no_auto_binding": "passed",
+    "legacy_null_v1_v2_explicit_association": "passed",
+    "four_application_legacy_association": "passed",
+    "exact_logo_revision_without_current_drift": "passed",
+    "missing_logo_revision_safe_placeholder": "passed",
+    "archived_brand_history_readable_sync_disabled": "passed",
+    "brand_list_and_preview_business_errors": "passed",
+    "archived_alert_responsive_readability": "passed",
+    "project_override_tag": "passed",
+    "per_item_restore": "passed",
+    "restore_all": "passed",
+    "sync_preview_read_only": "passed",
+    "sync_explicit_confirmation": "passed",
+    "stale_snapshot_zero_write": "passed",
+    "flag_off_legacy_ui": "passed",
+    "create_reload_editable_1440": "passed",
+    "create_reload_editable_900": "passed",
+    "keyboard_focus_and_enter": "passed",
+    "disabled_sync_semantics": "passed"
+  },
+  "browser": {
+    "api_url": "http://127.0.0.1:8100",
+    "vite_url": "http://127.0.0.1:1420/#/apps/marketing-copy",
+    "isolated_root": "/tmp/pixelle-brand-project-stage3.1EQ6Ga",
+    "viewports": [
+      1440,
+      1280,
+      900,
+      390
+    ],
+    "responsive_result": "passed",
+    "mobile_scroll_width": 375,
+    "mobile_inner_width": 390,
+    "reload_editor_p1": "fixed_and_reverified",
+    "console_product_errors": 0,
+    "console_nonblocking_p2": [
+      "existing AntD List deprecated warning"
+    ],
+    "browser_runtime_note": "Browser waitForLoadState networkidle is unsupported by the control runtime; this is not a product defect."
+  },
+  "independent_review_remediation_browser": {
+    "api_url": "http://127.0.0.1:8101",
+    "vite_url": "http://127.0.0.1:1421",
+    "isolated_root": "/tmp/pixelle-brand-project-stage3-review.6XrXYw",
+    "registry_fixture": "Existing content, carousel and digital-human Registry flags enabled only in the isolated verification process.",
+    "routes": {
+      "marketing_copy": "passed",
+      "viral_titles": "passed",
+      "douyin_carousel": "passed",
+      "digital_human_video": "passed"
+    },
+    "legacy_snapshots": {
+      "null": "passed",
+      "v1": "passed",
+      "v2": "passed"
+    },
+    "exact_logo": {
+      "pinned_revision": "revision-d18c7e415de44c33842d4f21a96bcdcf",
+      "current_advanced_to": "revision-7c603a201ec842df9688d5dcc5107681",
+      "observed_thumbnail_query_kept_pinned_revision": true
+    },
+    "archived_brand": {
+      "historical_summary_readable": true,
+      "business_error_visible": true,
+      "sync_disabled": true,
+      "reassociate_available": true
+    },
+    "responsive": {
+      "viewports": [
+        1440,
+        1280,
+        900,
+        390
+      ],
+      "horizontal_overflow": false,
+      "mobile_scroll_width": 375,
+      "mobile_inner_width": 390
+    },
+    "keyboard": {
+      "tab_order": [
+        "当前创作项目",
+        "我的项目",
+        "重新关联品牌"
+      ],
+      "focus_outline": "rgb(226, 219, 255) solid 3px",
+      "enter_opens_reassociation_dialog": true
+    },
+    "console_warnings": 0,
+    "console_errors": 0
+  },
+  "final_review_archived_alert_remediation": {
+    "finding": "P1: archived-brand warning action compressed the text section to about 19px at 1440/1280 and caused per-character wrapping",
+    "status": "fixed_self_verified_review_pending",
+    "layout_strategy": "Business-specific Alert keeps the text section full width and places a wrapping action row below it.",
+    "global_alert_unchanged": true,
+    "viewports": {
+      "1440": {
+        "alert_width": 341,
+        "alert_height": 214.28125,
+        "section_width": 291,
+        "action_below_section": true,
+        "horizontal_overflow": false
+      },
+      "1280": {
+        "alert_width": 341,
+        "alert_height": 214.28125,
+        "section_width": 291,
+        "action_below_section": true,
+        "horizontal_overflow": false
+      },
+      "900": {
+        "alert_width": 735,
+        "alert_height": 145.140625,
+        "section_width": 685,
+        "action_below_section": true,
+        "horizontal_overflow": false
+      },
+      "390": {
+        "alert_width": 249,
+        "alert_height": 246.28125,
+        "section_width": 199,
+        "action_below_section": true,
+        "horizontal_overflow": false,
+        "scroll_width": 375
+      }
+    },
+    "text_layout": {
+      "writing_mode": "horizontal-tb",
+      "word_break": "normal"
+    },
+    "interaction": "reassociate button opens the project-brand dialog",
+    "framework_overlay": false,
+    "console_product_errors": 0,
+    "console_existing_nonblocking": [
+      "AntD List deprecated warning"
+    ]
+  },
+  "external_actions": {
+    "llm_calls": 0,
+    "tts_calls": 0,
+    "runninghub_calls": 0,
+    "third_party_platform_opens": 0,
+    "uploads": 0,
+    "qr_or_authorization": 0,
+    "final_publish_clicks": 0,
+    "git_commits": 0
+  },
+  "artifacts": [
+    {
+      "path": "api/routers/app_center.py",
+      "sha256": "ea9670e2ec9848d8246e949df75b5405a654a15365f0da085bbf5d9291bf4225"
+    },
+    {
+      "path": "api/schemas/app_center.py",
+      "sha256": "8acc6b0a7125e592fe5a3d052410ca9c55bd80ece0a757a1440de8aa98a31e45"
+    },
+    {
+      "path": "pixelle_video/app_center/brand_project.py",
+      "sha256": "6540878b106dba6bb5a98c6f667da08bd6f9727d3da55c48b932f4b5ae4d8ffa"
+    },
+    {
+      "path": "pixelle_video/app_center/repository.py",
+      "sha256": "631e99406d5f995bcc28a0d7cba118d41e9aef8acd834ee489bb54f96afb6c1b"
+    },
+    {
+      "path": "desktop/src/api.ts",
+      "sha256": "84fc9f7cc4a3c91917883671e3739d2ecf4cb52b667c0e8e74587d4bb0ab3977"
+    },
+    {
+      "path": "desktop/src/flagResolver.ts",
+      "sha256": "154f681fe077e99f61f86c32e3d595817fc58a8c271f989ee343933a2df7ba60"
+    },
+    {
+      "path": "desktop/src/features/app-workbench/BrandProjectContext.tsx",
+      "sha256": "2c5d72d902196da9c49fd7b0f7d0769c804435fec000f1d2ad0be7fce5a040ef"
+    },
+    {
+      "path": "desktop/src/features/app-workbench/BrandProjectContext.test.tsx",
+      "sha256": "f7fd7a87e0bf58ba3ab742ecbedaf09d8ea55b01d0bb50b29958accfd0ce4fbd"
+    },
+    {
+      "path": "desktop/src/features/creation/CreationWorkspace.tsx",
+      "sha256": "c474c28f1e745ea46309f6d3e9c86e6325f2043e8ec523087e270f77596b12e7"
+    },
+    {
+      "path": "desktop/src/features/creation/CreationWorkspace.test.tsx",
+      "sha256": "7ec0ca67fa2c1522dc1025ee14688077b8b7122bf970a0bc2071783ea502472f"
+    },
+    {
+      "path": "desktop/src/features/app-center/DigitalHumanApplicationView.tsx",
+      "sha256": "5dccd9e935866240979e1bfa84ee5d686325937b80b42540185954f39cd7f539"
+    },
+    {
+      "path": "desktop/src/features/app-center/DigitalHumanApplicationView.test.tsx",
+      "sha256": "33b2f2cb7d36764a8361b466d1119fc146062c04c9b38e7caccd9338e63cc33c"
+    },
+    {
+      "path": "api/routers/assets_v2.py",
+      "sha256": "b467229e8bc6455d7cbed11438106ac2683fe801e23092c4d5ee38194eb40c96"
+    },
+    {
+      "path": "api/schemas/asset_library_v2.py",
+      "sha256": "c34653e98ddc86d3dd799a4b5ef85312bb5cd059d411250c260942ba2d950d28"
+    },
+    {
+      "path": "pixelle_video/services/assets_v2/repository.py",
+      "sha256": "4d9fffe07d86f004e48c4cae50befc6f359caed9186a3bbe1579f38f65310899"
+    },
+    {
+      "path": "tests/asset_library_v2_repository_test.py",
+      "sha256": "d9d835ee9c35f5b8f1eb415656f5d08a55c5d7f649b5cfd0ddc03baa3ccb8263"
+    },
+    {
+      "path": "desktop/src/styles.css",
+      "sha256": "7d94b082be8dcec8fc90932e2ed59bb9711a804b411d7fc3c7757fdea4b8a7e6"
+    },
+    {
+      "path": "tests/brand_project_stage2_test.py",
+      "sha256": "d8f3f17472d3fedfb39868afe58cd0c27a329d7e1efe22926fd31a3b411976b9"
+    },
+    {
+      "path": "tests/brand_project_boundary_entry_contract_test.py",
+      "sha256": "5d7da5b7ebf104549daeb5bc537e196dced085e05c3caf71139c1c60a70bf3ad"
+    },
+    {
+      "path": "tests/coord0_contract_test.py",
+      "sha256": "c32ea67ab58f62865538d2a76628d2b5e19aa3980309d2fdff4fe140cf8c33cd"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/BRAND-PROJECT-3-implementation-2026-07-29.md",
+      "sha256": "2cd9eb3575d593e98f83176f21bcbc24a9d8288a0f1be32790cadd48923ea359"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-2026-07-29/brand-sync-preview-900.png",
+      "sha256": "0523e111f03afbfa02e271167494b4fb11b795ab7f103561f5a8b541d750c66b"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-2026-07-29/marketing-copy-project-edit-1440.png",
+      "sha256": "dc2100151d988bd4d5d4bdd9c2d236f0b74d6e1e359843b503e6b266fc7b4f9a"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-2026-07-29/marketing-copy-project-override-1440.png",
+      "sha256": "10198128c4fc5dfda4c1de1289651e55fcb45a67e0f2b563c152d5af03f314ae"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-2026-07-29/marketing-copy-reload-editable-900.png",
+      "sha256": "f15e0aca8c8ef74d799aa1b91c27ad8c0c1a6d0a52aeccd9375d3477a88fa975"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-2026-07-29/marketing-copy-summary-1440.png",
+      "sha256": "354bc79d120579fe5bf647181bedd3bb89469cfd5bbdb7166d9b9c7c24d3984f"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-2026-07-29/marketing-copy-summary-1280.png",
+      "sha256": "9f53cc1b68a8156b3c7f6206007d161f629fc27d97acb196b05e5b1590f4782a"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-2026-07-29/marketing-copy-summary-900.png",
+      "sha256": "999c4fa4ac6dfb511732950257b8e6058c583b82f03e711f7405b1ca2f502190"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-2026-07-29/marketing-copy-summary-390.png",
+      "sha256": "7e2a1c4f6ab6441484f3fdae6b9085ec268670674a980997ba70493e632e1e46"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-review-fix-2026-07-29/zero-brand-create-1440.png",
+      "sha256": "20edce622b6729c1af7455c4542d1ba2a122e04c6c4cd6e42152fb756acd9810"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-review-fix-2026-07-29/multi-brand-search-1440.png",
+      "sha256": "53b3de1e6d9ce6602bc25eab8addd7acf182f9d0a27c7c923385ec453dd991cf"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-review-fix-2026-07-29/null-snapshot-association-1440.png",
+      "sha256": "86e902aa0c2b5e9b08fbfd0ac9d897a7c14a7e0bfc9faaa674b8e09a2f4fb01f"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-review-fix-2026-07-29/legacy-v1-association-1440.png",
+      "sha256": "fb1872832f98161c0d41082e8d5de9fbfcaa04b36aa4285e51ec0efa946499cd"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-review-fix-2026-07-29/exact-logo-associated-1440.png",
+      "sha256": "c3042c1a6c5c4610e91ebb92a02cd0c916e973d391af94f668ea11d85468899a"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-review-fix-2026-07-29/archived-brand-fixed-1440.png",
+      "sha256": "84466d4d0b8398c2d58fe169b27de3e1ce63add61bc8a695ef8dd6ebc0e6c23f"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-review-fix-2026-07-29/archived-brand-fixed-1280.png",
+      "sha256": "fd0d1dad333584b96ddc2c34fe9ab2102a708927524681883dc41484a42e3ce4"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-review-fix-2026-07-29/archived-brand-fixed-900.png",
+      "sha256": "3d8fc236ec76906f8f454e5f39f14e4c8378a92c95ca8b25d4d1b07dd394bd23"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-3-visual-review-fix-2026-07-29/archived-brand-fixed-390.png",
+      "sha256": "ea438e56d8216f34334b2e4ced302a44e56068236e71447320cf031d6537e0bc"
+    }
+  ],
+  "independent_review": {
+    "initial_status": "blocked",
+    "initial_p0": 0,
+    "initial_p1": 4,
+    "initial_p2": 1,
+    "final_review_remaining_p1": 1,
+    "final_review_remaining_p1_remediation": "fixed_self_verified_review_pending",
+    "status": "remediation_review_pending",
+    "remediation_self_verification": "passed",
+    "gate_unchanged": true
+  },
+  "paused_checkpoint": "PROGRAM-ROLLOUT/PG-L_paused_external"
+}

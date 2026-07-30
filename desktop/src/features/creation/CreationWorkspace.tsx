@@ -1,10 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
-import { Alert, Button, Card, Empty, Input, List, Select, Space, Tag, Typography } from "antd";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Alert, Button, Card, Input, List, Modal, Select, Space, Tag, Typography } from "antd";
 import {
   AppRun,
   ArtifactVersion,
   ContentProject,
+  ContextSnapshot,
   createAppRun,
+  createPublishPackageV2,
+  createProjectArtifact,
   createContentProject,
   archiveContentProject,
   appendArtifactVersion,
@@ -18,12 +21,26 @@ import {
   listAppRuns,
   listLibraryItemsV2,
   listContentProjects,
+  listStylePresets,
   retryAppRun,
+  retryCarouselPage,
+  recordAppEvent,
   updateContentProject,
   listProjectArtifacts,
 } from "../../api";
 import { AssetPickerDialog } from "../assets/components/AssetPickerDialog";
-import type { LibraryItemV2 } from "../../api";
+import type { LibraryItemV2, StylePreset } from "../../api";
+import { featureFlags } from "../../featureFlags";
+import { AppWorkbenchShell, type WorkbenchViewState } from "../app-workbench/AppWorkbenchShell";
+import { ProjectBriefEditor } from "../app-workbench/ProjectBriefEditor";
+import { ProjectBriefDisclosure } from "../app-workbench/ProjectBriefDisclosure";
+import { ProjectContextSelector } from "../app-workbench/ProjectContextSelector";
+import {
+  BrandProjectContextPanel,
+  BrandProjectCreateDialog,
+} from "../app-workbench/BrandProjectContext";
+import { StylePresetPicker, type StyleSource } from "../app-workbench/StylePresetPicker";
+import { HandoffActions, VersionSwitcher } from "../app-workbench/ArtifactActions";
 
 type Props = {
   appId?: string;
@@ -31,7 +48,12 @@ type Props = {
   focused?: boolean;
   onBack?: () => void;
   onOpenApp?: (appId: string, sourceArtifactVersionId?: string) => void;
+  onOpenPublishCenter?: (packageId: string) => void;
   initialSourceArtifactVersionId?: string;
+  workbenchV2?: boolean;
+  textAppsV2?: boolean;
+  carouselAppsV2?: boolean;
+  brandProjectV1?: boolean;
 };
 
 type CopyVariantDraft = {
@@ -72,21 +94,41 @@ function codePointLength(value: string): number {
   return Array.from(value).length;
 }
 
+async function sha256Fingerprint(value: string): Promise<string> {
+  const digest = await window.crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value),
+  );
+  return `sha256:${Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+}
+
 const stateLabels: Record<AppRun["state"], string> = {
   draft: "草稿",
   queued: "排队中",
   running: "执行中",
-  needs_review: "待审核",
+  needs_review: "请确认",
   completed: "已完成",
   failed: "失败",
   cancelled: "已取消",
 };
 
 const APP_COPY: Record<string, { name: string; description: string; eyebrow: string }> = {
-  "builtin.marketing-copy": { name: "门店营销文案", description: "生成可编辑的门店营销文案，并交给标题、图文或数字人口播。", eyebrow: "CONTENT APP · COPYWRITING" },
-  "builtin.viral-titles": { name: "爆款标题", description: "围绕平台和经营目标生成多角度标题候选，选择后继续创作。", eyebrow: "CONTENT APP · TITLES" },
-  "builtin.douyin-carousel": { name: "抖音图文", description: "选择文案和企业图片，生成可下载的抖音图文包与发布文案。", eyebrow: "CONTENT APP · CAROUSEL" },
+  "builtin.marketing-copy": { name: "门店营销文案", description: "选好项目和表达风格，生成可以直接修改和继续使用的营销文案。", eyebrow: "文案创作" },
+  "builtin.viral-titles": { name: "爆款标题", description: "选一段内容，再点选平台和目标，生成多种标题供你挑选。", eyebrow: "文案创作" },
+  "builtin.douyin-carousel": { name: "抖音图文", description: "选择内容和门店图片，生成可以下载或交给发布中心的图文成品。", eyebrow: "图文创作" },
 };
+
+const MARKETING_BENEFIT_SUGGESTIONS = [
+  "新品",
+  "限时优惠",
+  "到店",
+  "直播",
+  "节日",
+  "送礼",
+  "折扣",
+  "预约",
+  "复购",
+];
 
 type CarouselSourceDateRange = "all" | "7d" | "30d" | "90d";
 
@@ -105,14 +147,32 @@ function isWithinDateRange(value: string, range: CarouselSourceDateRange): boole
   return timestamp >= Date.now() - days * 24 * 60 * 60 * 1000;
 }
 
-function formatSourceDate(value: string): string {
-  return /^\d{4}-\d{2}-\d{2}/.test(value) ? value.slice(0, 10) : "时间未知";
-}
-
 function truncateSourceText(value: string, maxLength = 36): string {
   const normalized = value.replace(/\s+/g, " ").trim();
   return normalized.length > maxLength ? `${normalized.slice(0, maxLength)}…` : normalized;
 }
+
+function parseCarouselAssetRef(ref: string): { assetId: string; revisionId: string } {
+  const normalized = ref.replace(/^asset:/, "");
+  const [assetId, revisionId = ""] = normalized.split("@", 2);
+  return { assetId, revisionId };
+}
+
+function carouselAssetRef(item: LibraryItemV2): string {
+  const assetId = item.asset_id || item.resource_id;
+  const revisionId = item.revision?.revision_id;
+  return `asset:${assetId}${revisionId ? `@${revisionId}` : ""}`;
+}
+
+const CAROUSEL_ERROR_COPY: Record<string, string> = {
+  ASSET_REF_REQUIRED: "至少选择一张可用图片后再生成。",
+  ASSET_NOT_FOUND: "有图片资产已缺失或版本不可用，请重新选择。",
+  FONT_MISSING: "当前模板字体不可用，请检查本机字体资源后重试。",
+  TEXT_OVERFLOW: "有页面文字过多，请缩短文案后单独重渲染该页。",
+  PAGE_COUNT_NOT_ALLOWED: "图文页数只能选择 3、5 或 8 页。",
+  STRUCTURED_OUTPUT_INVALID: "分页计划不符合图文规则，请检查来源内容后重试。",
+  LLM_PROVIDER_FAILED: "大模型分页规划失败，请检查当前模型配置。",
+};
 
 function sourceContentPreview(content: Record<string, unknown> | null | undefined): string {
   if (!content) return "暂无文案摘要";
@@ -134,13 +194,25 @@ function sourceContentPreview(content: Record<string, unknown> | null | undefine
   return String(content.text || content.title || "暂无文案摘要");
 }
 
+function contextFactTexts(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => item && typeof item === "object" ? String((item as Record<string, unknown>).text || "").trim() : "")
+    .filter(Boolean);
+}
+
 export function CreationWorkspace({
   appId = "builtin.marketing-copy",
   appVersion = "1.0.0",
   focused = false,
   onBack,
   onOpenApp,
+  onOpenPublishCenter,
   initialSourceArtifactVersionId = "",
+  workbenchV2 = featureFlags.appWorkbenchV2,
+  textAppsV2 = featureFlags.appWorkbenchTextV2,
+  carouselAppsV2 = featureFlags.appWorkbenchCarouselV2,
+  brandProjectV1 = featureFlags.brandProjectBoundaryV1,
 }: Props) {
   const [projects, setProjects] = useState<ContentProject[]>([]);
   const [selectedId, setSelectedId] = useState("");
@@ -148,22 +220,54 @@ export function CreationWorkspace({
   const [goal, setGoal] = useState("");
   const [runs, setRuns] = useState<AppRun[]>([]);
   const [dirty, setDirty] = useState(false);
+  const [contextDirty, setContextDirty] = useState(false);
+  const [projectDetailsOpen, setProjectDetailsOpen] = useState(false);
+  const [projectCreateOpen, setProjectCreateOpen] = useState(false);
+  const [projectCreateBusy, setProjectCreateBusy] = useState(false);
+  const [newProjectName, setNewProjectName] = useState("");
+  const [newProjectGoal, setNewProjectGoal] = useState("");
   const [error, setError] = useState("");
   const [contextPayload, setContextPayload] = useState<Record<string, unknown> | null>(null);
+  const [contextSnapshot, setContextSnapshot] = useState<ContextSnapshot | null>(null);
+  const projectRequestSequence = useRef(0);
   const [versionCounts, setVersionCounts] = useState<Record<string, number>>({});
   const [versionDrafts, setVersionDrafts] = useState<Record<string, string>>({});
   const [structuredDrafts, setStructuredDrafts] = useState<Record<string, StructuredArtifactDraft | null>>({});
   const [latestArtifactVersions, setLatestArtifactVersions] = useState<Record<string, ArtifactVersion | null>>({});
+  const [artifactVersionLists, setArtifactVersionLists] = useState<Record<string, ArtifactVersion[]>>({});
+  const selectedTitleVersionInFlight = useRef(new Map<string, Promise<ArtifactVersion>>());
   const [productOrService, setProductOrService] = useState("");
+  const [benefitTagsText, setBenefitTagsText] = useState("");
   const [contentFormat, setContentFormat] = useState("oral");
   const [lengthBucket, setLengthBucket] = useState("short_15s");
   const [platform, setPlatform] = useState("douyin");
   const [objective, setObjective] = useState("click");
   const [count, setCount] = useState(5);
   const [topic, setTopic] = useState("");
+  const [titleKeywordsText, setTitleKeywordsText] = useState("");
+  const textWorkbenchV2 = workbenchV2
+    && textAppsV2
+    && ["builtin.marketing-copy", "builtin.viral-titles"].includes(appId);
+  const [stylePresets, setStylePresets] = useState<StylePreset[]>([]);
+  const [styleSource, setStyleSource] = useState<StyleSource>("preset");
+  const [selectedStyleId, setSelectedStyleId] = useState("");
+  const [customStyleText, setCustomStyleText] = useState("");
+  const [titleSourceMode, setTitleSourceMode] = useState<"artifact" | "topic" | "text">(
+    initialSourceArtifactVersionId ? "artifact" : "topic",
+  );
+  const [titleSourceText, setTitleSourceText] = useState("");
+  const [titleSourceArtifacts, setTitleSourceArtifacts] = useState<Awaited<ReturnType<typeof listProjectArtifacts>>>([]);
+  const [titleSourceArtifactId, setTitleSourceArtifactId] = useState("");
+  const [titleSourceVersions, setTitleSourceVersions] = useState<ArtifactVersion[]>([]);
+  const [titleSourceVersionId, setTitleSourceVersionId] = useState(initialSourceArtifactVersionId);
+  const [sourceRouteBlocked, setSourceRouteBlocked] = useState(false);
+  const [actionNotice, setActionNotice] = useState("");
+  const restoredTextRunKey = useRef("");
   const selected = useMemo(() => projects.find((project) => project.project_id === selectedId) || null, [projects, selectedId]);
   const isTitlesApp = appId === "builtin.viral-titles";
   const isCarouselApp = appId === "builtin.douyin-carousel";
+  const carouselWorkbenchV2 = workbenchV2 && carouselAppsV2 && isCarouselApp;
+  const styleWorkbenchV2 = textWorkbenchV2 || carouselWorkbenchV2;
   const [carouselSourceVersionId, setCarouselSourceVersionId] = useState("");
   const [carouselSourceArtifactId, setCarouselSourceArtifactId] = useState("");
   const [carouselSourceArtifacts, setCarouselSourceArtifacts] = useState<Awaited<ReturnType<typeof listProjectArtifacts>>>([]);
@@ -173,16 +277,15 @@ export function CreationWorkspace({
   const [carouselAssetItems, setCarouselAssetItems] = useState<LibraryItemV2[]>([]);
   const [assetPickerOpen, setAssetPickerOpen] = useState(false);
   const [carouselPageCount, setCarouselPageCount] = useState(3);
+  const [carouselTemplateId, setCarouselTemplateId] = useState("template:clean-01");
+  const [carouselCoverHook, setCarouselCoverHook] = useState("");
+  const [carouselCta, setCarouselCta] = useState("");
+  const [carouselPublishDescription, setCarouselPublishDescription] = useState("");
+  const [carouselHashtagsText, setCarouselHashtagsText] = useState("");
+  const [carouselPageDrafts, setCarouselPageDrafts] = useState<Record<string, { text: string; asset_refs: string[] }>>({});
+  const [carouselPreviewUrls, setCarouselPreviewUrls] = useState<Record<string, string>>({});
+  const [carouselPageBusy, setCarouselPageBusy] = useState("");
 
-  const sourceRunById = useMemo(() => new Map(runs.map((run) => [run.app_run_id, run])), [runs]);
-  const recentlyUsedSourceVersionIds = useMemo(() => {
-    const ids = new Set<string>();
-    runs.filter((run) => run.app_id === "builtin.douyin-carousel").forEach((run) => {
-      const sourceIds = run.input_payload?.source_artifact_version_ids;
-      if (Array.isArray(sourceIds)) sourceIds.forEach((id) => typeof id === "string" && ids.add(id));
-    });
-    return ids;
-  }, [runs]);
   const visibleSourceArtifacts = useMemo(
     () => carouselSourceArtifacts.filter((artifact) => isWithinDateRange(artifact.updated_at || artifact.created_at, carouselSourceDateRange)),
     [carouselSourceArtifacts, carouselSourceDateRange],
@@ -199,15 +302,84 @@ export function CreationWorkspace({
     () => carouselSourceVersions.find((version) => version.artifact_version_id === carouselSourceVersionId) || null,
     [carouselSourceVersions, carouselSourceVersionId],
   );
-  const selectedSourceRun = selectedSourceArtifact?.source_app_run_id ? sourceRunById.get(selectedSourceArtifact.source_app_run_id) : null;
+  const titleSourceArtifact = useMemo(
+    () => titleSourceArtifacts.find((artifact) => artifact.artifact_id === titleSourceArtifactId) || null,
+    [titleSourceArtifactId, titleSourceArtifacts],
+  );
+  const titleSourceVersionUpdateAvailable = Boolean(
+    initialSourceArtifactVersionId
+      && titleSourceArtifact?.current_version_id
+      && titleSourceArtifact.current_version_id !== initialSourceArtifactVersionId,
+  );
+  const carouselSourceVersionUpdateAvailable = Boolean(
+    initialSourceArtifactVersionId
+      && selectedSourceArtifact?.current_version_id
+      && selectedSourceArtifact.current_version_id !== initialSourceArtifactVersionId,
+  );
+  const projectSellingPoints = useMemo(
+    () => {
+      const payload = contextSnapshot?.payload;
+      const brief = payload?.project_brief && typeof payload.project_brief === "object"
+        ? payload.project_brief as Record<string, unknown>
+        : payload;
+      return contextFactTexts(brief?.selling_points);
+    },
+    [contextSnapshot],
+  );
+  const selectedBenefitTags = useMemo(
+    () => benefitTagsText
+      .split(/[\n,，]/)
+      .map((item) => item.trim())
+      .filter(Boolean),
+    [benefitTagsText],
+  );
+
+  function toggleBenefitTag(tag: string) {
+    const next = new Set(selectedBenefitTags);
+    if (next.has(tag)) next.delete(tag);
+    else next.add(tag);
+    setBenefitTagsText(Array.from(next).join("，"));
+  }
 
   function resetCarouselDraft() {
+    setSourceRouteBlocked(false);
     setCarouselSourceVersionId("");
     setCarouselSourceArtifactId("");
     setCarouselSourceVersions([]);
     setCarouselSourceDateRange("all");
     setCarouselAssetRefs([]);
     setCarouselPageCount(3);
+    setCarouselTemplateId("template:clean-01");
+    setCarouselCoverHook("");
+    setCarouselCta("");
+    setCarouselPublishDescription("");
+    setCarouselHashtagsText("");
+    setCarouselPageDrafts({});
+    setCarouselPreviewUrls((current) => {
+      Object.values(current).forEach((url) => URL.revokeObjectURL(url));
+      return {};
+    });
+  }
+
+  function resetTextAppDraft() {
+    setSourceRouteBlocked(false);
+    restoredTextRunKey.current = "";
+    setProductOrService("");
+    setBenefitTagsText("");
+    setContentFormat("oral");
+    setLengthBucket("short_15s");
+    setPlatform("douyin");
+    setObjective("click");
+    setCount(5);
+    setTopic("");
+    setTitleKeywordsText("");
+    setTitleSourceMode(initialSourceArtifactVersionId ? "artifact" : "topic");
+    setTitleSourceText("");
+    setTitleSourceArtifactId("");
+    setTitleSourceVersions([]);
+    setTitleSourceVersionId(initialSourceArtifactVersionId);
+    setStyleSource("preset");
+    setCustomStyleText("");
   }
 
   function restoreCarouselDraft(nextRuns: AppRun[]) {
@@ -220,33 +392,62 @@ export function CreationWorkspace({
       .sort((left, right) => right.created_at.localeCompare(left.created_at))
       .find((run) => {
         const payload = run.input_payload;
+        const brief = Number(payload.schema_version) === 2 && payload.task_brief && typeof payload.task_brief === "object"
+          ? payload.task_brief as Record<string, unknown>
+          : payload;
         const sourceIds = Array.isArray(payload.source_artifact_version_ids)
           ? payload.source_artifact_version_ids.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
           : [];
-        const assetRefs = Array.isArray(payload.asset_refs)
-          ? payload.asset_refs.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+        const assetRefs = Array.isArray(brief.asset_refs)
+          ? brief.asset_refs.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
           : [];
-        return sourceIds.length > 0 && assetRefs.length > 0 && [3, 5, 8].includes(Number(payload.page_count));
+        return sourceIds.length > 0 && assetRefs.length > 0 && [3, 5, 8].includes(Number(brief.page_count));
       });
     if (!latest) {
       resetCarouselDraft();
       return;
     }
     const payload = latest.input_payload;
+    const brief = Number(payload.schema_version) === 2 && payload.task_brief && typeof payload.task_brief === "object"
+      ? payload.task_brief as Record<string, unknown>
+      : payload;
     const sourceIds = Array.isArray(payload.source_artifact_version_ids)
       ? payload.source_artifact_version_ids.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
       : [];
-    const assetRefs = Array.isArray(payload.asset_refs)
-      ? payload.asset_refs.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    const assetRefs = Array.isArray(brief.asset_refs)
+      ? brief.asset_refs.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
       : [];
     setCarouselSourceVersionId(sourceIds[0] || "");
     setCarouselAssetRefs(assetRefs);
-    setCarouselPageCount(Number(payload.page_count) as 3 | 5 | 8);
+    setCarouselPageCount(Number(brief.page_count) as 3 | 5 | 8);
+    if (Number(payload.schema_version) === 2) {
+      setCarouselTemplateId(String(brief.template_id || "template:clean-01"));
+      setCarouselCoverHook(String(brief.cover_hook || ""));
+      setCarouselCta(String(brief.cta || ""));
+      setCarouselPublishDescription(String(brief.publish_description || ""));
+      setCarouselHashtagsText(Array.isArray(brief.hashtags) ? brief.hashtags.map(String).join("，") : "");
+      const style = payload.style_ref && typeof payload.style_ref === "object"
+        ? payload.style_ref as Record<string, unknown>
+        : null;
+      const custom = payload.custom_style_reference && typeof payload.custom_style_reference === "object"
+        ? payload.custom_style_reference as Record<string, unknown>
+        : null;
+      if (style?.style_id) {
+        setStyleSource("preset");
+        setSelectedStyleId(String(style.style_id));
+        setCustomStyleText("");
+      } else if (custom?.text) {
+        setStyleSource("custom");
+        setCustomStyleText(String(custom.text));
+      }
+    }
   }
 
   async function reload(forceSelect = false) {
+    const requestSequence = ++projectRequestSequence.current;
     try {
       const next = await listContentProjects();
+      if (requestSequence !== projectRequestSequence.current) return;
       setProjects(next);
       const first = next[0];
       if (first && (forceSelect || !selectedId)) {
@@ -254,12 +455,17 @@ export function CreationWorkspace({
         setName(first.name);
         setGoal(first.primary_goal);
         const [nextRuns, snapshot] = await Promise.all([listAppRuns(first.project_id), getCurrentContextSnapshot(first.project_id)]);
+        if (requestSequence !== projectRequestSequence.current) return;
         setRuns(nextRuns);
         restoreCarouselDraft(nextRuns);
         setContextPayload(snapshot?.payload || null);
+        setContextSnapshot(snapshot);
+        setContextDirty(false);
+        if (brandProjectV1 && snapshot?.schema_version === 3) setProjectDetailsOpen(true);
       }
       setError("");
     } catch (err) {
+      if (requestSequence !== projectRequestSequence.current) return;
       setError(err instanceof Error ? err.message : "创作项目加载失败");
     }
   }
@@ -267,6 +473,163 @@ export function CreationWorkspace({
   useEffect(() => {
     void reload();
   }, []);
+
+  useEffect(() => {
+    if (!styleWorkbenchV2) {
+      setStylePresets([]);
+      setSelectedStyleId("");
+      return;
+    }
+    let active = true;
+    void listStylePresets(appId)
+      .then(({ items }) => {
+        if (!active) return;
+        setStylePresets(items);
+        setSelectedStyleId((current) => (
+          items.some((item) => item.style_id === current)
+            ? current
+            : items[0]?.style_id || ""
+        ));
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError instanceof Error ? loadError.message : "风格目录加载失败");
+      });
+    return () => {
+      active = false;
+    };
+  }, [appId, styleWorkbenchV2]);
+
+  useEffect(() => {
+    if (!textWorkbenchV2 || !selectedId) return;
+    const latest = [...runs]
+      .filter((run) => run.project_id === selectedId && run.app_id === appId)
+      .sort((left, right) => right.created_at.localeCompare(left.created_at))[0];
+    if (!latest || restoredTextRunKey.current === latest.app_run_id) return;
+    const payload = latest.input_payload && typeof latest.input_payload === "object"
+      ? latest.input_payload
+      : {};
+    if (Number(payload.schema_version) !== 2) return;
+    const brief = payload.task_brief && typeof payload.task_brief === "object"
+      ? payload.task_brief as Record<string, unknown>
+      : {};
+    const style = payload.style_ref && typeof payload.style_ref === "object"
+      ? payload.style_ref as Record<string, unknown>
+      : null;
+    const custom = payload.custom_style_reference && typeof payload.custom_style_reference === "object"
+      ? payload.custom_style_reference as Record<string, unknown>
+      : null;
+    if (style?.style_id) {
+      setStyleSource("preset");
+      setSelectedStyleId(String(style.style_id));
+      setCustomStyleText("");
+    } else if (custom?.text) {
+      setStyleSource("custom");
+      setCustomStyleText(String(custom.text));
+    }
+    if (isTitlesApp) {
+      setPlatform(String(brief.platform || "douyin"));
+      setObjective(String(brief.objective || "click"));
+      const nextCount = Number(brief.count || 5);
+      if (Number.isInteger(nextCount) && nextCount >= 5 && nextCount <= 10) setCount(nextCount);
+      setTopic(String(brief.topic || ""));
+      setTitleSourceText(String(brief.source_text || ""));
+      setTitleKeywordsText(Array.isArray(brief.keywords) ? brief.keywords.map(String).join("，") : "");
+      const sourceIds = Array.isArray(payload.source_artifact_version_ids)
+        ? payload.source_artifact_version_ids.filter((item): item is string => typeof item === "string")
+        : [];
+      if (sourceIds[0]) {
+        setTitleSourceMode("artifact");
+        setTitleSourceVersionId(sourceIds[0]);
+      } else if (brief.source_text) {
+        setTitleSourceMode("text");
+      } else {
+        setTitleSourceMode("topic");
+      }
+    } else {
+      setProductOrService(String(brief.offer_name || ""));
+      setBenefitTagsText(Array.isArray(brief.benefit_tags) ? brief.benefit_tags.map(String).join("，") : "");
+      setContentFormat(String(brief.content_format || "oral"));
+      setLengthBucket(String(brief.length_bucket || "short_15s"));
+    }
+    restoredTextRunKey.current = latest.app_run_id;
+  }, [appId, isTitlesApp, runs, selectedId, textWorkbenchV2]);
+
+  useEffect(() => {
+    if (!textWorkbenchV2 || isTitlesApp || productOrService.trim()) return;
+    const offer = contextSnapshot?.payload?.offer;
+    if (!offer || typeof offer !== "object") return;
+    const offerName = String((offer as Record<string, unknown>).name || "").trim();
+    if (offerName) setProductOrService(offerName);
+  }, [contextSnapshot, isTitlesApp, productOrService, textWorkbenchV2]);
+
+  useEffect(() => {
+    if (!textWorkbenchV2 || !isTitlesApp || !selectedId) {
+      setTitleSourceArtifacts([]);
+      setTitleSourceVersions([]);
+      return;
+    }
+    let active = true;
+    if (sourceRouteBlocked) return;
+    void listProjectArtifacts(selectedId)
+      .then(async (items) => {
+        if (!active) return;
+        const eligible = items.filter((item) => item.artifact_type === "copywriting" && item.status !== "archived");
+        setTitleSourceArtifacts(eligible);
+        const matching = initialSourceArtifactVersionId
+          ? (await Promise.all(eligible.map(async (item) => {
+              try {
+                const versions = await listArtifactVersions(item.artifact_id);
+                return versions.some((version) => version.artifact_version_id === initialSourceArtifactVersionId) ? item : null;
+              } catch {
+                return null;
+              }
+            }))).find((item): item is typeof eligible[number] => Boolean(item))
+          : eligible.find((item) => item.artifact_id === titleSourceArtifactId) || eligible[0];
+        if (!active) return;
+        if (initialSourceArtifactVersionId && !matching) {
+          setTitleSourceArtifactId("");
+          setTitleSourceVersionId("");
+          setTitleSourceMode("artifact");
+          setSourceRouteBlocked(true);
+          setError("带入的标题来源版本不存在或已归档；已安全停手，请重新选择来源版本。 ");
+          return;
+        }
+        setTitleSourceArtifactId(matching?.artifact_id || "");
+        if (initialSourceArtifactVersionId && matching) setTitleSourceMode("artifact");
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError instanceof Error ? loadError.message : "标题来源加载失败");
+      });
+    return () => {
+      active = false;
+    };
+  }, [initialSourceArtifactVersionId, isTitlesApp, selectedId, sourceRouteBlocked, textWorkbenchV2]);
+
+  useEffect(() => {
+    if (!textWorkbenchV2 || !isTitlesApp || !titleSourceArtifactId || sourceRouteBlocked) {
+      setTitleSourceVersions([]);
+      if (!titleSourceArtifactId) setTitleSourceVersionId("");
+      return;
+    }
+    let active = true;
+    void listArtifactVersions(titleSourceArtifactId)
+      .then((items) => {
+        if (!active) return;
+        setTitleSourceVersions(items);
+        setTitleSourceVersionId((current) => {
+          const preferred = items.find((item) => item.artifact_version_id === initialSourceArtifactVersionId)
+            || items.find((item) => item.artifact_version_id === current)
+            || items[items.length - 1];
+          return preferred?.artifact_version_id || "";
+        });
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError instanceof Error ? loadError.message : "标题来源版本加载失败");
+      });
+    return () => {
+      active = false;
+    };
+  }, [initialSourceArtifactVersionId, isTitlesApp, sourceRouteBlocked, textWorkbenchV2, titleSourceArtifactId]);
 
   useEffect(() => {
     if (!isCarouselApp) resetCarouselDraft();
@@ -279,24 +642,40 @@ export function CreationWorkspace({
       return;
     }
     let active = true;
+    if (sourceRouteBlocked) return;
     void listProjectArtifacts(selectedId)
-      .then((items) => {
+      .then(async (items) => {
         if (!active) return;
         const eligible = items.filter((item) => ["copywriting", "selected_title", "title_set"].includes(item.artifact_type) && item.status !== "archived");
         setCarouselSourceArtifacts(eligible);
-        if (!eligible.some((item) => item.artifact_id === carouselSourceArtifactId)) {
-          const matching = eligible.find((item) => item.current_version_id === initialSourceArtifactVersionId)
+        const matching = initialSourceArtifactVersionId
+          ? (await Promise.all(eligible.map(async (item) => {
+              try {
+                const versions = await listArtifactVersions(item.artifact_id);
+                return versions.some((version) => version.artifact_version_id === initialSourceArtifactVersionId) ? item : null;
+              } catch {
+                return null;
+              }
+            }))).find((item): item is typeof eligible[number] => Boolean(item))
+          : eligible.find((item) => item.artifact_id === carouselSourceArtifactId)
             || eligible.find((item) => item.current_version_id === carouselSourceVersionId)
             || eligible[0];
-          setCarouselSourceArtifactId(matching?.artifact_id || "");
+        if (!active) return;
+        if (initialSourceArtifactVersionId && !matching) {
+          setCarouselSourceArtifactId("");
+          setCarouselSourceVersionId("");
+          setSourceRouteBlocked(true);
+          setError("带入的图文来源版本不存在或已归档；已安全停手，请重新选择来源版本。 ");
+          return;
         }
+        if (!carouselSourceArtifactId || matching?.artifact_id !== carouselSourceArtifactId) setCarouselSourceArtifactId(matching?.artifact_id || "");
       })
       .catch((err) => { if (active) setError(err instanceof Error ? err.message : "来源产物加载失败"); });
     return () => { active = false; };
-  }, [initialSourceArtifactVersionId, isCarouselApp, selectedId]);
+  }, [initialSourceArtifactVersionId, isCarouselApp, selectedId, sourceRouteBlocked]);
 
   useEffect(() => {
-    if (!isCarouselApp || !carouselSourceArtifactId) {
+    if (!isCarouselApp || !carouselSourceArtifactId || sourceRouteBlocked) {
       setCarouselSourceVersions([]);
       return;
     }
@@ -313,27 +692,27 @@ export function CreationWorkspace({
       })
       .catch((err) => { if (active) setError(err instanceof Error ? err.message : "来源产物版本加载失败"); });
     return () => { active = false; };
-  }, [carouselSourceArtifactId, initialSourceArtifactVersionId, isCarouselApp]);
+  }, [carouselSourceArtifactId, initialSourceArtifactVersionId, isCarouselApp, sourceRouteBlocked]);
 
   useEffect(() => {
-    if (!isCarouselApp || !selectedId || !carouselSourceArtifactId) return;
+    if (!isCarouselApp || !selectedId || !carouselSourceArtifactId || sourceRouteBlocked) return;
     if (!visibleSourceArtifacts.some((artifact) => artifact.artifact_id === carouselSourceArtifactId)) {
       const next = visibleSourceArtifacts[0];
       setCarouselSourceArtifactId(next?.artifact_id || "");
       setCarouselSourceVersionId("");
     }
-  }, [carouselSourceArtifactId, isCarouselApp, selectedId, visibleSourceArtifacts]);
+  }, [carouselSourceArtifactId, isCarouselApp, selectedId, sourceRouteBlocked, visibleSourceArtifacts]);
 
   // Project/run restoration and artifact loading resolve independently. If a
   // restored draft clears the selection after artifacts arrive, re-select the
   // best source once the list is available instead of leaving the picker blank.
   useEffect(() => {
-    if (!isCarouselApp || !selectedId || carouselSourceArtifactId || !carouselSourceArtifacts.length) return;
+    if (!isCarouselApp || !selectedId || carouselSourceArtifactId || sourceRouteBlocked || !carouselSourceArtifacts.length) return;
     const matching = carouselSourceArtifacts.find((artifact) => artifact.current_version_id === initialSourceArtifactVersionId)
       || carouselSourceArtifacts.find((artifact) => artifact.current_version_id === carouselSourceVersionId)
       || carouselSourceArtifacts[0];
     if (matching) setCarouselSourceArtifactId(matching.artifact_id);
-  }, [carouselSourceArtifactId, carouselSourceArtifacts, carouselSourceVersionId, initialSourceArtifactVersionId, isCarouselApp, selectedId]);
+  }, [carouselSourceArtifactId, carouselSourceArtifacts, carouselSourceVersionId, initialSourceArtifactVersionId, isCarouselApp, selectedId, sourceRouteBlocked]);
 
   useEffect(() => {
     if (!isCarouselApp || !carouselSourceVersions.length) return;
@@ -367,59 +746,312 @@ export function CreationWorkspace({
     return () => window.clearInterval(timer);
   }, [selectedId, runs]);
 
+  useEffect(() => {
+    if (!workbenchV2) return;
+    const artifactIds = runs
+      .filter((run) => run.app_id === appId)
+      .flatMap((run) => run.output_artifact_ids);
+    artifactIds.forEach((artifactId) => {
+      if (!latestArtifactVersions[artifactId]) void inspectArtifact(artifactId);
+    });
+  }, [appId, latestArtifactVersions, runs, workbenchV2]);
+
   async function selectProject(project: ContentProject) {
-    if (dirty && !window.confirm("当前项目有未保存修改，确定切换吗？")) return;
+    if ((dirty || contextDirty) && !window.confirm("当前项目有未保存修改（项目资料草稿已保存在本机），确定切换吗？")) return;
+    const requestSequence = ++projectRequestSequence.current;
     resetCarouselDraft();
+    resetTextAppDraft();
     setSelectedId(project.project_id);
     setName(project.name);
     setGoal(project.primary_goal);
+    setContextPayload(null);
+    setContextSnapshot(null);
     setDirty(false);
-    const [nextRuns, snapshot] = await Promise.all([listAppRuns(project.project_id), getCurrentContextSnapshot(project.project_id)]);
-    setRuns(nextRuns);
-    restoreCarouselDraft(nextRuns);
-    setContextPayload(snapshot?.payload || null);
+    setContextDirty(false);
+    setProjectDetailsOpen(false);
+    setError("");
+    try {
+      const [nextRuns, snapshot] = await Promise.all([listAppRuns(project.project_id), getCurrentContextSnapshot(project.project_id)]);
+      if (requestSequence !== projectRequestSequence.current) return;
+      setRuns(nextRuns);
+      restoreCarouselDraft(nextRuns);
+      setContextPayload(snapshot?.payload || null);
+      setContextSnapshot(snapshot);
+      if (brandProjectV1 && snapshot?.schema_version === 3) setProjectDetailsOpen(true);
+    } catch (loadError) {
+      if (requestSequence !== projectRequestSequence.current) return;
+      setError(loadError instanceof Error ? loadError.message : "项目上下文加载失败");
+    }
+  }
+
+  function beginNewProject() {
+    if ((dirty || contextDirty) && !window.confirm("当前项目有未保存修改（项目资料草稿已保存在本机），确定新建项目吗？")) return;
+    projectRequestSequence.current += 1;
+    resetCarouselDraft();
+    resetTextAppDraft();
+    setSelectedId("");
+    setName("");
+    setGoal("");
+    setRuns([]);
+    setContextPayload(null);
+    setContextSnapshot(null);
+    setDirty(false);
+    setContextDirty(false);
+    setProjectDetailsOpen(false);
+    setError("");
+    window.requestAnimationFrame(() => document.getElementById("creation-project-name")?.focus());
+  }
+
+  async function persistProject(): Promise<ContentProject> {
+    const existingProject = selected;
+    const project = selected
+      ? await updateContentProject(selected.project_id, { name, primary_goal: goal })
+      : await createContentProject({ name, primary_goal: goal });
+    setProjects((current) => [project, ...current.filter((item) => item.project_id !== project.project_id)]);
+    setSelectedId(project.project_id);
+    if (!existingProject) {
+      setContextPayload(null);
+      setContextSnapshot(null);
+      setContextDirty(false);
+    }
+    setDirty(false);
+    setError("");
+    return project;
   }
 
   async function saveDraft() {
     try {
-      const project = selected
-        ? await updateContentProject(selected.project_id, { name, primary_goal: goal })
-        : await createContentProject({ name, primary_goal: goal });
-      setProjects((current) => [project, ...current.filter((item) => item.project_id !== project.project_id)]);
-      setSelectedId(project.project_id);
-      setContextPayload(null);
-      setDirty(false);
-      setError("");
+      await persistProject();
     } catch (err) {
       setError(err instanceof Error ? err.message : "项目保存失败");
     }
   }
 
-  async function createDraftRun() {
-    if (!selected) return;
+  async function createProjectFromDialog() {
+    const nextName = newProjectName.trim();
+    const nextGoal = newProjectGoal.trim();
+    if (!nextName || !nextGoal) return;
+    setProjectCreateBusy(true);
     try {
-      const input_payload = isCarouselApp
-        ? {
-            goal,
-            page_count: carouselPageCount,
-            source_artifact_version_ids: [carouselSourceVersionId.trim()],
-            asset_refs: carouselAssetRefs,
-          }
-        : isTitlesApp
-          ? { platform, objective, count, topic }
-          : { goal, product_or_service: productOrService, content_format: contentFormat, length_bucket: lengthBucket };
-      await createAppRun({
-        project_id: selected.project_id,
-        app_id: appId,
-        app_version: appVersion,
-        input_payload,
-        idempotency_key: `${selected.project_id}-${Date.now()}`,
-        context_snapshot_id: selected.current_context_snapshot_id,
-      });
-      setRuns(await listAppRuns(selected.project_id));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "运行草稿创建失败");
+      const created = await createContentProject({ name: nextName, primary_goal: nextGoal });
+      setProjects((current) => [created, ...current.filter((item) => item.project_id !== created.project_id)]);
+      setSelectedId(created.project_id);
+      setName(created.name);
+      setGoal(created.primary_goal);
+      setRuns([]);
+      setContextPayload(null);
+      setContextSnapshot(null);
+      setDirty(false);
+      setContextDirty(false);
+      setProjectDetailsOpen(false);
+      setProjectCreateOpen(false);
+      setNewProjectName("");
+      setNewProjectGoal("");
+      setError("");
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : "项目创建失败");
+    } finally {
+      setProjectCreateBusy(false);
     }
+  }
+
+  function handleBrandProjectCreated(created: ContentProject) {
+    setProjects((current) => [created, ...current.filter((item) => item.project_id !== created.project_id)]);
+    setSelectedId(created.project_id);
+    setName(created.name);
+    setGoal(created.primary_goal);
+    setRuns([]);
+    setContextPayload(null);
+    setContextSnapshot(null);
+    setDirty(false);
+    setContextDirty(false);
+    setProjectDetailsOpen(true);
+    setProjectCreateOpen(false);
+    setNewProjectName("");
+    setNewProjectGoal("");
+    setError("");
+    void getCurrentContextSnapshot(created.project_id)
+      .then((snapshot) => {
+        setContextSnapshot(snapshot);
+        setContextPayload(snapshot?.payload || null);
+      })
+      .catch((loadError) => setError(loadError instanceof Error ? loadError.message : "项目上下文加载失败"));
+  }
+
+  async function reloadSelectedProjectContext() {
+    if (!selectedId) return;
+    const [nextProjects, snapshot] = await Promise.all([
+      listContentProjects(),
+      getCurrentContextSnapshot(selectedId),
+    ]);
+    setProjects(nextProjects);
+    const nextProject = nextProjects.find((item) => item.project_id === selectedId);
+    if (nextProject) {
+      setName(nextProject.name);
+      setGoal(nextProject.primary_goal);
+    }
+    setContextSnapshot(snapshot);
+    setContextPayload(snapshot?.payload || null);
+    setContextDirty(false);
+  }
+
+  async function buildRunInputPayload() {
+    if (carouselWorkbenchV2) {
+      if (!selected || !contextSnapshot || contextSnapshot.schema_version !== 2) {
+        throw new Error("请先保存完整的 v2 项目资料");
+      }
+      const style = stylePresets.find((item) => item.style_id === selectedStyleId);
+      const customText = customStyleText.trim();
+      return {
+        schema_version: 2,
+        app_id: appId,
+        input_schema_ref: "douyin-carousel-input.v2",
+        project_id: selected.project_id,
+        context_snapshot_id: contextSnapshot.context_snapshot_id,
+        task_brief: {
+          goal: goal.trim(),
+          page_count: carouselPageCount,
+          template_id: carouselTemplateId,
+          asset_refs: carouselAssetRefs,
+          cover_hook: carouselCoverHook.trim(),
+          cta: carouselCta.trim(),
+          publish_description: carouselPublishDescription.trim(),
+          hashtags: carouselHashtagsText
+            .split(/[\n,，#]/)
+            .map((item) => item.trim())
+            .filter(Boolean),
+        },
+        style_ref: styleSource === "preset" && style
+          ? { style_id: style.style_id, version: style.version }
+          : null,
+        custom_style_reference: styleSource === "custom" && customText
+          ? {
+              text: customText,
+              content_fingerprint: await sha256Fingerprint(customText),
+              facts_imported: false,
+            }
+          : null,
+        source_artifact_version_ids: [carouselSourceVersionId.trim()],
+      };
+    }
+    if (textWorkbenchV2) {
+      if (!selected || !contextSnapshot || contextSnapshot.schema_version !== 2) {
+        throw new Error("请先保存完整的 v2 项目资料");
+      }
+      const style = stylePresets.find((item) => item.style_id === selectedStyleId);
+      const customText = customStyleText.trim();
+      const style_ref = styleSource === "preset" && style
+        ? { style_id: style.style_id, version: style.version }
+        : null;
+      const custom_style_reference = styleSource === "custom" && customText
+        ? {
+            text: customText,
+            content_fingerprint: await sha256Fingerprint(customText),
+            facts_imported: false,
+          }
+        : null;
+      const common = {
+        schema_version: 2,
+        app_id: appId,
+        project_id: selected.project_id,
+        context_snapshot_id: contextSnapshot.context_snapshot_id,
+        style_ref,
+        custom_style_reference,
+      };
+      if (isTitlesApp) {
+        return {
+          ...common,
+          input_schema_ref: "viral-titles-input.v2",
+          task_brief: {
+            platform,
+            objective,
+            count,
+            topic: titleSourceMode === "topic" ? topic.trim() : null,
+            source_text: titleSourceMode === "text" ? titleSourceText.trim() : null,
+            keywords: titleKeywordsText
+              .split(/[\n,，]/)
+              .map((item) => item.trim())
+              .filter(Boolean),
+          },
+          source_artifact_version_ids: titleSourceMode === "artifact" && titleSourceVersionId
+            ? [titleSourceVersionId]
+            : [],
+        };
+      }
+      const context = contextSnapshot.payload;
+      const offer = context.offer && typeof context.offer === "object"
+        ? context.offer as Record<string, unknown>
+        : {};
+      const audience = context.audience && typeof context.audience === "object"
+        ? context.audience as Record<string, unknown>
+        : {};
+      const sellingPoints = Array.isArray(context.selling_points) ? context.selling_points : [];
+      const requiredFacts = Array.isArray(context.required_facts) ? context.required_facts : [];
+      return {
+        ...common,
+        input_schema_ref: "marketing-copy-input.v2",
+        task_brief: {
+          goal,
+          offer_name: productOrService.trim() || String(offer.name || ""),
+          selling_point_fact_ids: sellingPoints
+            .map((item) => item && typeof item === "object" ? String((item as Record<string, unknown>).fact_id || "") : "")
+            .filter(Boolean),
+          benefit_tags: benefitTagsText
+            .split(/[\n,，]/)
+            .map((item) => item.trim())
+            .filter(Boolean),
+          audience: String(audience.primary || ""),
+          content_format: contentFormat,
+          length_bucket: lengthBucket,
+          must_include: requiredFacts
+            .map((item) => item && typeof item === "object" ? String((item as Record<string, unknown>).text || "") : "")
+            .filter(Boolean),
+          cta: null,
+        },
+        source_artifact_version_ids: [],
+      };
+    }
+    return isCarouselApp
+      ? {
+          goal,
+          page_count: carouselPageCount,
+          source_artifact_version_ids: [carouselSourceVersionId.trim()],
+          asset_refs: carouselAssetRefs,
+        }
+      : isTitlesApp
+        ? { platform, objective, count, topic }
+        : { goal, product_or_service: productOrService, content_format: contentFormat, length_bucket: lengthBucket };
+  }
+
+  async function startGeneration() {
+    try {
+      const project = selected && !dirty ? selected : await persistProject();
+      const input_payload = await buildRunInputPayload();
+      const run = await createAppRun({
+        project_id: project.project_id,
+        app_id: appId,
+        app_version: textWorkbenchV2 || carouselWorkbenchV2 ? "1.1.0" : appVersion,
+        input_payload,
+        idempotency_key: `${project.project_id}-${Date.now()}`,
+        context_snapshot_id: project.current_context_snapshot_id,
+      });
+      await executeAppRun(run.app_run_id);
+      setRuns(await listAppRuns(project.project_id));
+      setError("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "应用生成启动失败");
+    }
+  }
+
+  function handleContextSaved(snapshot: ContextSnapshot) {
+    setContextSnapshot(snapshot);
+    setContextPayload(snapshot.payload);
+    setContextDirty(false);
+    setProjects((current) => current.map((project) => (
+      project.project_id === snapshot.project_id
+        ? { ...project, current_context_snapshot_id: snapshot.context_snapshot_id }
+        : project
+    )));
   }
 
   async function actOnRun(run: AppRun) {
@@ -438,11 +1070,19 @@ export function CreationWorkspace({
 
   async function archiveSelected() {
     if (!selected) return;
+    if ((dirty || contextDirty) && !window.confirm("当前项目有未保存修改。归档后项目将从列表移除，本机项目资料草稿也会删除，确定继续吗？")) return;
+    const archivedProjectId = selected.project_id;
     try {
-      await archiveContentProject(selected.project_id);
+      await archiveContentProject(archivedProjectId);
+      window.localStorage.removeItem(`pixelle.app-workbench.context-draft.v2:${archivedProjectId}`);
       setSelectedId("");
+      setName("");
+      setGoal("");
       setRuns([]);
       setContextPayload(null);
+      setContextSnapshot(null);
+      setDirty(false);
+      setContextDirty(false);
       await reload(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "项目归档失败");
@@ -452,14 +1092,71 @@ export function CreationWorkspace({
   async function inspectArtifact(artifactId: string) {
     try {
       const versions = await listArtifactVersions(artifactId);
+      setArtifactVersionLists((current) => ({ ...current, [artifactId]: versions }));
       const latest = versions[versions.length - 1];
       setVersionCounts((current) => ({ ...current, [artifactId]: versions.length }));
       setLatestArtifactVersions((current) => ({ ...current, [artifactId]: latest || null }));
       const structured = asStructuredDraft(latest?.content);
       setStructuredDrafts((current) => ({ ...current, [artifactId]: structured }));
       setVersionDrafts((current) => ({ ...current, [artifactId]: JSON.stringify(structured || latest?.content || {}, null, 2) }));
+      if (latest?.content?.artifact_type === "carousel_page") {
+        const text = String(latest.content.text || "");
+        const assetRefs = Array.isArray(latest.content.asset_refs)
+          ? latest.content.asset_refs.map(String)
+          : [];
+        setCarouselPageDrafts((current) => ({
+          ...current,
+          [artifactId]: { text, asset_refs: assetRefs },
+        }));
+        const imageRef = latest.file_refs.find((fileRef) => fileRef.kind === "image" || fileRef.mime_type === "image/png");
+        if (imageRef && typeof imageRef.file_key === "string") {
+          const blob = await downloadAppArtifactFile(artifactId, imageRef.file_key);
+          const url = URL.createObjectURL(blob);
+          setCarouselPreviewUrls((current) => {
+            if (current[artifactId]) URL.revokeObjectURL(current[artifactId]);
+            return { ...current, [artifactId]: url };
+          });
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "版本加载失败");
+    }
+  }
+
+  async function selectArtifactVersion(artifactId: string, versionId: string) {
+    const versions = artifactVersionLists[artifactId] || [];
+    const selectedVersion = versions.find((version) => version.artifact_version_id === versionId);
+    if (!selectedVersion) return;
+    setLatestArtifactVersions((current) => ({ ...current, [artifactId]: selectedVersion }));
+    setStructuredDrafts((current) => ({ ...current, [artifactId]: asStructuredDraft(selectedVersion.content) }));
+    setVersionDrafts((current) => ({ ...current, [artifactId]: JSON.stringify(asStructuredDraft(selectedVersion.content) || selectedVersion.content || {}, null, 2) }));
+    setActionNotice(`已切换到结果 v${selectedVersion.version_number}；交接将使用此固定版本。`);
+  }
+
+  async function saveAndRenderCarouselPage(artifactId: string) {
+    const draft = carouselPageDrafts[artifactId];
+    if (!draft?.text.trim() || !draft.asset_refs.length) {
+      setError("页面文案和图片都不能为空");
+      return;
+    }
+    setCarouselPageBusy(artifactId);
+    try {
+      const response = await retryCarouselPage(artifactId, {
+        text: draft.text.trim(),
+        asset_refs: draft.asset_refs,
+      });
+      setLatestArtifactVersions((current) => ({
+        ...current,
+        [artifactId]: response.page_artifact_version,
+        [response.package_artifact_version.artifact_id]: response.package_artifact_version,
+      }));
+      await inspectArtifact(artifactId);
+      setActionNotice("当前页已生成新版本，其他页面保持不变；旧发布包已安全失效。");
+      setError("");
+    } catch (renderError) {
+      setError(renderError instanceof Error ? renderError.message : "当前页重渲染失败");
+    } finally {
+      setCarouselPageBusy("");
     }
   }
 
@@ -497,6 +1194,44 @@ export function CreationWorkspace({
     }
   }
 
+  async function downloadCarouselImages(artifactId: string, version: ArtifactVersion) {
+    const imageRefs = version.file_refs.filter((fileRef) => fileRef.kind === "image" || fileRef.mime_type === "image/png");
+    if (!imageRefs.length) {
+      setError("图文包中没有可下载的页面图片");
+      return;
+    }
+    try {
+      for (const fileRef of imageRefs) {
+        if (typeof fileRef.file_key !== "string") continue;
+        const blob = await downloadAppArtifactFile(artifactId, fileRef.file_key);
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = fileRef.file_key;
+        anchor.click();
+        URL.revokeObjectURL(url);
+      }
+      setActionNotice(`已准备 ${imageRefs.length} 张图文页面图片。`);
+    } catch (downloadError) {
+      setError(downloadError instanceof Error ? downloadError.message : "页面图片下载失败");
+    }
+  }
+
+  async function handoffCarouselToPublishing(artifactId: string, version: ArtifactVersion) {
+    if (!selected || !onOpenPublishCenter) return;
+    try {
+      const packageData = await createPublishPackageV2({
+        project_id: selected.project_id,
+        artifact_version_ids: [version.artifact_version_id],
+      });
+      onOpenPublishCenter(packageData.package_id);
+      setActionNotice("图文包已固定交给发布中心；平台与账号将在发布中心选择，最终发布仍由你人工确认。");
+      setError("");
+    } catch (handoffError) {
+      setError(handoffError instanceof Error ? handoffError.message : "交给发布中心失败");
+    }
+  }
+
   function syncStructuredDraft(artifactId: string, next: StructuredArtifactDraft) {
     setStructuredDrafts((current) => ({ ...current, [artifactId]: next }));
     setVersionDrafts((current) => ({ ...current, [artifactId]: JSON.stringify(next, null, 2) }));
@@ -521,11 +1256,244 @@ export function CreationWorkspace({
     syncStructuredDraft(artifactId, { ...draft, candidates });
   }
 
+  function sourceRunForArtifact(artifactId: string) {
+    return runs.find((run) => run.output_artifact_ids.includes(artifactId)) || null;
+  }
+
+  async function resolveHandoffVersion(artifactId: string) {
+    if (!selected) throw new Error("当前项目不存在，无法交接来源产物。 ");
+    const summaries = await listProjectArtifacts(selected.project_id);
+    const summary = summaries.find((item) => item.artifact_id === artifactId);
+    if (!summary || summary.project_id !== selected.project_id || summary.status === "archived") {
+      throw new Error("来源产物不存在、已归档或不属于当前项目；已安全停手，请重新选择来源。 ");
+    }
+    const versions = await listArtifactVersions(artifactId);
+    const selectedVersion = latestArtifactVersions[artifactId];
+    if (selectedVersion) {
+      const matching = versions.find((version) => version.artifact_version_id === selectedVersion.artifact_version_id);
+      if (!matching) throw new Error("当前选择的结果版本已不存在，请刷新版本列表后再交接。 ");
+      return matching;
+    }
+    const latest = versions[versions.length - 1];
+    if (!latest) throw new Error("暂无可交接的产物版本");
+    return latest;
+  }
+
+  async function recordResultInteraction(
+    artifactId: string,
+    eventType: "result.copied" | "result.selected" | "result.liked" | "result.disliked",
+    itemIndex: number,
+    summary: string,
+  ) {
+    const sourceRun = sourceRunForArtifact(artifactId);
+    const version = latestArtifactVersions[artifactId];
+    if (!sourceRun) return;
+    await recordAppEvent(sourceRun.app_run_id, eventType, {
+      artifact_id: artifactId,
+      ...(version ? { artifact_version_id: version.artifact_version_id } : {}),
+      item_index: itemIndex,
+      summary,
+    });
+  }
+
+  async function copyResultItem(artifactId: string, itemIndex: number, value: string, summary: string) {
+    if (!navigator.clipboard || !value.trim()) {
+      setError("当前环境不支持复制此结果");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(value);
+      await recordResultInteraction(artifactId, "result.copied", itemIndex, summary);
+      setActionNotice("已复制到剪贴板。");
+      setError("");
+    } catch (copyError) {
+      setError(copyError instanceof Error ? copyError.message : "结果复制失败");
+    }
+  }
+
+  async function setPrimaryResult(artifactId: string, itemIndex: number) {
+    const draft = structuredDrafts[artifactId];
+    const sourceRun = sourceRunForArtifact(artifactId);
+    if (!draft || !sourceRun || !selected) return;
+    try {
+      if (draft.artifact_type === "copywriting" && draft.variants?.[itemIndex]) {
+        const variants = [...draft.variants];
+        const [selectedVariant] = variants.splice(itemIndex, 1);
+        const next = { ...draft, variants: [selectedVariant, ...variants] };
+        const saved = await appendArtifactVersion(artifactId, next, "edited");
+        await inspectArtifact(artifactId);
+        await recordAppEvent(sourceRun.app_run_id, "result.selected", {
+          artifact_id: artifactId,
+          artifact_version_id: saved.artifact_version_id,
+          item_index: itemIndex,
+          summary: "设为主文案",
+        });
+        setActionNotice("已设为主文案并保存为新版本。");
+      } else if (draft.artifact_type === "title_set" && draft.candidates?.[itemIndex]) {
+        const saved = await createSelectedTitleVersion(artifactId, itemIndex, draft, sourceRun);
+        await recordAppEvent(sourceRun.app_run_id, "result.selected", {
+          artifact_id: saved.artifact_id,
+          artifact_version_id: saved.artifact_version_id,
+          item_index: itemIndex,
+          summary: "设为主标题",
+        });
+        setActionNotice("已生成可继续交付的主标题版本。");
+      }
+      setError("");
+    } catch (selectError) {
+      setError(selectError instanceof Error ? selectError.message : "主结果保存失败");
+    }
+  }
+
+  async function createSelectedTitleVersion(
+    artifactId: string,
+    itemIndex: number,
+    draft: StructuredArtifactDraft,
+    sourceRun: AppRun,
+  ): Promise<ArtifactVersion> {
+    if (!selected || draft.artifact_type !== "title_set" || !draft.candidates?.[itemIndex]) {
+      throw new Error("请选择一个可用标题");
+    }
+    const candidate = draft.candidates[itemIndex];
+    const sourceTitleVersionId = latestArtifactVersions[artifactId]?.artifact_version_id || "";
+    const key = `${artifactId}:${sourceTitleVersionId || "latest"}:${itemIndex}`;
+    const inFlight = selectedTitleVersionInFlight.current.get(key);
+    if (inFlight) return inFlight;
+    const operation = (async () => {
+      if (sourceTitleVersionId) {
+        const selectedTitleArtifacts = (await listProjectArtifacts(selected.project_id))
+          .filter((artifact) => artifact.artifact_type === "selected_title" && artifact.status !== "archived");
+        const existingMatches = await Promise.all(selectedTitleArtifacts.map(async (artifact) => {
+          try {
+            const history = await listArtifactVersions(artifact.artifact_id);
+            return history.find((version) => (
+              version.content?.source_title_set_artifact_id === artifactId
+                && version.content?.source_title_set_version_id === sourceTitleVersionId
+                && Number(version.content?.selected_index) === itemIndex
+            )) || null;
+          } catch {
+            return null;
+          }
+        }));
+        const existing = existingMatches.find((version): version is ArtifactVersion => Boolean(version));
+        if (existing) return existing;
+      }
+      const selectedArtifact = await createProjectArtifact(selected.project_id, {
+        artifact_type: "selected_title",
+        name: String(candidate.title || "主标题"),
+        source_app_run_id: sourceRun.app_run_id,
+      });
+      return appendArtifactVersion(selectedArtifact.artifact_id, {
+        schema_version: 1,
+        artifact_type: "selected_title",
+        title: String(candidate.title || ""),
+        angle: String(candidate.angle || ""),
+        source_title_set_artifact_id: artifactId,
+        source_title_set_version_id: sourceTitleVersionId || null,
+        selected_index: itemIndex,
+      }, "edited");
+    })();
+    selectedTitleVersionInFlight.current.set(key, operation);
+    try {
+      return await operation;
+    } finally {
+      selectedTitleVersionInFlight.current.delete(key);
+    }
+  }
+
+  async function openDigitalHumanFromTitle(artifactId: string, itemIndex: number) {
+    if (!selected || !onOpenApp) return;
+    const draft = structuredDrafts[artifactId];
+    const sourceRun = sourceRunForArtifact(artifactId);
+    if (!draft || !sourceRun) return;
+    try {
+      const saved = await createSelectedTitleVersion(artifactId, itemIndex, draft, sourceRun);
+      await createArtifactHandoff({
+        project_id: selected.project_id,
+        source_artifact_id: saved.artifact_id,
+        source_artifact_version_id: saved.artifact_version_id,
+        target_app_id: "builtin.digital-human-video",
+        target_app_version: "1.1.0",
+        artifact_version_ids: [saved.artifact_version_id],
+        mapping_version: 2,
+      });
+      await recordAppEvent(sourceRun.app_run_id, "handoff.completed", {
+        artifact_id: saved.artifact_id,
+        artifact_version_id: saved.artifact_version_id,
+        target_app_id: "builtin.digital-human-video",
+        summary: "标题已固定带入数字人",
+      });
+      onOpenApp("builtin.digital-human-video", saved.artifact_version_id);
+      setActionNotice("主标题已固定带入数字人口播；请补充完整文案与形象后再生成。 ");
+      setError("");
+    } catch (handoffError) {
+      setError(handoffError instanceof Error ? handoffError.message : "标题交接数字人失败");
+    }
+  }
+
+  async function openCarouselFromTitle(artifactId: string, itemIndex: number) {
+    if (!selected || !onOpenApp) return;
+    const draft = structuredDrafts[artifactId];
+    const sourceRun = sourceRunForArtifact(artifactId);
+    if (!draft || !sourceRun) return;
+    try {
+      const saved = await createSelectedTitleVersion(artifactId, itemIndex, draft, sourceRun);
+      await createArtifactHandoff({
+        project_id: selected.project_id,
+        source_artifact_id: saved.artifact_id,
+        source_artifact_version_id: saved.artifact_version_id,
+        target_app_id: "builtin.douyin-carousel",
+        target_app_version: "1.1.0",
+        artifact_version_ids: [saved.artifact_version_id],
+        mapping_version: 2,
+      });
+      await recordAppEvent(sourceRun.app_run_id, "handoff.completed", {
+        artifact_id: saved.artifact_id,
+        artifact_version_id: saved.artifact_version_id,
+        target_app_id: "builtin.douyin-carousel",
+        summary: "标题已固定带入抖音图文",
+      });
+      onOpenApp("builtin.douyin-carousel", saved.artifact_version_id);
+      setActionNotice("主标题已固定带入抖音图文；来源版本不会随上游修改而热更新。 ");
+      setError("");
+    } catch (handoffError) {
+      setError(handoffError instanceof Error ? handoffError.message : "标题交接图文失败");
+    }
+  }
+
+  async function sendResultFeedback(
+    artifactId: string,
+    itemIndex: number,
+    liked: boolean,
+  ) {
+    try {
+      await recordResultInteraction(
+        artifactId,
+        liked ? "result.liked" : "result.disliked",
+        itemIndex,
+        liked ? "用户喜欢" : "用户不喜欢",
+      );
+      setActionNotice(liked ? "已记录喜欢。" : "已记录不喜欢。");
+      setError("");
+    } catch (feedbackError) {
+      setError(feedbackError instanceof Error ? feedbackError.message : "反馈记录失败");
+    }
+  }
+
   async function saveEditedArtifact(artifactId: string) {
     try {
       const content = JSON.parse(versionDrafts[artifactId] || "{}");
-      await appendArtifactVersion(artifactId, content, "edited");
+      const saved = await appendArtifactVersion(artifactId, content, "edited");
+      const sourceRun = runs.find((run) => run.output_artifact_ids.includes(artifactId));
+      if (sourceRun) {
+        await recordAppEvent(sourceRun.app_run_id, "result.edited", {
+          artifact_id: artifactId,
+          artifact_version_id: saved.artifact_version_id,
+          summary: "保存编辑版本",
+        });
+      }
       await inspectArtifact(artifactId);
+      setActionNotice("已保存为新的结果版本，旧版本保持不变。");
       setError("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "编辑版本保存失败");
@@ -535,9 +1503,34 @@ export function CreationWorkspace({
   async function handoffToTitles(run: AppRun, artifactId: string) {
     if (!selected) return;
     try {
-      const versions = await listArtifactVersions(artifactId);
-      const latest = versions[versions.length - 1];
-      if (!latest) throw new Error("暂无可交接的产物版本");
+      const latest = await resolveHandoffVersion(artifactId);
+      if (textWorkbenchV2) {
+        await recordAppEvent(run.app_run_id, "handoff.started", {
+          artifact_id: artifactId,
+          artifact_version_id: latest.artifact_version_id,
+          target_app_id: "builtin.viral-titles",
+          summary: "交给爆款标题",
+        });
+        await createArtifactHandoff({
+          project_id: selected.project_id,
+          source_artifact_id: artifactId,
+          source_artifact_version_id: latest.artifact_version_id,
+          target_app_id: "builtin.viral-titles",
+          target_app_version: "1.1.0",
+          artifact_version_ids: [latest.artifact_version_id],
+          mapping_version: 2,
+        });
+        await recordAppEvent(run.app_run_id, "handoff.completed", {
+          artifact_id: artifactId,
+          artifact_version_id: latest.artifact_version_id,
+          target_app_id: "builtin.viral-titles",
+          summary: "已带入标题工作台",
+        });
+        onOpenApp?.("builtin.viral-titles", latest.artifact_version_id);
+        setActionNotice("文案版本已固定带入爆款标题；确认标题输入后再生成。");
+        setError("");
+        return;
+      }
       const target = await createAppRun({
         project_id: selected.project_id,
         app_id: "builtin.viral-titles",
@@ -563,11 +1556,27 @@ export function CreationWorkspace({
   }
 
   async function openCarouselFromArtifact(artifactId: string) {
-    if (!onOpenApp) return;
+    if (!onOpenApp || !selected) return;
     try {
-      const versions = await listArtifactVersions(artifactId);
-      const latest = versions[versions.length - 1];
-      if (!latest) throw new Error("暂无可交接的文案版本");
+      const latest = await resolveHandoffVersion(artifactId);
+      const sourceRun = sourceRunForArtifact(artifactId);
+      if (sourceRun) {
+        await createArtifactHandoff({
+          project_id: selected.project_id,
+          source_artifact_id: artifactId,
+          source_artifact_version_id: latest.artifact_version_id,
+          target_app_id: "builtin.douyin-carousel",
+          target_app_version: "1.1.0",
+          artifact_version_ids: [latest.artifact_version_id],
+          mapping_version: 2,
+        });
+        await recordAppEvent(sourceRun.app_run_id, "handoff.completed", {
+          artifact_id: artifactId,
+          artifact_version_id: latest.artifact_version_id,
+          target_app_id: "builtin.douyin-carousel",
+          summary: "文案已固定带入抖音图文",
+        });
+      }
       onOpenApp("builtin.douyin-carousel", latest.artifact_version_id);
       setError("");
     } catch (err) {
@@ -575,150 +1584,708 @@ export function CreationWorkspace({
     }
   }
 
+  async function openDigitalHumanFromArtifact(artifactId: string) {
+    if (!onOpenApp || !selected) return;
+    try {
+      const latest = await resolveHandoffVersion(artifactId);
+      const sourceRun = sourceRunForArtifact(artifactId);
+      if (sourceRun) {
+        await createArtifactHandoff({
+          project_id: selected.project_id,
+          source_artifact_id: artifactId,
+          source_artifact_version_id: latest.artifact_version_id,
+          target_app_id: "builtin.digital-human-video",
+          target_app_version: "1.1.0",
+          artifact_version_ids: [latest.artifact_version_id],
+          mapping_version: 2,
+        });
+        await recordAppEvent(sourceRun.app_run_id, "handoff.completed", {
+          artifact_id: artifactId,
+          artifact_version_id: latest.artifact_version_id,
+          target_app_id: "builtin.digital-human-video",
+          summary: "文案已固定带入数字人",
+        });
+      }
+      onOpenApp("builtin.digital-human-video", latest.artifact_version_id);
+      setActionNotice("文案版本已固定带入数字人口播；请补充形象与交付字段后再生成。 ");
+      setError("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "打开数字人口播失败");
+    }
+  }
+
   const appCopy = APP_COPY[appId] || APP_COPY["builtin.marketing-copy"];
+  const generationLabel = isCarouselApp ? "生成抖音图文" : isTitlesApp ? "生成爆款标题" : "生成营销文案";
+  const textStyleMissing = textWorkbenchV2 && (
+    styleSource === "preset" ? !selectedStyleId : !customStyleText.trim()
+  );
+  const carouselStyleMissing = carouselWorkbenchV2 && (
+    styleSource === "preset" ? !selectedStyleId : !customStyleText.trim()
+  );
+  const textContextMissing = textWorkbenchV2 && contextSnapshot?.schema_version !== 2;
+  const carouselContextMissing = carouselWorkbenchV2 && contextSnapshot?.schema_version !== 2;
+  const titleV2SourceMissing = textWorkbenchV2 && isTitlesApp && (
+    titleSourceMode === "artifact"
+      ? !titleSourceVersionId
+      : titleSourceMode === "topic"
+        ? !topic.trim()
+        : !titleSourceText.trim()
+  );
+  const appInputMissing = isCarouselApp
+    ? !selected
+      || !carouselSourceVersionId.trim()
+      || carouselAssetRefs.length === 0
+      || carouselStyleMissing
+      || carouselContextMissing
+    : isTitlesApp
+      ? (textWorkbenchV2 ? titleV2SourceMissing || textStyleMissing || textContextMissing : !topic.trim())
+      : !(productOrService.trim() || (
+          contextSnapshot?.payload?.offer
+          && typeof contextSnapshot.payload.offer === "object"
+          && String((contextSnapshot.payload.offer as Record<string, unknown>).name || "").trim()
+        )) || textStyleMissing || textContextMissing;
+  const relevantRuns = workbenchV2 ? runs.filter((run) => run.app_id === appId) : runs;
+  const latestRun = [...relevantRuns]
+    .sort((left, right) => right.updated_at.localeCompare(left.updated_at))[0] || null;
+  const visibleRuns = workbenchV2
+    ? (latestRun ? [latestRun] : [])
+    : relevantRuns;
+  const resultState: WorkbenchViewState = !latestRun
+    ? "empty"
+    : latestRun.state === "failed" || latestRun.state === "cancelled"
+      ? "failed"
+      : latestRun.state === "needs_review"
+        ? "needs_review"
+        : latestRun.state === "completed"
+          ? "saved"
+          : "running";
+  const runPanel = selected ? (
+    <div className="creation-workbench-results">
+      <List size="small" dataSource={visibleRuns} locale={{ emptyText: workbenchV2 ? "当前应用暂无运行" : "暂无运行" }} renderItem={(run) => <List.Item actions={run.state !== "completed" && run.state !== "cancelled" ? [<Button size="small" onClick={() => void actOnRun(run)}>{run.state === "needs_review" ? "确认完成" : run.state === "queued" || run.state === "running" ? "取消" : run.state === "failed" ? "重试" : "执行"}</Button>] : undefined}>
+        <Space orientation="vertical" size={2} style={{ width: "100%" }}>
+          <Space size="small"><Typography.Text>{appCopy.name}</Typography.Text><Tag color={run.state === "failed" ? "error" : run.state === "completed" ? "success" : run.state === "cancelled" ? "default" : "processing"}>{stateLabels[run.state]}</Tag></Space>
+          {run.state === "failed" ? <Alert type="error" showIcon message={CAROUSEL_ERROR_COPY[run.error_code || ""] || "本次生成失败，输入仍保留，可检查后按原输入重试。"} /> : null}
+          {run.output_artifact_ids.map((artifactId) => {
+            const structured = structuredDrafts[artifactId];
+            const latestVersion = latestArtifactVersions[artifactId];
+            const isCarouselPackage = latestVersion?.content?.artifact_type === "carousel_package";
+            const isCarouselPlan = latestVersion?.content?.artifact_type === "carousel_plan";
+            const isCarouselPage = latestVersion?.content?.artifact_type === "carousel_page";
+            const isCarouselArtifact = isCarouselPackage || isCarouselPlan || isCarouselPage;
+            const carouselPageAssetRef = isCarouselPage
+              ? carouselPageDrafts[artifactId]?.asset_refs?.[0] || ""
+              : "";
+            const carouselPageAssetOptions = Array.from(new Set(
+              [...carouselAssetRefs, carouselPageAssetRef].filter(Boolean),
+            )).map((ref) => {
+              const { assetId, revisionId } = parseCarouselAssetRef(ref);
+              const asset = carouselAssetItems.find((item) => (item.asset_id || item.resource_id) === assetId);
+              return {
+                value: ref,
+                label: asset?.name || (revisionId ? "已选项目图片" : "项目图片"),
+              };
+            });
+            const validationFacts = latestVersion?.content?.validation_facts;
+            const validationInput = validationFacts && typeof validationFacts === "object"
+              ? (validationFacts as Record<string, unknown>).input
+              : null;
+            const styleRef = validationInput && typeof validationInput === "object"
+              ? (validationInput as Record<string, unknown>).style_ref
+              : null;
+            const styleId = styleRef && typeof styleRef === "object"
+              ? String((styleRef as Record<string, unknown>).style_id || "")
+              : "";
+            const styleName = stylePresets.find((item) => item.style_id === styleId)?.name || styleId;
+            const missingFacts = Array.isArray(latestVersion?.content?.missing_facts) ? latestVersion?.content?.missing_facts : [];
+            const riskFlags = Array.isArray(latestVersion?.content?.risk_flags) ? latestVersion?.content?.risk_flags : [];
+            return <Space key={artifactId} orientation="vertical" size="small" style={{ width: "100%" }}>
+              <div className="creation-result-toolbar">
+                <div className="creation-result-title">
+                  <Typography.Text strong>{isCarouselPackage ? "图文成品" : isCarouselPlan ? "分页内容" : isCarouselPage ? `第 ${String(latestVersion?.content?.page_index || "")} 页` : "本次内容"}</Typography.Text>
+                  {styleName ? <Tag color="purple">{styleName}</Tag> : null}
+                </div>
+                <div className="creation-result-actions">
+                  {!workbenchV2 ? (
+                    <VersionSwitcher
+                      versions={artifactVersionLists[artifactId] || []}
+                      value={latestVersion?.artifact_version_id}
+                      onChange={(versionId) => void selectArtifactVersion(artifactId, versionId)}
+                    />
+                  ) : null}
+                  {isCarouselPackage && latestVersion ? (
+                    <HandoffActions actions={[
+                      ...(onOpenPublishCenter ? [{ key: "publish", label: "交给发布中心", primary: true, onClick: () => void handoffCarouselToPublishing(artifactId, latestVersion) }] : []),
+                      { key: "images", label: "下载图片", onClick: () => void downloadCarouselImages(artifactId, latestVersion) },
+                      { key: "zip", label: "下载全部", onClick: () => void downloadCarouselPackage(artifactId, latestVersion) },
+                      { key: "copy", label: "复制发布文案", onClick: () => void copyCarouselPublishCopy(latestVersion) },
+                      ...(!workbenchV2 ? [{ key: "versions", label: "查看版本", onClick: () => void inspectArtifact(artifactId) }] : []),
+                    ]} />
+                  ) : !workbenchV2 ? (
+                    <HandoffActions actions={[
+                      { key: "versions", label: "查看版本", onClick: () => void inspectArtifact(artifactId) },
+                    ]} />
+                  ) : null}
+                  {run.app_id === "builtin.marketing-copy" ? <HandoffActions actions={[
+                    { key: "titles", label: "交给爆款标题", primary: true, onClick: () => void handoffToTitles(run, artifactId) },
+                    ...(onOpenApp ? [{ key: "carousel", label: "制作抖音图文", onClick: () => void openCarouselFromArtifact(artifactId) }, { key: "digital-human", label: "制作数字人", onClick: () => void openDigitalHumanFromArtifact(artifactId) }] : []),
+                  ]} /> : null}
+                </div>
+              </div>
+              {missingFacts.length ? <details className="creation-result-note">
+                <summary>还可补充 {missingFacts.length} 项信息，让内容更准确</summary>
+                <Typography.Paragraph type="secondary">{missingFacts.map((item) => {
+                  if (!item || typeof item !== "object") return String(item);
+                  const fact = item as Record<string, unknown>;
+                  return [fact.field, fact.reason].filter(Boolean).map(String).join("：");
+                }).filter(Boolean).join("；")}</Typography.Paragraph>
+              </details> : null}
+              {riskFlags.length ? <details className="creation-result-note">
+                <summary>发布前建议确认 {riskFlags.length} 项内容</summary>
+                <Typography.Paragraph type="secondary">{riskFlags.map((item) => {
+                  if (!item || typeof item !== "object") return String(item);
+                  const risk = item as Record<string, unknown>;
+                  return [risk.code, risk.reason].filter(Boolean).map(String).join("：");
+                }).filter(Boolean).join("；")}</Typography.Paragraph>
+              </details> : null}
+              {structured?.artifact_type === "copywriting" && structured.variants?.map((variant, index) => <Card key={`variant-${index}`} size="small" className="creation-result-option-card" title={<Space wrap><span>文案方案 {index + 1}</span>{variant.angle ? <Tag>{String(variant.angle)}</Tag> : null}{index === 0 ? <Tag color="purple">正在使用</Tag> : null}</Space>}>
+                <Space orientation="vertical" style={{ width: "100%" }}>
+                  <Input aria-label={`文案版本${index + 1}开头`} value={String(variant.hook || "")} onChange={(event) => updateCopyVariant(artifactId, index, "hook", event.target.value)} />
+                  <Input.TextArea aria-label={`文案版本${index + 1}正文`} value={String(variant.body || "")} rows={3} onChange={(event) => updateCopyVariant(artifactId, index, "body", event.target.value)} />
+                  <Input aria-label={`文案版本${index + 1}行动号召`} value={String(variant.cta || "")} onChange={(event) => updateCopyVariant(artifactId, index, "cta", event.target.value)} />
+                  <Typography.Text type="secondary">合成正文：{String(variant.full_text || "")}（{String(variant.word_count || 0)} 字，约 {String(variant.estimated_seconds || 0)} 秒）</Typography.Text>
+                  <HandoffActions actions={[
+                    { key: "select", label: index === 0 ? "当前使用" : "使用这版", primary: index !== 0, disabled: index === 0, onClick: () => void setPrimaryResult(artifactId, index) },
+                    { key: "copy", label: "复制文案", onClick: () => void copyResultItem(artifactId, index, String(variant.full_text || ""), `文案版本 ${index + 1}`) },
+                    { key: "like", label: "这个不错", onClick: () => void sendResultFeedback(artifactId, index, true) },
+                    { key: "dislike", label: "不太合适", onClick: () => void sendResultFeedback(artifactId, index, false) },
+                  ]} />
+                </Space>
+              </Card>)}
+              {structured?.artifact_type === "title_set" && structured.candidates?.map((candidate, index) => <Card key={`candidate-${index}`} size="small" className="creation-result-option-card" title={<Space wrap><span>标题方案 {index + 1}</span>{candidate.angle ? <Tag>{String(candidate.angle)}</Tag> : null}</Space>}>
+                <Space orientation="vertical" style={{ width: "100%" }}>
+                  <Input aria-label={`标题候选${index + 1}`} value={String(candidate.title || "")} onChange={(event) => updateTitleCandidate(artifactId, index, event.target.value)} addonAfter={`${String(candidate.length || 0)} 字`} />
+                  <HandoffActions actions={[
+                    { key: "select", label: "使用这个标题", primary: true, onClick: () => void setPrimaryResult(artifactId, index) },
+                    { key: "copy", label: "复制标题", onClick: () => void copyResultItem(artifactId, index, String(candidate.title || ""), `标题候选 ${index + 1}`) },
+                    ...(onOpenApp ? [{ key: "carousel", label: "制作抖音图文", onClick: () => void openCarouselFromTitle(artifactId, index) }] : []),
+                    ...(onOpenApp ? [{ key: "digital-human", label: "制作数字人", onClick: () => void openDigitalHumanFromTitle(artifactId, index) }] : []),
+                    { key: "like", label: "这个不错", onClick: () => void sendResultFeedback(artifactId, index, true) },
+                    { key: "dislike", label: "不太合适", onClick: () => void sendResultFeedback(artifactId, index, false) },
+                  ]} />
+                </Space>
+              </Card>)}
+              {isCarouselPlan && latestVersion ? (
+                <div className="carousel-plan-result" aria-label="图文分页计划">
+                  {(Array.isArray(latestVersion.content?.page_outline) ? latestVersion.content.page_outline : []).map((item, index) => {
+                    const page = item && typeof item === "object" ? item as Record<string, unknown> : {};
+                    return <div key={`outline-${index}`}><strong>第 {String(page.page_index || index + 1)} 页</strong><span>{String(page.purpose || "内容页")}</span></div>;
+                  })}
+                </div>
+              ) : null}
+              {isCarouselPage && latestVersion ? (
+                <Card size="small" className="carousel-page-result-card">
+                  <div className="carousel-page-result">
+                    <div className="carousel-page-preview">
+                      {carouselPreviewUrls[artifactId]
+                        ? <img src={carouselPreviewUrls[artifactId]} alt={`图文第 ${String(latestVersion.content?.page_index || "")} 页预览`} />
+                        : <Typography.Text type="secondary">正在载入真实页面预览…</Typography.Text>}
+                    </div>
+                    <Space orientation="vertical" size="small" style={{ width: "100%" }}>
+                      <Input.TextArea
+                        aria-label={`图文第${String(latestVersion.content?.page_index || "")}页文案`}
+                        rows={5}
+                        maxLength={480}
+                        showCount
+                        value={carouselPageDrafts[artifactId]?.text || ""}
+                        onChange={(event) => setCarouselPageDrafts((current) => ({
+                          ...current,
+                          [artifactId]: {
+                            text: event.target.value,
+                            asset_refs: current[artifactId]?.asset_refs || [],
+                          },
+                        }))}
+                      />
+                      <Select
+                        aria-label={`图文第${String(latestVersion.content?.page_index || "")}页图片`}
+                        value={carouselPageAssetRef || undefined}
+                        options={carouselPageAssetOptions}
+                        onChange={(value) => setCarouselPageDrafts((current) => ({
+                          ...current,
+                          [artifactId]: {
+                            text: current[artifactId]?.text || "",
+                            asset_refs: [value],
+                          },
+                        }))}
+                      />
+                      <Button
+                        type="primary"
+                        loading={carouselPageBusy === artifactId}
+                        onClick={() => void saveAndRenderCarouselPage(artifactId)}
+                      >
+                        保存本页
+                      </Button>
+                    </Space>
+                  </div>
+                </Card>
+              ) : null}
+              {structured && versionDrafts[artifactId] !== undefined ? (
+                <Button size="small" onClick={() => void saveEditedArtifact(artifactId)}>保存本次编辑</Button>
+              ) : null}
+              {!structured && !isCarouselArtifact && versionDrafts[artifactId] !== undefined ? <><Input.TextArea aria-label={`产物 ${artifactId} 编辑内容`} value={versionDrafts[artifactId]} rows={5} onChange={(event) => setVersionDrafts((current) => ({ ...current, [artifactId]: event.target.value }))} /><Button size="small" onClick={() => void saveEditedArtifact(artifactId)}>保存编辑版本</Button></> : null}
+            </Space>;
+          })}
+        </Space>
+      </List.Item>} />
+    </div>
+  ) : (
+    <div className="creation-workbench-empty">
+      <Typography.Title level={4}>先选择或新建项目</Typography.Title>
+      <Typography.Paragraph type="secondary">项目确定后，这里会显示生成进度、内容结果和下一步操作。</Typography.Paragraph>
+    </div>
+  );
+  const primaryActions = (
+    <div className="creation-primary-actions">
+      <Button block size="large" type="primary" disabled={!name.trim() || !goal.trim() || appInputMissing || contextDirty} onClick={() => void startGeneration()}>{generationLabel}</Button>
+      {!workbenchV2 ? <details className="creation-project-actions">
+        <summary>项目操作</summary>
+        <Space wrap size="small">
+          <Button size="small" disabled={!name.trim() || !goal.trim()} onClick={() => void saveDraft()}>保存项目</Button>
+          <Button size="small" danger disabled={!selected} onClick={() => void archiveSelected()}>归档项目</Button>
+        </Space>
+      </details> : null}
+    </div>
+  );
   const workspace = (
-    <Card title={focused ? "1 · 配置输入与项目" : "我的创作"} className="creation-workspace">
+    <Card title={focused ? "开始创作" : "我的创作"} className="creation-workspace">
       {error && <Alert type="error" showIcon message={error} />}
-      <div className="creation-workspace__grid">
-        <Card size="small" title="项目" extra={<Button size="small" onClick={() => { setSelectedId(""); setName(""); setGoal(""); resetCarouselDraft(); setDirty(true); }}>新建</Button>}>
-          {projects.length ? (
-            <List
-              size="small"
-              dataSource={projects}
-              renderItem={(project) => <List.Item onClick={() => void selectProject(project)} className={project.project_id === selectedId ? "creation-project--selected" : "creation-project"}>
-                <Typography.Text strong>{project.name}</Typography.Text>
-                <Tag>{project.status === "active" ? "进行中" : "已归档"}</Tag>
-              </List.Item>}
-            />
-          ) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="还没有创作项目" />}
-        </Card>
-        <Card size="small" title={selected ? "项目草稿" : "新建项目"}>
-          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-            <Input value={name} placeholder="项目名称" onChange={(event) => { setName(event.target.value); setDirty(true); }} />
-            <Input.TextArea value={goal} placeholder="本次营销目标" rows={4} onChange={(event) => { setGoal(event.target.value); setDirty(true); }} />
+      {actionNotice && <Alert type="success" showIcon closable message={actionNotice} onClose={() => setActionNotice("")} />}
+      <ProjectContextSelector
+        projects={projects}
+        value={selectedId}
+        onChange={(projectId) => {
+          const project = projects.find((item) => item.project_id === projectId);
+          if (project) void selectProject(project);
+        }}
+        onCreate={() => {
+          if (!workbenchV2) {
+            beginNewProject();
+            return;
+          }
+          setNewProjectName("");
+          setNewProjectGoal("");
+          setProjectCreateOpen(true);
+        }}
+        onEdit={() => setProjectDetailsOpen(true)}
+      />
+      <Card size="small" title={focused ? undefined : selected ? "本次要做什么" : "新建创作项目"} className="creation-input-card">
+          <Space orientation="vertical" size="middle" className="creation-input-stack">
+            {selected && !workbenchV2 ? (
+              <details className="creation-project-disclosure">
+                <summary>
+                  <span>
+                    <Typography.Text strong>{selected.name}</Typography.Text>
+                    <Typography.Text type="secondary">{goal || "还没有填写本次目标"}</Typography.Text>
+                  </span>
+                  <Typography.Text type="secondary">编辑</Typography.Text>
+                </summary>
+                <div className="creation-project-disclosure__body">
+                  <Input id="creation-project-name" value={name} placeholder="项目名称" onChange={(event) => { setName(event.target.value); setDirty(true); }} />
+                  <Input.TextArea value={goal} placeholder="本次营销目标" rows={3} onChange={(event) => { setGoal(event.target.value); setDirty(true); }} />
+                </div>
+              </details>
+            ) : !selected && !workbenchV2 ? (
+              <>
+                <Input id="creation-project-name" value={name} placeholder="项目名称" onChange={(event) => { setName(event.target.value); setDirty(true); }} />
+                <Input.TextArea value={goal} placeholder="本次营销目标" rows={3} onChange={(event) => { setGoal(event.target.value); setDirty(true); }} />
+              </>
+            ) : null}
+            {workbenchV2 && brandProjectV1 && selected ? (
+              <BrandProjectContextPanel
+                project={selected}
+                snapshot={contextSnapshot}
+                open={contextSnapshot?.schema_version === 3 && projectDetailsOpen}
+                onOpen={() => setProjectDetailsOpen(true)}
+                onClose={() => setProjectDetailsOpen(false)}
+                onSaved={handleContextSaved}
+                onReload={reloadSelectedProjectContext}
+                onDirtyChange={setContextDirty}
+              />
+            ) : workbenchV2 && selected && contextSnapshot?.schema_version !== 2 ? (
+              <ProjectBriefDisclosure ready={false}>
+                <ProjectBriefEditor
+                  projectId={selected.project_id}
+                  projectName={selected.name}
+                  snapshot={contextSnapshot}
+                  onSaved={handleContextSaved}
+                  onDirtyChange={setContextDirty}
+                />
+              </ProjectBriefDisclosure>
+            ) : null}
+            {workbenchV2 && selected && contextSnapshot?.schema_version === 2 && projectDetailsOpen ? (
+              <section className="project-details-editor" aria-label="编辑当前项目信息">
+                <div className="project-details-editor__heading">
+                  <Typography.Text strong>编辑项目信息</Typography.Text>
+                  <Button size="small" onClick={() => setProjectDetailsOpen(false)}>完成</Button>
+                </div>
+                <ProjectBriefEditor
+                  projectId={selected.project_id}
+                  projectName={selected.name}
+                  snapshot={contextSnapshot}
+                  onSaved={handleContextSaved}
+                  onDirtyChange={setContextDirty}
+                />
+              </section>
+            ) : null}
             {isCarouselApp ? (
               <>
-                <Space wrap className="creation-source-toolbar">
+                <label className="creation-select-field">
+                  <span>本次使用哪段内容？</span>
                   <Select
-                    aria-label="图文来源时间筛选"
-                    value={carouselSourceDateRange}
-                    options={CAROUSEL_SOURCE_DATE_OPTIONS}
-                    onChange={setCarouselSourceDateRange}
+                    aria-label="本次使用内容"
+                    placeholder="选择已有文案或标题"
+                    value={carouselSourceArtifactId || undefined}
+                    options={visibleSourceArtifacts.map((artifact) => {
+                      const currentVersion = carouselSourceVersions.find((version) => version.artifact_id === artifact.artifact_id);
+                      const preview = currentVersion ? truncateSourceText(sourceContentPreview(currentVersion.content), 32) : "";
+                      return {
+                        value: artifact.artifact_id,
+                        label: preview || artifact.name,
+                      };
+                    })}
+                    onChange={(value) => { setSourceRouteBlocked(false); setCarouselSourceArtifactId(value); setCarouselSourceVersionId(""); }}
+                    notFoundContent="当前项目还没有可用文案或标题"
                   />
-                  <Typography.Text type="secondary">显示 {visibleSourceArtifacts.length} 个来源</Typography.Text>
-                </Space>
-                <Select
-                  aria-label="图文来源产物"
-                  placeholder="选择文案或标题产物"
-                  value={carouselSourceArtifactId || undefined}
-                  options={visibleSourceArtifacts.map((artifact) => {
-                    const sourceRun = artifact.source_app_run_id ? sourceRunById.get(artifact.source_app_run_id) : null;
-                    const sourceGoal = typeof sourceRun?.input_payload?.goal === "string" ? ` · 目标：${truncateSourceText(sourceRun.input_payload.goal, 24)}` : "";
-                    const recentlyUsed = artifact.current_version_id && recentlyUsedSourceVersionIds.has(artifact.current_version_id) ? " · 最近使用" : "";
-                    return {
-                      value: artifact.artifact_id,
-                      label: `${artifact.name} · ${artifact.artifact_type === "copywriting" ? "文案" : "标题"} · ${formatSourceDate(artifact.updated_at || artifact.created_at)}${sourceGoal}${recentlyUsed}`,
-                    };
-                  })}
-                  onChange={(value) => { setCarouselSourceArtifactId(value); setCarouselSourceVersionId(""); }}
-                  notFoundContent="当前项目暂无可用文案或标题"
-                />
-                <Select
-                  aria-label="图文来源版本"
-                  placeholder="选择产物版本"
-                  value={carouselSourceVersionId || undefined}
-                  options={visibleSourceVersions.map((version) => ({
-                    value: version.artifact_version_id,
-                    label: `版本 ${version.version_number} · ${formatSourceDate(version.created_at)} · ${truncateSourceText(sourceContentPreview(version.content), 28)}${recentlyUsedSourceVersionIds.has(version.artifact_version_id) ? " · 最近使用" : ""}`,
-                  }))}
-                  onChange={setCarouselSourceVersionId}
-                  disabled={!visibleSourceVersions.length}
-                />
+                </label>
                 {selectedSourceVersion ? <div className="creation-source-summary" aria-label="图文来源摘要">
-                  <Space wrap size={[6, 4]}>
-                    <Tag>生成于 {formatSourceDate(selectedSourceVersion.created_at)}</Tag>
-                    {selectedSourceRun && typeof selectedSourceRun.input_payload?.goal === "string" ? <Tag>营销目标：{truncateSourceText(selectedSourceRun.input_payload.goal, 30)}</Tag> : null}
-                    {recentlyUsedSourceVersionIds.has(selectedSourceVersion.artifact_version_id) ? <Tag color="blue">最近使用</Tag> : null}
-                  </Space>
-                  <Typography.Text type="secondary">文案摘要：{truncateSourceText(sourceContentPreview(selectedSourceVersion.content), 96)}</Typography.Text>
+                  <Typography.Text type="secondary">已带入：{truncateSourceText(sourceContentPreview(selectedSourceVersion.content), 96)}</Typography.Text>
                 </div> : null}
+                {initialSourceArtifactVersionId && carouselSourceVersionId === initialSourceArtifactVersionId ? (
+                  <Alert
+                    type={carouselSourceVersionUpdateAvailable ? "warning" : "info"}
+                    showIcon
+                    message={carouselSourceVersionUpdateAvailable ? "这段内容后来有过更新" : "已带入上一步选择的内容"}
+                    description={carouselSourceVersionUpdateAvailable
+                      ? "本次仍使用你刚才确认的内容；重新选择即可使用最新内容。"
+                      : "系统会保存本次使用的内容，后续编辑不会影响这次图文。"}
+                  />
+                ) : null}
+                {carouselWorkbenchV2 ? (
+                  <>
+                    <Input
+                      aria-label="图文封面钩子"
+                      value={carouselCoverHook}
+                      placeholder="封面主标题（可选，不填会自动生成）"
+                      maxLength={80}
+                      showCount
+                      onChange={(event) => setCarouselCoverHook(event.target.value)}
+                    />
+                  </>
+                ) : null}
                 <div className="creation-carousel-assets" aria-label="图文图片资产">
                   <Space wrap>
                     {carouselAssetRefs.map((ref) => {
-                      const assetId = ref.replace(/^asset:/, "");
+                      const { assetId, revisionId } = parseCarouselAssetRef(ref);
                       const asset = carouselAssetItems.find((item) => (item.asset_id || item.resource_id) === assetId);
-                      return <Tag key={ref} closable onClose={() => setCarouselAssetRefs((current) => current.filter((item) => item !== ref))}>{asset?.name || "已选图片"}</Tag>;
+                      return <Tag key={ref} closable onClose={() => setCarouselAssetRefs((current) => current.filter((item) => item !== ref))}>{asset?.name || (revisionId ? "已选项目图片" : "已选图片")}</Tag>;
                     })}
                     <Button type="dashed" onClick={() => setAssetPickerOpen(true)}>选择图片资产</Button>
                   </Space>
-                  {!carouselAssetRefs.length ? <Typography.Text type="secondary">请选择 1–20 张企业图片；系统会自动生成 asset 引用。</Typography.Text> : null}
+                  {!carouselAssetRefs.length ? <Typography.Text type="secondary">请选择 1–20 张企业图片。</Typography.Text> : null}
                 </div>
-                <Select aria-label="图文页数" value={carouselPageCount} options={[3, 5, 8].map((value) => ({ value, label: `${value} 页` }))} onChange={setCarouselPageCount} />
-                <Typography.Text type="secondary">图文只使用企业资产库中的图片；分页文案由既有大模型配置生成，可在产物版本中编辑。</Typography.Text>
+                {!carouselWorkbenchV2 ? <label className="creation-select-field">
+                  <span>图文页数</span>
+                  <Select aria-label="图文页数" value={carouselPageCount} options={[3, 5, 8].map((value) => ({ value, label: `${value} 页` }))} onChange={setCarouselPageCount} />
+                </label> : null}
+                {carouselWorkbenchV2 ? (
+                  <details className="carousel-more-settings">
+                    <summary>更多配置</summary>
+                    <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
+                      <div className="creation-select-grid">
+                        <label className="creation-select-field">
+                          <span>图文页数</span>
+                          <Select aria-label="图文页数" value={carouselPageCount} options={[3, 5, 8].map((value) => ({ value, label: `${value} 页` }))} onChange={setCarouselPageCount} />
+                        </label>
+                        <label className="creation-select-field">
+                          <span>页面样式</span>
+                          <Select
+                            aria-label="图文模板"
+                            value={carouselTemplateId}
+                            options={[{ value: "template:clean-01", label: "简洁信息卡 · 3:4" }]}
+                            onChange={setCarouselTemplateId}
+                          />
+                        </label>
+                      </div>
+                      <label className="creation-select-field">
+                        <span>查找更早内容</span>
+                        <Select
+                          aria-label="图文来源时间筛选"
+                          value={carouselSourceDateRange}
+                          options={CAROUSEL_SOURCE_DATE_OPTIONS}
+                          onChange={setCarouselSourceDateRange}
+                        />
+                      </label>
+                      <Input
+                        aria-label="图文行动号召"
+                        value={carouselCta}
+                        placeholder="例如：收藏这份清单，到店前再看一遍"
+                        maxLength={120}
+                        showCount
+                        onChange={(event) => setCarouselCta(event.target.value)}
+                      />
+                      <Input.TextArea
+                        aria-label="图文发布描述"
+                        value={carouselPublishDescription}
+                        placeholder="可选：发布描述；留空时从来源内容提取"
+                        rows={3}
+                        maxLength={2000}
+                        showCount
+                        onChange={(event) => setCarouselPublishDescription(event.target.value)}
+                      />
+                      <Input
+                        aria-label="图文话题"
+                        value={carouselHashtagsText}
+                        placeholder="可选：咖啡，门店探店"
+                        maxLength={300}
+                        onChange={(event) => setCarouselHashtagsText(event.target.value)}
+                      />
+                    </Space>
+                  </details>
+                ) : null}
+                <Typography.Text type="secondary">图片来自企业资产库，生成后可以逐页调整文案和图片。</Typography.Text>
               </>
             ) : isTitlesApp ? (
               <>
-                <Select aria-label="标题平台" value={platform} options={[{ value: "douyin", label: "抖音" }, { value: "xiaohongshu", label: "小红书" }, { value: "shipinhao", label: "视频号" }, { value: "kuaishou", label: "快手" }]} onChange={setPlatform} />
-                <Select aria-label="标题目标" value={objective} options={[{ value: "click", label: "点击" }, { value: "store_visit", label: "到店" }, { value: "inquiry", label: "咨询" }, { value: "completion", label: "完播" }, { value: "save", label: "收藏" }]} onChange={setObjective} />
-                <Select aria-label="标题数量" value={count} options={[5, 6, 7, 8, 9, 10].map((value) => ({ value, label: `${value} 个候选` }))} onChange={setCount} />
-                <Input.TextArea value={topic} placeholder="标题主题（只能填写一种来源）" rows={3} onChange={(event) => setTopic(event.target.value)} />
+                {textWorkbenchV2 ? (
+                  <>
+                    <div className="creation-source-choice" role="tablist" aria-label="标题内容来源">
+                      {([
+                        { value: "artifact", label: "已有文案" },
+                        { value: "topic", label: "写个主题" },
+                        { value: "text", label: "粘贴内容" },
+                      ] as const).map((item) => (
+                        <button
+                          key={item.value}
+                          type="button"
+                          role="tab"
+                          aria-selected={titleSourceMode === item.value}
+                          onClick={() => {
+                            setSourceRouteBlocked(false);
+                            setTitleSourceMode(item.value);
+                          }}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                    {titleSourceMode === "artifact" ? (
+                      <>
+                        <label className="creation-select-field">
+                          <span>本次根据哪段内容生成？</span>
+                          <Select
+                            aria-label="标题来源文案"
+                            value={titleSourceArtifactId || undefined}
+                            placeholder="从已有文案中选择"
+                            options={titleSourceArtifacts.map((artifact) => {
+                              const currentVersion = titleSourceVersions.find((version) => version.artifact_id === artifact.artifact_id);
+                              return {
+                                value: artifact.artifact_id,
+                                label: currentVersion
+                                  ? truncateSourceText(sourceContentPreview(currentVersion.content), 38)
+                                  : artifact.name,
+                              };
+                            })}
+                            onChange={(value) => {
+                              setSourceRouteBlocked(false);
+                              setTitleSourceArtifactId(value);
+                              setTitleSourceVersionId("");
+                            }}
+                            notFoundContent="当前项目还没有可用文案"
+                          />
+                        </label>
+                        {initialSourceArtifactVersionId && titleSourceVersionId === initialSourceArtifactVersionId ? (
+                          <Alert
+                            type={titleSourceVersionUpdateAvailable ? "warning" : "info"}
+                            showIcon
+                            message={titleSourceVersionUpdateAvailable ? "这段文案后来有过更新" : "已带入上一步选择的文案"}
+                            description={titleSourceVersionUpdateAvailable
+                              ? "本次仍使用你刚才确认的内容；重新选择文案即可使用最新内容。"
+                              : "系统会保存本次使用的内容，后续编辑不会影响这次生成。"}
+                          />
+                        ) : null}
+                      </>
+                    ) : titleSourceMode === "topic" ? (
+                      <Input.TextArea aria-label="标题主题" value={topic} placeholder="例如：午后咖啡套餐" rows={3} onChange={(event) => setTopic(event.target.value)} />
+                    ) : (
+                      <Input.TextArea aria-label="标题自定义原文" value={titleSourceText} placeholder="粘贴希望提炼标题的原文" rows={5} maxLength={5000} showCount onChange={(event) => setTitleSourceText(event.target.value)} />
+                    )}
+                  </>
+                ) : null}
+                <div className="creation-select-grid">
+                  <label className="creation-select-field">
+                    <span>发布平台</span>
+                    <Select aria-label="标题平台" value={platform} options={[{ value: "douyin", label: "抖音" }, { value: "xiaohongshu", label: "小红书" }, { value: "shipinhao", label: "视频号" }, { value: "kuaishou", label: "快手" }]} onChange={setPlatform} />
+                  </label>
+                  <label className="creation-select-field">
+                    <span>营销目标</span>
+                    <Select aria-label="标题目标" value={objective} options={[{ value: "click", label: "点击" }, { value: "store_visit", label: "到店" }, { value: "inquiry", label: "咨询" }, { value: "completion", label: "完播" }, { value: "save", label: "收藏" }]} onChange={setObjective} />
+                  </label>
+                </div>
+                {textWorkbenchV2 ? (
+                  <details className="carousel-more-settings">
+                    <summary>更多选项</summary>
+                    <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
+                      <label className="creation-select-field">
+                        <span>生成几个标题</span>
+                        <Select aria-label="标题数量" value={count} options={[5, 6, 7, 8, 9, 10].map((value) => ({ value, label: `${value} 个` }))} onChange={setCount} />
+                      </label>
+                      <Input.TextArea
+                        aria-label="标题关键词"
+                        value={titleKeywordsText}
+                        placeholder="可选：想覆盖的关键词"
+                        rows={2}
+                        maxLength={200}
+                        showCount
+                        onChange={(event) => setTitleKeywordsText(event.target.value)}
+                      />
+                    </Space>
+                  </details>
+                ) : null}
+                {!textWorkbenchV2 ? <Input.TextArea value={topic} placeholder="标题主题（只能填写一种来源）" rows={3} onChange={(event) => setTopic(event.target.value)} /> : null}
               </>
             ) : (
               <>
-                <Input value={productOrService} placeholder="产品或服务" onChange={(event) => setProductOrService(event.target.value)} />
-                <Space>
-                  <Select aria-label="文案形式" value={contentFormat} options={[{ value: "oral", label: "口播" }, { value: "carousel", label: "图文" }, { value: "general", label: "通用" }]} onChange={setContentFormat} />
-                  <Select aria-label="文案时长" value={lengthBucket} options={[{ value: "short_15s", label: "15 秒" }, { value: "medium_30s", label: "30 秒" }, { value: "long_60s", label: "60 秒" }]} onChange={setLengthBucket} />
-                </Space>
+                <label className="creation-select-field">
+                  <span>本次主推 *</span>
+                  <Input value={productOrService} placeholder="选择项目后会自动带入商品或服务" onChange={(event) => setProductOrService(event.target.value)} />
+                </label>
+                {projectSellingPoints.length ? (
+                  <section className="creation-quick-tags" aria-label="项目卖点">
+                    <Typography.Text strong>项目卖点</Typography.Text>
+                    <div className="creation-quick-tags__list">
+                      {projectSellingPoints.map((item) => <span key={item}>{item}</span>)}
+                    </div>
+                  </section>
+                ) : null}
+                {textWorkbenchV2 ? (
+                  <section className="creation-quick-tags">
+                    <Typography.Text strong>这次想强调什么？ <small>可选</small></Typography.Text>
+                    <Input.TextArea
+                      aria-label="营销利益点"
+                      value={benefitTagsText}
+                      placeholder="也可以输入自己的营销信息"
+                      rows={2}
+                      maxLength={200}
+                      showCount
+                      onChange={(event) => setBenefitTagsText(event.target.value)}
+                    />
+                    <div className="creation-quick-tags__list">
+                      {MARKETING_BENEFIT_SUGGESTIONS.map((item) => (
+                        <button
+                          key={item}
+                          type="button"
+                          aria-pressed={selectedBenefitTags.includes(item)}
+                          onClick={() => toggleBenefitTag(item)}
+                        >
+                          {item}
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+                <details className="carousel-more-settings">
+                  <summary>更多选项</summary>
+                  <div className="creation-select-grid">
+                    <label className="creation-select-field">
+                      <span>文案形式</span>
+                      <Select aria-label="文案形式" value={contentFormat} options={[{ value: "oral", label: "口播" }, { value: "carousel", label: "图文" }, { value: "general", label: "通用" }]} onChange={setContentFormat} />
+                    </label>
+                    <label className="creation-select-field">
+                      <span>文案时长</span>
+                      <Select aria-label="文案时长" value={lengthBucket} options={[{ value: "short_15s", label: "15 秒" }, { value: "medium_30s", label: "30 秒" }, { value: "long_60s", label: "60 秒" }]} onChange={setLengthBucket} />
+                    </label>
+                  </div>
+                </details>
               </>
             )}
-            <Space>
-              <Button type="primary" disabled={!name.trim() || !goal.trim()} onClick={() => void saveDraft()}>保存草稿</Button>
-              <Button disabled={!selected || (isCarouselApp ? !carouselSourceVersionId.trim() || carouselAssetRefs.length === 0 : isTitlesApp ? !topic.trim() : !productOrService.trim())} onClick={() => void createDraftRun()}>创建运行草稿</Button>
-              <Button danger disabled={!selected} onClick={() => void archiveSelected()}>归档项目</Button>
-            </Space>
+            {styleWorkbenchV2 ? (
+              <StylePresetPicker
+                presets={stylePresets}
+                source={styleSource}
+                selectedStyleId={selectedStyleId}
+                customText={customStyleText}
+                onSourceChange={setStyleSource}
+                onStyleChange={setSelectedStyleId}
+                onCustomTextChange={setCustomStyleText}
+              />
+            ) : null}
+            {!focused || !workbenchV2 ? primaryActions : null}
+            {contextDirty ? <Typography.Text type="warning">请先保存或放弃项目资料草稿，再开始生成。</Typography.Text> : null}
+            {textContextMissing ? <Typography.Text type="warning">请先补全并保存项目信息，再开始生成。</Typography.Text> : null}
+            {textStyleMissing ? <Typography.Text type="warning">请选择风格，或填写自定义风格参考。</Typography.Text> : null}
+            {carouselContextMissing ? <Typography.Text type="warning">请先补全并保存项目信息，再开始生成图文。</Typography.Text> : null}
+            {carouselStyleMissing ? <Typography.Text type="warning">请选择图文风格，或填写本次自定义风格参考。</Typography.Text> : null}
           </Space>
-        </Card>
-      </div>
-      {selected && contextPayload && <Alert type="info" showIcon message="已恢复项目上下文快照" description={JSON.stringify(contextPayload)} />}
-      {selected && <Card size="small" title="运行记录" style={{ marginTop: 16 }}>
-        <List size="small" dataSource={runs} locale={{ emptyText: "暂无运行" }} renderItem={(run) => <List.Item actions={run.state !== "completed" && run.state !== "cancelled" ? [<Button size="small" onClick={() => void actOnRun(run)}>{run.state === "needs_review" ? "确认完成" : run.state === "queued" || run.state === "running" ? "取消" : run.state === "failed" ? "重试" : "执行"}</Button>] : undefined}>
-          <Space direction="vertical" size={2}>
-            <Space size="small"><Typography.Text>{run.app_id}</Typography.Text><Tag color={run.state === "failed" ? "error" : run.state === "completed" ? "success" : run.state === "cancelled" ? "default" : "processing"}>{stateLabels[run.state]}</Tag></Space>
-            {run.output_artifact_ids.map((artifactId) => {
-              const structured = structuredDrafts[artifactId];
-              const latestVersion = latestArtifactVersions[artifactId];
-              const isCarouselPackage = latestVersion?.content?.artifact_type === "carousel_package";
-              return <Space key={artifactId} direction="vertical" size="small" style={{ width: "100%" }}>
-                <Space size="small"><Typography.Text type="secondary">产物 {artifactId}</Typography.Text><Button size="small" type="link" onClick={() => void inspectArtifact(artifactId)}>查看版本</Button>{versionCounts[artifactId] !== undefined && <Tag>{versionCounts[artifactId]} 个版本</Tag>}{isCarouselPackage && latestVersion && <><Button size="small" onClick={() => void downloadCarouselPackage(artifactId, latestVersion)}>下载图文包</Button><Button size="small" onClick={() => void copyCarouselPublishCopy(latestVersion)}>复制发布文案</Button></>}{run.app_id === "builtin.marketing-copy" && <Button size="small" type="link" onClick={() => void handoffToTitles(run, artifactId)}>交给爆款标题</Button>}{run.app_id === "builtin.marketing-copy" && onOpenApp && <Button size="small" type="link" onClick={() => void openCarouselFromArtifact(artifactId)}>制作抖音图文</Button>}</Space>
-                {structured?.artifact_type === "copywriting" && structured.variants?.map((variant, index) => <Card key={`variant-${index}`} size="small" title={`文案版本 ${index + 1}`}>
-                  <Space direction="vertical" style={{ width: "100%" }}>
-                    <Input aria-label={`文案版本${index + 1}开头`} value={String(variant.hook || "")} onChange={(event) => updateCopyVariant(artifactId, index, "hook", event.target.value)} />
-                    <Input.TextArea aria-label={`文案版本${index + 1}正文`} value={String(variant.body || "")} rows={3} onChange={(event) => updateCopyVariant(artifactId, index, "body", event.target.value)} />
-                    <Input aria-label={`文案版本${index + 1}行动号召`} value={String(variant.cta || "")} onChange={(event) => updateCopyVariant(artifactId, index, "cta", event.target.value)} />
-                    <Typography.Text type="secondary">合成正文：{String(variant.full_text || "")}（{String(variant.word_count || 0)} 字，约 {String(variant.estimated_seconds || 0)} 秒）</Typography.Text>
-                  </Space>
-                </Card>)}
-                {structured?.artifact_type === "title_set" && structured.candidates?.map((candidate, index) => <Input key={`candidate-${index}`} aria-label={`标题候选${index + 1}`} value={String(candidate.title || "")} onChange={(event) => updateTitleCandidate(artifactId, index, event.target.value)} addonAfter={`${String(candidate.length || 0)} 字`} />)}
-                {versionDrafts[artifactId] !== undefined && <><Input.TextArea aria-label={`产物 ${artifactId} 编辑内容`} value={versionDrafts[artifactId]} rows={5} onChange={(event) => setVersionDrafts((current) => ({ ...current, [artifactId]: event.target.value }))} /><Button size="small" onClick={() => void saveEditedArtifact(artifactId)}>保存编辑版本</Button></>}
-              </Space>;
-            })}
-          </Space>
-        </List.Item>} />
-      </Card>}
+      </Card>
+      {brandProjectV1 ? (
+        <BrandProjectCreateDialog
+          open={projectCreateOpen}
+          busy={projectCreateBusy}
+          onCancel={() => setProjectCreateOpen(false)}
+          onCreated={handleBrandProjectCreated}
+        />
+      ) : <Modal
+        open={projectCreateOpen}
+        title="新建项目"
+        okText="创建并完善资料"
+        cancelText="取消"
+        confirmLoading={projectCreateBusy}
+        okButtonProps={{ disabled: !newProjectName.trim() || !newProjectGoal.trim() }}
+        onOk={() => void createProjectFromDialog()}
+        onCancel={() => {
+          if (projectCreateBusy) return;
+          setProjectCreateOpen(false);
+        }}
+      >
+        <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
+          <Typography.Paragraph type="secondary">
+            项目保存门店或品牌的长期资料；创建后可供所有内容应用重复使用。
+          </Typography.Paragraph>
+          <label className="creation-select-field">
+            <span>项目名称</span>
+            <Input
+              aria-label="新项目名称"
+              value={newProjectName}
+              placeholder="例如：街角咖啡工作日下午茶"
+              onChange={(event) => setNewProjectName(event.target.value)}
+            />
+          </label>
+          <label className="creation-select-field">
+            <span>主要营销目标</span>
+            <Input.TextArea
+              aria-label="新项目营销目标"
+              value={newProjectGoal}
+              placeholder="例如：吸引附近上班族到店"
+              rows={3}
+              onChange={(event) => setNewProjectGoal(event.target.value)}
+            />
+          </label>
+        </Space>
+      </Modal>}
+      {!workbenchV2 && selected && contextPayload && <Alert type="info" showIcon message="已恢复项目上下文快照" description={JSON.stringify(contextPayload)} />}
+      {!workbenchV2 ? runPanel : null}
       {isCarouselApp ? <AssetPickerDialog
         open={assetPickerOpen}
         kind="image"
         selectionMode="multiple"
         selectedIds={carouselAssetRefs.map((ref) => {
-          const assetId = ref.replace(/^asset:/, "");
+          const { assetId } = parseCarouselAssetRef(ref);
           return carouselAssetItems.find((item) => (item.asset_id || item.resource_id) === assetId)?.resource_id || assetId;
         })}
         onClose={() => setAssetPickerOpen(false)}
         onSelect={() => undefined}
         onSelectMany={(items: LibraryItemV2[]) => {
           setCarouselAssetItems(items);
-          setCarouselAssetRefs(items.map((item) => `asset:${item.asset_id || item.resource_id}`));
+          setCarouselAssetRefs(items.map(carouselAssetRef));
           setAssetPickerOpen(false);
         }}
         context={{
@@ -739,6 +2306,20 @@ export function CreationWorkspace({
   );
 
   if (!focused) return workspace;
+  if (workbenchV2) {
+    return (
+      <AppWorkbenchShell
+        eyebrow={appCopy.eyebrow}
+        title={appCopy.name}
+        description={appCopy.description}
+        onBack={onBack}
+        input={workspace}
+        inputFooter={primaryActions}
+        result={runPanel}
+        resultState={resultState}
+      />
+    );
+  }
   return (
     <section className="creation-workflow-page" aria-label={`${appCopy.name}应用流程`}>
       <div className="creation-workflow-header">

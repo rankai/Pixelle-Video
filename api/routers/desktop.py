@@ -1,8 +1,10 @@
 """Desktop runtime, configuration, and diagnostics endpoints."""
 
 import os
+import re
 import shutil
 from pathlib import Path
+from typing import Literal
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -16,6 +18,7 @@ REDACTED_SECRET = "***redacted***"
 
 class DesktopConfigPatch(BaseModel):
     llm: dict | None = None
+    llm_source: Literal["shared", "custom"] | None = None
     runninghub: dict | None = None
     output_dir: str | None = None
 
@@ -44,12 +47,17 @@ async def diagnostics():
 @router.get("/config")
 async def get_desktop_config():
     cfg = config_manager.config
+    shared = getattr(cfg, "llm_shared", None) or cfg.llm
+    custom = getattr(cfg, "llm_custom", None)
     return {
+        "llm_source": getattr(cfg, "llm_source", "shared"),
         "llm": {
             "base_url": cfg.llm.base_url,
             "api_key": _redact_secret(cfg.llm.api_key),
             "model": cfg.llm.model,
         },
+        "llm_shared": _llm_profile_response(shared),
+        "llm_custom": _llm_profile_response(custom),
         "runninghub": {
             "api_key": _redact_secret(cfg.comfyui.runninghub_api_key or ""),
             "instance_type": cfg.comfyui.runninghub_instance_type or "",
@@ -63,14 +71,19 @@ async def update_desktop_config(patch: DesktopConfigPatch):
     if not is_desktop_mode():
         raise HTTPException(status_code=403, detail="配置写入仅支持桌面端本地运行。")
 
+    if patch.llm_source is not None and hasattr(config_manager, "set_llm_source"):
+        config_manager.set_llm_source(patch.llm_source)
+
     updates = {}
     if patch.llm:
-        updates["llm"] = {
+        llm_updates = {
             key: value
             for key, value in patch.llm.items()
             if key in {"base_url", "api_key", "model"}
             and not (key == "api_key" and _is_redacted_secret(value))
         }
+        if llm_updates:
+            updates["llm"] = llm_updates
     if patch.runninghub:
         comfy_updates = {}
         if "api_key" in patch.runninghub and not _is_redacted_secret(patch.runninghub["api_key"]):
@@ -82,6 +95,10 @@ async def update_desktop_config(patch: DesktopConfigPatch):
             updates["comfyui"] = comfy_updates
     if updates:
         config_manager.update(updates)
+        if hasattr(config_manager, "sync_active_llm_profile"):
+            config_manager.sync_active_llm_profile()
+        config_manager.save()
+    elif patch.llm_source is not None:
         config_manager.save()
     return await get_desktop_config()
 
@@ -216,12 +233,30 @@ def _effective_secret(value: object, existing: str) -> str:
     return str(value).strip()
 
 
+def _llm_profile_response(profile) -> dict:
+    if profile is None:
+        return {"base_url": "", "api_key": "", "model": ""}
+    return {
+        "base_url": profile.base_url,
+        "api_key": _redact_secret(profile.api_key),
+        "model": profile.model,
+    }
+
+
 def _redact_secret(value: str) -> str:
-    return REDACTED_SECRET if value else ""
+    """Show only a short prefix/suffix while never returning the raw secret."""
+    if not value:
+        return ""
+    if len(value) <= 8:
+        return "*" * len(value)
+    return f"{value[:3]}***{value[-3:]}"
 
 
 def _is_redacted_secret(value: object) -> bool:
-    return isinstance(value, str) and value.strip() == REDACTED_SECRET
+    if not isinstance(value, str):
+        return False
+    normalized = value.strip()
+    return normalized == REDACTED_SECRET or bool(re.fullmatch(r"[^*\s]{1,8}\*{3}[^*\s]{1,8}", normalized))
 
 
 def _module_available(module_name: str) -> bool:

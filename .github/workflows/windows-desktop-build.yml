@@ -113,7 +113,10 @@ jobs:
       - name: Run desktop tests
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_frontend_tests }}
         working-directory: desktop
-        run: npm run test -- --run
+        # The Windows hosted runner is materially slower when the two large
+        # workbench suites compete with the rest of jsdom in parallel. Keep
+        # every assertion, but run test files serially for deterministic gates.
+        run: npm run test -- --run --maxWorkers=1 --no-file-parallelism --testTimeout=30000
 
       - name: Build Windows NSIS installer
         working-directory: desktop

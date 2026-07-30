@@ -19,6 +19,7 @@ from pixelle_video.app_center.carousel import (
     resolve_registered_asset,
 )
 from pixelle_video.app_center.llm_port import FakeLLMPort
+from pixelle_video.app_center.project_context import ProjectContextError
 from pixelle_video.app_center.repository import AppCenterRepository
 from pixelle_video.app_center.runner import AppRunner, ExecutorOutput, RelatedArtifactOutput
 from pixelle_video.services.publish.core_repository import PublishCoreRepository
@@ -64,7 +65,9 @@ def test_renderer_exports_allowed_page_counts_and_stable_refs(tmp_path, page_cou
     assert content["page_count"] == page_count
     assert content["publish_copy_required"] is True
     assert content["publish_v2_compatible"] is True
-    assert [ref["file_key"] for ref in file_refs[:-1]] == [f"page-{i:02d}.png" for i in range(1, page_count + 1)]
+    assert [ref["file_key"] for ref in file_refs[:-1]] == [
+        f"page-{i:02d}.png" for i in range(1, page_count + 1)
+    ]
     zip_ref = file_refs[-1]
     assert zip_ref["mime_type"] == "application/zip"
     zip_path = renderer.resolve_file_ref(zip_ref)
@@ -84,7 +87,10 @@ def test_renderer_zip_bytes_are_reproducible_for_same_inputs(tmp_path):
     renderer = DouyinCarouselRenderer(tmp_path / "exports", asset_root=tmp_path)
     first_content, first_refs = renderer.render_package(_pages(asset_path), run_ref="run-a")
     second_content, second_refs = renderer.render_package(_pages(asset_path), run_ref="run-b")
-    assert first_content["export_manifest"]["zip_sha256"] == second_content["export_manifest"]["zip_sha256"]
+    assert (
+        first_content["export_manifest"]["zip_sha256"]
+        == second_content["export_manifest"]["zip_sha256"]
+    )
     assert first_refs[-1]["sha256"] == second_refs[-1]["sha256"]
 
 
@@ -122,7 +128,9 @@ def test_renderer_fails_closed_for_page_set_asset_font_and_overflow(tmp_path):
     assert overflow_error.value.code == "TEXT_OVERFLOW"
 
     with pytest.raises(CarouselRenderError) as direct_path_error:
-        DouyinCarouselRenderer(tmp_path / "untrusted").render_package(_pages(asset_path), run_ref="untrusted-path")
+        DouyinCarouselRenderer(tmp_path / "untrusted").render_package(
+            _pages(asset_path), run_ref="untrusted-path"
+        )
     assert direct_path_error.value.code == "ASSET_PATH_NOT_ALLOWED"
 
     outside_asset = tmp_path.parent / "carousel-outside.png"
@@ -173,10 +181,14 @@ def test_carousel_executor_integrates_with_app_runner_and_review_lifecycle(tmp_p
         },
         idempotency_key="carousel-run-1",
     )
-    renderer = DouyinCarouselRenderer(tmp_path / "exports", asset_root=tmp_path, asset_resolver=lambda _ref: asset_path)
+    renderer = DouyinCarouselRenderer(
+        tmp_path / "exports", asset_root=tmp_path, asset_resolver=lambda _ref: asset_path
+    )
     runner = AppRunner(
         repository,
-        executors={"builtin.douyin-carousel": DouyinCarouselExecutor(renderer, repository=repository)},
+        executors={
+            "builtin.douyin-carousel": DouyinCarouselExecutor(renderer, repository=repository)
+        },
         enforce_readiness=False,
     )
     result = asyncio.run(runner.run(run.app_run_id))
@@ -186,14 +198,20 @@ def test_carousel_executor_integrates_with_app_runner_and_review_lifecycle(tmp_p
     version = repository.list_artifact_versions(artifact.artifact_id)[0]
     assert version.content["page_count"] == 3
     assert len(version.file_refs) == 4
-    assert all("path" not in file_ref and not Path(file_ref["relative_path"]).is_absolute() for file_ref in version.file_refs)
+    assert all(
+        "path" not in file_ref and not Path(file_ref["relative_path"]).is_absolute()
+        for file_ref in version.file_refs
+    )
     output_artifacts = repository.list_artifacts(project.project_id)
     artifact_types = [item.artifact_type for item in output_artifacts]
     assert artifact_types.count("carousel_plan") == 1
     assert artifact_types.count("carousel_page") == 3
     assert artifact_types.count("carousel_package") == 1
     assert version.content["source_plan_artifact_version_id"].startswith("artifact_version_")
-    assert all(item.startswith("artifact_version_") for item in version.content["page_artifact_version_ids"])
+    assert all(
+        item.startswith("artifact_version_")
+        for item in version.content["page_artifact_version_ids"]
+    )
     assert runner.accept_output(result.app_run_id).state == "completed"
 
 
@@ -201,7 +219,9 @@ def test_carousel_executor_derives_publish_copy_from_trusted_sources(tmp_path):
     repository = AppCenterRepository(tmp_path / "publish-copy.sqlite")
     project = repository.create_project("发布文案映射", "从既有内容生成图文")
     title_artifact = repository.create_artifact(project.project_id, "selected_title", "标题")
-    title_version = repository.append_artifact_version(title_artifact.artifact_id, content={"title": "来源标题", "hashtags": ["门店运营"]})
+    title_version = repository.append_artifact_version(
+        title_artifact.artifact_id, content={"title": "来源标题", "hashtags": ["门店运营"]}
+    )
     copy_artifact = repository.create_artifact(project.project_id, "copywriting", "文案")
     copy_version = repository.append_artifact_version(
         copy_artifact.artifact_id,
@@ -209,9 +229,30 @@ def test_carousel_executor_derives_publish_copy_from_trusted_sources(tmp_path):
             "schema_version": 1,
             "artifact_type": "copywriting",
             "variants": [
-                {"version_name": "版本1", "angle": "场景", "full_text": "来源文案正文到店了解", "hook": "来源", "body": "文案正文", "cta": "到店了解"},
-                {"version_name": "版本2", "angle": "利益", "full_text": "来源文案正文马上行动", "hook": "来源", "body": "文案正文", "cta": "马上行动"},
-                {"version_name": "版本3", "angle": "好奇", "full_text": "来源文案正文欢迎咨询", "hook": "来源", "body": "文案正文", "cta": "欢迎咨询"},
+                {
+                    "version_name": "版本1",
+                    "angle": "场景",
+                    "full_text": "来源文案正文到店了解",
+                    "hook": "来源",
+                    "body": "文案正文",
+                    "cta": "到店了解",
+                },
+                {
+                    "version_name": "版本2",
+                    "angle": "利益",
+                    "full_text": "来源文案正文马上行动",
+                    "hook": "来源",
+                    "body": "文案正文",
+                    "cta": "马上行动",
+                },
+                {
+                    "version_name": "版本3",
+                    "angle": "好奇",
+                    "full_text": "来源文案正文欢迎咨询",
+                    "hook": "来源",
+                    "body": "文案正文",
+                    "cta": "欢迎咨询",
+                },
             ],
             "missing_facts": [],
             "risk_flags": [],
@@ -224,14 +265,30 @@ def test_carousel_executor_derives_publish_copy_from_trusted_sources(tmp_path):
         {
             "goal": "从可信来源生成",
             "pages": _pages(_asset(tmp_path), include_path=False),
-            "source_artifact_version_ids": [title_version.artifact_version_id, copy_version.artifact_version_id],
+            "source_artifact_version_ids": [
+                title_version.artifact_version_id,
+                copy_version.artifact_version_id,
+            ],
         },
         idempotency_key="carousel-publish-copy-source-001",
     )
     asset_path = tmp_path / "asset.png"
-    renderer = DouyinCarouselRenderer(tmp_path / "exports", asset_root=tmp_path, asset_resolver=lambda _ref: asset_path)
-    result = asyncio.run(AppRunner(repository, executors={"builtin.douyin-carousel": DouyinCarouselExecutor(renderer, repository=repository)}, enforce_readiness=False).run(run.app_run_id))
-    assert result.state == "needs_review", {"error_code": result.error_code, "diagnostic": result.diagnostic_json}
+    renderer = DouyinCarouselRenderer(
+        tmp_path / "exports", asset_root=tmp_path, asset_resolver=lambda _ref: asset_path
+    )
+    result = asyncio.run(
+        AppRunner(
+            repository,
+            executors={
+                "builtin.douyin-carousel": DouyinCarouselExecutor(renderer, repository=repository)
+            },
+            enforce_readiness=False,
+        ).run(run.app_run_id)
+    )
+    assert result.state == "needs_review", {
+        "error_code": result.error_code,
+        "diagnostic": result.diagnostic_json,
+    }
     package = repository.get_artifact(result.output_artifact_ids[0])
     version = repository.get_artifact_version(package.current_version_id)
 
@@ -244,14 +301,30 @@ def test_carousel_executor_rejects_missing_or_cross_project_sources(tmp_path):
     repository = AppCenterRepository(tmp_path / "app.sqlite")
     project = repository.create_project("图文项目", "来源校验")
     asset_path = _asset(tmp_path)
-    base_payload = {"goal": "到店", "pages": _pages(asset_path, include_path=False), "source_artifact_version_ids": ["missing"]}
-    missing_run = repository.create_app_run(project.project_id, "builtin.douyin-carousel", "1.0.0", base_payload, idempotency_key="missing-source")
+    base_payload = {
+        "goal": "到店",
+        "pages": _pages(asset_path, include_path=False),
+        "source_artifact_version_ids": ["missing"],
+    }
+    missing_run = repository.create_app_run(
+        project.project_id,
+        "builtin.douyin-carousel",
+        "1.0.0",
+        base_payload,
+        idempotency_key="missing-source",
+    )
     runner = AppRunner(
         repository,
-        executors={"builtin.douyin-carousel": DouyinCarouselExecutor(
-            DouyinCarouselRenderer(tmp_path / "exports", asset_root=tmp_path, asset_resolver=lambda _ref: asset_path),
-            repository=repository,
-        )},
+        executors={
+            "builtin.douyin-carousel": DouyinCarouselExecutor(
+                DouyinCarouselRenderer(
+                    tmp_path / "exports",
+                    asset_root=tmp_path,
+                    asset_resolver=lambda _ref: asset_path,
+                ),
+                repository=repository,
+            )
+        },
         enforce_readiness=False,
     )
     missing_result = asyncio.run(runner.run(missing_run.app_run_id))
@@ -259,25 +332,33 @@ def test_carousel_executor_rejects_missing_or_cross_project_sources(tmp_path):
     assert missing_result.error_code == "APP_EXECUTOR_FAILED"
 
     other_project = repository.create_project("其他项目", "隔离来源")
-    other_artifact = repository.create_artifact(other_project.project_id, "selected_title", "其他标题")
-    other_version = repository.append_artifact_version(other_artifact.artifact_id, content={"title": "其他"})
-    cross_run = repository.create_app_run(
-        project.project_id,
-        "builtin.douyin-carousel",
-        "1.0.0",
-        {**base_payload, "source_artifact_version_ids": [other_version.artifact_version_id]},
-        idempotency_key="cross-source",
+    other_artifact = repository.create_artifact(
+        other_project.project_id, "selected_title", "其他标题"
     )
-    cross_result = asyncio.run(runner.run(cross_run.app_run_id))
-    assert cross_result.state == "failed"
-    assert cross_result.error_code == "APP_EXECUTOR_FAILED"
+    other_version = repository.append_artifact_version(
+        other_artifact.artifact_id, content={"title": "其他"}
+    )
+    with pytest.raises(ProjectContextError) as cross:
+        repository.create_app_run(
+            project.project_id,
+            "builtin.douyin-carousel",
+            "1.0.0",
+            {
+                **base_payload,
+                "source_artifact_version_ids": [other_version.artifact_version_id],
+            },
+            idempotency_key="cross-source",
+        )
+    assert cross.value.code == "PROJECT_CONTEXT_CROSS_PROJECT_REF"
 
 
 def test_carousel_executor_rejects_direct_asset_path_even_with_renderer_root(tmp_path):
     repository = AppCenterRepository(tmp_path / "app.sqlite")
     project = repository.create_project("图文项目", "资产边界")
     source_artifact = repository.create_artifact(project.project_id, "selected_title", "来源标题")
-    source_version = repository.append_artifact_version(source_artifact.artifact_id, content={"title": "亮点"})
+    source_version = repository.append_artifact_version(
+        source_artifact.artifact_id, content={"title": "亮点"}
+    )
     asset_path = _asset(tmp_path)
     run = repository.create_app_run(
         project.project_id,
@@ -293,7 +374,9 @@ def test_carousel_executor_rejects_direct_asset_path_even_with_renderer_root(tmp
     renderer = DouyinCarouselRenderer(tmp_path / "exports", asset_root=tmp_path)
     runner = AppRunner(
         repository,
-        executors={"builtin.douyin-carousel": DouyinCarouselExecutor(renderer, repository=repository)},
+        executors={
+            "builtin.douyin-carousel": DouyinCarouselExecutor(renderer, repository=repository)
+        },
         enforce_readiness=False,
     )
     result = asyncio.run(runner.run(run.app_run_id))
@@ -306,12 +389,18 @@ def test_registered_asset_resolver_accepts_ids_and_rejects_paths(monkeypatch, tm
 
     class FakeAssetLibrary:
         def get_asset(self, asset_id):
-            return {"asset_id": asset_id, "media_kind": "image", "status": "ready"} if asset_id == "known" else None
+            return (
+                {"asset_id": asset_id, "media_kind": "image", "status": "ready"}
+                if asset_id == "known"
+                else None
+            )
 
         def get_revision_path(self, asset_id):
             return asset_path if asset_id == "known" else None
 
-    monkeypatch.setattr("pixelle_video.services.assets_v2.repository.AssetLibraryRepository", FakeAssetLibrary)
+    monkeypatch.setattr(
+        "pixelle_video.services.assets_v2.repository.AssetLibraryRepository", FakeAssetLibrary
+    )
     assert resolve_registered_asset("asset:known") == asset_path
     assert resolve_registered_asset("/tmp/arbitrary.png") is None
     assert resolve_registered_asset("../known") is None
@@ -328,8 +417,15 @@ def test_runner_compensates_partial_related_artifact_persistence(tmp_path):
                 name="package",
                 content={"schema_version": 1, "artifact_type": "carousel_package"},
                 related_artifacts=[
-                    RelatedArtifactOutput("plan", "carousel_plan", "plan", {"schema_version": 1, "artifact_type": "carousel_plan"}),
-                    RelatedArtifactOutput("page:1", "carousel_page", "page", {"provider": "must-not-persist"}),
+                    RelatedArtifactOutput(
+                        "plan",
+                        "carousel_plan",
+                        "plan",
+                        {"schema_version": 1, "artifact_type": "carousel_plan"},
+                    ),
+                    RelatedArtifactOutput(
+                        "page:1", "carousel_page", "page", {"provider": "must-not-persist"}
+                    ),
                 ],
             )
 
@@ -340,7 +436,11 @@ def test_runner_compensates_partial_related_artifact_persistence(tmp_path):
         {"goal": "回滚", "source_artifact_version_ids": ["source-v1"], "pages": []},
         idempotency_key="related-rollback",
     )
-    runner = AppRunner(repository, executors={"builtin.douyin-carousel": FailingRelatedExecutor()}, enforce_readiness=False)
+    runner = AppRunner(
+        repository,
+        executors={"builtin.douyin-carousel": FailingRelatedExecutor()},
+        enforce_readiness=False,
+    )
     result = asyncio.run(runner.run(run.app_run_id))
     assert result.state == "failed"
     assert result.output_artifact_ids == []
@@ -350,19 +450,42 @@ def test_runner_compensates_partial_related_artifact_persistence(tmp_path):
 def test_carousel_executor_plans_pages_through_shared_llm_port(tmp_path):
     repository = AppCenterRepository(tmp_path / "app.sqlite")
     project = repository.create_project("图文规划", "用已有事实生成图文")
-    context_snapshot = repository.save_context_snapshot(project.project_id, {"brand_tone": "可信、克制"})
-    source_artifact = repository.create_artifact(project.project_id, "selected_title", "来源标题")
-    source_version = repository.append_artifact_version(source_artifact.artifact_id, content={"title": "门店亮点"})
+    context_snapshot = repository.save_context_snapshot(
+        project.project_id, {"brand_tone": "可信、克制"}
+    )
+    source_run = repository.create_app_run(
+        project.project_id,
+        "builtin.viral-titles",
+        "1.0.0",
+        {"goal": "固定来源标题"},
+        idempotency_key="carousel-llm-source-run",
+    )
+    source_artifact = repository.create_artifact(
+        project.project_id,
+        "selected_title",
+        "来源标题",
+        source_app_run_id=source_run.app_run_id,
+    )
+    source_version = repository.append_artifact_version(
+        source_artifact.artifact_id, content={"title": "门店亮点"}
+    )
     asset_path = _asset(tmp_path)
-    llm = FakeLLMPort({
-        "page_count": 3,
-        "template_id": "template:clean-01",
-        "missing_facts": [],
-        "pages": [
-            {"page_index": index, "purpose": "内容", "text": f"第{index}页", "asset_ref": "asset-1"}
-            for index in range(1, 4)
-        ],
-    })
+    llm = FakeLLMPort(
+        {
+            "page_count": 3,
+            "template_id": "template:clean-01",
+            "missing_facts": [],
+            "pages": [
+                {
+                    "page_index": index,
+                    "purpose": "内容",
+                    "text": f"第{index}页",
+                    "asset_ref": "asset-1",
+                }
+                for index in range(1, 4)
+            ],
+        }
+    )
     run = repository.create_app_run(
         project.project_id,
         "builtin.douyin-carousel",
@@ -383,7 +506,11 @@ def test_carousel_executor_plans_pages_through_shared_llm_port(tmp_path):
     )
     runner = AppRunner(
         repository,
-        executors={"builtin.douyin-carousel": DouyinCarouselExecutor(renderer, repository=repository, llm_port=llm)},
+        executors={
+            "builtin.douyin-carousel": DouyinCarouselExecutor(
+                renderer, repository=repository, llm_port=llm
+            )
+        },
         enforce_readiness=False,
     )
     result = asyncio.run(runner.run(run.app_run_id))
@@ -402,65 +529,123 @@ def test_carousel_planner_rejects_model_asset_ref_not_in_input(tmp_path):
     repository = AppCenterRepository(tmp_path / "app.sqlite")
     project = repository.create_project("图文规划失败", "拒绝模型编造资产")
     source_artifact = repository.create_artifact(project.project_id, "selected_title", "来源标题")
-    source_version = repository.append_artifact_version(source_artifact.artifact_id, content={"title": "门店亮点"})
-    llm = FakeLLMPort({
-        "page_count": 3,
-        "template_id": "template:clean-01",
-        "missing_facts": [],
-        "pages": [
-            {"page_index": index, "purpose": "内容", "text": f"第{index}页", "asset_ref": "asset-not-supplied"}
-            for index in range(1, 4)
-        ],
-    })
+    source_version = repository.append_artifact_version(
+        source_artifact.artifact_id, content={"title": "门店亮点"}
+    )
+    llm = FakeLLMPort(
+        {
+            "page_count": 3,
+            "template_id": "template:clean-01",
+            "missing_facts": [],
+            "pages": [
+                {
+                    "page_index": index,
+                    "purpose": "内容",
+                    "text": f"第{index}页",
+                    "asset_ref": "asset-not-supplied",
+                }
+                for index in range(1, 4)
+            ],
+        }
+    )
     run = repository.create_app_run(
         project.project_id,
         "builtin.douyin-carousel",
         "1.0.0",
-        {"goal": "到店", "page_count": 3, "asset_refs": ["asset-1"], "source_artifact_version_ids": [source_version.artifact_version_id]},
+        {
+            "goal": "到店",
+            "page_count": 3,
+            "asset_refs": ["asset-1"],
+            "source_artifact_version_ids": [source_version.artifact_version_id],
+        },
         idempotency_key="carousel-llm-invalid-ref",
     )
     runner = AppRunner(
         repository,
-        executors={"builtin.douyin-carousel": DouyinCarouselExecutor(repository=repository, llm_port=llm)},
+        executors={
+            "builtin.douyin-carousel": DouyinCarouselExecutor(repository=repository, llm_port=llm)
+        },
         enforce_readiness=False,
     )
     result = asyncio.run(runner.run(run.app_run_id))
     assert result.state == "failed"
     assert result.error_code == "STRUCTURED_OUTPUT_INVALID"
-    assert [artifact.artifact_type for artifact in repository.list_artifacts(project.project_id)] == ["selected_title"]
+    assert [
+        artifact.artifact_type for artifact in repository.list_artifacts(project.project_id)
+    ] == ["selected_title"]
 
 
-def test_carousel_page_retry_creates_new_version_and_invalidates_publish_package(monkeypatch, tmp_path):
+def test_carousel_page_retry_creates_new_version_and_invalidates_publish_package(
+    monkeypatch, tmp_path
+):
     repository = AppCenterRepository(tmp_path / "app.sqlite")
     project = repository.create_project("图文重试", "替换一页")
     source = repository.create_artifact(project.project_id, "selected_title", "标题")
-    source_version = repository.append_artifact_version(source.artifact_id, content={"title": "门店"})
-    run = repository.create_app_run(project.project_id, "builtin.douyin-carousel", "1.0.0", {"goal": "到店", "source_artifact_version_ids": [source_version.artifact_version_id], "pages": []}, idempotency_key="carousel-retry-run")
+    source_version = repository.append_artifact_version(
+        source.artifact_id, content={"title": "门店"}
+    )
+    run = repository.create_app_run(
+        project.project_id,
+        "builtin.douyin-carousel",
+        "1.0.0",
+        {
+            "goal": "到店",
+            "source_artifact_version_ids": [source_version.artifact_version_id],
+            "pages": [],
+        },
+        idempotency_key="carousel-retry-run",
+    )
     asset_path = _asset(tmp_path)
     page_artifacts = []
     page_versions = []
     for index in range(1, 4):
-        page = repository.create_artifact(project.project_id, "carousel_page", f"第{index}页", source_app_run_id=run.app_run_id)
+        page = repository.create_artifact(
+            project.project_id, "carousel_page", f"第{index}页", source_app_run_id=run.app_run_id
+        )
         version = repository.append_artifact_version(
             page.artifact_id,
-            content={"artifact_type": "carousel_page", "page_index": index, "text": f"第{index}页", "asset_refs": ["asset:known"]},
-            file_refs=[{"file_key": f"page-{index:02d}.png", "kind": "image", "path": str(asset_path)}],
+            content={
+                "artifact_type": "carousel_page",
+                "page_index": index,
+                "text": f"第{index}页",
+                "asset_refs": ["asset:known"],
+            },
+            file_refs=[
+                {"file_key": f"page-{index:02d}.png", "kind": "image", "path": str(asset_path)}
+            ],
         )
         page_artifacts.append(page)
         page_versions.append(version)
-    package_artifact = repository.create_artifact(project.project_id, "carousel_package", "图文包", source_app_run_id=run.app_run_id)
+    package_artifact = repository.create_artifact(
+        project.project_id, "carousel_package", "图文包", source_app_run_id=run.app_run_id
+    )
     package_version = repository.append_artifact_version(
         package_artifact.artifact_id,
-        content={"artifact_type": "carousel_package", "page_count": 3, "page_artifact_version_ids": [item.artifact_version_id for item in page_versions]},
-        file_refs=[{"file_key": f"page-{index:02d}.png", "kind": "image", "path": str(asset_path)} for index in range(1, 4)],
+        content={
+            "artifact_type": "carousel_package",
+            "page_count": 3,
+            "page_artifact_version_ids": [item.artifact_version_id for item in page_versions],
+        },
+        file_refs=[
+            {"file_key": f"page-{index:02d}.png", "kind": "image", "path": str(asset_path)}
+            for index in range(1, 4)
+        ],
     )
     core = PublishCoreRepository(tmp_path / "publishing.sqlite")
-    publish_service = PublishPackageService(repository, core, media_roots=(tmp_path,), carousel_root=tmp_path / "exports")
-    old_package = publish_service.create_from_artifact_versions(project.project_id, [package_version.artifact_version_id])
+    publish_service = PublishPackageService(
+        repository, core, media_roots=(tmp_path,), carousel_root=tmp_path / "exports"
+    )
+    old_package = publish_service.create_from_artifact_versions(
+        project.project_id, [package_version.artifact_version_id]
+    )
     old_ref = next(
-        artifact for artifact in repository.list_artifacts(project.project_id)
+        artifact
+        for artifact in repository.list_artifacts(project.project_id)
         if artifact.artifact_type == "publish_package_ref"
-        and (repository.get_artifact_version(artifact.current_version_id).content or {}).get("package_id") == old_package.package_id
+        and (repository.get_artifact_version(artifact.current_version_id).content or {}).get(
+            "package_id"
+        )
+        == old_package.package_id
     )
 
     monkeypatch.setenv("PIXELLE_APP_CENTER_DOUYIN_CAROUSEL", "true")
@@ -468,18 +653,39 @@ def test_carousel_page_retry_creates_new_version_and_invalidates_publish_package
     monkeypatch.setattr(publish_v2_router, "get_publish_core_repository", lambda: core)
     monkeypatch.setattr(publish_v2_router, "get_publish_package_service", lambda: publish_service)
     actual_renderer = DouyinCarouselRenderer
-    monkeypatch.setattr(app_center_router, "DouyinCarouselRenderer", lambda asset_resolver=None: actual_renderer(tmp_path / "exports", asset_resolver=lambda _ref: asset_path))
+    monkeypatch.setattr(
+        app_center_router,
+        "DouyinCarouselRenderer",
+        lambda asset_resolver=None: actual_renderer(
+            tmp_path / "exports", asset_resolver=lambda _ref: asset_path
+        ),
+    )
 
-    response = app_center_router.retry_carousel_page(page_artifacts[0].artifact_id, CarouselPageRetryRequest(text="重试后的第一页", asset_refs=["asset:known"]))
+    response = app_center_router.retry_carousel_page(
+        page_artifacts[0].artifact_id,
+        CarouselPageRetryRequest(text="重试后的第一页", asset_refs=["asset:known"]),
+    )
 
     assert response["page_artifact_version"]["version_number"] == 2
     assert response["package_artifact_version"]["version_number"] == 2
     assert core.get_package(old_package.package_id).invalidated_at is not None
     old_ref_current = repository.get_artifact(old_ref.artifact_id)
-    old_ref_content = repository.get_artifact_version(old_ref_current.current_version_id).content or {}
+    old_ref_content = (
+        repository.get_artifact_version(old_ref_current.current_version_id).content or {}
+    )
     assert old_ref_content["invalidated_at"] is not None
     assert old_ref_content["invalidation_reason"] == "CAROUSEL_ARTIFACT_VERSION_REPLACED"
     assert response["publish_package"]["package_id"] != old_package.package_id
+    latest_package = repository.get_artifact(package_artifact.artifact_id)
+    latest_package_version = repository.get_artifact_version(latest_package.current_version_id)
+    zip_ref = next(item for item in latest_package_version.file_refs if item.get("kind") == "zip")
+    zip_path = publish_service.carousel_root / zip_ref["relative_path"]
+    assert zip_path.is_file()
+    assert zip_path.name == "carousel-package-v2.zip"
+    with zipfile.ZipFile(zip_path) as archive:
+        page_ref = response["page_artifact_version"]["file_refs"][0]
+        page_path = publish_service.carousel_root / page_ref["relative_path"]
+        assert archive.read("page-01.png") == page_path.read_bytes()
 
     class FailingPublishService:
         def create_from_artifact_versions(self, *_args, **_kwargs):
@@ -490,7 +696,9 @@ def test_carousel_page_retry_creates_new_version_and_invalidates_publish_package
 
     page_version_count = len(repository.list_artifact_versions(page_artifacts[0].artifact_id))
     package_version_count = len(repository.list_artifact_versions(package_artifact.artifact_id))
-    monkeypatch.setattr(publish_v2_router, "get_publish_package_service", lambda: FailingPublishService())
+    monkeypatch.setattr(
+        publish_v2_router, "get_publish_package_service", lambda: FailingPublishService()
+    )
     with pytest.raises(HTTPException) as retry_error:
         app_center_router.retry_carousel_page(
             page_artifacts[0].artifact_id,
@@ -498,8 +706,13 @@ def test_carousel_page_retry_creates_new_version_and_invalidates_publish_package
         )
     assert retry_error.value.status_code == 409
     assert retry_error.value.detail == "CAROUSEL_RETRY_FAILED"
-    assert len(repository.list_artifact_versions(page_artifacts[0].artifact_id)) == page_version_count
-    assert len(repository.list_artifact_versions(package_artifact.artifact_id)) == package_version_count
+    assert (
+        len(repository.list_artifact_versions(page_artifacts[0].artifact_id)) == page_version_count
+    )
+    assert (
+        len(repository.list_artifact_versions(package_artifact.artifact_id))
+        == package_version_count
+    )
 
 
 def test_carousel_page_retry_is_blocked_when_feature_flag_is_off(monkeypatch):
@@ -526,7 +739,14 @@ def test_carousel_package_download_is_independent_of_publish_v2_flag(monkeypatch
     repository.append_artifact_version(
         package.artifact_id,
         content={"artifact_type": "carousel_package", "page_count": 3},
-        file_refs=[{"file_key": "carousel-package.zip", "relative_path": "run-1/carousel-package.zip", "kind": "zip", "mime_type": "application/zip"}],
+        file_refs=[
+            {
+                "file_key": "carousel-package.zip",
+                "relative_path": "run-1/carousel-package.zip",
+                "kind": "zip",
+                "mime_type": "application/zip",
+            }
+        ],
     )
     monkeypatch.setattr(app_center_router, "get_app_center_repository", lambda: repository)
     monkeypatch.setattr(app_center_router, "get_data_path", lambda *_parts: export_root)

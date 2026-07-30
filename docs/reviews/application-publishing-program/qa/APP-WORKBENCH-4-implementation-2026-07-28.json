@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "stage": "APP-WORKBENCH-4",
+  "change_request": "CR-APP-WORKBENCH-001",
+  "gate": "PG-AW-E",
+  "status": "passed_with_boundary",
+  "date": "2026-07-28",
+  "independent_review": {
+    "reviewer": "/root/app_workbench_stage4_strict_reviewer",
+    "verdict": "PASS",
+    "p0": 0,
+    "p1": 0,
+    "dimensions": [
+      "requirements_completeness",
+      "logic_correctness",
+      "edge_cases",
+      "code_quality",
+      "test_coverage",
+      "actual_runtime"
+    ]
+  },
+  "runtime": {
+    "app_run_id": "run_127222d5c60e403fa7677eb1aa3a7227",
+    "app_id": "builtin.douyin-carousel",
+    "app_version": "1.1.0",
+    "state": "needs_review",
+    "page_count": 3,
+    "current_package_version": 3,
+    "zip_name": "carousel-package-v3.zip",
+    "zip_page_order": ["page-01.png", "page-02.png", "page-03.png"],
+    "zip_current_page_sha_verified": true,
+    "foreign_key_check": "clean",
+    "platform_open_count": 0,
+    "final_publish_click_count": 0
+  },
+  "tests": {
+    "backend_targeted": {"passed": 48, "warnings": 12},
+    "desktop_targeted": {"passed": 45},
+    "desktop_full_baseline": {"files": 15, "passed": 95},
+    "build": "passed",
+    "ruff": "passed",
+    "git_diff_check": "passed"
+  },
+  "boundaries": [
+    "third_party_platform_publish_not_executed",
+    "final_publish_button_remains_manual",
+    "full_viewport_hashes_not_sole_gate_evidence",
+    "existing_pydantic_deprecation_warnings"
+  ],
+  "next_entry": "APP-WORKBENCH-5/PG-AW-F_entry_in_progress"
+}

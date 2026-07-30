@@ -98,6 +98,7 @@ import { createAntdTheme, readStoredThemeSkin, themeSkins, type ThemeSkin } from
 import { AssetCenterV2 } from "./features/assets/components/AssetCenterV2";
 import { AssetPickerDialog } from "./features/assets/components/AssetPickerDialog";
 import { ApplicationCenterView } from "./features/app-center/ApplicationCenterView";
+import { applicationIdForRoute, applicationRouteForId } from "./features/app-center/applicationRoutes";
 import { DigitalHumanApplicationView } from "./features/app-center/DigitalHumanApplicationView";
 import { CreationWorkspace } from "./features/creation/CreationWorkspace";
 import { PublishCenterView } from "./features/publishing/PublishCenterView";
@@ -338,7 +339,7 @@ const emptyAssets: AssetState = {
 const navItems: MenuProps["items"] = [
   { key: "home", icon: <Home size={16} />, label: "工作台" },
   ...(featureFlags.appCenterShell ? [{ key: "apps", icon: <Images size={16} />, label: "应用中心" }] : []),
-  { key: "ip", icon: <Video size={16} />, label: "口播剪辑" },
+  { key: "ip", icon: <Video size={16} />, label: "即刻成片" },
   { type: "divider" },
   { key: "assets", icon: <Package size={16} />, label: "企业资产库" },
   { type: "divider" },
@@ -350,7 +351,7 @@ const navItems: MenuProps["items"] = [
 function viewTitle(view: View, assetTab: AssetTab) {
   if (view === "apps") return "应用中心";
   if (view === "application_workflow") return "应用流程";
-  if (view === "ip") return "口播剪辑";
+  if (view === "ip") return "即刻成片";
   if (view === "digital_human_app") return "数字人口播视频";
   if (view === "assets") return `企业资产库 · ${{ videos: "视频", images: "图片", voices: "音色", portraits: "数字人", templates: "模板", brands: "品牌" }[assetTab]}`;
   return { home: "企业视频工作台", publish_accounts: "发布中心", tasks: "任务记录", config: "系统设置", diagnostics: "启动自检" }[view] || "Pixelle Video";
@@ -439,23 +440,18 @@ export function StudioApp() {
   const [appRecovering, setAppRecovering] = useState(false);
   const [workflowError, setWorkflowError] = useState("");
   const [storyboardOpen, setStoryboardOpen] = useState(false);
-  const [creationAppId, setCreationAppId] = useState(() => appIdForPath(router?.pathname || "") || "builtin.marketing-copy");
+  const [creationAppId, setCreationAppId] = useState(() => applicationIdForRoute(router?.pathname || "") || "builtin.marketing-copy");
   const [creationSourceArtifactVersionId, setCreationSourceArtifactVersionId] = useState("");
-
-  function appIdForPath(pathname: string): string | null {
-    const basePath = pathname.split("?", 1)[0];
-    return {
-      "/apps/marketing-copy": "builtin.marketing-copy",
-      "/apps/viral-titles": "builtin.viral-titles",
-      "/apps/douyin-carousel": "builtin.douyin-carousel",
-    }[basePath] || null;
-  }
+  const [digitalHumanSourceArtifactVersionId, setDigitalHumanSourceArtifactVersionId] = useState("");
 
   useEffect(() => {
     if (!router) return;
     setView(viewForPath(router.pathname));
-    const routedAppId = appIdForPath(router.pathname);
+    const routedAppId = applicationIdForRoute(router.pathname);
     if (routedAppId) setCreationAppId(routedAppId);
+    const sourceVersionId = new URLSearchParams(router.pathname.split("?", 2)[1] || "").get("source_version_id") || "";
+    if (routedAppId === "builtin.digital-human-video") setDigitalHumanSourceArtifactVersionId(sourceVersionId);
+    else if (routedAppId) setCreationSourceArtifactVersionId(sourceVersionId);
   }, [router?.pathname]);
 
   useEffect(() => {
@@ -775,13 +771,25 @@ export function StudioApp() {
             {view === "apps" ? (
               <ApplicationCenterView onOpenApp={(application) => {
                 setCreationAppId(application.appId);
+                setCreationSourceArtifactVersionId("");
+                setDigitalHumanSourceArtifactVersionId("");
                 if (application.routePath && router) router.navigate(application.routePath);
                 else navigateToView("home");
               }} />
             ) : null}
 
             {view === "digital_human_app" ? (
-              <DigitalHumanApplicationView onBack={() => navigateToView("apps")} />
+              <DigitalHumanApplicationView
+                onBack={() => { setDigitalHumanSourceArtifactVersionId(""); navigateToView("apps"); }}
+                initialSourceArtifactVersionId={digitalHumanSourceArtifactVersionId}
+                onOpenApp={(nextAppId, sourceVersionId) => {
+                  if (nextAppId === "builtin.digital-human-video") setDigitalHumanSourceArtifactVersionId(sourceVersionId || "");
+                  else setCreationSourceArtifactVersionId(sourceVersionId || "");
+                  setCreationAppId(nextAppId);
+                  router?.navigate(`${applicationRouteForId(nextAppId)}${sourceVersionId ? `?source_version_id=${encodeURIComponent(sourceVersionId)}` : ""}`);
+                }}
+                onOpenPublishCenter={openPublishCenter}
+              />
             ) : null}
 
             {view === "ip" && session ? (
@@ -845,8 +853,10 @@ export function StudioApp() {
             onOpenApp={(nextAppId, sourceVersionId) => {
               setCreationAppId(nextAppId);
               setCreationSourceArtifactVersionId(sourceVersionId || "");
-              router?.navigate(nextAppId === "builtin.douyin-carousel" ? "/apps/douyin-carousel" : "/apps");
+              setDigitalHumanSourceArtifactVersionId("");
+              router?.navigate(`${applicationRouteForId(nextAppId)}${sourceVersionId ? `?source_version_id=${encodeURIComponent(sourceVersionId)}` : ""}`);
             }}
+            onOpenPublishCenter={openPublishCenter}
           />
         </Suspense>
       ) : null}
@@ -3986,7 +3996,7 @@ function PublishStep({
                 disabled={!publishReady}
               />
             </div>
-            <Space direction="vertical" className="publish-file-actions">
+            <Space orientation="vertical" className="publish-file-actions">
               {publishReady ? (
                 <Button block onClick={downloadFinalVideo}>
                   下载最终视频
@@ -5883,6 +5893,7 @@ function ConfigView({
   const [saved, setSaved] = useState("");
   const [checkResult, setCheckResult] = useState<ConfigCheckResult | null>(null);
   const [checkingConfig, setCheckingConfig] = useState(false);
+  const [switchingLlmSource, setSwitchingLlmSource] = useState(false);
 
   useEffect(() => {
     getDesktopConfig().then(setConfig).catch((err) => setSaved(String(err)));
@@ -5900,6 +5911,22 @@ function ConfigView({
   function updateConfigDraft(nextConfig: DesktopConfig) {
     setConfig(nextConfig);
     setCheckResult(null);
+  }
+
+  async function switchLlmSource(source: DesktopConfig["llm_source"]) {
+    if (!config || source === config.llm_source) return;
+    setSwitchingLlmSource(true);
+    setSaved("");
+    try {
+      const updated = await saveDesktopConfig({ llm_source: source });
+      setConfig(updated);
+      setCheckResult(null);
+      setSaved(source === "shared" ? "已切换为统一 LLM。" : "已切换为自定义 LLM。请填写并保存当前配置。");
+    } catch (err) {
+      setSaved(String(err));
+    } finally {
+      setSwitchingLlmSource(false);
+    }
   }
 
   async function runConfigCheck() {
@@ -5968,6 +5995,20 @@ function ConfigView({
           title="发布助手登录态保存在本机"
           description="抖音等平台的浏览器登录数据会保存在 data/publish_browser/，用于下次免登录。该目录已加入忽略规则，不应提交到代码仓库。"
         />
+        <label>大模型来源</label>
+        <Segmented
+          block
+          value={config.llm_source}
+          disabled={switchingLlmSource}
+          onChange={(value) => void switchLlmSource(value as DesktopConfig["llm_source"])}
+          options={[
+            { label: "统一 LLM（推荐）", value: "shared" },
+            { label: "自定义 LLM", value: "custom" },
+          ]}
+        />
+        <Typography.Paragraph type="secondary">
+          默认所有应用共用同一套 LLM 配置；切换到自定义后，仅当前本机使用自定义配置，随时可切回统一 LLM。
+        </Typography.Paragraph>
         <label>LLM Base URL</label>
         <input
           value={config.llm.base_url}
@@ -5975,7 +6016,12 @@ function ConfigView({
             updateConfigDraft({ ...config, llm: { ...config.llm, base_url: event.target.value } })
           }
         />
-        <label>LLM API Key</label>
+        {config.llm.base_url.includes("ark.cn-beijing.volces.com/api/v3") ? (
+          <Typography.Text type="secondary">
+            已识别火山方舟 Ark v3，内容应用将自动使用 Responses API。
+          </Typography.Text>
+        ) : null}
+        <label>LLM API Key（已配置时仅显示首尾字符）</label>
         <input
           placeholder={config.llm.api_key || "请输入 API Key"}
           onChange={(event) =>
@@ -6009,11 +6055,16 @@ function ConfigView({
             })
           }
         />
-        <div className="config-check-actions">
-          <Button onClick={runConfigCheck} loading={checkingConfig}>
-            检查当前配置
+        <div className="config-action-bar">
+          <div className="config-check-actions">
+            <Button onClick={runConfigCheck} loading={checkingConfig}>
+              检查当前配置
+            </Button>
+            <span>配置项已填写，尚未验证服务账号是否可用。</span>
+          </div>
+          <Button type="primary" onClick={save}>
+            保存配置
           </Button>
-          <span>配置项已填写，尚未验证服务账号是否可用。</span>
         </div>
         {checkResult ? (
           <div className="config-check-list">
@@ -6022,9 +6073,6 @@ function ConfigView({
             ))}
           </div>
         ) : null}
-        <Button type="primary" onClick={save}>
-          保存配置
-        </Button>
         {saved ? <Alert className="step-notice" type="success" showIcon title={saved} /> : null}
       </Card>
     </section>

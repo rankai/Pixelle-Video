@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "stage": "BRAND-PROJECT-2",
+  "gate": "PG-BP-C",
+  "status": "passed_with_boundary",
+  "date": "2026-07-29",
+  "independent_review": {
+    "first_pass": {
+      "p0": 0,
+      "p1": 2,
+      "p2": 1,
+      "result": "blocked"
+    },
+    "final_review": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "result": "PASS"
+    },
+    "remediation_status": "closed",
+    "gate_unchanged": false
+  },
+  "scope": {
+    "read_only_brand_sync_preview": true,
+    "explicit_brand_sync": true,
+    "expected_context_snapshot_cas": true,
+    "persistent_idempotency": true,
+    "project_overrides_preserved": true,
+    "project_brief_preserved": true,
+    "non_override_fields_updated": true,
+    "logo_bgm_revision_repinned": true,
+    "candidate_media_revision_guard_cas": true,
+    "historical_media_override_exact_copy": true,
+    "new_media_override_requires_ready_current": true,
+    "stable_flag_off_and_unbound_errors": true,
+    "no_change_without_snapshot_append": true,
+    "legacy_v1_v2_explicit_upgrade_to_v3": true,
+    "null_brand_compatibility": true,
+    "flag_restart_rollback": true,
+    "historical_snapshot_run_artifact_immutable": true,
+    "business_ui_changes": 0
+  },
+  "verification": {
+    "pytest_files": 9,
+    "pytest_passed": 124,
+    "pytest_failed": 0,
+    "pytest_result": "124 passed, 12 existing warnings",
+    "stage2_probe_result": "17 passed, 12 existing warnings",
+    "ruff_check": "passed",
+    "ruff_format_check": "passed",
+    "ruff_format_files": 19,
+    "json_parse": "passed",
+    "json_schema_self_check": "passed",
+    "sql_schema_execution": "passed",
+    "foreign_key_check": "passed",
+    "diff_check": "passed",
+    "artifact_hash_check": "passed",
+    "artifact_hashes": 25,
+    "warnings": {
+      "count": 12,
+      "classification": "existing_pydantic_deprecations"
+    }
+  },
+  "invariants": {
+    "preview_zero_writes_to_app_and_asset_databases": true,
+    "sync_only_on_explicit_post": true,
+    "appdb_snapshot_pointer_and_idempotency_single_transaction": true,
+    "cross_database_atomicity_claimed": false,
+    "assetdb_revision_guard_held_during_appdb_transaction": true,
+    "non_override_media_ready_kind_current_and_exact_guarded": true,
+    "concurrent_logo_bgm_archive_or_new_revision_leaves_appdb_unchanged": true,
+    "historical_archived_media_override_exact_revision_preserved": true,
+    "new_media_override_non_current_revision_rejected": true,
+    "same_key_same_request_replayed_after_restart": true,
+    "same_key_different_request_fails_closed": true,
+    "no_change_persists_only_idempotency_fact": true,
+    "archived_project_or_brand_fails_closed": true,
+    "missing_domain_or_media_revision_fails_closed": true,
+    "concurrent_brand_update_fails_closed": true,
+    "flag_off_blocks_preview_and_sync_but_preserves_v3_projection_read": true,
+    "flag_off_error_code_and_safe_chinese_message_stable": true,
+    "unbound_sync_has_distinct_error_code_and_safe_chinese_message": true,
+    "old_snapshot_app_run_artifact_and_artifact_version_unchanged": true
+  },
+  "boundaries": {
+    "production_database_writes": 0,
+    "llm_calls": 0,
+    "tts_calls": 0,
+    "runninghub_calls": 0,
+    "browser_or_platform_actions": 0,
+    "final_publish_clicks": 0,
+    "git_commits": 0,
+    "business_ui_changes": 0,
+    "next_stage_started": false,
+    "program_rollout_checkpoint": "PROGRAM-ROLLOUT/PG-L paused_external and unchanged"
+  },
+  "artifacts": [
+    {
+      "path": "api/config.py",
+      "sha256": "6aa9d20c77e9ef93fa1401f3e56be06274f3df93d5c9c534d9ec8201839f524b"
+    },
+    {
+      "path": "api/routers/app_center.py",
+      "sha256": "76c8291dc4b8726496e63b11d31b3d58a84778db57a380d29251638dfd645faa"
+    },
+    {
+      "path": "api/schemas/app_center.py",
+      "sha256": "727a50582928ae92c6dc344ea132297e32fa940ee16585be3c61da6e9be9b333"
+    },
+    {
+      "path": "docs/contracts/app-center/app-center-v1.sql",
+      "sha256": "d2c12b60ceda60947f72668ede52273b23fbe13884cda315e066524dfc94c6c0"
+    },
+    {
+      "path": "docs/contracts/app-center/brand-project-boundary-entry.contract.json",
+      "sha256": "b4ba86aa7595b2e65d33a0bfc2405ce8b772a8dfd6f618e036801e0718709af2"
+    },
+    {
+      "path": "docs/contracts/app-center/context-snapshot-v2.schema.json",
+      "sha256": "ed69b46192f4b551880ae04586c0b1fa34ba6287671719b202649b156c4a132e"
+    },
+    {
+      "path": "docs/contracts/app-center/context-snapshot-v3.schema.json",
+      "sha256": "a673bf20b7c78cd3f5cefa887aabf001728e12f291156140c0e9646ba19d8703"
+    },
+    {
+      "path": "docs/contracts/app-center/feature-flag-matrix.json",
+      "sha256": "7bd7f0e6e8acb1b257d71feb656e9db2c8112a6bd76744d3a9db01fd7f490ca8"
+    },
+    {
+      "path": "pixelle_video/app_center/brand_project.py",
+      "sha256": "76b947706eb81e1190cec10e7dedcaf9c17df64f2aef675738c8a308699b0be7"
+    },
+    {
+      "path": "pixelle_video/app_center/migration.py",
+      "sha256": "fcc20cfc3ca90d46da02b3b208a614c3d4c15a8f98f6a8940dcf62ecf0e9fe7a"
+    },
+    {
+      "path": "pixelle_video/app_center/models.py",
+      "sha256": "d557a9e5e5696bf9e83d1536a5d306d2f22ac292c2c89776faca4be2efe765f7"
+    },
+    {
+      "path": "pixelle_video/app_center/project_context.py",
+      "sha256": "f557e062c83e94e925a940e73041c7cfbe258cb7b4c81deea1a7249190e80987"
+    },
+    {
+      "path": "pixelle_video/app_center/repository.py",
+      "sha256": "62fcfb5fc9aef00723e9527a2937c824e341a9ea2907dfb364bcfac5b76b1045"
+    },
+    {
+      "path": "pixelle_video/services/assets_v2/repository.py",
+      "sha256": "ef4da028b7a6905ff33503092690ddfd5413200f17c7232e30951b0287afc640"
+    },
+    {
+      "path": "tests/brand_project_stage2_test.py",
+      "sha256": "9368f87f1ff6b3f678119bba42d7ac67993324aa2be9e3a0134d0601e25583d6"
+    },
+    {
+      "path": "tests/brand_project_stage1_test.py",
+      "sha256": "278bdc6a57a20592a7c7a5bfb11052dc0550c7131c2726871aa111094b6895fd"
+    },
+    {
+      "path": "tests/app_workbench_project_context_test.py",
+      "sha256": "23c8c8c195311756ea6969148c67005cbf5b561ebdd9a3d3147bc52b9c9c5abd"
+    },
+    {
+      "path": "tests/brand_project_boundary_entry_contract_test.py",
+      "sha256": "92476a01d72e5f2ed7dc400ee02fb50c71b2fd0ee50aeba16a45ddb7f4eb95fb"
+    },
+    {
+      "path": "tests/app_center_api_test.py",
+      "sha256": "70fc3b1f33cdca9ffc12db815e035d9a05a3bef122cee0edb38f789d45a6e69f"
+    },
+    {
+      "path": "tests/app_center_registry_test.py",
+      "sha256": "4bfc29bc7da7601d83e9ad950ad97670a93fdef1d8f123631dc70fae7ef71b18"
+    },
+    {
+      "path": "tests/asset_library_v2_repository_test.py",
+      "sha256": "8149d55f7361433eb013dac44360ed203d98727e41134e402c026800c8865cc4"
+    },
+    {
+      "path": "tests/config_llm_profiles_test.py",
+      "sha256": "b5add1bd439c8bb5c8a2b44aafab442d7ee73ad7656e84424f2a441521928ff5"
+    },
+    {
+      "path": "tests/coord0_contract_test.py",
+      "sha256": "40f0b85027df35612beb5d647a2eda4322138e000d0f867008ff2a251fcf1533"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/BRAND-PROJECT-0-entry-2026-07-29.md",
+      "sha256": "f042a3c1eb5208596732027614248e6c091fe8602d2e66f9a1e358d5e4b8f647"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/BRAND-PROJECT-2-implementation-2026-07-29.md",
+      "sha256": "f7c09e10d7ce5176ccbeec1fa6d1047679aceb127d753b150c531714ab5eadc3"
+    }
+  ],
+  "evidence": [
+    "docs/reviews/application-publishing-program/BRAND-PROJECT-2-implementation-2026-07-29.md",
+    "tests/brand_project_stage2_test.py"
+  ]
+}

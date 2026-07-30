@@ -30,9 +30,11 @@ const ROUTES = new Set([
 function normalizePath(pathname: string) {
   const [basePath, rawQuery = ""] = pathname.split("?", 2);
   if (!ROUTES.has(basePath)) return "/apps";
-  if (basePath !== "/publish" || !rawQuery) return basePath;
+  if (!rawQuery) return basePath;
   const params = new URLSearchParams(rawQuery);
-  const allowed = new Set(["package_id", "artifact_id", "run_id"]);
+  const allowed = basePath === "/publish"
+    ? new Set(["package_id", "artifact_id", "run_id"])
+    : new Set(["source_version_id"]);
   if ([...params.keys()].some((key) => !allowed.has(key) || !params.get(key))) return "/apps";
   return `${basePath}?${params.toString()}`;
 }

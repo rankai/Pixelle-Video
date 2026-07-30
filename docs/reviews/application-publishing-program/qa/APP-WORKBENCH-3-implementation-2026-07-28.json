@@ -1,0 +1,114 @@
+{
+  "stage": "APP-WORKBENCH-3",
+  "gate": "PG-AW-D",
+  "result": "passed_with_boundary",
+  "date": "2026-07-28",
+  "scope": [
+    "trusted StylePresetRegistry",
+    "marketing-copy-input.v2",
+    "viral-titles-input.v2",
+    "structured result actions and AppEvent",
+    "ArtifactVersion editing and selection",
+    "marketing copy to viral titles typed handoff",
+    "controlled Doubao Ark Responses API smoke"
+  ],
+  "automated_verification": {
+    "backend_focused": {
+      "result": "14 passed"
+    },
+    "backend_aggregate": {
+      "command": "uv run pytest tests/app_center_*_test.py tests/app_workbench_*_test.py tests/llm_service_responses_test.py -q",
+      "result": "174 passed",
+      "warnings": "12 existing Pydantic deprecation warnings"
+    },
+    "frontend": {
+      "command": "npm run test -- --run",
+      "result": "15 files, 93 passed"
+    },
+    "build": {
+      "command": "npm run build",
+      "result": "passed with existing chunk-size advisory only"
+    },
+    "ruff": {
+      "result": "passed"
+    },
+    "migration": {
+      "database": "data/app_center.sqlite",
+      "result": "migration-ok 4"
+    },
+    "diff_check": "passed"
+  },
+  "controlled_real_qa": {
+    "provider": "doubao via Ark Responses API",
+    "project_id": "project_b57435d1b41548eda1b3a64d5c69bf77",
+    "context_snapshot_id": "context_85e268fb14cd4ea1b013573424ad1baa",
+    "marketing_copy": {
+      "run_id": "run_24b3563bf7294a44b9caad98178069d6",
+      "artifact_id": "artifact_5c297ab232a34647b5185e4f7eabe1b4",
+      "selected_artifact_version_id": "artifact_version_53e670421fc74d689eb605b8608b5748",
+      "result_state": "needs_review"
+    },
+    "handoff": {
+      "handoff_id": "handoff_1d125eb4d63f40b3a65f0dd0b66fca9b",
+      "target_app_id": "builtin.viral-titles",
+      "target_app_version": "1.1.0",
+      "mapping_version": 2,
+      "repeat_click_idempotent": true
+    },
+    "viral_titles": {
+      "run_id": "run_541c38f2177645d8be3cb95e42155428",
+      "artifact_id": "artifact_214647cc7aaf49beada7d7b9724a9b33",
+      "candidate_count": 5,
+      "unique_count": 5,
+      "character_range": "16-17",
+      "selected_artifact_id": "artifact_eba7e0512dbe4231bcc1e82251200d2d",
+      "selected_artifact_version_id": "artifact_version_0afe7bce836c45aeb0136e8dd12e2b8d",
+      "result_state": "needs_review"
+    },
+    "provider_retry_policy": "two distinct purposeful application cases; no blind failure retry"
+  },
+  "visual_verification": {
+    "directory": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-3-visual-2026-07-28",
+    "viewports": [
+      "desktop",
+      "390x844"
+    ],
+    "checks": [
+      "desktop input and result panes are simultaneously visible",
+      "title source remains pinned after handoff and reload",
+      "mobile config and result tabs switch without losing the completed run",
+      "structured results do not expose a raw JSON editor",
+      "reference and implementation were compared side by side"
+    ],
+    "screenshots_sha256": {
+      "marketing-copy-real-result-full.png": "1e83303431440d78a429697d18c2a60f76d961ac557c94f77dcd2e47a85cdb2e",
+      "reference-vs-pixelle-title-workbench.png": "bdc24fed1f3196f5d743b4af4ba09e0217cd309a077d78f49334993005241f5c",
+      "viral-titles-mobile-input.png": "4445c836e51ccdf16f232ca6c095e59f7c1f56ce615207ebdad06e69aeb036f5",
+      "viral-titles-mobile-result.png": "34d866ce9757ace45cd764b01952564b415be21a781adf8c60038cb2fa6a964c",
+      "viral-titles-pinned-source-full.png": "0e3a0d0a757c2d45a3f12f7cedf27b994eb3775c0a60baeb98d3b7e63425b4a3",
+      "viral-titles-real-result-full.png": "206fc054f959ea97dbc9505a231b9f98aeaea1cd8b96514a6bcb219485e03447",
+      "viral-titles-top-viewport.png": "0dcf8361134d27813bc25812f8e3d775e8769a88fb68193dcbaef1d65e0f887a"
+    }
+  },
+  "review_fixes": [
+    "preserved deployed v1 manifest while adding v1.1",
+    "executed the exact app version pinned by AppRun",
+    "centralized application routes and fixed typed handoff navigation",
+    "bound selected-title events to the selected artifact version",
+    "removed raw JSON editing from structured results",
+    "restored v2 task inputs, style, keywords and source after reload"
+  ],
+  "external_actions": {
+    "llm_calls": 2,
+    "runninghub_calls": 0,
+    "platform_actions": 0,
+    "final_publish_clicks": 0
+  },
+  "boundaries": [
+    "model outputs remain needs_review until accepted by the user",
+    "text workbench feature flags remain default-off",
+    "carousel workbench is deferred to APP-WORKBENCH-4",
+    "digital-human workbench is deferred to APP-WORKBENCH-5",
+    "PROGRAM-ROLLOUT PG-L external evidence remains paused"
+  ]
+}

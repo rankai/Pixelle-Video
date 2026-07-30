@@ -22,7 +22,7 @@ from typing import Any, Optional
 from loguru import logger
 
 from .loader import load_config_dict, save_config_dict
-from .schema import PixelleVideoConfig
+from .schema import LLMConfig, PixelleVideoConfig
 
 
 class ConfigManager:
@@ -52,11 +52,46 @@ class ConfigManager:
         """Load configuration from file"""
         data = load_config_dict(str(self.config_path))
         config = PixelleVideoConfig(**data)
+        self._ensure_llm_profiles(config)
         
         # Validate template path exists
         self._validate_template(config.template.default_template)
         
         return config
+
+    @staticmethod
+    def _ensure_llm_profiles(config: PixelleVideoConfig) -> None:
+        """Migrate the legacy single LLM config into shared/custom profiles.
+
+        Existing installations only have ``llm``. Treat that configuration as
+        the shared default and leave the optional custom profile empty. The
+        active ``llm`` object remains the compatibility surface consumed by
+        all existing generation services.
+        """
+        if config.llm_shared is None:
+            config.llm_shared = config.llm.model_copy(deep=True)
+        if config.llm_custom is None:
+            config.llm_custom = (
+                config.llm.model_copy(deep=True)
+                if config.llm_source == "custom"
+                else LLMConfig()
+            )
+
+    def sync_active_llm_profile(self) -> None:
+        """Persist edits made to the active profile's compatibility object."""
+        self._ensure_llm_profiles(self.config)
+        profile_name = "llm_shared" if self.config.llm_source == "shared" else "llm_custom"
+        setattr(self.config, profile_name, self.config.llm.model_copy(deep=True))
+
+    def set_llm_source(self, source: str) -> None:
+        """Switch the active profile while preserving the previous profile."""
+        if source not in {"shared", "custom"}:
+            raise ValueError("LLM source must be 'shared' or 'custom'")
+        self._ensure_llm_profiles(self.config)
+        self.sync_active_llm_profile()
+        selected = self.config.llm_shared if source == "shared" else self.config.llm_custom
+        self.config.llm = (selected or LLMConfig()).model_copy(deep=True)
+        self.config.llm_source = source
     
     def _validate_template(self, template_path: str):
         """Validate that the configured template exists"""

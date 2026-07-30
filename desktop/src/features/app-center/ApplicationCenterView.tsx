@@ -3,6 +3,7 @@ import { Alert, Empty, Input, Tag, Typography } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import { listApplications, type ApplicationManifest } from "../../api";
 import { featureFlags } from "../../featureFlags";
+import { applicationRouteForId } from "./applicationRoutes";
 
 export type Application = {
   appId: string;
@@ -44,12 +45,7 @@ function toApplication(manifest: ApplicationManifest): Application {
   const ready = backendReady && desktopReady;
   const statusLabel = ready ? "" : "待上线";
   const statusTone = ready ? "success" : "warning";
-  const routePath = {
-    "builtin.marketing-copy": "/apps/marketing-copy",
-    "builtin.viral-titles": "/apps/viral-titles",
-    "builtin.douyin-carousel": "/apps/douyin-carousel",
-    "builtin.digital-human-video": "/apps/digital-human-video",
-  }[manifest.app_id];
+  const routePath = applicationRouteForId(manifest.app_id);
   return {
     appId: manifest.app_id,
     name: manifest.name,

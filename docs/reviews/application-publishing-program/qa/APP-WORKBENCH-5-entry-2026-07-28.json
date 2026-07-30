@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "stage": "APP-WORKBENCH-5",
+  "change_request": "CR-APP-WORKBENCH-001",
+  "gate": "PG-AW-F",
+  "status": "passed",
+  "date": "2026-07-28",
+  "contracts": [
+    "digital-human-video-input-v2.contract.json",
+    "digital-human-quality-entry.contract.json",
+    "digital-human-dual-mode-recovery.contract.json",
+    "digital-human-dual-mode-rollout.contract.json"
+  ],
+  "frozen_boundaries": {
+    "default_mode": "image_talking",
+    "video_mode_release": "stable_non_default",
+    "artifact_types": ["final_video", "cover", "publish_copy", "spoken_script"],
+    "subtitle_preset": "readable_v2",
+    "final_publish_click_count": 0,
+    "third_party_platform_open_count": 0
+  },
+  "entry_tests": {
+    "passed": 84,
+    "warnings": 7,
+    "command_scope": "digital-human dual-mode, recovery, quality, artifact and desktop-entry contracts"
+  },
+  "implementation_tests": {
+    "backend_targeted_passed": 83,
+    "backend_warnings": 12,
+    "desktop_files": 15,
+    "desktop_tests_passed": 95,
+    "desktop_build": "passed",
+    "ruff_and_diff_check": "passed",
+    "browser_visual_smoke": "passed_with_boundary",
+    "full_backend_suite": "not_claimed_due_to_existing_long_running_tail"
+  },
+  "review": {
+    "status": "passed",
+    "reviewer": "/root/app_workbench_stage5_strict_reviewer",
+    "p0": 0,
+    "p1": 0,
+    "evidence": "APP-WORKBENCH-5-implementation-review-2026-07-28.md"
+  },
+  "next": "APP-WORKBENCH-6 entry"
+}

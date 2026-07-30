@@ -4,10 +4,11 @@ import os
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from loguru import logger
 
 from api.dependencies import PixelleVideoDep
+from api.routers.app_center import get_app_center_repository
 from api.schemas.ip_broadcast import (
     IpBroadcastConfigPatch,
     IpBroadcastCreateSessionResponse,
@@ -20,6 +21,7 @@ from pixelle_video.services.ip_broadcast_workflow import (
     IpBroadcastSessionStore,
     run_ip_broadcast_step,
 )
+from pixelle_video.utils.os_util import get_data_path, get_output_path, get_temp_path
 
 router = APIRouter(prefix="/ip-broadcast", tags=["IP Broadcast"])
 _session_store = IpBroadcastSessionStore()
@@ -100,7 +102,62 @@ async def get_artifact(session_id: str, artifact_key: str):
         artifact_path = _artifact_path_from_state(session, artifact_key)
     if not artifact_path:
         raise HTTPException(status_code=404, detail=f"Artifact not found: {artifact_key}")
-    path = Path(artifact_path).resolve()
+    # App Center V2 stores repository artifact IDs in the session projection
+    # so restart/recovery can refer to immutable versions. Resolve those IDs
+    # here instead of treating them as filesystem paths (which previously
+    # caused cover/publish-copy/spoken-script downloads to return 404).
+    if isinstance(artifact_path, str) and artifact_path.startswith("artifact_"):
+        repository = get_app_center_repository()
+        try:
+            artifact = repository.get_artifact(artifact_path)
+            if not artifact.current_version_id:
+                raise HTTPException(
+                    status_code=404, detail=f"Artifact version not found: {artifact_key}"
+                )
+            version = repository.get_artifact_version(artifact.current_version_id)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=404, detail=f"Artifact not found: {artifact_key}"
+            ) from exc
+        if artifact_key in {"publish_copy", "spoken_script"}:
+            return JSONResponse(
+                content=version.content or {},
+                headers={"Content-Disposition": f'attachment; filename="{artifact_key}.json"'},
+            )
+        file_ref = next(
+            (
+                ref
+                for ref in version.file_refs
+                if isinstance(ref, dict) and ref.get("kind") in {"video", "cover", "image"}
+            ),
+            None,
+        )
+        if not file_ref:
+            raise HTTPException(status_code=404, detail=f"Artifact file not found: {artifact_key}")
+        artifact_path = str(file_ref.get("path") or file_ref.get("absolute_path") or "")
+        if not artifact_path and file_ref.get("relative_path"):
+            root_paths = {
+                "data": Path(get_data_path()),
+                "output": Path(get_output_path()),
+                "temp": Path(get_temp_path()),
+            }
+            root_name = str(file_ref.get("root") or "").strip().lower()
+            root_path = root_paths.get(root_name)
+            if root_path is None:
+                raise HTTPException(
+                    status_code=404, detail=f"Artifact file not found: {artifact_key}"
+                )
+            artifact_path = str(root_path / str(file_ref["relative_path"]))
+        if not artifact_path:
+            raise HTTPException(status_code=404, detail=f"Artifact file not found: {artifact_key}")
+        raw_path = Path(artifact_path).expanduser()
+        path = (
+            raw_path.resolve()
+            if raw_path.is_absolute()
+            else (Path(get_data_path()) / raw_path).resolve()
+        )
+    else:
+        path = Path(artifact_path).resolve()
     if not path.exists() or not path.is_file():
         raise HTTPException(status_code=404, detail=f"Artifact file not found: {artifact_key}")
     if not _is_allowed_artifact_path(path):

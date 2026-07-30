@@ -22,7 +22,7 @@ def test_browser_dev_defaults_to_standalone_api_port():
     assert '["5173", "5174", "1420"].includes(window.location.port)' in source
     assert '"http://127.0.0.1:8100"' in source
     # Tauri receives its debug/release URL through desktop_runtime.
-    assert 'apiBaseUrl: browserApiBaseUrl()' in source
+    assert "apiBaseUrl: browserApiBaseUrl()" in source
 
 
 def test_asset_center_v2_defaults_on_with_explicit_frontend_rollback():
@@ -51,6 +51,7 @@ def test_production_desktop_build_explicitly_enables_application_center_rollout(
     assert "VITE_DOUYIN_CAROUSEL=true" in production_env
     assert "VITE_APP_CENTER_DIGITAL_HUMAN=true" in production_env
     assert "VITE_APP_CENTER_DIGITAL_HUMAN_DUAL_MODE=true" in production_env
+    assert "VITE_BRAND_PROJECT_BOUNDARY_V1=true" in production_env
 
 
 def test_desktop_navigation_keeps_workspace_before_application_center():
@@ -63,14 +64,19 @@ def test_desktop_navigation_keeps_workspace_before_application_center():
 
 def test_app_shell_smoke_evidence_covers_flag_rollback_and_route_contract():
     evidence = json.loads(
-        Path("docs/reviews/application-publishing-program/qa/AC-1-app-shell-smoke-2026-07-19.json").read_text()
+        Path(
+            "docs/reviews/application-publishing-program/qa/AC-1-app-shell-smoke-2026-07-19.json"
+        ).read_text()
     )
 
     assert evidence["stage"] == "APP-SHELL"
     assert evidence["gate"] == "PG-B"
     assert evidence["registry"]["list_endpoint"] == "GET /api/apps"
     assert evidence["registry"]["manifest_count"] == 4
-    assert evidence["registry"]["canonical_flag_env"]["contentApps"] == "PIXELLE_APP_CENTER_CONTENT_APPS"
+    assert (
+        evidence["registry"]["canonical_flag_env"]["contentApps"]
+        == "PIXELLE_APP_CENTER_CONTENT_APPS"
+    )
     assert evidence["flag_on"]["pass"] is True
     assert evidence["flag_on"]["console_errors"] == 0
     assert evidence["flag_on"]["network_failures"] == 0
@@ -79,7 +85,12 @@ def test_app_shell_smoke_evidence_covers_flag_rollback_and_route_contract():
         "/ip",
     ]
     assert evidence["flag_on"]["readiness"]["configured"]["button_enabled"] is True
-    assert evidence["flag_on"]["readiness"]["after_isolated_config_change_to_missing"]["button_enabled"] is False
+    assert (
+        evidence["flag_on"]["readiness"]["after_isolated_config_change_to_missing"][
+            "button_enabled"
+        ]
+        is False
+    )
     assert evidence["flag_on"]["desktop_restart_route"]["pass"] is True
     assert evidence["flag_on"]["forbidden_non_get_requests"] == []
     assert evidence["flag_on"]["route_normalization"]["after_mount"] == "/apps"
@@ -94,7 +105,7 @@ def test_desktop_app_shell_has_vitest_and_registry_render_smokes():
     assert package["scripts"]["test"] == "vitest"
     assert "vitest" in package["devDependencies"]
     assert "@testing-library/react" in package["devDependencies"]
-    assert "environment: \"jsdom\"" in config
+    assert 'environment: "jsdom"' in config
     assert Path("desktop/src/features/app-center/AppShell.test.tsx").exists()
     assert Path("desktop/src/features/app-center/ApplicationCenterView.test.tsx").exists()
 
@@ -143,6 +154,34 @@ def test_desktop_sidecar_receives_asset_center_rollout_flag():
     assert 'std::env::var("PIXELLE_ASSET_CENTER_V2")' in source
     assert '.env("PIXELLE_ASSET_CENTER_V2", asset_center_v2)' in source
     assert 'unwrap_or_else(|_| "1".to_string())' in source
+
+
+def test_desktop_sidecar_receives_brand_project_rollout_flag():
+    source = Path("desktop/src-tauri/src/main.rs").read_text()
+    main_source = Path("desktop/src/main.tsx").read_text()
+    feature_source = Path("desktop/src/featureFlags.ts").read_text()
+
+    assert 'std::env::var("PIXELLE_BRAND_PROJECT_BOUNDARY_V1")' in source
+    assert (
+        '.env(\n            "PIXELLE_BRAND_PROJECT_BOUNDARY_V1",\n'
+        "            brand_project_boundary_v1,\n        )"
+    ) in source
+    assert "feature_flags: RuntimeFeatureFlags" in source
+    assert "parse_env_flag(" in source
+    assert "brand_project_boundary_v1," in source
+    assert "initializeDesktopRuntime" in main_source
+    assert "applyRuntimeFeatureFlags(runtime.featureFlags)" in main_source
+    assert "mergeRuntimeFeatureFlags" in feature_source
+    assert "legacy interaction" in source
+
+
+def test_digital_human_source_tabs_stay_inside_the_workbench_pane():
+    styles = Path("desktop/src/styles.css").read_text()
+
+    assert ".app-workbench-adopted .digital-human-app-source-tabs {" in styles
+    assert "grid-template-columns: repeat(2, minmax(0, 1fr));" in styles
+    assert ".app-workbench-adopted .digital-human-app-source-tabs button {" in styles
+    assert "min-width: 0;" in styles
 
 
 def test_tauri_close_cleans_the_pyinstaller_sidecar_process_tree():

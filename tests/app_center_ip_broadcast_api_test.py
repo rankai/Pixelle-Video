@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from api.app import app
+from api.routers import ip_broadcast as legacy_ip_broadcast
 from api.routers.app_center import get_app_center_repository
 from pixelle_video.app_center.ip_broadcast_adapter import (
     IpBroadcastAppAdapter,
@@ -19,18 +20,28 @@ def test_ip_broadcast_app_api_projects_safe_status_and_cancel(monkeypatch, tmp_p
     repository = get_app_center_repository()
     sessions = IpBroadcastSessionStore(tmp_path / "sessions")
     bindings = IpBroadcastBindingStore(tmp_path / "bindings.json")
-    adapter = IpBroadcastAppAdapter(repository, session_store=sessions, binding_store=bindings, enforce_feature_flag=False)
-    monkeypatch.setattr("api.routers.ip_broadcast_app.get_ip_broadcast_app_adapter", lambda: adapter)
+    adapter = IpBroadcastAppAdapter(
+        repository, session_store=sessions, binding_store=bindings, enforce_feature_flag=False
+    )
+    monkeypatch.setattr(
+        "api.routers.ip_broadcast_app.get_ip_broadcast_app_adapter", lambda: adapter
+    )
     client = TestClient(app)
 
-    project = client.post("/api/content-projects", json={"name": "IP API", "primary_goal": "测试适配器"}).json()
+    project = client.post(
+        "/api/content-projects", json={"name": "IP API", "primary_goal": "测试适配器"}
+    ).json()
     context_snapshot = client.post(
         f"/api/content-projects/{project['project_id']}/context-snapshots",
         json={"payload": {"store_name": "API 门店"}},
     ).json()
     payload = {
         "project_id": project["project_id"],
-        "input_payload": {"source_mode": "blank_project", "goal": "到店咨询", "source_artifact_version_ids": []},
+        "input_payload": {
+            "source_mode": "blank_project",
+            "goal": "到店咨询",
+            "source_artifact_version_ids": [],
+        },
         "idempotency_key": "ip-api-idem-1",
         "context_snapshot_id": context_snapshot["context_snapshot_id"],
     }
@@ -38,6 +49,7 @@ def test_ip_broadcast_app_api_projects_safe_status_and_cancel(monkeypatch, tmp_p
     assert created.status_code == 201
     body = created.json()
     assert body["state"] == "draft"
+    assert body["context_snapshot_id"] == context_snapshot["context_snapshot_id"]
     assert body["projection"]["app_run_state"] == "draft"
     assert "input_payload" not in body
     assert "state_data" not in body
@@ -53,6 +65,7 @@ def test_ip_broadcast_app_api_projects_safe_status_and_cancel(monkeypatch, tmp_p
     )
     assert status_response.status_code == 200
     assert status_response.json()["session_id"] == body["session_id"]
+    assert status_response.json()["context_snapshot_id"] == context_snapshot["context_snapshot_id"]
 
     executed = client.post(f"/api/app-center/ip-broadcast/runs/{body['app_run_id']}/execute")
     assert executed.status_code == 200
@@ -75,7 +88,9 @@ def test_ip_broadcast_app_api_projects_safe_status_and_cancel(monkeypatch, tmp_p
     assert "/private" not in str(redacted)
     assert "/private/credential=secret" not in redacted["artifact_keys"]
 
-    other = client.post("/api/content-projects", json={"name": "另一个项目", "primary_goal": "隔离"}).json()
+    other = client.post(
+        "/api/content-projects", json={"name": "另一个项目", "primary_goal": "隔离"}
+    ).json()
     cross_project = client.get(
         f"/api/app-center/ip-broadcast/runs/{body['app_run_id']}",
         params={"project_id": other["project_id"]},
@@ -86,7 +101,10 @@ def test_ip_broadcast_app_api_projects_safe_status_and_cancel(monkeypatch, tmp_p
     cancelled = client.post(f"/api/app-center/ip-broadcast/runs/{body['app_run_id']}/cancel")
     assert cancelled.status_code == 200
     assert cancelled.json()["state"] == "cancelled"
-    assert client.post(f"/api/app-center/ip-broadcast/runs/{body['app_run_id']}/cancel").status_code == 200
+    assert (
+        client.post(f"/api/app-center/ip-broadcast/runs/{body['app_run_id']}/cancel").status_code
+        == 200
+    )
     invalid_retry = client.post(f"/api/app-center/ip-broadcast/runs/{body['app_run_id']}/retry")
     assert invalid_retry.status_code == 409
     assert invalid_retry.json()["detail"]["code"] == "APP_RUN_STATE_INVALID"
@@ -95,12 +113,64 @@ def test_ip_broadcast_app_api_projects_safe_status_and_cancel(monkeypatch, tmp_p
         "/api/app-center/ip-broadcast/runs",
         json={
             "project_id": project["project_id"],
-            "input_payload": {"source_mode": "blank_project", "goal": "拒绝敏感字段", "provider": "secret"},
+            "input_payload": {
+                "source_mode": "blank_project",
+                "goal": "拒绝敏感字段",
+                "provider": "secret",
+            },
             "idempotency_key": "ip-api-forbidden-1",
         },
     )
     assert forbidden.status_code == 422
     assert forbidden.json()["detail"]["code"] == "INPUT_PAYLOAD_INVALID"
+
+
+def test_legacy_artifact_endpoint_resolves_v2_repository_artifact_ids(monkeypatch, tmp_path):
+    monkeypatch.setenv("PIXELLE_APP_CENTER_DB", str(tmp_path / "artifact-api.sqlite"))
+    monkeypatch.setenv("PIXELLE_VIDEO_ROOT", str(tmp_path))
+    get_app_center_repository.cache_clear()
+    repository = get_app_center_repository()
+    project = repository.create_project("产物下载", "验证 V2 交付")
+    cover = tmp_path / "cover.png"
+    cover.write_bytes(b"\x89PNG\r\n\x1a\nartifact-cover")
+    artifact = repository.create_artifact(project.project_id, "cover", "V2 封面")
+    repository.append_artifact_version(
+        artifact.artifact_id,
+        file_refs=[{"file_key": "cover.png", "kind": "cover", "path": str(cover)}],
+    )
+    sessions = IpBroadcastSessionStore(tmp_path / "sessions")
+    session = sessions.create_session()
+    session.artifacts["cover"] = artifact.artifact_id
+    sessions.save_session(session)
+    monkeypatch.setattr(legacy_ip_broadcast, "_session_store", sessions)
+    response = TestClient(app).get(
+        f"/api/ip-broadcast/sessions/{session.session_id}/artifacts/cover"
+    )
+    assert response.status_code == 200
+    assert response.content.startswith(b"\x89PNG")
+
+    relative_cover = tmp_path / "output" / "relative-cover.png"
+    relative_cover.parent.mkdir(parents=True, exist_ok=True)
+    relative_cover.write_bytes(b"\x89PNG\r\n\x1a\nrelative-cover")
+    relative_artifact = repository.create_artifact(project.project_id, "cover", "根路径封面")
+    repository.append_artifact_version(
+        relative_artifact.artifact_id,
+        file_refs=[
+            {
+                "file_key": "relative-cover.png",
+                "kind": "cover",
+                "root": "output",
+                "relative_path": "relative-cover.png",
+            }
+        ],
+    )
+    session.artifacts["relative_cover"] = relative_artifact.artifact_id
+    sessions.save_session(session)
+    relative_response = TestClient(app).get(
+        f"/api/ip-broadcast/sessions/{session.session_id}/artifacts/relative_cover"
+    )
+    assert relative_response.status_code == 200
+    assert relative_response.content.startswith(b"\x89PNG")
 
 
 def test_ip_broadcast_app_api_production_default_is_fail_closed(monkeypatch, tmp_path):
@@ -109,12 +179,18 @@ def test_ip_broadcast_app_api_production_default_is_fail_closed(monkeypatch, tmp
     monkeypatch.delenv("PIXELLE_APP_CENTER_DIGITAL_HUMAN", raising=False)
     get_app_center_repository.cache_clear()
     client = TestClient(app)
-    project = client.post("/api/content-projects", json={"name": "关闭 API", "primary_goal": "flag"}).json()
+    project = client.post(
+        "/api/content-projects", json={"name": "关闭 API", "primary_goal": "flag"}
+    ).json()
     response = client.post(
         "/api/app-center/ip-broadcast/runs",
         json={
             "project_id": project["project_id"],
-            "input_payload": {"source_mode": "blank_project", "goal": "不得创建", "source_artifact_version_ids": []},
+            "input_payload": {
+                "source_mode": "blank_project",
+                "goal": "不得创建",
+                "source_artifact_version_ids": [],
+            },
             "idempotency_key": "ip-api-disabled-1",
         },
     )
@@ -136,9 +212,13 @@ def test_ip_broadcast_app_api_accept_is_explicit_and_idempotent(monkeypatch, tmp
         enforce_feature_flag=False,
         trusted_roots=[tmp_path],
     )
-    monkeypatch.setattr("api.routers.ip_broadcast_app.get_ip_broadcast_app_adapter", lambda: adapter)
+    monkeypatch.setattr(
+        "api.routers.ip_broadcast_app.get_ip_broadcast_app_adapter", lambda: adapter
+    )
     client = TestClient(app)
-    project = client.post("/api/content-projects", json={"name": "accept API", "primary_goal": "显式确认"}).json()
+    project = client.post(
+        "/api/content-projects", json={"name": "accept API", "primary_goal": "显式确认"}
+    ).json()
     created = adapter.create_or_resume(
         project["project_id"],
         {"source_mode": "blank_project", "goal": "显式确认", "source_artifact_version_ids": []},
@@ -156,7 +236,11 @@ def test_ip_broadcast_app_api_accept_is_explicit_and_idempotent(monkeypatch, tmp
         {
             "final_video_path": str(video),
             "cover_path": str(cover),
-            "publish_package": {"title": "确认标题", "description": "确认描述", "hashtags": ["门店"]},
+            "publish_package": {
+                "title": "确认标题",
+                "description": "确认描述",
+                "hashtags": ["门店"],
+            },
         }
     )
     sessions.save_session(session)
@@ -192,7 +276,11 @@ def test_ip_broadcast_app_api_accept_is_explicit_and_idempotent(monkeypatch, tmp
 
     fake = adapter.create_or_resume(
         project["project_id"],
-        {"source_mode": "blank_project", "goal": "generic complete 不得绕过", "source_artifact_version_ids": []},
+        {
+            "source_mode": "blank_project",
+            "goal": "generic complete 不得绕过",
+            "source_artifact_version_ids": [],
+        },
         idempotency_key="ip-api-generic-guard-1",
     )
     import asyncio
@@ -210,10 +298,16 @@ def test_ip_broadcast_app_api_isolated_execute_and_accept(monkeypatch, tmp_path)
     repository = get_app_center_repository()
     sessions = IpBroadcastSessionStore(tmp_path / "sessions")
     bindings = IpBroadcastBindingStore(tmp_path / "bindings.json")
-    adapter = IpBroadcastAppAdapter(repository, session_store=sessions, binding_store=bindings, enforce_feature_flag=False)
-    monkeypatch.setattr("api.routers.ip_broadcast_app.get_ip_broadcast_app_adapter", lambda: adapter)
+    adapter = IpBroadcastAppAdapter(
+        repository, session_store=sessions, binding_store=bindings, enforce_feature_flag=False
+    )
+    monkeypatch.setattr(
+        "api.routers.ip_broadcast_app.get_ip_broadcast_app_adapter", lambda: adapter
+    )
     client = TestClient(app)
-    project = client.post("/api/content-projects", json={"name": "隔离 API", "primary_goal": "执行接收"}).json()
+    project = client.post(
+        "/api/content-projects", json={"name": "隔离 API", "primary_goal": "执行接收"}
+    ).json()
     created = adapter.create_or_resume(
         project["project_id"],
         {"source_mode": "blank_project", "goal": "API 隔离执行", "source_artifact_version_ids": []},
@@ -245,7 +339,9 @@ def test_ip_broadcast_app_api_accepts_generated_provider_outputs(monkeypatch, tm
     # Keep this API test provider-free while exercising the production
     # acceptance branch selected by generated ArtifactVersions.
     monkeypatch.setattr(adapter, "_ensure_entry_enabled", lambda: None)
-    monkeypatch.setattr("api.routers.ip_broadcast_app.get_ip_broadcast_app_adapter", lambda: adapter)
+    monkeypatch.setattr(
+        "api.routers.ip_broadcast_app.get_ip_broadcast_app_adapter", lambda: adapter
+    )
     video = tmp_path / "generated.mp4"
     video.write_bytes(b"\x00\x00\x00\x18ftypmp42\x00\x00\x00\x00isommp42")
     cover = tmp_path / "generated.png"
@@ -262,9 +358,13 @@ def test_ip_broadcast_app_api_accepts_generated_provider_outputs(monkeypatch, tm
             }
         return True
 
-    monkeypatch.setattr("pixelle_video.app_center.ip_broadcast_adapter.run_ip_broadcast_step", fake_step)
+    monkeypatch.setattr(
+        "pixelle_video.app_center.ip_broadcast_adapter.run_ip_broadcast_step", fake_step
+    )
     client = TestClient(app)
-    project = client.post("/api/content-projects", json={"name": "生成 API", "primary_goal": "生成并确认"}).json()
+    project = client.post(
+        "/api/content-projects", json={"name": "生成 API", "primary_goal": "生成并确认"}
+    ).json()
     created = adapter.create_or_resume(
         project["project_id"],
         {"source_mode": "blank_project", "goal": "生成并确认", "source_artifact_version_ids": []},
@@ -282,7 +382,9 @@ def test_ip_broadcast_app_api_accepts_generated_provider_outputs(monkeypatch, tm
         for item in reviewed.run.output_artifact_ids
         if repository.get_artifact(item).artifact_type == "video"
     )
-    repository.append_artifact_version(video_artifact.artifact_id, content={"tampered": True}, source="generated")
+    repository.append_artifact_version(
+        video_artifact.artifact_id, content={"tampered": True}, source="generated"
+    )
     tampered = client.post(f"/api/app-center/ip-broadcast/runs/{created.run.app_run_id}/accept")
     assert tampered.status_code == 409
     assert tampered.json()["detail"]["code"] == "ARTIFACT_FINGERPRINT_MISMATCH"

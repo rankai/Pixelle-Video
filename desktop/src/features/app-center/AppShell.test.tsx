@@ -46,6 +46,15 @@ describe("HashRouter", () => {
     expect(window.location.hash).toBe("#/apps/douyin-carousel");
   });
 
+  it("preserves a fixed source version when handing off to an application route", async () => {
+    window.localStorage.clear();
+    window.location.hash = "#/apps/digital-human-video?source_version_id=version_title_1";
+    render(<HashRouter><RouteProbe /></HashRouter>);
+
+    await waitFor(() => expect(screen.getByLabelText("current route")).toHaveTextContent("/apps/digital-human-video?source_version_id=version_title_1"));
+    expect(window.location.hash).toBe("#/apps/digital-human-video?source_version_id=version_title_1");
+  });
+
   it("preserves allowed publish handoff refs and rejects unknown query fields", async () => {
     window.localStorage.clear();
     window.location.hash = "#/publish?package_id=pkg_1&run_id=run_1";

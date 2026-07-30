@@ -1,0 +1,647 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/app-center/app-workbench-input.v2.schema.json",
+  "title": "Pixelle application workbench input snapshot v2",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/marketing_copy"
+    },
+    {
+      "$ref": "#/$defs/viral_titles"
+    },
+    {
+      "$ref": "#/$defs/douyin_carousel"
+    },
+    {
+      "$ref": "#/$defs/digital_human"
+    }
+  ],
+  "$defs": {
+    "style_ref": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "style_id",
+        "version"
+      ],
+      "properties": {
+        "style_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "custom_style_reference": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "content_fingerprint",
+        "facts_imported"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "content_fingerprint": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "facts_imported": {
+          "const": false
+        }
+      }
+    },
+    "source_artifact_version_ids": {
+      "type": "array",
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      }
+    },
+    "base_properties": {
+      "schema_version": {
+        "const": 2
+      },
+      "project_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "context_snapshot_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "style_ref": {
+        "$ref": "#/$defs/style_ref"
+      },
+      "custom_style_reference": {
+        "$ref": "#/$defs/custom_style_reference"
+      },
+      "source_artifact_version_ids": {
+        "$ref": "#/$defs/source_artifact_version_ids"
+      }
+    },
+    "marketing_copy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "app_id",
+        "input_schema_ref",
+        "project_id",
+        "context_snapshot_id",
+        "task_brief",
+        "style_ref",
+        "custom_style_reference",
+        "source_artifact_version_ids"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 2
+        },
+        "app_id": {
+          "const": "builtin.marketing-copy"
+        },
+        "input_schema_ref": {
+          "const": "marketing-copy-input.v2"
+        },
+        "project_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context_snapshot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "task_brief": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "goal",
+            "offer_name",
+            "selling_point_fact_ids",
+            "benefit_tags",
+            "audience",
+            "content_format",
+            "length_bucket"
+          ],
+          "properties": {
+            "goal": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "offer_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "selling_point_fact_ids": {
+              "type": "array",
+              "maxItems": 20,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "benefit_tags": {
+              "type": "array",
+              "maxItems": 20,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 40
+              }
+            },
+            "audience": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300
+            },
+            "content_format": {
+              "enum": [
+                "oral",
+                "carousel",
+                "general"
+              ]
+            },
+            "length_bucket": {
+              "enum": [
+                "short_15s",
+                "medium_30s",
+                "long_60s"
+              ]
+            },
+            "must_include": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              }
+            },
+            "cta": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 200
+            }
+          }
+        },
+        "style_ref": {
+          "$ref": "#/$defs/style_ref"
+        },
+        "custom_style_reference": {
+          "$ref": "#/$defs/custom_style_reference"
+        },
+        "source_artifact_version_ids": {
+          "$ref": "#/$defs/source_artifact_version_ids"
+        }
+      },
+      "allOf": [
+        {
+          "not": {
+            "properties": {
+              "style_ref": {
+                "type": "object"
+              },
+              "custom_style_reference": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "style_ref",
+              "custom_style_reference"
+            ]
+          }
+        }
+      ]
+    },
+    "viral_titles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "app_id",
+        "input_schema_ref",
+        "project_id",
+        "context_snapshot_id",
+        "task_brief",
+        "style_ref",
+        "custom_style_reference",
+        "source_artifact_version_ids"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 2
+        },
+        "app_id": {
+          "const": "builtin.viral-titles"
+        },
+        "input_schema_ref": {
+          "const": "viral-titles-input.v2"
+        },
+        "project_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context_snapshot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "task_brief": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "platform",
+            "objective",
+            "count"
+          ],
+          "properties": {
+            "platform": {
+              "enum": [
+                "douyin",
+                "xiaohongshu",
+                "shipinhao",
+                "kuaishou"
+              ]
+            },
+            "objective": {
+              "enum": [
+                "click",
+                "store_visit",
+                "inquiry",
+                "completion",
+                "save"
+              ]
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 5,
+              "maximum": 10
+            },
+            "topic": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 300
+            },
+            "source_text": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 5000
+            },
+            "keywords": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 50
+              }
+            }
+          }
+        },
+        "style_ref": {
+          "$ref": "#/$defs/style_ref"
+        },
+        "custom_style_reference": {
+          "$ref": "#/$defs/custom_style_reference"
+        },
+        "source_artifact_version_ids": {
+          "$ref": "#/$defs/source_artifact_version_ids"
+        }
+      },
+      "allOf": [
+        {
+          "not": {
+            "properties": {
+              "style_ref": {
+                "type": "object"
+              },
+              "custom_style_reference": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "style_ref",
+              "custom_style_reference"
+            ]
+          }
+        },
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "source_artifact_version_ids": {
+                  "minItems": 1
+                }
+              }
+            },
+            {
+              "properties": {
+                "task_brief": {
+                  "required": [
+                    "topic"
+                  ],
+                  "properties": {
+                    "topic": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "properties": {
+                "task_brief": {
+                  "required": [
+                    "source_text"
+                  ],
+                  "properties": {
+                    "source_text": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "douyin_carousel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "app_id",
+        "input_schema_ref",
+        "project_id",
+        "context_snapshot_id",
+        "task_brief",
+        "style_ref",
+        "custom_style_reference",
+        "source_artifact_version_ids"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 2
+        },
+        "app_id": {
+          "const": "builtin.douyin-carousel"
+        },
+        "input_schema_ref": {
+          "const": "douyin-carousel-input.v2"
+        },
+        "project_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context_snapshot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "task_brief": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "goal",
+            "page_count",
+            "template_id",
+            "asset_refs"
+          ],
+          "properties": {
+            "goal": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "page_count": {
+              "type": "integer",
+              "enum": [
+                3,
+                5,
+                8
+              ]
+            },
+            "template_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "asset_refs": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 50,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              }
+            },
+            "cover_hook": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "cta": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "publish_description": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "hashtags": {
+              "type": "array",
+              "maxItems": 20,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 60
+              }
+            }
+          }
+        },
+        "style_ref": {
+          "$ref": "#/$defs/style_ref"
+        },
+        "custom_style_reference": {
+          "$ref": "#/$defs/custom_style_reference"
+        },
+        "source_artifact_version_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        }
+      },
+      "allOf": [
+        {
+          "not": {
+            "properties": {
+              "style_ref": {
+                "type": "object"
+              },
+              "custom_style_reference": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "style_ref",
+              "custom_style_reference"
+            ]
+          }
+        }
+      ]
+    },
+    "digital_human": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "app_id",
+        "input_schema_ref",
+        "project_id",
+        "context_snapshot_id",
+        "task_brief",
+        "style_ref",
+        "custom_style_reference",
+        "source_artifact_version_ids",
+        "digital_human"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 2
+        },
+        "app_id": {
+          "const": "builtin.digital-human-video"
+        },
+        "input_schema_ref": {
+          "const": "digital-human-video-input.v2"
+        },
+        "project_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context_snapshot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "task_brief": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "content_source_mode"
+          ],
+          "properties": {
+            "content_source_mode": {
+              "enum": [
+                "copywriting",
+                "auto_generate",
+                "custom_script"
+              ]
+            },
+            "custom_script": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 10000
+            },
+            "selling_point_fact_ids": {
+              "type": "array",
+              "maxItems": 20,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "style_ref": {
+          "const": null
+        },
+        "custom_style_reference": {
+          "const": null
+        },
+        "source_artifact_version_ids": {
+          "$ref": "#/$defs/source_artifact_version_ids"
+        },
+        "digital_human": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "scene_id",
+            "asset_id",
+            "asset_revision",
+            "workflow_profile"
+          ],
+          "properties": {
+            "mode": {
+              "enum": [
+                "image",
+                "video"
+              ]
+            },
+            "scene_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "asset_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "asset_revision": {
+              "type": "string",
+              "minLength": 1
+            },
+            "workflow_profile": {
+              "enum": [
+                "image_lipsync",
+                "image_lipsync_natural",
+                "video_lipsync"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

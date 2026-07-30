@@ -106,6 +106,17 @@ class AssetRevisionContract(ContractModel):
     created_at: str
 
 
+class ProjectMediaRevisionPreview(ContractModel):
+    """Safe, read-only projection for one immutable project media revision."""
+
+    asset_id: str = Field(min_length=1)
+    asset_revision: str = Field(min_length=1)
+    media_kind: MediaKind
+    mime_type: str = Field(min_length=1)
+    file_url: str = Field(min_length=1)
+    thumbnail_url: str | None = None
+
+
 class AssetVariantContract(ContractModel):
     variant_id: str = Field(min_length=1)
     revision_id: str = Field(min_length=1)
@@ -175,7 +186,9 @@ class DeferredUploadFinalizeRequest(ContractModel):
     # A unique upload is finalized without asking the operator to choose a
     # duplicate policy.  The policy is required only when the server reports
     # an existing asset with the same SHA-256.
-    duplicate_policy: str | None = Field(default=None, pattern="^(reuse_existing|attach_revision|create_separate)$")
+    duplicate_policy: str | None = Field(
+        default=None, pattern="^(reuse_existing|attach_revision|create_separate)$"
+    )
     target_asset_id: str | None = Field(default=None, min_length=1)
 
 
