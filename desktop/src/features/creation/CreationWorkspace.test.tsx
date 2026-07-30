@@ -369,7 +369,11 @@ describe("CreationWorkspace", () => {
     render(<CreationWorkspace focused workbenchV2 />);
     await waitFor(() => expect(screen.getByText("请确认已带入的项目信息")).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "保存项目信息" }));
-    await waitFor(() => expect(screen.queryByText("请确认已带入的项目信息")).not.toBeInTheDocument());
+    await waitFor(() => expect(mocks.saveContextSnapshot).toHaveBeenCalled(), { timeout: 10_000 });
+    await waitFor(
+      () => expect(screen.queryByText("请确认已带入的项目信息")).not.toBeInTheDocument(),
+      { timeout: 10_000 },
+    );
     fireEvent.change(screen.getByPlaceholderText("选择项目后会自动带入商品或服务"), { target: { value: "夏日冰咖" } });
     fireEvent.click(screen.getByRole("button", { name: "生成营销文案" }));
 

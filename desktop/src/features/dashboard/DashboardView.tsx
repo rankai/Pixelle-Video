@@ -62,7 +62,7 @@ export function DashboardView({
     const normalized = query.trim().toLowerCase();
     if (!normalized) return tasks;
     return tasks.filter((task) =>
-      [task.display_name, task.flow_name, task.step_key, task.task_id]
+      [taskDisplayName(task, ""), task.display_name, task.flow_name, task.step_key, task.task_id]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(normalized)),
     );
@@ -93,7 +93,7 @@ export function DashboardView({
             <div className="continue-project-head">
               <div>
                 <span className="section-kicker">继续上次项目</span>
-                <h2>{latestTask?.display_name || latestTask?.flow_name || "创建第一条企业口播"}</h2>
+                <h2>{latestTask ? taskDisplayName(latestTask, "创建第一条企业口播") : "创建第一条企业口播"}</h2>
                 <p>{latestTask?.progress?.message || "从文案到发布，用一条清晰的生产线完成。"}</p>
               </div>
               <Button type="primary" onClick={onStart}>
@@ -130,7 +130,7 @@ export function DashboardView({
                 <div className="project-table-row" role="row" key={task.task_id}>
                   <div className="project-name-cell">
                     <span className="project-thumb"><Clapperboard size={17} /></span>
-                    <div><strong>{task.display_name || task.flow_name || "口播视频"}</strong><small>{shortId(task.task_id)}</small></div>
+                    <div><strong>{taskDisplayName(task, "口播视频")}</strong><small>{shortId(task.task_id)}</small></div>
                   </div>
                   <span>{stepLabel(task.step_key)}</span>
                   <span><Tag color={statusColor(task.status)}>{statusLabel(task.status)}</Tag></span>
@@ -151,7 +151,7 @@ export function DashboardView({
               {queue.map((task) => (
                 <button type="button" key={task.task_id} onClick={onTasks}>
                   <span className={`queue-status ${task.status}`} />
-                  <div><strong>{task.display_name || task.flow_name || "生产任务"}</strong><small>{task.progress?.message || stepLabel(task.step_key)}</small></div>
+                  <div><strong>{taskDisplayName(task, "生产任务")}</strong><small>{task.progress?.message || stepLabel(task.step_key)}</small></div>
                   <em>{task.status === "running" ? `${Math.round(task.progress?.percentage || 0)}%` : statusLabel(task.status)}</em>
                 </button>
               ))}
@@ -220,6 +220,16 @@ function formatDate(value?: string) {
 
 function shortId(value: string) {
   return value.length > 10 ? `#${value.slice(-6)}` : `#${value}`;
+}
+
+export function taskDisplayName(task: Pick<TaskInfo, "display_name" | "flow_name">, fallback: string) {
+  const value = (task.display_name || task.flow_name || "").trim();
+  return {
+    "builtin.marketing-copy": "门店营销文案",
+    "builtin.viral-titles": "爆款标题",
+    "builtin.douyin-carousel": "抖音图文",
+    "builtin.digital-human-video": "数字人口播视频",
+  }[value] || value || fallback;
 }
 
 export default DashboardView;
