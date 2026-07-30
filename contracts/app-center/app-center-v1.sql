@@ -62,6 +62,8 @@ CREATE TABLE IF NOT EXISTS artifact_versions (
   artifact_version_id TEXT PRIMARY KEY,
   artifact_id TEXT NOT NULL REFERENCES artifacts(artifact_id),
   project_id TEXT NOT NULL REFERENCES content_projects(project_id),
+  source_app_run_id TEXT REFERENCES app_runs(app_run_id),
+  context_snapshot_id TEXT REFERENCES context_snapshots(context_snapshot_id),
   version_number INTEGER NOT NULL CHECK (version_number > 0),
   schema_version INTEGER NOT NULL,
   content_json TEXT,
@@ -98,13 +100,28 @@ CREATE TABLE IF NOT EXISTS app_runs (
 CREATE TABLE IF NOT EXISTS context_snapshots (
   context_snapshot_id TEXT PRIMARY KEY,
   project_id TEXT NOT NULL REFERENCES content_projects(project_id),
-  schema_version INTEGER NOT NULL DEFAULT 1 CHECK (schema_version = 1),
+  schema_version INTEGER NOT NULL DEFAULT 1 CHECK (schema_version IN (1, 2, 3)),
   payload_json TEXT NOT NULL,
   source_brand_id TEXT,
   source_brand_revision_id TEXT,
   fingerprint TEXT NOT NULL,
   created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS brand_sync_requests (
+  project_id TEXT NOT NULL REFERENCES content_projects(project_id),
+  idempotency_key TEXT NOT NULL,
+  request_fingerprint TEXT NOT NULL,
+  result_code TEXT NOT NULL,
+  changes_committed INTEGER NOT NULL CHECK (changes_committed IN (0, 1)),
+  context_snapshot_id TEXT REFERENCES context_snapshots(context_snapshot_id),
+  response_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (project_id, idempotency_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_content_projects_brand_status
+ON content_projects(brand_id, status, updated_at DESC);
 
 CREATE TABLE IF NOT EXISTS run_attempts (
   attempt_id TEXT PRIMARY KEY,
@@ -140,11 +157,13 @@ CREATE TABLE IF NOT EXISTS artifact_handoffs (
   handoff_id TEXT PRIMARY KEY,
   project_id TEXT NOT NULL REFERENCES content_projects(project_id),
   source_app_run_id TEXT REFERENCES app_runs(app_run_id),
+  source_context_snapshot_id TEXT REFERENCES context_snapshots(context_snapshot_id),
   source_artifact_id TEXT NOT NULL REFERENCES artifacts(artifact_id),
   source_artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(artifact_version_id),
   target_app_id TEXT NOT NULL,
   target_app_version TEXT NOT NULL,
   target_run_id TEXT REFERENCES app_runs(app_run_id),
+  target_context_snapshot_id TEXT REFERENCES context_snapshots(context_snapshot_id),
   artifact_version_ids_json TEXT NOT NULL,
   mapping_version INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL,

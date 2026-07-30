@@ -1,0 +1,29 @@
+{
+  "stage": "APP-WORKBENCH-6",
+  "gate": "PG-AW-G",
+  "status": "entry_passed",
+  "date": "2026-07-28",
+  "source": "docs/superpowers/specs/2026-07-28-application-workbench-experience-optimization-implementation-plan.md#10.7",
+  "predecessor": {"stage": "APP-WORKBENCH-5", "gate": "PG-AW-F", "status": "passed"},
+  "scope": [
+    "unified ArtifactActions, VersionSwitcher and HandoffActions",
+    "copywriting to titles/carousel/digital-human",
+    "selected title to carousel/digital-human",
+    "carousel/digital-human to publish center",
+    "source version pinning, draft preview, idempotency and source update notice",
+    "current and historical versions plus next-step suggestions"
+  ],
+  "entry_checks": {
+    "source_version_pinned": true,
+    "target_draft_imports_content": true,
+    "repeated_handoff_idempotent": true,
+    "source_update_is_notice_only": true,
+    "publish_center_receives_correct_package": true,
+    "final_publish_clicks": 0,
+    "provider_calls": 0,
+    "third_party_platform_actions": 0
+  },
+  "allowed": ["handoff_schema_api", "version_switch_delivery_ui", "four_app_result_actions", "tests", "fixtures", "evidence"],
+  "prohibited": ["provider_rewrite", "digital_human_default_change", "third_party_platform", "automatic_final_publish", "APP-WORKBENCH-7"],
+  "next": "inspect_existing_handoff_paths_then_implement_only_missing_stage6_contracts"
+}

@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "stage": "APP-WORKBENCH-0",
+  "gate": "PG-AW-A",
+  "status": "passed_with_boundary",
+  "change_request": "CR-APP-WORKBENCH-001",
+  "plan": {
+    "path": "docs/superpowers/specs/2026-07-28-application-workbench-experience-optimization-implementation-plan.md",
+    "sha256": "ca54be8bb010e180fc324e77b43fe3e492b2bc68f8758998a5d98d65c973e9be",
+    "self_review": "passed_for_entry_with_boundary",
+    "p0": 0,
+    "p1": 0,
+    "fixed_p2": 3
+  },
+  "contracts": [
+    "docs/contracts/app-center/app-workbench-entry.contract.json",
+    "docs/contracts/app-center/context-snapshot-v2.schema.json",
+    "docs/contracts/app-center/style-preset.schema.json",
+    "docs/contracts/app-center/app-workbench-input-v2.schema.json",
+    "docs/contracts/app-center/app-workbench-result-state.schema.json",
+    "docs/contracts/app-center/fixtures/style-preset-registry-v1.json",
+    "docs/contracts/app-center/fixtures/app-workbench-entry-fixtures.json"
+  ],
+  "baselines": {
+    "browser": "Codex in-app browser",
+    "requested_viewports": [
+      "1440x900",
+      "1280x800",
+      "900x760"
+    ],
+    "browser_reported_viewports_match_requested": true,
+    "screenshot_note": "JPEG pixels exclude the embedded browser scrollbar/chrome inset; route DOM reported the exact requested viewport.",
+    "routes": {
+      "marketing-copy": "/apps/marketing-copy",
+      "viral-titles": "/apps/viral-titles",
+      "douyin-carousel": "/apps/douyin-carousel",
+      "digital-human": "/apps/digital-human-video"
+    },
+    "identity_and_backend_checks": {
+      "marketing-copy": true,
+      "viral-titles": true,
+      "douyin-carousel": true,
+      "digital-human": true,
+      "backend_disconnected_banner": false,
+      "application_catalog_unavailable": false
+    },
+    "files": [
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-0-baseline-2026-07-28/marketing-copy-1440x900.jpg",
+        "requested_viewport": "1440x900",
+        "image_pixels": "1425x891",
+        "sha256": "1a03e597f8ed28e0bc7f3f6cc70fbd526cad57c2fdb8da194c04ad6f1c87624a"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-0-baseline-2026-07-28/viral-titles-1440x900.jpg",
+        "requested_viewport": "1440x900",
+        "image_pixels": "1425x891",
+        "sha256": "cf78c5aa9b6c731e63327d58dbb4d95152db73839d61617f68861a065571b74c"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-0-baseline-2026-07-28/douyin-carousel-1440x900.jpg",
+        "requested_viewport": "1440x900",
+        "image_pixels": "1425x891",
+        "sha256": "07a075f2c715dc41ac6f072f5f74f6af367bd2b6f1100ec774d9ab6e0be1c205"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-0-baseline-2026-07-28/digital-human-1440x900.jpg",
+        "requested_viewport": "1440x900",
+        "image_pixels": "1425x891",
+        "sha256": "5c2d785dd244b954dd85fa24eac2587032f05a60a6641950252b2ac29939cf2e"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-0-baseline-2026-07-28/marketing-copy-1280x800.jpg",
+        "requested_viewport": "1280x800",
+        "image_pixels": "1265x791",
+        "sha256": "2bb2b1a4448db33a91e66fc7973d14d6a9647f8e56a8b8b73ec1ee2eb207b75a"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-0-baseline-2026-07-28/viral-titles-1280x800.jpg",
+        "requested_viewport": "1280x800",
+        "image_pixels": "1265x791",
+        "sha256": "45c94ff2c5d2b5858d6339fb945e6f227e1c399f91b71f991ac4d8e9d5a30e7b"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-0-baseline-2026-07-28/douyin-carousel-1280x800.jpg",
+        "requested_viewport": "1280x800",
+        "image_pixels": "1265x791",
+        "sha256": "621c0a0e63e1006034b4490796590aafc924dc61f7d59c2aa0396ea95ec75809"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-0-baseline-2026-07-28/digital-human-1280x800.jpg",
+        "requested_viewport": "1280x800",
+        "image_pixels": "1265x791",
+        "sha256": "9c95e7a9aa0d74c6e88c061c658b5cd9a42f3911264900a181f0c289e5b5eb93"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-0-baseline-2026-07-28/marketing-copy-900x760.jpg",
+        "requested_viewport": "900x760",
+        "image_pixels": "885x747",
+        "sha256": "8e0acbcfdc66dafbafc9e3460622ad6a75c5099dc20688d103387b9f37f1c051"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-0-baseline-2026-07-28/viral-titles-900x760.jpg",
+        "requested_viewport": "900x760",
+        "image_pixels": "885x747",
+        "sha256": "3a0902e08a27d11c9a02e48f6d43831debb107dbfd8017525b2244df71b083c6"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-0-baseline-2026-07-28/douyin-carousel-900x760.jpg",
+        "requested_viewport": "900x760",
+        "image_pixels": "885x747",
+        "sha256": "d796e554b8aef0fd14b2680e95300085fd7110e3e41f3fd99b38967641627b7a"
+      },
+      {
+        "path": "docs/reviews/application-publishing-program/qa/APP-WORKBENCH-0-baseline-2026-07-28/digital-human-900x760.jpg",
+        "requested_viewport": "900x760",
+        "image_pixels": "885x747",
+        "sha256": "8b0f75ad05115b8ac658718e9feffbe5247283f2ea64f4b27496f9049a25c813"
+      }
+    ]
+  },
+  "tests": {
+    "entry_contract": "10 passed",
+    "ruff": "passed",
+    "json": "8 parsed",
+    "existing_app_center_regression": "83 passed, 12 existing Pydantic deprecation warnings",
+    "diff_check": "passed"
+  },
+  "external_actions": {
+    "llm_calls": 0,
+    "runninghub_calls": 0,
+    "browser_or_platform_actions": 0,
+    "final_publish_clicks": 0
+  },
+  "boundaries": [
+    "No business UI changed in APP-WORKBENCH-0.",
+    "No database migration executed.",
+    "All new workbench feature flags remain default false.",
+    "PROGRAM-ROLLOUT/PG-L external Windows device, product sign-off and rollback/WebView SLA remain paused and open."
+  ]
+}

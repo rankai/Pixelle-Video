@@ -1,0 +1,3390 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="AI Video Creator - Generate a short video in 3 minutes">
+      
+      
+        <meta name="author" content="Pixelle.AI">
+      
+      
+        <link rel="canonical" href="https://AIDC-AI.github.io/Pixelle-Video/zh/superpowers/specs/2026-07-28-application-workbench-experience-optimization-implementation-plan/">
+      
+      
+      
+      
+        
+          <link rel="alternate" href="../../../../superpowers/specs/2026-07-28-application-workbench-experience-optimization-implementation-plan/" hreflang="en">
+        
+          <link rel="alternate" href="./" hreflang="zh">
+        
+      
+      
+      <link rel="icon" href="../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Pixelle Video 应用工作台体验优化实施方案 - Pixelle-Video</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#pixelle-video" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../" title="Pixelle-Video" class="md-header__button md-logo" aria-label="Pixelle-Video" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Pixelle-Video
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Pixelle Video 应用工作台体验优化实施方案
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="选择当前语言">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../../superpowers/specs/2026-07-28-application-workbench-experience-optimization-implementation-plan/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="zh" class="md-select__link">
+              中文
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="分享" aria-label="分享" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/AIDC-AI/Pixelle-Video" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AIDC-AI/Pixelle-Video
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  快速开始
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../user-guide/web-ui/" class="md-tabs__link">
+          
+  
+  
+  用户指南
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../gallery/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  示例库
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../tutorials/your-first-video/" class="md-tabs__link">
+          
+  
+  
+  教程
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../reference/api-overview/" class="md-tabs__link">
+          
+  
+  
+  参考
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../development/architecture/" class="md-tabs__link">
+          
+  
+  
+  开发指南
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  常见问题
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../troubleshooting/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  故障排查
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../" title="Pixelle-Video" class="md-nav__button md-logo" aria-label="Pixelle-Video" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Pixelle-Video
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/AIDC-AI/Pixelle-Video" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AIDC-AI/Pixelle-Video
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    快速开始
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    快速开始
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    安装
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    快速入门
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    配置
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    用户指南
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    用户指南
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../user-guide/web-ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web 界面
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../user-guide/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API 使用
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../user-guide/workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    工作流定制
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../user-guide/templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    模板开发
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../gallery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    示例库
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    教程
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    教程
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorials/your-first-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    生成你的第一个视频
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorials/custom-style/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    自定义视觉风格
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../tutorials/voice-cloning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    声音克隆
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    参考
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    参考
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/api-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API 概览
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reference/config-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    配置文件详解
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开发指南
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    开发指南
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../development/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    架构设计
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../development/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    贡献指南
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    常见问题
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    故障排查
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. 执行结论
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#01" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.1 与总协调台账的关系
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#02" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.2 本期目标
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.2 本期目标">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        必须完成
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        明确不做
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-pixelle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 参考体验分析与 Pixelle 取舍
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 参考体验分析与 Pixelle 取舍">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 参考体验的有效部分
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 不能直接照搬的部分
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 体验判断
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 产品信息架构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 应用中心
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 项目作为全局上下文
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 应用工作台统一骨架
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. UI 布局规范
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 桌面布局
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 响应式降级
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 左侧输入控制台
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 右侧结果工作区
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.4 右侧结果工作区">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        未生成
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        生成中
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        失败
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        待审与已保存
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 功能优化
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 门店营销文案
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.1 门店营销文案">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        左侧输入
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        内置文案风格
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        右侧结果
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 爆款标题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.2 爆款标题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        左侧输入
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        内置标题风格
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        右侧结果
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 抖音图文
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.3 抖音图文">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        左侧输入
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        右侧结果
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 数字人口播视频
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.4 数字人口播视频">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        左侧输入
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        右侧结果
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 风格系统
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 数据所有权
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#52" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 风格与事实边界
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-artifact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 结果、Artifact 与跨应用传递
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#61" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 结果事实
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#62-artifact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Artifact 渲染器
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#63" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 编辑和保存
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#64-handoff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Handoff
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. API 与数据契约
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#71-contextsnapshot-v2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 ContextSnapshot v2
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#72-schema-v2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 应用输入 schema v2
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#73-result-feedback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Result feedback
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 前端组件与代码组织
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-feature-flag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Feature flag、迁移与回滚
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-stage-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. 实施 Stage 与 Gate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#101-app-workbench-0entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1 APP-WORKBENCH-0：Entry、契约与基线
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#102-app-workbench-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2 APP-WORKBENCH-1：统一左右工作台外壳
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#103-app-workbench-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3 APP-WORKBENCH-2：项目上下文
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#104-app-workbench-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.4 APP-WORKBENCH-3：文案与标题
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#105-app-workbench-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.5 APP-WORKBENCH-4：抖音图文
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#106-app-workbench-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.6 APP-WORKBENCH-5：数字人
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#107-app-workbench-6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.7 APP-WORKBENCH-6：交付与跨应用
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#108-app-workbench-7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.8 APP-WORKBENCH-7：灰度、视觉终审与收口
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. 测试矩阵
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. 测试矩阵">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        后端
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        前端
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        可视化
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        真实运行
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. 性能与可用性预算
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. 安全、隐私与合规
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. 自审清单
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14. 自审清单">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        需求完整性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        逻辑正确性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        边界情况
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        代码质量
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        测试覆盖
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        实际运行
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-definition-of-done" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Definition of Done
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-luna" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. 交给 Luna 的启动指令
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="pixelle-video">Pixelle Video 应用工作台体验优化实施方案<a class="headerlink" href="#pixelle-video" title="Permanent link">&para;</a></h1>
+<ul>
+<li>日期：2026-07-28</li>
+<li>Change Request：<code>CR-APP-WORKBENCH-001</code></li>
+<li>建议协调 Stage：<code>APP-WORKBENCH-0</code></li>
+<li>上位方案：</li>
+<li><code>docs/superpowers/specs/2026-07-18-application-center-publishing-program-master-plan.md</code></li>
+<li><code>docs/superpowers/specs/2026-07-18-application-center-product-architecture-implementation-plan.md</code></li>
+<li><code>docs/superpowers/specs/2026-07-24-digital-human-dual-mode-and-quality-optimization-implementation-plan.md</code></li>
+<li>当前事实源：</li>
+<li><code>docs/reviews/2026-07-18-application-center-publishing-program-progress.md</code></li>
+<li>执行者：Luna</li>
+</ul>
+<h2 id="0">0. 执行结论<a class="headerlink" href="#0" title="Permanent link">&para;</a></h2>
+<p>本方案不是新增一批彼此孤立的 AI 工具，而是把已经实现的门店营销文案、爆款标题、抖音图文和数字人口播视频，统一升级为真正可连续工作的“应用工作台”。</p>
+<p>核心产品决策：</p>
+<ol>
+<li><code>ContentProject</code> 是所有应用共享的长期业务上下文，作用对应参考产品中的“选商品”，但 Pixelle 面向门店、品牌、商品和服务，语义更广；</li>
+<li>应用详情在桌面宽度下统一使用“左侧输入控制台 + 右侧结果工作区”；</li>
+<li>门店资料、产品/服务、目标顾客、卖点、优惠、证据和禁用表述写入版本化 <code>ContextSnapshot</code>，不要求用户每次重复填写；</li>
+<li>标题和文案增加受信任、版本化的风格样例库，同时允许本次粘贴自定义参考；</li>
+<li>结果不再以 AppRun ID、运行记录或裸 JSON 为中心，而以可编辑、可选择、可版本化的 Artifact 卡片为中心；</li>
+<li>跨应用流转继续使用固定来源版本的 <code>ArtifactHandoff</code>，不得直接复制或覆盖来源内容；</li>
+<li>数字人继续复用已完成的图片/视频双模式、TTS、RunningHub、后期、字幕、封面与发布素材链路，只重构应用工作台交互；</li>
+<li>所有 LLM 应用继续复用当前模型管理和 <code>local-default</code> 配置，不增加第二套 provider、key 或模型事实源；</li>
+<li>最终发布按钮继续由用户人工点击，本方案不扩大自动发布权限；</li>
+<li>新体验使用独立 feature flag 灰度，可一键回退旧工作区，旧项目、Run 和 Artifact 不迁移丢失。</li>
+</ol>
+<p>目标体验：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>选择项目
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>→ 自动恢复项目资料
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>→ 补充本次任务信息
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>→ 选择风格或素材
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>→ 一次点击生成
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>→ 在右侧审阅、编辑和选择结果
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>→ 保存 ArtifactVersion
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>→ 交给下一个应用或发布中心
+</span></code></pre></div>
+<h2 id="01">0.1 与总协调台账的关系<a class="headerlink" href="#01" title="Permanent link">&para;</a></h2>
+<p>当前台账 <code>current_stage=PROGRAM-ROLLOUT</code>、<code>current_substage=PG-L</code>、<code>current_stage_status=waiting_user</code>。本方案不能绕过台账直接修改业务代码。</p>
+<p>推荐协调动作：</p>
+<ol>
+<li>完成当前 Windows 热修安装包构建和留证；</li>
+<li>登记 <code>CR-APP-WORKBENCH-001</code>；</li>
+<li>将原 <code>PROGRAM-ROLLOUT/PG-L</code> 外部验收边界原样保留为 suspended checkpoint；</li>
+<li>自审通过后，由协调层将唯一入口切换为：</li>
+</ol>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>current_stage: APP-WORKBENCH
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>current_substage: APP-WORKBENCH-0
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>current_stage_status: in_progress
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>gate_status: PG-AW-A_entry_in_progress
+</span></code></pre></div>
+<ol>
+<li>每次只推进一个 Stage；Entry、实现、定向测试、构建、视觉证据和 Gate 全部完成后，才能进入下一 Stage；</li>
+<li><code>APP-WORKBENCH-7</code> 收口后回到 <code>PROGRAM-ROLLOUT/PG-L</code>，Windows 实机、产品负责人签字和真实 rollback/WebView SLA 边界不得被本方案悄悄关闭。</li>
+</ol>
+<h2 id="02">0.2 本期目标<a class="headerlink" href="#02" title="Permanent link">&para;</a></h2>
+<h3 id="_1">必须完成<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>四个现有应用统一左右工作台；</li>
+<li>项目选择与项目业务资料上下文；</li>
+<li>门店营销文案风格库和更完整 brief；</li>
+<li>爆款标题风格库、自定义参考、分组结果与逐条操作；</li>
+<li>抖音图文输入、素材和实时结果预览分栏；</li>
+<li>数字人图片/视频模式、内容卖点、口播文案和更多设置分栏；</li>
+<li>结果区的空、运行、失败、待审、已保存状态；</li>
+<li>Artifact 版本编辑、选中主结果、复制、下载和跨应用 handoff；</li>
+<li>桌面窄窗口的“配置 / 结果”Tab 降级；</li>
+<li>原工作区回滚、旧数据恢复和重启恢复；</li>
+<li>自动化测试、真实渲染截图和至少一次受控真实 LLM 文本应用验证。</li>
+</ul>
+<h3 id="_2">明确不做<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>不复制万相营造的品牌、配色、图标、文案或商业化界面；</li>
+<li>不解析淘宝、抖音等外部商品链接；</li>
+<li>不建设外部风格市场、用户公开模板市场或第三方插件；</li>
+<li>不建设管理员后台、RBAC、套餐、支付或多租户；</li>
+<li>不为每个应用新增单独模型配置；</li>
+<li>不重写数字人媒体执行链路；</li>
+<li>不改最终发布人工确认边界；</li>
+<li>不在本期用点赞数据训练或微调模型；</li>
+<li>不声称标题有确定“爆款概率”；</li>
+<li>不把运行日志和技术诊断作为默认用户结果。</li>
+</ul>
+<h2 id="1-pixelle">1. 参考体验分析与 Pixelle 取舍<a class="headerlink" href="#1-pixelle" title="Permanent link">&para;</a></h2>
+<h3 id="11">1.1 参考体验的有效部分<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
+<p>本次参考材料包括：</p>
+<ul>
+<li>标题文案输入与风格样例库截图；</li>
+<li>导购文案风格样例截图；</li>
+<li>左侧输入、右侧结果的应用工作区截图；</li>
+<li>51.688 秒完整标题文案功能视频。</li>
+</ul>
+<p>值得采用的结构：</p>
+<ol>
+<li>先选择业务对象，再补本次卖点；</li>
+<li>输入控制与结果展示同时可见；</li>
+<li>风格样例以用户能理解的例句呈现，而不是暴露 prompt；</li>
+<li>结果一条一卡，并提供编辑、复制和反馈；</li>
+<li>生成前展示样例，减少空白页和用户猜测；</li>
+<li>主操作固定在输入区底部，长表单滚动后仍可触达。</li>
+</ol>
+<h3 id="12">1.2 不能直接照搬的部分<a class="headerlink" href="#12" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Pixelle 的核心对象不是单一商品，而是门店、品牌、商品、服务或活动组成的创作项目；</li>
+<li>Pixelle 的结果要继续进入图文、数字人和发布中心，因此必须保留 Artifact 与 Handoff；</li>
+<li>Pixelle 已有双模式数字人和发布安全边界，不能退化成一次性生成页；</li>
+<li>Pixelle 是桌面端生产工具，必须覆盖窗口缩放、重启恢复、本地资产和长任务；</li>
+<li>参考产品的风格文本不能直接复制为生产 prompt，必须重新定义风格意图、约束和示例。</li>
+</ul>
+<h3 id="13">1.3 体验判断<a class="headerlink" href="#13" title="Permanent link">&para;</a></h3>
+<p>对当前四个应用，左右布局优于上下布局：</p>
+<ul>
+<li>用户可以一边调整输入，一边比较右侧结果；</li>
+<li>输入和输出的因果关系更清楚；</li>
+<li>运行记录不再把结果推到长页面下方；</li>
+<li>图文和视频有足够横向空间展示真实预览；</li>
+<li>统一工作台能降低四个应用之间的学习成本。</li>
+</ul>
+<p>上下布局只作为窄窗口降级，不再是桌面默认。</p>
+<h2 id="2">2. 产品信息架构<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<h2 id="21">2.1 应用中心<a class="headerlink" href="#21" title="Permanent link">&para;</a></h2>
+<p>应用中心首页继续负责发现能力，不在本期塞入项目管理表格。</p>
+<p>卡片主动作：</p>
+<ul>
+<li>无最近项目：<code>开始创作</code>；</li>
+<li>有未完成项目：<code>继续创作</code>；</li>
+<li>不可用：<code>待上线</code> 或明确的配置修复入口。</li>
+</ul>
+<p>点击应用后进入应用工作台，不再先进入项目列表页。</p>
+<h2 id="22">2.2 项目作为全局上下文<a class="headerlink" href="#22" title="Permanent link">&para;</a></h2>
+<p>应用工作台左侧顶部固定“当前创作项目”：</p>
+<ul>
+<li>搜索或切换已有项目；</li>
+<li>新建项目；</li>
+<li>查看当前项目摘要；</li>
+<li>展开编辑项目资料；</li>
+<li>显示资料完整度和缺失事实，不显示虚假百分比评分。</li>
+</ul>
+<p>项目资料建议结构：</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">&quot;subject_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;store|brand|product|service|campaign&quot;</span><span class="p">,</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">&quot;store_or_brand&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;门店或品牌名&quot;</span><span class="p">,</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">&quot;industry&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;行业&quot;</span><span class="p">,</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="nt">&quot;address&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;可选&quot;</span><span class="p">,</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="nt">&quot;contact&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;可选&quot;</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="nt">&quot;offer&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;商品、服务或活动&quot;</span><span class="p">,</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="nt">&quot;category&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;类别&quot;</span><span class="p">,</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="nt">&quot;price_facts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="nt">&quot;promotion_facts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">  </span><span class="nt">&quot;audience&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span><span class="nt">&quot;primary&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;目标顾客&quot;</span><span class="p">,</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">    </span><span class="nt">&quot;scenes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">  </span><span class="nt">&quot;selling_points&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">  </span><span class="nt">&quot;proof_points&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">  </span><span class="nt">&quot;required_facts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">  </span><span class="nt">&quot;forbidden_claims&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">  </span><span class="nt">&quot;asset_refs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">  </span><span class="nt">&quot;brand_revision_ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>规则：</p>
+<ul>
+<li>项目资料保存为新的 <code>ContextSnapshot</code>，旧快照不可原地覆盖；</li>
+<li>AppRun 创建时固定 <code>context_snapshot_id</code>；</li>
+<li>用户修改项目资料后，旧 Run 和旧 Artifact 仍绑定旧快照；</li>
+<li>新运行默认使用最新快照；</li>
+<li>缺少价格、活动期限、资质或效果事实时不得由 LLM 编造；</li>
+<li>项目切换时如果有未保存输入，必须提供保存、放弃或取消；</li>
+<li>项目不是新的模型配置源，也不保存任何 key、Cookie 或 provider 请求正文。</li>
+</ul>
+<h2 id="23">2.3 应用工作台统一骨架<a class="headerlink" href="#23" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart LR
+    SHELL["AppWorkbenchShell"]
+    INPUT["InputWorkbench&lt;br/&gt;项目 + 本次任务 + 风格/素材 + 更多设置"]
+    RESULT["ResultWorkbench&lt;br/&gt;空状态 + 进度 + 结果 + 版本 + 交付"]
+    PROJECT["ContentProject / ContextSnapshot"]
+    RUN["AppRun / RunAttempt"]
+    ART["Artifact / ArtifactVersion"]
+    HANDOFF["ArtifactHandoff"]
+
+    SHELL --&gt; INPUT
+    SHELL --&gt; RESULT
+    INPUT --&gt; PROJECT
+    INPUT --&gt; RUN
+    RUN --&gt; ART
+    ART --&gt; RESULT
+    RESULT --&gt; HANDOFF</code></pre>
+<p>页面组成：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>应用页头：返回 / 应用名 / 当前项目 / 保存状态 / readiness
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>工作区主体：
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  左侧：输入控制台
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>  右侧：结果工作区
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>窄窗口：
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>  配置 Tab
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>  结果 Tab
+</span></code></pre></div>
+<h2 id="3-ui">3. UI 布局规范<a class="headerlink" href="#3-ui" title="Permanent link">&para;</a></h2>
+<h2 id="31">3.1 桌面布局<a class="headerlink" href="#31" title="Permanent link">&para;</a></h2>
+<p>外层仍使用现有 AppShell 和 224px 一级侧栏。</p>
+<p>应用工作区：</p>
+<div class="language-css highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">grid-template-columns</span><span class="o">:</span><span class="w"> </span><span class="nt">clamp</span><span class="o">(</span><span class="nt">360px</span><span class="o">,</span><span class="w"> </span><span class="nt">34vw</span><span class="o">,</span><span class="w"> </span><span class="nt">460px</span><span class="o">)</span><span class="w"> </span><span class="nt">minmax</span><span class="o">(</span><span class="nt">0</span><span class="o">,</span><span class="w"> </span><span class="nt">1fr</span><span class="o">);</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nt">gap</span><span class="o">:</span><span class="w"> </span><span class="nt">16px</span><span class="o">;</span>
+</span></code></pre></div>
+<p>建议比例：</p>
+<table>
+<thead>
+<tr>
+<th>应用</th>
+<th style="text-align: right;">左侧</th>
+<th style="text-align: right;">右侧</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>门店营销文案</td>
+<td style="text-align: right;">36%</td>
+<td style="text-align: right;">64%</td>
+<td>右侧需要并排或分组展示多版文案</td>
+</tr>
+<tr>
+<td>爆款标题</td>
+<td style="text-align: right;">36%</td>
+<td style="text-align: right;">64%</td>
+<td>右侧需要分组候选和逐条操作</td>
+</tr>
+<tr>
+<td>抖音图文</td>
+<td style="text-align: right;">34%</td>
+<td style="text-align: right;">66%</td>
+<td>右侧优先保证竖版页面预览</td>
+</tr>
+<tr>
+<td>数字人口播视频</td>
+<td style="text-align: right;">40%</td>
+<td style="text-align: right;">60%</td>
+<td>左侧设置较多，右侧播放最终视频</td>
+</tr>
+</tbody>
+</table>
+<p>实现要求：</p>
+<ul>
+<li>主页面不出现横向滚动条；</li>
+<li>左右区高度使用可视窗口，允许各自滚动；</li>
+<li>左侧底部主操作保持 sticky；</li>
+<li>右侧页头或结果工具栏保持 sticky；</li>
+<li>不制造三层以上嵌套滚动；</li>
+<li>结果编辑器展开时保持结果卡片宽度稳定；</li>
+<li>应用页头高度、容器、卡片、Tab、Tag、按钮和状态卡使用现有 tokens。</li>
+</ul>
+<h2 id="32">3.2 响应式降级<a class="headerlink" href="#32" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>宽度</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&gt;= 1180px</code></td>
+<td>左右双栏</td>
+</tr>
+<tr>
+<td><code>960–1179px</code></td>
+<td>左侧固定约 360px，右侧自适应</td>
+</tr>
+<tr>
+<td><code>&lt; 960px</code></td>
+<td><code>配置 / 结果</code> 两个 Tab</td>
+</tr>
+<tr>
+<td><code>&lt; 600px</code></td>
+<td>单栏、主按钮满宽、结果操作折叠</td>
+</tr>
+</tbody>
+</table>
+<p>窄屏不是删除功能：</p>
+<ul>
+<li>生成完成后自动切到“结果”；</li>
+<li>从结果点击“调整输入”返回“配置”；</li>
+<li>运行中切换 Tab 不取消任务；</li>
+<li>键盘焦点在 Tab 切换后落到对应区域标题；</li>
+<li>所有输入标签、错误和帮助文案保持可读。</li>
+</ul>
+<h2 id="33">3.3 左侧输入控制台<a class="headerlink" href="#33" title="Permanent link">&para;</a></h2>
+<p>从上到下固定顺序：</p>
+<ol>
+<li>当前创作项目；</li>
+<li>本次任务目标；</li>
+<li>应用特定必要输入；</li>
+<li>风格、素材或内容来源；</li>
+<li><code>更多配置</code> 折叠区；</li>
+<li>有可靠数据时展示预计结果、时长或消耗；无可靠数据时不伪造；</li>
+<li>sticky 主动作。</li>
+</ol>
+<p>按钮规则：</p>
+<ul>
+<li>主动作只有一个；</li>
+<li>未满足条件时使用中性灰 disabled 样式并显示缺失原因；</li>
+<li>不再要求用户理解“创建运行草稿”“执行 Run”等技术步骤；</li>
+<li>点击主动作时幂等保存项目/输入、创建 Run 并开始执行；</li>
+<li>生成中按钮变为进度状态，不允许重复提交；</li>
+<li>失败后按钮变为“按原输入重试”，输入仍可编辑并另起新 Run。</li>
+</ul>
+<h2 id="34">3.4 右侧结果工作区<a class="headerlink" href="#34" title="Permanent link">&para;</a></h2>
+<p>统一状态：</p>
+<h3 id="_3">未生成<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>展示该应用能交付的结果类型；</li>
+<li>展示 2–4 个风格或结果示例；</li>
+<li>告知最少需要填写什么；</li>
+<li>不显示空的运行记录表。</li>
+</ul>
+<h3 id="_4">生成中<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li>只展示由 AppRun、RunAttempt、Task 或媒体工作流真实状态支持的业务步骤；</li>
+<li>文本应用显示“理解项目 / 生成候选 / 校验事实 / 准备结果”；</li>
+<li>图文显示“策划分页 / 渲染页面 / 打包”；</li>
+<li>数字人显示“TTS / 数字人 / 字幕与后期 / 产物登记”；</li>
+<li>没有真实百分比时使用阶段状态，不伪造 37%、82% 等进度；</li>
+<li>重启后从 AppRun/Task 恢复，不制造第二个任务。</li>
+</ul>
+<h3 id="_5">失败<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li>主文案使用业务语言；</li>
+<li>保留输入；</li>
+<li>提供重试、调整输入和复制诊断；</li>
+<li>技术错误码放到折叠详情；</li>
+<li>失败 Run 不生成伪 Artifact。</li>
+</ul>
+<h3 id="_6">待审与已保存<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<ul>
+<li>默认打开本次结果；</li>
+<li>支持 <code>本次结果 / 历史版本</code> Tab；</li>
+<li>编辑产生新的 ArtifactVersion；</li>
+<li>“确认完成”改为业务动作，例如“保存所选标题”“接收最终成片”；</li>
+<li>保存后给出确定性的下一步建议。</li>
+</ul>
+<h2 id="4">4. 功能优化<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<h2 id="41">4.1 门店营销文案<a class="headerlink" href="#41" title="Permanent link">&para;</a></h2>
+<h3 id="_7">左侧输入<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<ul>
+<li>当前项目；</li>
+<li>本次营销目标；</li>
+<li>主推商品、服务或活动；</li>
+<li>本次内容卖点，可从项目卖点选择并排序；</li>
+<li>营销利益点，例如新品、折扣、节日、到店、咨询、复购；</li>
+<li>目标顾客和使用场景；</li>
+<li>内容载体：口播、图文、通用；</li>
+<li>目标长度；</li>
+<li>风格来源：风格样例库 / 自定义参考；</li>
+<li>更多配置：语气、必须出现、禁用表达、CTA、活动期限。</li>
+</ul>
+<h3 id="_8">内置文案风格<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<p>首期建议：</p>
+<ul>
+<li><code>卖点讲解</code>：事实清楚、结构完整；</li>
+<li><code>老板口吻</code>：第一人称、自然可信；</li>
+<li><code>探店种草</code>：场景体验和到店理由；</li>
+<li><code>网红推荐</code>：口语化推荐，但禁止虚构身份和体验；</li>
+<li><code>买家体验</code>：第一人称体验表达，但必须标记为“表达风格”，不得伪造真实购买者证言；</li>
+<li><code>活动促销</code>：优惠、条件、期限、CTA 清楚；</li>
+<li><code>知识科普</code>：问题、解释、建议、门店关联；</li>
+<li><code>客户案例</code>：只允许使用项目中已有的真实案例事实。</li>
+</ul>
+<p>每个风格包含：</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">&quot;style_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;copy.owner_voice&quot;</span><span class="p">,</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;老板口吻&quot;</span><span class="p">,</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;用门店老板第一人称自然介绍&quot;</span><span class="p">,</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="nt">&quot;example&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;用户可见的短样例&quot;</span><span class="p">,</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="nt">&quot;prompt_rules&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span><span class="nt">&quot;forbidden_patterns&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="nt">&quot;supported_apps&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;builtin.marketing-copy&quot;</span><span class="p">]</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>用户可粘贴自定义参考，但必须：</p>
+<ul>
+<li>明确提示只模仿表达方式，不复制事实；</li>
+<li>限制长度；</li>
+<li>只固定在本次 AppRun input snapshot，不写入项目长期资料；</li>
+<li>本期不提供“保存为我的风格”，个人风格库和分享市场后置独立评审。</li>
+</ul>
+<h3 id="_9">右侧结果<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h3>
+<p>每个文案版本卡片展示：</p>
+<ul>
+<li>风格标签；</li>
+<li>创作角度；</li>
+<li>开头、正文、CTA；</li>
+<li>完整文案；</li>
+<li>字数和预计时长；</li>
+<li>缺失事实或风险；</li>
+<li>复制、编辑、保存、设为主文案；</li>
+<li>交给爆款标题、抖音图文、数字人口播。</li>
+</ul>
+<h2 id="42">4.2 爆款标题<a class="headerlink" href="#42" title="Permanent link">&para;</a></h2>
+<h3 id="_10">左侧输入<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h3>
+<ul>
+<li>当前项目；</li>
+<li>内容来源：已有文案、已有主题、自定义原文；</li>
+<li>本次卖点和营销利益点；</li>
+<li>发布平台；</li>
+<li>目标：点击、到店、咨询、完播、收藏；</li>
+<li>候选数量；</li>
+<li>风格来源：风格样例库 / 自定义参考；</li>
+<li>更多配置：关键词、长度范围、禁用词、是否允许数字、是否允许问句。</li>
+</ul>
+<h3 id="_11">内置标题风格<a class="headerlink" href="#_11" title="Permanent link">&para;</a></h3>
+<p>首期建议：</p>
+<ul>
+<li><code>商品短标题</code>：事实 + 核心利益；</li>
+<li><code>信息流标题</code>：场景问题 + 具体收益；</li>
+<li><code>好奇标题</code>：保留信息缺口但不故弄玄虚；</li>
+<li><code>冲突标题</code>：对比或反常识，不制造虚假冲突；</li>
+<li><code>数字清单</code>：数字 + 方法或结果；</li>
+<li><code>身份场景</code>：明确目标人群和场景；</li>
+<li><code>科普标题</code>：问题 + 知识价值；</li>
+<li><code>活动标题</code>：活动事实 + 条件 + 时间。</li>
+</ul>
+<p>“浮夸风”不作为默认名称；可用“强情绪”替代，并通过确定性规则限制夸大、绝对化和虚假稀缺。</p>
+<h3 id="_12">右侧结果<a class="headerlink" href="#_12" title="Permanent link">&para;</a></h3>
+<p>结果默认按风格或角度分组，不使用伪精确爆款分数。</p>
+<p>每条候选展示：</p>
+<ul>
+<li>标题正文；</li>
+<li>风格/角度标签；</li>
+<li>字符数；</li>
+<li>平台规则检查；</li>
+<li>风险标签及原因；</li>
+<li>复制、编辑、收藏、喜欢、不喜欢、设为主标题；</li>
+<li>交给抖音图文或数字人口播。</li>
+</ul>
+<p>反馈只记录本地 <code>app_event</code>：</p>
+<ul>
+<li>不修改当前 Artifact；</li>
+<li>不自动训练模型；</li>
+<li>不把反馈内容或项目事实发送给新的外部服务；</li>
+<li>后续可用于本地推荐常用风格。</li>
+</ul>
+<h2 id="43">4.3 抖音图文<a class="headerlink" href="#43" title="Permanent link">&para;</a></h2>
+<h3 id="_13">左侧输入<a class="headerlink" href="#_13" title="Permanent link">&para;</a></h3>
+<ul>
+<li>当前项目；</li>
+<li>内容来源及固定版本；</li>
+<li>主标题或封面钩子；</li>
+<li>图文目标；</li>
+<li>图片资产选择；</li>
+<li>页数和模板；</li>
+<li>风格：门店种草、活动清单、知识卡片、案例拆解；</li>
+<li>更多配置：品牌色、必须使用图片、CTA、发布文案偏好。</li>
+</ul>
+<h3 id="_14">右侧结果<a class="headerlink" href="#_14" title="Permanent link">&para;</a></h3>
+<ul>
+<li>未生成时展示图文结构示例；</li>
+<li>生成计划后展示分页结构；</li>
+<li>渲染后展示竖版页面预览和缩略图导航；</li>
+<li>页面文本可编辑；</li>
+<li>替换图片只重渲染受影响页；</li>
+<li>单页失败可单独重试；</li>
+<li>右侧工具栏提供保存版本、下载图片组、下载 ZIP、复制发布文案、交给发布中心。</li>
+</ul>
+<h2 id="44">4.4 数字人口播视频<a class="headerlink" href="#44" title="Permanent link">&para;</a></h2>
+<h3 id="_15">左侧输入<a class="headerlink" href="#_15" title="Permanent link">&para;</a></h3>
+<ol>
+<li>当前项目；</li>
+<li>内容来源：</li>
+<li>选择已有文案；</li>
+<li>自动生成文案；</li>
+<li>自定义口播稿；</li>
+<li>数字人素材：</li>
+<li>图片数字人；</li>
+<li>视频数字人；</li>
+<li>从资产库选择或本地导入素材；</li>
+<li>本次内容卖点，从项目资料自动推荐；</li>
+<li>口播文案及预计 TTS 时长；</li>
+<li>更多配置：</li>
+<li>音色；</li>
+<li>语速；</li>
+<li>画面比例；</li>
+<li>字幕样式和开关；</li>
+<li>背景或模板；</li>
+<li>背景音乐；</li>
+<li>封面标题；</li>
+<li>发布标题、描述和话题；</li>
+<li>清晰度。</li>
+</ol>
+<p>默认：</p>
+<ul>
+<li>图片模式仍为默认；</li>
+<li>视频模式显示 <code>stable</code>，不默认；</li>
+<li>字幕默认开启并使用 <code>readable_v2</code>；</li>
+<li>最终发布不自动点击。</li>
+</ul>
+<h3 id="_16">右侧结果<a class="headerlink" href="#_16" title="Permanent link">&para;</a></h3>
+<ul>
+<li>未选素材：图片/视频素材要求与效果示例；</li>
+<li>已选素材：人物、裁切和字幕安全区预览；</li>
+<li>生成中：TTS、数字人、字幕与后期、Artifact 登记；</li>
+<li>待审核：</li>
+<li>最终成片；</li>
+<li>发布封面；</li>
+<li>发布标题、描述、话题；</li>
+<li>最终口播稿；</li>
+<li>操作：播放、下载、复制、重试、接收结果、交给发布中心；</li>
+<li>原始数字人片段只在“生成诊断”中显示。</li>
+</ul>
+<p>数字人页面重构不得：</p>
+<ul>
+<li>在 UI 层复制媒体状态机；</li>
+<li>直接调用 RunningHub；</li>
+<li>把 selected title 当口播正文；</li>
+<li>修改已完成 Run 的固定输入；</li>
+<li>因布局重构重复创建 Provider task。</li>
+</ul>
+<h2 id="5">5. 风格系统<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<h2 id="51">5.1 数据所有权<a class="headerlink" href="#51" title="Permanent link">&para;</a></h2>
+<p>新增受信任的 <code>StylePresetRegistry</code>：</p>
+<ul>
+<li>随代码发布；</li>
+<li><code>style_id + version</code> 永久稳定；</li>
+<li>用户可见名称、说明和短样例；</li>
+<li>服务端拥有 prompt rules；</li>
+<li>前端不能提交任意 prompt template；</li>
+<li>应用 manifest 声明支持的 style families；</li>
+<li>AppRun 保存 <code>style_ref</code> 和自定义参考的内容指纹；</li>
+<li>ArtifactVersion 保存非敏感风格元数据。</li>
+</ul>
+<p>首期不需要新增独立数据库表来保存内置风格；Registry 使用 Python 受信常量和契约 fixture。用户私有风格后续单独迁移。</p>
+<h2 id="52">5.2 风格与事实边界<a class="headerlink" href="#52" title="Permanent link">&para;</a></h2>
+<ul>
+<li>风格只决定表达方式，不引入新的业务事实；</li>
+<li>自定义参考中的价格、品牌、效果、人物和活动不得自动迁移为项目事实；</li>
+<li>风格示例不得包含无法证明的医疗、教育、金融或效果承诺；</li>
+<li>Prompt 仍走现有 <code>AppLLMPort</code>；</li>
+<li>确定性 validator 继续校验长度、数量、禁用词、重复、来源和风险；</li>
+<li>LLM 输出失败仍最多进行现有的一次结构化 repair。</li>
+</ul>
+<h2 id="6-artifact">6. 结果、Artifact 与跨应用传递<a class="headerlink" href="#6-artifact" title="Permanent link">&para;</a></h2>
+<h2 id="61">6.1 结果事实<a class="headerlink" href="#61" title="Permanent link">&para;</a></h2>
+<p>右侧结果区只消费服务端事实：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>AppRun
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>→ output_artifact_ids
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>→ Artifact
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>→ current ArtifactVersion / history
+</span></code></pre></div>
+<p>不得把大段结果长期复制到 localStorage。</p>
+<h2 id="62-artifact">6.2 Artifact 渲染器<a class="headerlink" href="#62-artifact" title="Permanent link">&para;</a></h2>
+<p>共享：</p>
+<ul>
+<li><code>ResultWorkbench</code>;</li>
+<li><code>ResultState</code>;</li>
+<li><code>ArtifactHeader</code>;</li>
+<li><code>ArtifactActions</code>;</li>
+<li><code>VersionSwitcher</code>;</li>
+<li><code>HandoffActions</code>;</li>
+<li><code>SourceArtifactBadge</code>;</li>
+<li><code>BusinessErrorPanel</code>.</li>
+</ul>
+<p>领域渲染器：</p>
+<ul>
+<li><code>CopywritingResultCards</code>;</li>
+<li><code>ViralTitleResultList</code>;</li>
+<li><code>CarouselResultPreview</code>;</li>
+<li><code>DigitalHumanResultReview</code>.</li>
+</ul>
+<p>不创建由大量 <code>app_id</code> 条件拼成的万能结果组件。</p>
+<h2 id="63">6.3 编辑和保存<a class="headerlink" href="#63" title="Permanent link">&para;</a></h2>
+<ul>
+<li>用户编辑结果时先进入本地 draft；</li>
+<li>离开未保存结果时提示；</li>
+<li>保存创建新的 <code>ArtifactVersion(source="edited")</code>；</li>
+<li>原版本不覆盖；</li>
+<li>主文案、主标题等选择写入结构化结果或独立 typed artifact；</li>
+<li>保存后刷新和重启仍能恢复；</li>
+<li>未知 artifact schema 使用只读安全摘要。</li>
+</ul>
+<h2 id="64-handoff">6.4 Handoff<a class="headerlink" href="#64-handoff" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart LR
+    COPY["copywriting@version"] --&gt; TITLE["爆款标题 draft"]
+    COPY --&gt; CAROUSEL["抖音图文 draft"]
+    COPY --&gt; DH["数字人口播 draft"]
+    TITLE["selected_title@version"] --&gt; CAROUSEL
+    TITLE --&gt; DH
+    CAROUSEL["carousel_package@version"] --&gt; PUB["发布中心"]
+    DH["video + cover + publish_copy"] --&gt; PUB</code></pre>
+<p>交付规则：</p>
+<ul>
+<li>来源固定到 <code>artifact_version_id</code>；</li>
+<li>目标应用先显示“已带入内容”，用户确认后执行；</li>
+<li>来源更新时只提示，不热更新目标 Run；</li>
+<li>同一 handoff 重试幂等；</li>
+<li>handoff 失败不影响来源 Artifact；</li>
+<li>目标应用返回后仍可追溯来源；</li>
+<li>去发布中心创建或选择 PublishPackage，但不触发最终发布。</li>
+</ul>
+<h2 id="7-api">7. API 与数据契约<a class="headerlink" href="#7-api" title="Permanent link">&para;</a></h2>
+<h2 id="71-contextsnapshot-v2">7.1 ContextSnapshot v2<a class="headerlink" href="#71-contextsnapshot-v2" title="Permanent link">&para;</a></h2>
+<p>保留现有接口：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>POST /api/content-projects/{project_id}/context-snapshots
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>GET  /api/content-projects/{project_id}/context-snapshots/current
+</span></code></pre></div>
+<p>增加 payload v2 Pydantic 校验和稳定错误码：</p>
+<ul>
+<li><code>PROJECT_CONTEXT_INVALID</code>;</li>
+<li><code>PROJECT_CONTEXT_FACT_CONFLICT</code>;</li>
+<li><code>PROJECT_CONTEXT_ASSET_NOT_FOUND</code>;</li>
+<li><code>PROJECT_CONTEXT_CROSS_PROJECT_REF</code>;</li>
+<li><code>PROJECT_CONTEXT_SCHEMA_UNSUPPORTED</code>.</li>
+</ul>
+<p>旧 v1 payload 继续可读；进入编辑时做显式映射预览，用户保存后才产生 v2 快照。</p>
+<h2 id="72-schema-v2">7.2 应用输入 schema v2<a class="headerlink" href="#72-schema-v2" title="Permanent link">&para;</a></h2>
+<p>建议：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>marketing-copy-input.v2
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>viral-titles-input.v2
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>douyin-carousel-input.v2
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>digital-human-video-input.v2 继续扩展 UI 映射，不改变已冻结媒体语义
+</span></code></pre></div>
+<p>共同字段：</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p">{</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">&quot;project_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;project_...&quot;</span><span class="p">,</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nt">&quot;context_snapshot_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;context_...&quot;</span><span class="p">,</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="nt">&quot;task_brief&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="nt">&quot;style_ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="nt">&quot;style_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;copy.owner_voice&quot;</span><span class="p">,</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">  </span><span class="nt">&quot;custom_style_reference&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">  </span><span class="nt">&quot;source_artifact_version_ids&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><code>style_ref</code> 和 <code>custom_style_reference</code> 属于版本化 <code>input_payload</code>，不是 AppRun 表新增的顶层可变字段。Run 创建后不得原地更换风格；调整风格必须创建新 Run。</p>
+<p>服务端继续拒绝：</p>
+<ul>
+<li>API key；</li>
+<li>provider/base_url/model 覆盖；</li>
+<li>Cookie、Authorization、浏览器 profile；</li>
+<li>任意本地绝对路径；</li>
+<li>跨项目 ArtifactVersion；</li>
+<li>未注册 style_id/version。</li>
+</ul>
+<h2 id="73-result-feedback">7.3 Result feedback<a class="headerlink" href="#73-result-feedback" title="Permanent link">&para;</a></h2>
+<p>复用 <code>app_events</code> 记录：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>result.copied
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>result.edited
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>result.selected
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>result.liked
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>result.disliked
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>handoff.started
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>handoff.completed
+</span></code></pre></div>
+<p>事件只保存 ID、序号、动作和非敏感摘要，不保存完整文案副本。</p>
+<h2 id="8">8. 前端组件与代码组织<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
+<p>建议目录：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>desktop/src/features/app-workbench/
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>  AppWorkbenchShell.tsx
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>  InputWorkbench.tsx
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>  ResultWorkbench.tsx
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>  ProjectContextSelector.tsx
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>  ProjectBriefEditor.tsx
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>  StylePresetPicker.tsx
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>  CustomStyleReference.tsx
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>  WorkbenchState.tsx
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>  ArtifactActions.tsx
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>  HandoffActions.tsx
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>  VersionSwitcher.tsx
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>  workbench.css
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>
+</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>desktop/src/features/marketing-copy/
+</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>  MarketingCopyInputPanel.tsx
+</span><span id="__span-11-17"><a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>  MarketingCopyResultCards.tsx
+</span><span id="__span-11-18"><a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>
+</span><span id="__span-11-19"><a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>desktop/src/features/viral-titles/
+</span><span id="__span-11-20"><a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a>  ViralTitlesInputPanel.tsx
+</span><span id="__span-11-21"><a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>  ViralTitleResultList.tsx
+</span><span id="__span-11-22"><a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a>
+</span><span id="__span-11-23"><a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a>desktop/src/features/douyin-carousel/
+</span><span id="__span-11-24"><a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a>  DouyinCarouselInputPanel.tsx
+</span><span id="__span-11-25"><a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a>  CarouselResultPreview.tsx
+</span><span id="__span-11-26"><a id="__codelineno-11-26" name="__codelineno-11-26" href="#__codelineno-11-26"></a>
+</span><span id="__span-11-27"><a id="__codelineno-11-27" name="__codelineno-11-27" href="#__codelineno-11-27"></a>desktop/src/features/digital-human/
+</span><span id="__span-11-28"><a id="__codelineno-11-28" name="__codelineno-11-28" href="#__codelineno-11-28"></a>  DigitalHumanInputPanel.tsx
+</span><span id="__span-11-29"><a id="__codelineno-11-29" name="__codelineno-11-29" href="#__codelineno-11-29"></a>  DigitalHumanResultReview.tsx
+</span></code></pre></div>
+<p>迁移边界：</p>
+<ul>
+<li><code>CreationWorkspace.tsx</code> 先成为兼容容器，再逐应用拆分；</li>
+<li>新业务组件不得继续堆入 <code>StudioApp.tsx</code>；</li>
+<li>现有 <code>api.ts</code> 可先复用，Stage 4 前拆出 app-workbench API；</li>
+<li>继续使用 Ant Design、Lucide 和现有 <code>--app-*</code> tokens；</li>
+<li>不新增应用中心专属色板；</li>
+<li>共享布局，不共享领域表单；</li>
+<li>所有 <code>Select</code>、Tab、输入和按钮必须有稳定 label 和键盘焦点。</li>
+</ul>
+<h2 id="9-feature-flag">9. Feature flag、迁移与回滚<a class="headerlink" href="#9-feature-flag" title="Permanent link">&para;</a></h2>
+<p>建议 flags：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>PIXELLE_APP_WORKBENCH_V2=0
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>PIXELLE_APP_WORKBENCH_TEXT_V2=0
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>PIXELLE_APP_WORKBENCH_CAROUSEL_V2=0
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>PIXELLE_APP_WORKBENCH_DIGITAL_HUMAN_V2=0
+</span></code></pre></div>
+<p>灰度顺序：</p>
+<ol>
+<li>开发和自动化；</li>
+<li>文案/标题内部开启；</li>
+<li>抖音图文开启；</li>
+<li>数字人开启；</li>
+<li>全部应用开启；</li>
+<li>观察稳定后再评估删除旧容器。</li>
+</ol>
+<p>回滚：</p>
+<ul>
+<li>关闭 UI flag 回到旧工作区；</li>
+<li>新 ContextSnapshot/ArtifactVersion 保留；</li>
+<li>旧客户端忽略不认识的 v2 字段，不能删除数据；</li>
+<li>运行中的 AppRun 不因 UI 回滚而取消；</li>
+<li>数字人 Provider task 继续由原 adapter 恢复；</li>
+<li>不回滚或删除已经生成的文件；</li>
+<li>回滚不改变发布人工确认边界。</li>
+</ul>
+<h2 id="10-stage-gate">10. 实施 Stage 与 Gate<a class="headerlink" href="#10-stage-gate" title="Permanent link">&para;</a></h2>
+<h2 id="101-app-workbench-0entry">10.1 APP-WORKBENCH-0：Entry、契约与基线<a class="headerlink" href="#101-app-workbench-0entry" title="Permanent link">&para;</a></h2>
+<p>交付：</p>
+<ul>
+<li>登记 <code>CR-APP-WORKBENCH-001</code>；</li>
+<li>冻结项目上下文 v2、风格 Registry、输入 schema v2、结果状态和 handoff；</li>
+<li>保存当前四应用 1440×900、1280×800、900×760 基线；</li>
+<li>保存参考材料的结构性审查结论；</li>
+<li>冻结 feature flags、允许修改范围和回滚；</li>
+<li>建立契约 fixture 和 Entry tests。</li>
+</ul>
+<p>禁止：</p>
+<ul>
+<li>不改业务 UI；</li>
+<li>不调用真实 LLM、RunningHub 或平台；</li>
+<li>不改默认 flags。</li>
+</ul>
+<p>Gate <code>PG-AW-A</code>：</p>
+<ul>
+<li>需求、契约、数据所有权、错误码、迁移和回滚自洽；</li>
+<li>Entry tests、JSON、Ruff、diff check 通过；</li>
+<li>自审 P0/P1=0。</li>
+</ul>
+<h2 id="102-app-workbench-1">10.2 APP-WORKBENCH-1：统一左右工作台外壳<a class="headerlink" href="#102-app-workbench-1" title="Permanent link">&para;</a></h2>
+<p>实现：</p>
+<ul>
+<li><code>AppWorkbenchShell</code>；</li>
+<li>左右布局、sticky 操作、结果状态；</li>
+<li>窄窗口 Tab 降级；</li>
+<li>四应用以旧数据接入，不改变 executor；</li>
+<li>旧容器 flag 回退。</li>
+</ul>
+<p>Gate <code>PG-AW-B</code>：</p>
+<ul>
+<li>1440、1280、900、390 四档无错行、遮挡和横向滚动；</li>
+<li>键盘、focus、Tab、disabled 样式通过；</li>
+<li>四应用旧功能回归通过。</li>
+</ul>
+<h2 id="103-app-workbench-2">10.3 APP-WORKBENCH-2：项目上下文<a class="headerlink" href="#103-app-workbench-2" title="Permanent link">&para;</a></h2>
+<p>实现：</p>
+<ul>
+<li>ProjectContextSelector；</li>
+<li>ProjectBriefEditor；</li>
+<li>ContextSnapshot v2；</li>
+<li>项目切换、草稿保护和重启恢复；</li>
+<li>应用输入自动带入项目事实。</li>
+</ul>
+<p>Gate <code>PG-AW-C</code>：</p>
+<ul>
+<li>v1/v2 兼容；</li>
+<li>旧 Run 仍固定旧快照；</li>
+<li>跨项目引用、事实冲突和缺失处理通过；</li>
+<li>无重复项目和无隐式覆盖。</li>
+</ul>
+<h2 id="104-app-workbench-3">10.4 APP-WORKBENCH-3：文案与标题<a class="headerlink" href="#104-app-workbench-3" title="Permanent link">&para;</a></h2>
+<p>实现：</p>
+<ul>
+<li>StylePresetRegistry；</li>
+<li>文案/标题风格选择和自定义参考；</li>
+<li>输入 schema v2；</li>
+<li>文案版本卡、标题分组卡；</li>
+<li>复制、编辑、选择、反馈；</li>
+<li>真实 Doubao/Ark Responses API 受控 smoke。</li>
+</ul>
+<p>Gate <code>PG-AW-D</code>：</p>
+<ul>
+<li>风格不引入项目外事实；</li>
+<li>标题数量、去重、长度、禁用词和风险校验；</li>
+<li>编辑和选择产生正确 ArtifactVersion；</li>
+<li>文案→标题真实 typed handoff；</li>
+<li>每个真实用例只执行一次有目的测试，唯一 repair 不算重复用户提交。</li>
+</ul>
+<h2 id="105-app-workbench-4">10.5 APP-WORKBENCH-4：抖音图文<a class="headerlink" href="#105-app-workbench-4" title="Permanent link">&para;</a></h2>
+<p>实现：</p>
+<ul>
+<li>左侧来源、素材、风格、页数和模板；</li>
+<li>右侧分页计划、页面预览、局部编辑和下载；</li>
+<li>来源版本和资产恢复；</li>
+<li>图文包到发布中心 handoff。</li>
+</ul>
+<p>Gate <code>PG-AW-E</code>：</p>
+<ul>
+<li>单页重试和局部重渲染；</li>
+<li>ZIP、页序、发布文案和 Artifact 完整；</li>
+<li>资产缺失、字体和文本溢出可见；</li>
+<li>不打开发布平台。</li>
+</ul>
+<h2 id="106-app-workbench-5">10.6 APP-WORKBENCH-5：数字人<a class="headerlink" href="#106-app-workbench-5" title="Permanent link">&para;</a></h2>
+<p>实现：</p>
+<ul>
+<li>图片/视频素材模式；</li>
+<li>内容来源、本次卖点、口播稿和更多配置；</li>
+<li>右侧预览、进度和最终结果；</li>
+<li>复用现有双模式 API/adapter；</li>
+<li>最终成片、封面、发布文案、口播稿四 Artifact。</li>
+</ul>
+<p>Gate <code>PG-AW-F</code>：</p>
+<ul>
+<li>图片和视频模式 UI 均可用；</li>
+<li>图片默认、视频 stable 非默认；</li>
+<li>字幕、安全区和结果顺序正确；</li>
+<li>重启恢复、失败重试和幂等通过；</li>
+<li>不重复创建真实 Provider task；</li>
+<li>最终发布自动点击为 0。</li>
+</ul>
+<h2 id="107-app-workbench-6">10.7 APP-WORKBENCH-6：交付与跨应用<a class="headerlink" href="#107-app-workbench-6" title="Permanent link">&para;</a></h2>
+<p>实现：</p>
+<ul>
+<li>统一 ArtifactActions、VersionSwitcher 和 HandoffActions；</li>
+<li>文案→标题/图文/数字人；</li>
+<li>标题→图文/数字人；</li>
+<li>图文/数字人→发布中心；</li>
+<li>本次结果/历史版本；</li>
+<li>下一步建议。</li>
+</ul>
+<p>Gate <code>PG-AW-G</code>：</p>
+<ul>
+<li>来源版本固定；</li>
+<li>目标 draft 显示带入内容；</li>
+<li>重复点击幂等；</li>
+<li>来源更新提示；</li>
+<li>发布中心接收正确 package；</li>
+<li>不执行最终发布。</li>
+</ul>
+<h2 id="108-app-workbench-7">10.8 APP-WORKBENCH-7：灰度、视觉终审与收口<a class="headerlink" href="#108-app-workbench-7" title="Permanent link">&para;</a></h2>
+<p>实现：</p>
+<ul>
+<li>分应用开启 flags；</li>
+<li>全量回归和 production build；</li>
+<li>真实浏览器可视化验收；</li>
+<li>重启恢复；</li>
+<li>记录性能、错误和迁移；</li>
+<li>保留旧容器回滚。</li>
+</ul>
+<p>Gate <code>PG-AW-H</code>：</p>
+<ul>
+<li>四应用主流程均完成一次真实可视化验收；</li>
+<li>P0/P1 缺陷为 0；</li>
+<li>真实文本应用 smoke 通过；</li>
+<li>数字人不因布局重构新增付费 Provider 风险；</li>
+<li>安装包构建通过；</li>
+<li>回滚 smoke 通过；</li>
+<li>台账返回 <code>PROGRAM-ROLLOUT/PG-L</code>。</li>
+</ul>
+<h2 id="11_1">11. 测试矩阵<a class="headerlink" href="#11_1" title="Permanent link">&para;</a></h2>
+<h3 id="_17">后端<a class="headerlink" href="#_17" title="Permanent link">&para;</a></h3>
+<ul>
+<li>ContextSnapshot v1/v2；</li>
+<li>project brief 校验和 fingerprint；</li>
+<li>StylePreset Registry/version；</li>
+<li>输入 schema v2；</li>
+<li>风格事实隔离；</li>
+<li>LLM 错误矩阵和唯一 repair；</li>
+<li>ArtifactVersion 编辑与并发；</li>
+<li>handoff 同项目、固定版本和幂等；</li>
+<li>app_event 脱敏；</li>
+<li>migration/rollback；</li>
+<li>数字人旧 Run 恢复。</li>
+</ul>
+<h3 id="_18">前端<a class="headerlink" href="#_18" title="Permanent link">&para;</a></h3>
+<ul>
+<li>左右布局和窄窗 Tab；</li>
+<li>项目新建、切换、草稿保护；</li>
+<li>所有 Select 对齐；</li>
+<li>disabled 可读；</li>
+<li>sticky 主动作；</li>
+<li>空、运行、失败、待审、已保存；</li>
+<li>风格选择和自定义参考；</li>
+<li>文案/标题逐条编辑；</li>
+<li>图文预览和局部操作；</li>
+<li>数字人图片/视频素材选择；</li>
+<li>Artifact 与 handoff 操作；</li>
+<li>重启恢复投影。</li>
+</ul>
+<h3 id="_19">可视化<a class="headerlink" href="#_19" title="Permanent link">&para;</a></h3>
+<p>每个应用至少保存：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>01-empty
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>02-project-selected
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>03-input-ready
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>04-running
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>05-result
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>06-editing
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>07-handoff
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>08-narrow-window
+</span></code></pre></div>
+<p>视口：</p>
+<ul>
+<li>1440×900；</li>
+<li>1280×800；</li>
+<li>900×760；</li>
+<li>390×760 仅验证降级，不宣称移动端产品。</li>
+</ul>
+<p>截图必须先检查：</p>
+<ul>
+<li>页面身份正确；</li>
+<li>无 loading/错误遮罩；</li>
+<li>无错行和裁切；</li>
+<li>输入与结果状态一致；</li>
+<li>disabled、focus、状态不只靠颜色；</li>
+<li>用户信息和 key 已脱敏。</li>
+</ul>
+<h3 id="_20">真实运行<a class="headerlink" href="#_20" title="Permanent link">&para;</a></h3>
+<ul>
+<li>文案：一次真实 provider；</li>
+<li>标题：一次真实 provider；</li>
+<li>文案→标题：一次真实 handoff；</li>
+<li>图文：本地真实渲染和 ZIP；</li>
+<li>数字人：优先复用既有真实质量证据，除非契约变化必须重新调用 Provider；</li>
+<li>发布：只到发布中心 handoff，不点击最终发布。</li>
+</ul>
+<h2 id="12_1">12. 性能与可用性预算<a class="headerlink" href="#12_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li>应用工作台首屏可交互：本地目标 <code>&lt; 1.5s</code>；</li>
+<li>项目切换 UI 反馈：<code>&lt; 150ms</code>，数据加载使用 skeleton；</li>
+<li>大结果不阻塞输入；</li>
+<li>右侧媒体按需加载；</li>
+<li>不因风格样例一次加载全部历史 Artifact；</li>
+<li>项目/Artifact 列表保持分页或上限；</li>
+<li>AppRun 轮询只在 queued/running 时开启；</li>
+<li>页面离开后清理 timer；</li>
+<li>项目快速切换使用 AbortController、request sequence 或等价方式，旧请求不得回写新项目状态；</li>
+<li>生成中重启恢复不重复执行。</li>
+</ul>
+<h2 id="13_1">13. 安全、隐私与合规<a class="headerlink" href="#13_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li>key 继续只显示脱敏首尾；</li>
+<li>自定义参考可能包含外部文案，提示用户确认使用权；</li>
+<li>自定义参考不自动沉淀为项目事实；</li>
+<li>不保存第三方 Cookie 或登录态；</li>
+<li>不把完整 provider 响应写入日志；</li>
+<li>高风险行业继续 fail closed；</li>
+<li>“买家体验”只表示写作视角，不得伪造真实评价；</li>
+<li>喜欢/不喜欢只保存在本地事件；</li>
+<li>Artifact 和诊断不得包含绝对路径；</li>
+<li>发布继续人工确认。</li>
+</ul>
+<h2 id="14">14. 自审清单<a class="headerlink" href="#14" title="Permanent link">&para;</a></h2>
+<h3 id="_21">需求完整性<a class="headerlink" href="#_21" title="Permanent link">&para;</a></h3>
+<ul>
+<li>是否覆盖功能、UI 布局、结果展示和传递；</li>
+<li>是否逐一覆盖四个应用；</li>
+<li>是否覆盖项目和风格系统；</li>
+<li>是否覆盖 Windows/Tauri、重启和窄窗。</li>
+</ul>
+<h3 id="_22">逻辑正确性<a class="headerlink" href="#_22" title="Permanent link">&para;</a></h3>
+<ul>
+<li>项目资料是否固定到 ContextSnapshot；</li>
+<li>Run、Artifact 和 Handoff 是否仍是唯一事实；</li>
+<li>风格是否与事实分离；</li>
+<li>编辑是否产生新版本；</li>
+<li>目标应用是否固定来源版本。</li>
+</ul>
+<h3 id="_23">边界情况<a class="headerlink" href="#_23" title="Permanent link">&para;</a></h3>
+<ul>
+<li>无项目、无资料、无模型、无资产；</li>
+<li>项目切换有未保存输入；</li>
+<li>v1 旧项目和旧 Run；</li>
+<li>provider 失败、重启、重复点击；</li>
+<li>结果 schema 未知；</li>
+<li>窄窗口；</li>
+<li>数字人 Provider 已提交后的恢复。</li>
+</ul>
+<h3 id="_24">代码质量<a class="headerlink" href="#_24" title="Permanent link">&para;</a></h3>
+<ul>
+<li>是否复用统一外壳和 tokens；</li>
+<li>是否避免继续扩大 StudioApp；</li>
+<li>是否避免万能条件组件；</li>
+<li>是否保留领域组件；</li>
+<li>是否没有第二套模型配置。</li>
+</ul>
+<h3 id="_25">测试覆盖<a class="headerlink" href="#_25" title="Permanent link">&para;</a></h3>
+<ul>
+<li>契约、单元、集成、构建、可视化、真实 smoke；</li>
+<li>每个 Gate 是否有明确命令和证据；</li>
+<li>是否避免无目的重复真实调用。</li>
+</ul>
+<h3 id="_26">实际运行<a class="headerlink" href="#_26" title="Permanent link">&para;</a></h3>
+<ul>
+<li>用户是否能在一个工作台完成输入、生成、编辑、保存和下一步；</li>
+<li>重启后是否恢复；</li>
+<li>最终发布是否仍人工；</li>
+<li>Windows 安装包是否可构建；</li>
+<li>回滚是否保留数据。</li>
+</ul>
+<h2 id="15-definition-of-done">15. Definition of Done<a class="headerlink" href="#15-definition-of-done" title="Permanent link">&para;</a></h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> CR 和台账唯一入口已登记；</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 四应用统一左右工作台；</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 窄窗 Tab 降级；</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 项目上下文 v2 可保存和恢复；</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 文案/标题风格库可用；</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 自定义参考事实隔离；</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 文案、标题、图文和数字人结果可见、可编辑、可版本化；</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> typed handoff 全链路通过；</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 数字人双模式和四 Artifact 无回归；</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 当前模型管理继续唯一；</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 最终发布人工确认不变；</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 全量测试、生产构建、可视化验收和 Windows CI 通过；</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> P0/P1 缺陷为 0；</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 旧 UI flag 回滚通过；</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 台账和证据已更新。</li>
+</ul>
+<h2 id="16-luna">16. 交给 Luna 的启动指令<a class="headerlink" href="#16-luna" title="Permanent link">&para;</a></h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>读取《应用中心与桌面自动发布整体协调实施方案》、
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>实时进度台账和
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>《Pixelle Video 应用工作台体验优化实施方案》。
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>登记 CR-APP-WORKBENCH-001。
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>安装包构建证据归档后，由协调层将 current_stage 切换为
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>APP-WORKBENCH-0。
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>以 current_stage 为唯一工作入口。
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>每次只执行一个 Stage；完成 Entry、实现、定向测试、
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>生产构建、真实可视化证据、自审和 Gate 更新后，
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>才能进入下一 Stage。
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>项目资料必须固定到 ContextSnapshot；
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>运行必须经过 AppRun；
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>结果必须登记 ArtifactVersion；
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>跨应用必须经过 ArtifactHandoff。
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>
+</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>继续复用当前 LLM 管理、FastAPI、SQLite、资产库、
+</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>数字人双模式和发布中心。
+</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a>不得增加第二套模型配置，不得自动点击最终发布，
+</span><span id="__span-14-22"><a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a>不得绕过上位台账，不得把参考产品视觉原样复制。
+</span></code></pre></div>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="最后更新">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 30, 2026 06:20:28 UTC">July 30, 2026 06:20:28</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="创建日期">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 30, 2026 06:20:28 UTC">July 30, 2026 06:20:28</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Pixelle.AI
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/AIDC-AI/Pixelle-Video" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

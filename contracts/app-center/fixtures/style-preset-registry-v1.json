@@ -1,0 +1,416 @@
+{
+  "schema_version": 1,
+  "registry_version": "2026-07-28",
+  "presets": [
+    {
+      "schema_version": 1,
+      "style_id": "copy.selling_point",
+      "version": 1,
+      "family": "copy",
+      "name": "卖点讲解",
+      "description": "按事实说明卖点、适用场景和行动建议",
+      "example": "先说它解决什么问题，再讲清楚适合谁、什么时候用。",
+      "prompt_rules": [
+        "以项目事实为唯一业务事实来源",
+        "按问题、卖点、场景和行动建议组织"
+      ],
+      "forbidden_patterns": [
+        "未经证实的效果承诺"
+      ],
+      "supported_apps": [
+        "builtin.marketing-copy"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "copy.owner_voice",
+      "version": 1,
+      "family": "copy",
+      "name": "老板口吻",
+      "description": "用门店经营者第一人称自然介绍",
+      "example": "我们每天把这件小事做好，就是想让到店体验更踏实。",
+      "prompt_rules": [
+        "使用自然第一人称",
+        "不虚构经营年限、销量或顾客评价"
+      ],
+      "forbidden_patterns": [
+        "全城第一",
+        "人人都说好"
+      ],
+      "supported_apps": [
+        "builtin.marketing-copy"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "copy.store_visit",
+      "version": 1,
+      "family": "copy",
+      "name": "探店种草",
+      "description": "突出消费场景和具体到店理由",
+      "example": "下班路过时，可以先从这项轻松、不费时间的体验开始。",
+      "prompt_rules": [
+        "描述可验证的门店或服务场景",
+        "给出具体但不强迫的到店理由"
+      ],
+      "forbidden_patterns": [
+        "假装已到店",
+        "伪造排队盛况"
+      ],
+      "supported_apps": [
+        "builtin.marketing-copy"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "copy.creator_recommendation",
+      "version": 1,
+      "family": "copy",
+      "name": "口语推荐",
+      "description": "采用轻松、口语化的推荐表达",
+      "example": "如果你正好在找省心的选择，可以先看看这个细节。",
+      "prompt_rules": [
+        "使用口语化短句",
+        "不得自称未被事实证明的达人或专家"
+      ],
+      "forbidden_patterns": [
+        "我亲测",
+        "全网都在买"
+      ],
+      "supported_apps": [
+        "builtin.marketing-copy"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "copy.buyer_perspective",
+      "version": 1,
+      "family": "copy",
+      "name": "体验视角",
+      "description": "以用户体验视角组织表达，不冒充真实购买证言",
+      "example": "从使用感受的角度，最容易注意到的是步骤清楚、上手轻松。",
+      "prompt_rules": [
+        "只模拟表达视角，不声称真实购买",
+        "所有体验点必须来自项目事实"
+      ],
+      "forbidden_patterns": [
+        "我买过",
+        "我用了一个月"
+      ],
+      "supported_apps": [
+        "builtin.marketing-copy"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "copy.promotion",
+      "version": 1,
+      "family": "copy",
+      "name": "活动促销",
+      "description": "清楚说明活动事实、条件、期限和行动方式",
+      "example": "本周到店可参加已登记的活动，具体条件和时间以项目资料为准。",
+      "prompt_rules": [
+        "优惠、条件和期限必须来自项目事实",
+        "CTA 不制造虚假稀缺"
+      ],
+      "forbidden_patterns": [
+        "最后一天",
+        "仅剩一份"
+      ],
+      "supported_apps": [
+        "builtin.marketing-copy"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "copy.educational",
+      "version": 1,
+      "family": "copy",
+      "name": "知识科普",
+      "description": "先解释问题，再给出克制、可验证的建议",
+      "example": "先判断场景和需求，再选择适合的做法，通常会更稳妥。",
+      "prompt_rules": [
+        "区分常识说明和项目事实",
+        "高风险行业不提供诊断或保证"
+      ],
+      "forbidden_patterns": [
+        "保证治愈",
+        "包过"
+      ],
+      "supported_apps": [
+        "builtin.marketing-copy"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "copy.customer_case",
+      "version": 1,
+      "family": "copy",
+      "name": "客户案例",
+      "description": "只使用项目已有案例事实讲清背景、做法和结果",
+      "example": "在项目已记录的案例中，先说明原始需求，再呈现采取的做法。",
+      "prompt_rules": [
+        "只有 proof_points 中的真实案例可以使用",
+        "缺少结果事实时明确缺失"
+      ],
+      "forbidden_patterns": [
+        "虚构客户姓名",
+        "虚构效果数据"
+      ],
+      "supported_apps": [
+        "builtin.marketing-copy"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "title.product_short",
+      "version": 1,
+      "family": "title",
+      "name": "核心利益",
+      "description": "用事实和核心利益组成简短标题",
+      "example": "午休也能完成的轻量体验",
+      "prompt_rules": [
+        "保留一个核心事实和一个利益点",
+        "避免堆叠形容词"
+      ],
+      "forbidden_patterns": [
+        "最强",
+        "万能"
+      ],
+      "supported_apps": [
+        "builtin.viral-titles"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "title.feed",
+      "version": 1,
+      "family": "title",
+      "name": "信息流",
+      "description": "以具体场景问题连接可验证收益",
+      "example": "下班太晚，晚餐还能怎么选？",
+      "prompt_rules": [
+        "用真实场景开头",
+        "收益不得超出项目事实"
+      ],
+      "forbidden_patterns": [
+        "看完震惊"
+      ],
+      "supported_apps": [
+        "builtin.viral-titles"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "title.curiosity",
+      "version": 1,
+      "family": "title",
+      "name": "好奇提问",
+      "description": "保留合理信息缺口，但不故弄玄虚",
+      "example": "为什么这个细节更适合第一次体验？",
+      "prompt_rules": [
+        "问题必须能由正文回答",
+        "不隐藏关键活动条件"
+      ],
+      "forbidden_patterns": [
+        "不看后悔"
+      ],
+      "supported_apps": [
+        "builtin.viral-titles"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "title.contrast",
+      "version": 1,
+      "family": "title",
+      "name": "对比冲突",
+      "description": "使用事实对比或认知差异形成张力",
+      "example": "赶时间和重体验，选择逻辑有什么不同？",
+      "prompt_rules": [
+        "对比双方必须可从事实解释",
+        "不制造群体对立"
+      ],
+      "forbidden_patterns": [
+        "智商税",
+        "打脸"
+      ],
+      "supported_apps": [
+        "builtin.viral-titles"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "title.numbered",
+      "version": 1,
+      "family": "title",
+      "name": "数字清单",
+      "description": "用数字组织方法、步骤或选择依据",
+      "example": "第一次到店先看这 3 个细节",
+      "prompt_rules": [
+        "数字必须对应正文真实条目",
+        "不使用伪精确效果数据"
+      ],
+      "forbidden_patterns": [
+        "成功率100%"
+      ],
+      "supported_apps": [
+        "builtin.viral-titles"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "title.identity_scene",
+      "version": 1,
+      "family": "title",
+      "name": "人群场景",
+      "description": "明确目标人群和具体使用场景",
+      "example": "忙碌上班族周末放松的轻选择",
+      "prompt_rules": [
+        "人群必须来自项目 audience",
+        "避免污名化人群"
+      ],
+      "forbidden_patterns": [
+        "穷人",
+        "懒人必备"
+      ],
+      "supported_apps": [
+        "builtin.viral-titles"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "title.educational",
+      "version": 1,
+      "family": "title",
+      "name": "科普知识",
+      "description": "用问题和知识价值吸引阅读",
+      "example": "挑选服务前，先弄清这两个概念",
+      "prompt_rules": [
+        "知识结论保持克制",
+        "高风险行业不下诊断结论"
+      ],
+      "forbidden_patterns": [
+        "专家都不告诉你"
+      ],
+      "supported_apps": [
+        "builtin.viral-titles"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "title.promotion",
+      "version": 1,
+      "family": "title",
+      "name": "活动信息",
+      "description": "把真实活动事实、条件和时间写清楚",
+      "example": "本周到店活动，参与条件一次看清",
+      "prompt_rules": [
+        "活动和期限必须来自 promotion_facts",
+        "缺少期限时不制造倒计时"
+      ],
+      "forbidden_patterns": [
+        "限时疯抢"
+      ],
+      "supported_apps": [
+        "builtin.viral-titles"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "carousel.store_recommendation",
+      "version": 1,
+      "family": "carousel",
+      "name": "门店种草",
+      "description": "用封面钩子、场景、卖点和到店行动组成图文",
+      "example": "封面提出场景问题，内页逐步说明选择理由。",
+      "prompt_rules": [
+        "每页只承载一个主要信息",
+        "卖点必须来自项目事实"
+      ],
+      "forbidden_patterns": [
+        "伪造探店经历"
+      ],
+      "supported_apps": [
+        "builtin.douyin-carousel"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "carousel.promotion_list",
+      "version": 1,
+      "family": "carousel",
+      "name": "活动清单",
+      "description": "按条件、权益、时间和行动拆分活动图文",
+      "example": "每页分别说明适用对象、活动内容、时间和参与方式。",
+      "prompt_rules": [
+        "条件和期限必须完整",
+        "不得把不同活动权益合并"
+      ],
+      "forbidden_patterns": [
+        "虚假倒计时"
+      ],
+      "supported_apps": [
+        "builtin.douyin-carousel"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "carousel.knowledge_cards",
+      "version": 1,
+      "family": "carousel",
+      "name": "知识卡片",
+      "description": "按问题、解释、判断和建议组织知识图文",
+      "example": "封面提出问题，内页用短段落解释并给出判断依据。",
+      "prompt_rules": [
+        "知识和项目事实分层展示",
+        "每页文本适合竖版阅读"
+      ],
+      "forbidden_patterns": [
+        "未经证实的专业结论"
+      ],
+      "supported_apps": [
+        "builtin.douyin-carousel"
+      ],
+      "status": "active"
+    },
+    {
+      "schema_version": 1,
+      "style_id": "carousel.case_breakdown",
+      "version": 1,
+      "family": "carousel",
+      "name": "案例拆解",
+      "description": "按背景、问题、做法和已证实结果拆分案例",
+      "example": "先交代案例背景，再说明采取的步骤和已有结果。",
+      "prompt_rules": [
+        "只使用 proof_points 中存在的案例",
+        "缺失结果时不得补写"
+      ],
+      "forbidden_patterns": [
+        "伪造客户或效果"
+      ],
+      "supported_apps": [
+        "builtin.douyin-carousel"
+      ],
+      "status": "active"
+    }
+  ]
+}

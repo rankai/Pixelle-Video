@@ -1,0 +1,189 @@
+{
+  "stage": "BRAND-PROJECT-5",
+  "gate": "PG-BP-F",
+  "status": "implementation_review_pending",
+  "date": "2026-07-30",
+  "result": "passed_local_bounded_pending_independent_review",
+  "scope": {
+    "business_features_added": 0,
+    "default_flags_changed": 0,
+    "production_database_writes": 0,
+    "external_provider_calls": 0,
+    "platform_actions": 0,
+    "final_publish_clicks": 0,
+    "git_commits": 0
+  },
+  "default_flag": {
+    "backend_runtime_default": false,
+    "contract_default": false,
+    "frontend_fallback": false,
+    "production_env_override_present": false
+  },
+  "rollback": {
+    "phases": [
+      "on_before_rollback",
+      "off_after_full_restart",
+      "on_again_after_full_restart"
+    ],
+    "project_business_sha256_each_phase": "335f48e12897488a46c4d3da72b45cffde1e1da622727c85e0a3c6b3060a3aa2",
+    "business_rows_and_hashes_equal": true,
+    "off_v3_compatibility_read_nonempty": true,
+    "on_again_lightweight_ui_restored": true,
+    "technical_fields_visible": false,
+    "horizontal_overflow": false,
+    "application_or_network_console_errors": 0,
+    "known_console_deprecations_only": true,
+    "browser_manifest": "BRAND-PROJECT-5-2026-07-30/browser-rollback-manifest.json"
+  },
+  "migration": {
+    "source_sha256_before": "9c10b292f945de41cb857e31c1b6f45ba09654a0a376caaa1d72c593d935c329",
+    "source_sha256_after": "9c10b292f945de41cb857e31c1b6f45ba09654a0a376caaa1d72c593d935c329",
+    "source_unchanged": true,
+    "legacy_column_projection_hashes_equal": true,
+    "required_provenance_columns_added": true,
+    "context_schema_v3_allowed": true,
+    "integrity_check": "ok",
+    "foreign_key_errors": [],
+    "failure_injection_visible_database_unchanged": true,
+    "qa_sqlite_binary_copies_retained": 0,
+    "temporary_copy_cleanup": "automatic via TemporaryDirectory"
+  },
+  "explicit_sync_and_continue": {
+    "new_context_snapshot_id": "context_2c92dd29a47f4ade88d2d9b9adb58c08",
+    "new_run_id": "run_df3bc1f7191a4f7e92e5c90ac70c7583",
+    "new_artifact_id": "artifact_1f97f640db17426db0dd81a887b49bdd",
+    "new_artifact_version_id": "artifact_version_d90370d2884b44bfb89365b132376327",
+    "run_and_artifact_use_synced_context": true,
+    "expected_row_deltas": {
+      "content_projects": 0,
+      "context_snapshots": 1,
+      "app_runs": 1,
+      "artifacts": 1,
+      "artifact_versions": 1,
+      "artifact_handoffs": 0
+    },
+    "actual_row_deltas_match": true,
+    "content_project_stable_projection_unchanged": true,
+    "all_preexisting_append_only_row_hashes_unchanged": true,
+    "evidence_serialization_recovery": {
+      "business_write_replayed": false,
+      "before_checkpoint_sha256": "335f48e12897488a46c4d3da72b45cffde1e1da622727c85e0a3c6b3060a3aa2",
+      "recovery_mode": "read-only idempotent lookup after result/result_code evidence-key correction"
+    }
+  },
+  "repository_benchmark": {
+    "iterations_per_operation": 10,
+    "budget_kind": "wide_local_regression_guard_not_sla",
+    "budget_ms": 250,
+    "operations": {
+      "get_project": {
+        "p50_ms": 0.223,
+        "p95_ms": 0.254,
+        "max_ms": 0.254
+      },
+      "get_context_snapshot": {
+        "p50_ms": 0.217,
+        "p95_ms": 2.048,
+        "max_ms": 2.048
+      },
+      "resolve_for_run": {
+        "p50_ms": 3.179,
+        "p95_ms": 4.826,
+        "max_ms": 4.826
+      }
+    },
+    "reads_zero_write": true
+  },
+  "interface_benchmark": {
+    "iterations_per_operation": 10,
+    "budget_kind": "wide_local_regression_guard_not_sla",
+    "budget_ms": 500,
+    "operations": {
+      "list_projects": {
+        "p50_ms": 0.942,
+        "p95_ms": 1.217,
+        "max_ms": 1.217
+      },
+      "get_project": {
+        "p50_ms": 0.771,
+        "p95_ms": 0.975,
+        "max_ms": 0.975
+      },
+      "list_context_snapshots": {
+        "p50_ms": 0.983,
+        "p95_ms": 1.316,
+        "max_ms": 1.316
+      }
+    }
+  },
+  "sidecar": {
+    "cycles": 10,
+    "off_cycles": 5,
+    "on_cycles": 5,
+    "cycles_passed": 10,
+    "health_apps_projects_reads_passed": true,
+    "port_released_each_cycle": true,
+    "startup_and_reads_zero_business_write": true,
+    "project_business_sha256_before_after": "a67524d4aab47679b189a6e58116cfb48c55bbc27cee15dbbd166527216035fe"
+  },
+  "tests": {
+    "python_non_browser": {
+      "passed": 800,
+      "failed": 0,
+      "warnings": 12
+    },
+    "python_browser_and_slow": {
+      "files": 12,
+      "passed": 131,
+      "failed": 0,
+      "warnings": 12
+    },
+    "python_total": {
+      "passed": 931,
+      "failed": 0
+    },
+    "desktop": {
+      "files": 18,
+      "passed": 123,
+      "failed": 0,
+      "single_worker": true
+    },
+    "desktop_build": {
+      "passed": true,
+      "modules_transformed": 4610,
+      "existing_chunk_size_warning": true
+    },
+    "ruff_check": "passed",
+    "ruff_format_check": "passed",
+    "json_parse": "passed",
+    "git_diff_check": "passed",
+    "artifact_hash_check": "passed",
+    "qa_sqlite_files": 0,
+    "ports_released": [
+      8117,
+      8118,
+      1439
+    ]
+  },
+  "artifacts_sha256": {
+    "scripts/brand_project_stage5_closeout.py": "cab8e6b2b3440e89f2c52dcbbd8eaf0f44c5040af2ac769ec3429541b4c0f39d",
+    "tests/coord0_contract_test.py": "8acd9a204c504b6c4fb6eec7f6eec652f7823276878789475cc17e496b4a7218",
+    "BRAND-PROJECT-5-implementation-2026-07-30.md": "f20507a70aefbe833ea255c92447c86b4af33ea6e98c0e349c50a024e53a56ed",
+    "BRAND-PROJECT-5-2026-07-30/fixture.json": "19f47682115619730b6c83d38279b05f3415b3efaf4925dd808d881d3aaaf90d",
+    "BRAND-PROJECT-5-2026-07-30/prepare.json": "df80a78d62064c520a91d9d8485234614fdd7344ca124b7262c5c931813cd116",
+    "BRAND-PROJECT-5-2026-07-30/brand-update.json": "48cf48367c0f6041eab76567634eba1b64fa83a452bb7585560b3cc3bfae3b0b",
+    "BRAND-PROJECT-5-2026-07-30/browser-on-before.json": "e453b6a14c13073493bc66bfa6c14e17e12979ce5d815d92699a4e8c02ec9041",
+    "BRAND-PROJECT-5-2026-07-30/browser-off-after-restart.json": "a7540879dd6d66bf4935b0ddf57ca79c5043adbfe0727765c79775b83f1a36c4",
+    "BRAND-PROJECT-5-2026-07-30/browser-on-again-after-restart.json": "84127db41cb82d3e63c6d446a30509f8772a474dcb3ba5bc854011bf5471c515",
+    "BRAND-PROJECT-5-2026-07-30/browser-rollback-manifest.json": "6ccac065a876b4046024f6ebe871ef8682c10bd432623ae40a9c920c9dda56d8",
+    "BRAND-PROJECT-5-2026-07-30/browser-off-after-restart.png": "30ad8a705f6d7179b3ebf374083430ee0da9ea47e8d0bbb5ba8f1ac02c38894f",
+    "BRAND-PROJECT-5-2026-07-30/browser-on-again-after-restart.png": "4e5fef43f463ade5947b669ac6c549a170e8702cc5d281a6cef3054d42825ca2",
+    "BRAND-PROJECT-5-2026-07-30/continue-after-rollback.json": "0cf3b04ed823e29773cf67a8087e606e412eeffae7d0f19f0c9691c9f6bb4c8f",
+    "BRAND-PROJECT-5-2026-07-30/sidecar.json": "8f9a0e3ca5ef6f686c7786bb9c252a7365da0dee894ef52ec7ef53445510d65e"
+  },
+  "review_boundary": {
+    "independent_six_dimension_review_required": true,
+    "program_rollout_resumed": false,
+    "program_checkpoint": "PROGRAM-ROLLOUT/PG-L_paused_external"
+  }
+}

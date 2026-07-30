@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "stage": "BRAND-PROJECT-0",
+  "purpose": "Prove that Entry contract work did not modify prohibited business UI or business write paths.",
+  "entry_starting_commit": "8de798d260459bb0e62d44b0bb7ab670f4b8b92f",
+  "capture_scope": "worktree bytes at BRAND-PROJECT-0 Entry attribution baseline; pre-existing dirty changes are preserved and not attributed to this Stage",
+  "prohibited_business_files": [
+    {
+      "path": "api/routers/app_center.py",
+      "sha256": "7966c94e001568d0350cd3dd4db3c0c2b4d7fdc53d3a328fd5073b746ef58b74"
+    },
+    {
+      "path": "api/schemas/app_center.py",
+      "sha256": "16313b79a39e8f1e1723add662be112dbbd4a970cc8723919d58ac194ae352f8"
+    },
+    {
+      "path": "pixelle_video/app_center/models.py",
+      "sha256": "d557a9e5e5696bf9e83d1536a5d306d2f22ac292c2c89776faca4be2efe765f7"
+    },
+    {
+      "path": "pixelle_video/app_center/repository.py",
+      "sha256": "b730f9bd29e6e3b4aaaaccda7503a6005e22f65b187d89dc1997d920e23ba39a"
+    },
+    {
+      "path": "pixelle_video/app_center/project_context.py",
+      "sha256": "c257251beff49074763208d3e12aa41853437e44c10f9ea110e484f74e5415f7"
+    },
+    {
+      "path": "desktop/src/StudioApp.tsx",
+      "sha256": "42933b6639f406c5b0ed58108a84cc12d0be64cd0212148e2affee2c2aed0cf8"
+    },
+    {
+      "path": "desktop/src/api.ts",
+      "sha256": "0f82b5d75f607e7d29fd30bf5e2a32a6152bcc494c4de54ef9e08f9dea4a1817"
+    },
+    {
+      "path": "desktop/src/styles.css",
+      "sha256": "c851be5c7f672f81b64a1e68362f60a5af22dbc949f81942ef539835f2362af5"
+    },
+    {
+      "path": "desktop/src/features/app-workbench/AppWorkbenchShell.tsx",
+      "sha256": "8bcbab416bb93b8ad12055012dd3a1727e6a689ac319503e02321ae197107862"
+    },
+    {
+      "path": "desktop/src/features/app-workbench/ProjectBriefEditor.tsx",
+      "sha256": "705e9d8a6b88fcf342f2317fc49552fcdbfbe6bcb43ae643fb906ba524466091"
+    },
+    {
+      "path": "desktop/src/features/app-workbench/ProjectContextSelector.tsx",
+      "sha256": "734839551bce50a614191d9928e902994a96fa59504e40d450a5339a32489461"
+    }
+  ],
+  "entry_allowed_change_prefixes": [
+    "docs/contracts/app-center/",
+    "docs/reviews/application-publishing-program/",
+    "docs/reviews/2026-07-18-application-center-publishing-program-progress.md",
+    "tests/brand_project_boundary_entry_contract_test.py",
+    "tests/coord0_contract_test.py"
+  ]
+}

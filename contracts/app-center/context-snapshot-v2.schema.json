@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/app-center/context-snapshot.v2.schema.json",
+  "title": "Pixelle ContentProject ContextSnapshot v2 payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "subject_type",
+    "store_or_brand",
+    "offer",
+    "audience",
+    "selling_points",
+    "proof_points",
+    "required_facts",
+    "forbidden_claims",
+    "asset_refs",
+    "brand_revision_ref"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "subject_type": {
+      "enum": [
+        "store",
+        "brand",
+        "product",
+        "service",
+        "campaign"
+      ]
+    },
+    "store_or_brand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "industry"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "industry": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "address": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 500
+        },
+        "contact": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 200
+        }
+      }
+    },
+    "offer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "category",
+        "price_facts",
+        "promotion_facts"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "price_facts": {
+          "$ref": "#/$defs/fact_list"
+        },
+        "promotion_facts": {
+          "$ref": "#/$defs/fact_list"
+        }
+      }
+    },
+    "audience": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primary",
+        "scenes"
+      ],
+      "properties": {
+        "primary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "scenes": {
+          "type": "array",
+          "maxItems": 20,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        }
+      }
+    },
+    "selling_points": {
+      "$ref": "#/$defs/fact_list"
+    },
+    "proof_points": {
+      "$ref": "#/$defs/fact_list"
+    },
+    "required_facts": {
+      "$ref": "#/$defs/fact_list"
+    },
+    "forbidden_claims": {
+      "type": "array",
+      "maxItems": 50,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 300
+      }
+    },
+    "asset_refs": {
+      "type": "array",
+      "maxItems": 100,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "asset_id",
+          "asset_revision"
+        ],
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "asset_revision": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        }
+      }
+    },
+    "brand_revision_ref": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 200
+    }
+  },
+  "$defs": {
+    "fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fact_id",
+        "text",
+        "source"
+      ],
+      "properties": {
+        "fact_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "source": {
+          "enum": [
+            "user",
+            "brand_revision",
+            "asset_metadata",
+            "artifact_version"
+          ]
+        },
+        "source_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 200
+        }
+      }
+    },
+    "fact_list": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/fact"
+      }
+    }
+  }
+}

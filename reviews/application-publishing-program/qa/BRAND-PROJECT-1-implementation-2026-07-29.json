@@ -1,0 +1,223 @@
+{
+  "schema_version": 1,
+  "stage": "BRAND-PROJECT-1",
+  "gate": "PG-BP-B",
+  "status": "passed_with_boundary",
+  "date": "2026-07-29",
+  "independent_review": {
+    "first_pass": {
+      "p0": 0,
+      "p1": 8,
+      "p2": 2,
+      "result": "blocked"
+    },
+    "second_pass": {
+      "p0": 0,
+      "p1": 6,
+      "p2": 1,
+      "result": "blocked"
+    },
+    "final_pass_remaining": {
+      "p0": 0,
+      "p1": 1,
+      "p2": 0,
+      "result": "blocked"
+    },
+    "final_review": {
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "result": "PASS"
+    },
+    "remediation_status": "closed",
+    "gate_unchanged": true
+  },
+  "scope": {
+    "exact_brand_domain_revision_read": true,
+    "project_context_resolver_v1_v2_v3": true,
+    "appdb_atomic_project_and_v3_snapshot_create": true,
+    "cross_database_atomicity_claimed": false,
+    "assetdb_revision_guard_before_appdb_write": true,
+    "explicit_bind_change_unbind": true,
+    "logo_bgm_revision_pinning": true,
+    "server_owned_brand_context": true,
+    "v3_client_source_revision_rejected": true,
+    "v1_v2_source_revision_server_validated": true,
+    "schema_migration_1_2_3": true,
+    "business_ui_changes": 0,
+    "sync_or_diff_preview_changes": 0
+  },
+  "verification": {
+    "pytest_files": 8,
+    "pytest_passed": 107,
+    "pytest_failed": 0,
+    "pytest_result": "107 passed, 12 existing warnings",
+    "review_probe_result": "32 passed, 12 existing warnings",
+    "interrupted_pre_closeout_runs": {
+      "batch_1": "27 passed",
+      "batch_2": "23 passed",
+      "first_full_aggregate": "91 passed, 1 temporary SQLite disk I/O environment failure",
+      "isolated_environment_failure_retry": "passed",
+      "pre_second_review_full_aggregate": "92 passed",
+      "post_second_review_full_aggregate": "106 passed",
+      "post_final_remaining_item_full_aggregate": "107 passed"
+    },
+    "asset_and_coord_small_batch": "42 passed, 12 existing warnings",
+    "ruff_check": "passed",
+    "ruff_format_check": "passed",
+    "ruff_format_files": 18,
+    "json_parse": "51 passed",
+    "json_schema_self_check": "11 passed",
+    "sql_schema_execution": "passed",
+    "diff_check": "passed",
+    "artifact_hash_check": "passed",
+    "artifact_hashes": 26,
+    "warnings": {
+      "count": 12,
+      "classification": "existing_pydantic_deprecations"
+    }
+  },
+  "remediated_invariants": {
+    "begin_immediate_and_expected_snapshot_cas_including_null": true,
+    "v1_v2_payload_only_fingerprint_compatible": true,
+    "v3_envelope_fingerprint_required": true,
+    "v3_to_v2_projection_read_only": true,
+    "v3_to_v2_projection_dto_has_recomputable_fingerprint": true,
+    "flag_off_v3_readable": true,
+    "stable_error_code_http_and_safe_chinese_message": true,
+    "corrupt_brand_revision_fail_closed": true,
+    "brand_revision_strict_structure_type_required_and_identity_validation": true,
+    "assetdb_guard_revalidates_status_revision_and_payload_before_appdb_write": true,
+    "concurrent_archive_or_update_leaves_appdb_unchanged": true,
+    "cross_db_write_order_documented_without_atomicity_claim": true,
+    "logo_bgm_source_revision_and_type_validated": true,
+    "current_snapshot_validated_before_rebind": true,
+    "v1_v2_safe_business_mapping_only": true,
+    "v1_ambiguous_dict_list_number_values_fail_closed": true,
+    "v1_v2_source_brand_compatibility_server_validated": true,
+    "brand_read_api_stable_code_http_and_safe_chinese_message": true,
+    "ready_brand_without_domain_history_returns_409_and_never_synthesizes_revision": true,
+    "app_and_asset_database_all_tables_read_only": true,
+    "migration_preserves_app_run_and_run_attempt_then_restarts": true
+  },
+  "boundaries": {
+    "production_database_writes": 0,
+    "llm_calls": 0,
+    "runninghub_calls": 0,
+    "browser_or_platform_actions": 0,
+    "final_publish_clicks": 0,
+    "git_commits": 0,
+    "next_stage_started": false,
+    "program_rollout_checkpoint": "PROGRAM-ROLLOUT/PG-L paused_external and unchanged"
+  },
+  "artifacts": [
+    {
+      "path": "api/config.py",
+      "sha256": "6aa9d20c77e9ef93fa1401f3e56be06274f3df93d5c9c534d9ec8201839f524b"
+    },
+    {
+      "path": "api/routers/app_center.py",
+      "sha256": "95f8ea544e92316c5ecaceea27e9c64578391323890bdad04823dedec8e4ac40"
+    },
+    {
+      "path": "api/routers/assets_v2.py",
+      "sha256": "7aa7333579c25df719b863861537e6b3679c838b05d12db249ac257e43afe470"
+    },
+    {
+      "path": "api/schemas/app_center.py",
+      "sha256": "cdd48a34c5d2aead23e76fd2e7fcf0162b9af84dce43f0689361ff50c40eeec2"
+    },
+    {
+      "path": "docs/contracts/app-center/app-center-v1.sql",
+      "sha256": "2742365a5f3b4599563f263753c2695d084968fde6873ed992b1634ba9be9004"
+    },
+    {
+      "path": "docs/contracts/app-center/brand-project-boundary-entry.contract.json",
+      "sha256": "e55ad26702861d606f2f96035e15842a0ac052e9bfdccbd915dbbef99cc63c26"
+    },
+    {
+      "path": "docs/contracts/app-center/context-snapshot-v2.schema.json",
+      "sha256": "ed69b46192f4b551880ae04586c0b1fa34ba6287671719b202649b156c4a132e"
+    },
+    {
+      "path": "docs/contracts/app-center/context-snapshot-v3.schema.json",
+      "sha256": "a673bf20b7c78cd3f5cefa887aabf001728e12f291156140c0e9646ba19d8703"
+    },
+    {
+      "path": "docs/contracts/app-center/context-snapshot-v3-write-request.schema.json",
+      "sha256": "6bc40e0dde14625f228e66c2cc0e91ba9f4067d70a9741812f95ea117be6629a"
+    },
+    {
+      "path": "docs/contracts/app-center/feature-flag-matrix.json",
+      "sha256": "7bd7f0e6e8acb1b257d71feb656e9db2c8112a6bd76744d3a9db01fd7f490ca8"
+    },
+    {
+      "path": "docs/contracts/app-center/fixtures/brand-project-boundary-entry-fixtures.json",
+      "sha256": "68322af6ecc9122891b0fd2d8e9175e49364448e38d97b2a7f7c06fc321e4c08"
+    },
+    {
+      "path": "pixelle_video/app_center/brand_project.py",
+      "sha256": "33ca5b7e3933d887fc83dd4b945b398f927a247e2c40641544683436f73c5bb7"
+    },
+    {
+      "path": "pixelle_video/app_center/project_context.py",
+      "sha256": "f557e062c83e94e925a940e73041c7cfbe258cb7b4c81deea1a7249190e80987"
+    },
+    {
+      "path": "pixelle_video/app_center/migration.py",
+      "sha256": "b4d0ea94b3cb0fb34d337101010f2d817b204973f59fc4b6841c6250e195e32d"
+    },
+    {
+      "path": "pixelle_video/app_center/models.py",
+      "sha256": "d557a9e5e5696bf9e83d1536a5d306d2f22ac292c2c89776faca4be2efe765f7"
+    },
+    {
+      "path": "pixelle_video/app_center/repository.py",
+      "sha256": "b461d36caf155660d97eaac27e03e67c6a557fccd4125352bee95dc7da9a2eb6"
+    },
+    {
+      "path": "pixelle_video/services/assets_v2/repository.py",
+      "sha256": "d1f7bf5317537946b1f96876b42a59cfa0c4ba06244a3201e625ae98a3cae77f"
+    },
+    {
+      "path": "tests/brand_project_stage1_test.py",
+      "sha256": "278bdc6a57a20592a7c7a5bfb11052dc0550c7131c2726871aa111094b6895fd"
+    },
+    {
+      "path": "tests/app_workbench_project_context_test.py",
+      "sha256": "23c8c8c195311756ea6969148c67005cbf5b561ebdd9a3d3147bc52b9c9c5abd"
+    },
+    {
+      "path": "tests/brand_project_boundary_entry_contract_test.py",
+      "sha256": "8b516ce85662f9f07dcec28c4a6af72808253d302e80ae70b012de3cb0e7cf0e"
+    },
+    {
+      "path": "tests/app_center_api_test.py",
+      "sha256": "70fc3b1f33cdca9ffc12db815e035d9a05a3bef122cee0edb38f789d45a6e69f"
+    },
+    {
+      "path": "tests/app_center_registry_test.py",
+      "sha256": "4bfc29bc7da7601d83e9ad950ad97670a93fdef1d8f123631dc70fae7ef71b18"
+    },
+    {
+      "path": "tests/asset_library_v2_repository_test.py",
+      "sha256": "8149d55f7361433eb013dac44360ed203d98727e41134e402c026800c8865cc4"
+    },
+    {
+      "path": "tests/config_llm_profiles_test.py",
+      "sha256": "b5add1bd439c8bb5c8a2b44aafab442d7ee73ad7656e84424f2a441521928ff5"
+    },
+    {
+      "path": "tests/coord0_contract_test.py",
+      "sha256": "512ef59d618fae1868d7b7b279a298397bef2c343d80b80086f3848f9276df1c"
+    },
+    {
+      "path": "docs/reviews/application-publishing-program/BRAND-PROJECT-1-implementation-2026-07-29.md",
+      "sha256": "88561ff666d4fe9e59b9aeb14078241dfa044fc73336d2d98f1bd74be35c83fb"
+    }
+  ],
+  "evidence": [
+    "docs/reviews/application-publishing-program/BRAND-PROJECT-1-implementation-2026-07-29.md",
+    "tests/brand_project_stage1_test.py"
+  ]
+}

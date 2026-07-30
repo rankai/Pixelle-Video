@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "stage": "APP-WORKBENCH-7",
+  "change_request": "CR-APP-WORKBENCH-001",
+  "gate": "PG-AW-H",
+  "status": "passed_with_boundary",
+  "date": "2026-07-28",
+  "flags": {
+    "VITE_APP_WORKBENCH_V2": true,
+    "VITE_APP_WORKBENCH_TEXT_V2": true,
+    "VITE_APP_WORKBENCH_CAROUSEL_V2": true,
+    "VITE_APP_WORKBENCH_DIGITAL_HUMAN_V2": true,
+    "backend_registry_fail_closed": true
+  },
+  "desktop": {
+    "test_files": 16,
+    "tests_passed": 104,
+    "build": "passed",
+    "warnings": ["existing Vite chunk >500KB warning"]
+  },
+  "backend": {
+    "tests_passed": 92,
+    "warnings": 12,
+    "warning_class": "existing Pydantic deprecation warnings",
+    "compileall": "passed",
+    "diff_check": "passed"
+  },
+  "visual": {
+    "manifest": "qa/APP-WORKBENCH-7-visual-2026-07-28/manifest.json",
+    "method": "in-app-browser CDP Emulation.setDeviceMetricsOverride + tab.screenshot",
+    "apps": ["marketing-copy", "viral-titles", "douyin-carousel", "digital-human-video"],
+    "viewports": [
+      {"width": 1440, "height": 900, "apps": 4, "overflow": false, "error_count": 0, "shell_width": 1161},
+      {"width": 1280, "height": 800, "apps": 4, "overflow": false, "error_count": 0, "shell_width": 1001},
+      {"width": 900, "height": 760, "apps": 4, "overflow": false, "error_count": 0, "shell_width": 769},
+      {"width": 390, "height": 844, "apps": 4, "overflow": false, "error_count": 0, "shell_width": 283}
+    ],
+    "evidence_count": 16,
+    "state_boundary": "APP-WORKBENCH-5/6 state and Artifact contracts reused; this batch is visual/layout closure"
+  },
+  "recovery": {
+    "app_shell_restart_projection": "passed_local_bounded",
+    "digital_human_restart_idempotency": "passed_by_existing_DH_DUAL_3_4_evidence",
+    "source_invalid_or_archived": "fail_closed_and_requires_manual_reselect"
+  },
+  "rollback": {
+    "local_flag_v2_to_v1": "passed_local_contract_smoke",
+    "profile_and_legacy_material_preserved": true,
+    "duplicate_uploads": 0,
+    "final_action_guard": "publish_and_confirm_publish_denied",
+    "real_platform_rollback": "not_executed",
+    "native_webview_sla": "not_executed"
+  },
+  "external_actions": {
+    "third_party_open_count": 0,
+    "final_publish_click_count": 0,
+    "provider_calls": 0
+  },
+  "review": {
+    "status": "passed_with_boundary",
+    "reviewer": "/root/app_workbench_stage7_strict_reviewer",
+    "verdict": "PASS_WITH_BOUNDARY",
+    "p0": 0,
+    "p1": 0,
+    "p2": [
+      "manifest record title/grid fields are not duplicated; route/shell DOM metrics are present",
+      "existing Pydantic/Vite warnings"
+    ],
+    "dimensions": ["requirements", "logic", "boundaries", "code_quality", "test_coverage", "runtime_results"]
+  },
+  "next": "Return ledger to PROGRAM-ROLLOUT/PG-L; Windows device, product sign-off and real platform rollback/WebView SLA remain external"
+}

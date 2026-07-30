@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "stage": "APP-WORKBENCH-6",
+  "change_request": "CR-APP-WORKBENCH-001",
+  "gate": "PG-AW-G",
+  "status": "passed_with_boundary",
+  "date": "2026-07-28",
+  "contracts": [
+    "app-workbench-entry.contract.json",
+    "app-workbench-input-v2.schema.json",
+    "app-workbench-result-state.schema.json",
+    "context-snapshot-v2.schema.json"
+  ],
+  "frozen_boundaries": {
+    "fixed_source_version": true,
+    "cross_app_handoff": true,
+    "publish_package_requires_video_artifact": true,
+    "final_publish_click_count": 0,
+    "third_party_platform_open_count": 0
+  },
+  "implementation_tests": {
+    "desktop_files": 16,
+    "desktop_tests_passed": 104,
+    "desktop_build": "passed",
+    "backend_tests_passed": 62,
+    "backend_warnings": 12,
+    "static_quality": "passed",
+    "ui_regression_paths": [
+      "artifact version switch -> selected copy handoff",
+      "selected title -> carousel",
+      "selected title -> digital human",
+      "digital human result -> PublishPackage"
+    ],
+    "browser_visual_smoke": {
+      "status": "passed_with_boundary",
+      "viewport": "1280x720",
+      "shell_left": 244,
+      "shell_right": 1245,
+      "grid_width": 1001,
+      "grid_gap": 16,
+      "horizontal_overflow": false
+    }
+  },
+  "review": {
+    "status": "passed_with_boundary",
+    "reviewer": "independent-six-dimension-reviewer",
+    "p0": 0,
+    "p1": 0,
+    "p2": [
+      "existing Vite chunk size warning",
+      "existing Pydantic deprecation warnings",
+      "real provider/third-party publish/Windows external boundaries remain open"
+    ],
+    "evidence": "Independent reviewer PASS after invalid/archived/cross-project source fail-closed fix and active request guard; final publish click count remains 0."
+  },
+  "next": "APP-WORKBENCH-7 entry and multi-viewport visual/recovery/rollback closure"
+}

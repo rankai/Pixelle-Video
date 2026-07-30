@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/app-center/app-workbench-result-state.v1.schema.json",
+  "title": "Pixelle application workbench result projection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "view_state",
+    "app_run_id",
+    "app_run_state",
+    "steps",
+    "artifact_ids",
+    "error"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "view_state": {
+      "enum": [
+        "empty",
+        "running",
+        "failed",
+        "needs_review",
+        "saved"
+      ]
+    },
+    "app_run_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "app_run_state": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        null,
+        "draft",
+        "queued",
+        "running",
+        "needs_review",
+        "completed",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "steps": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "step_id",
+          "label",
+          "state",
+          "evidence_source"
+        ],
+        "properties": {
+          "step_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "failed"
+            ]
+          },
+          "evidence_source": {
+            "enum": [
+              "app_run",
+              "run_attempt",
+              "task",
+              "provider_task",
+              "artifact"
+            ]
+          }
+        }
+      }
+    },
+    "artifact_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "error": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message",
+        "retryable",
+        "input_preserved"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "input_preserved": {
+          "const": true
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "view_state": {
+            "const": "empty"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "app_run_id": {
+            "const": null
+          },
+          "app_run_state": {
+            "const": null
+          },
+          "artifact_ids": {
+            "maxItems": 0
+          },
+          "error": {
+            "const": null
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "view_state": {
+            "const": "failed"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "app_run_state": {
+            "const": "failed"
+          },
+          "artifact_ids": {
+            "maxItems": 0
+          },
+          "error": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "view_state": {
+            "enum": [
+              "needs_review",
+              "saved"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "artifact_ids": {
+            "minItems": 1
+          },
+          "error": {
+            "const": null
+          }
+        }
+      }
+    }
+  ]
+}

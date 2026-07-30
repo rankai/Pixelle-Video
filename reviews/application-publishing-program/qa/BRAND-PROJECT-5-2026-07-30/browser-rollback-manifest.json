@@ -1,0 +1,159 @@
+{
+  "stage": "BRAND-PROJECT-5",
+  "captured_with": "Codex Browser plugin",
+  "route": "http://127.0.0.1:1439/#/apps/marketing-copy",
+  "external_browser_fallback_used": false,
+  "local_storage_mutated": false,
+  "phases": {
+    "on_before_rollback": {
+      "checkpoint_written_at": "2026-07-30T04:06:01Z",
+      "flag": true,
+      "url": "http://127.0.0.1:1439/#/apps/marketing-copy",
+      "visible_dom_strings": [
+        "项目与品牌资料",
+        "夏日冰咖啡推广",
+        "北岸咖啡 · 焕新",
+        "已继承品牌资料",
+        "Logo、地址、电话、品牌色和默认 BGM 已从企业资产库继承",
+        "生成结果",
+        "已完成",
+        "仅本项目使用"
+      ],
+      "interaction": "展开“本项目品牌设置”，确认地址和结束卡覆盖项标记为“仅本项目使用”",
+      "technical_fields_absent": [
+        "context_id",
+        "brand_version_id",
+        "domain_revision",
+        "snapshot_payload"
+      ],
+      "console_summary": {
+        "application_errors": 0,
+        "network_errors": 0,
+        "known_deprecations_only": [
+          "Ant Design Alert/List deprecation warning"
+        ]
+      },
+      "overflow": {
+        "captured": false,
+        "reason": "初始 on 阶段在确认正确的顶层 tab.screenshot/evaluate 能力前已完成；未使用外部自动化绕行。"
+      },
+      "screenshot": {
+        "captured": false,
+        "reason": "初始 on 阶段只保留真实 DOM 与数据库 checkpoint；后续 on-again 阶段补齐同路由真实截图。"
+      },
+      "database_checkpoint": {
+        "file": "browser-on-before.json",
+        "project_business_sha256": "335f48e12897488a46c4d3da72b45cffde1e1da622727c85e0a3c6b3060a3aa2"
+      }
+    },
+    "off_after_full_restart": {
+      "captured_at": "2026-07-30T04:30:11.227Z",
+      "flag": false,
+      "url": "http://127.0.0.1:1439/#/apps/marketing-copy",
+      "title": "Pixelle 老板 IP 口播",
+      "visible_dom_strings": [
+        "创作配置",
+        "选择项目",
+        "夏日冰咖啡推广",
+        "本次主推",
+        "生成结果",
+        "已完成"
+      ],
+      "absent_dom_strings": [
+        "项目与品牌资料",
+        "仅本项目使用",
+        "context_id",
+        "brand_version_id",
+        "domain_revision",
+        "snapshot_payload"
+      ],
+      "v3_compatibility_read": "旧 UI 的“本次主推”非空并回填“夏日冰咖啡推广”，历史营销结果仍显示“已完成”。",
+      "console_summary": {
+        "application_errors": 0,
+        "network_errors": 0,
+        "known_deprecations_only": [
+          "Ant Design List deprecation warning"
+        ]
+      },
+      "overflow": {
+        "scroll_width": 1905,
+        "client_width": 1905,
+        "horizontal_overflow": false,
+        "scroll_height": 911,
+        "client_height": 844
+      },
+      "screenshot": {
+        "captured": true,
+        "file": "browser-off-after-restart.png",
+        "bytes": 104487,
+        "sha256": "30ad8a705f6d7179b3ebf374083430ee0da9ea47e8d0bbb5ba8f1ac02c38894f"
+      },
+      "database_checkpoint": {
+        "file": "browser-off-after-restart.json",
+        "project_business_sha256": "335f48e12897488a46c4d3da72b45cffde1e1da622727c85e0a3c6b3060a3aa2"
+      }
+    },
+    "on_again_after_full_restart": {
+      "captured_at": "2026-07-30T04:33:33.957Z",
+      "flag": true,
+      "url": "http://127.0.0.1:1439/#/apps/marketing-copy",
+      "title": "Pixelle 老板 IP 口播",
+      "visible_dom_or_screenshot_strings": [
+        "项目与品牌资料",
+        "夏日冰咖啡推广",
+        "北岸咖啡 · 焕新",
+        "品牌资料有更新",
+        "Logo、地址、电话、品牌色和默认 BGM 已从企业资产库继承",
+        "本次项目信息",
+        "推广对象",
+        "营销目标",
+        "目标受众",
+        "生成结果",
+        "已完成"
+      ],
+      "absent_dom_strings": [
+        "旧项目品牌关联",
+        "context_id",
+        "brand_version_id",
+        "domain_revision",
+        "snapshot_payload"
+      ],
+      "console_summary": {
+        "application_errors": 0,
+        "network_errors": 0,
+        "known_deprecations_only": [
+          "Ant Design List deprecation warning"
+        ]
+      },
+      "overflow": {
+        "scroll_width": 1905,
+        "client_width": 1905,
+        "horizontal_overflow": false,
+        "scroll_height": 911,
+        "client_height": 844
+      },
+      "screenshot": {
+        "captured": true,
+        "file": "browser-on-again-after-restart.png",
+        "bytes": 103838,
+        "sha256": "4e5fef43f463ade5947b669ac6c549a170e8702cc5d281a6cef3054d42825ca2"
+      },
+      "database_checkpoint": {
+        "file": "browser-on-again-after-restart.json",
+        "project_business_sha256": "335f48e12897488a46c4d3da72b45cffde1e1da622727c85e0a3c6b3060a3aa2"
+      }
+    }
+  },
+  "rollback_zero_write_proof": {
+    "on_before_sha256": "335f48e12897488a46c4d3da72b45cffde1e1da622727c85e0a3c6b3060a3aa2",
+    "off_after_restart_sha256": "335f48e12897488a46c4d3da72b45cffde1e1da622727c85e0a3c6b3060a3aa2",
+    "on_again_after_restart_sha256": "335f48e12897488a46c4d3da72b45cffde1e1da622727c85e0a3c6b3060a3aa2",
+    "equal": true
+  },
+  "bounded_recovery": {
+    "first_on_again_attempt": "启动 fixture 遗漏既有 content-app flags，路由显示工作台；诊断后立即停服。",
+    "corrective_attempt_authorized": true,
+    "corrective_attempts": 1,
+    "additional_browser_attempts_after_capture": 0
+  }
+}
