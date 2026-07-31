@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pixelle://contracts/app-center/marketing-copy-output.v2.schema.json",
+  "title": "Marketing copy output v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["variants"],
+  "properties": {
+    "variants": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {"$ref": "#/$defs/variant"}
+    }
+  },
+  "$defs": {
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["full_text"],
+      "properties": {
+        "full_text": {"type": "string", "minLength": 1, "maxLength": 5000}
+      }
+    }
+  }
+}

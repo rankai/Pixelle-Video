@@ -1,0 +1,2886 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="AI Video Creator - Generate a short video in 3 minutes">
+      
+      
+        <meta name="author" content="Pixelle.AI">
+      
+      
+        <link rel="canonical" href="https://AIDC-AI.github.io/Pixelle-Video/zh/engineering-playbook/">
+      
+      
+      
+      
+        
+          <link rel="alternate" href="../../engineering-playbook/" hreflang="en">
+        
+          <link rel="alternate" href="./" hreflang="zh">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Pixelle 工程实践手册 - Pixelle-Video</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#pixelle" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../" title="Pixelle-Video" class="md-header__button md-logo" aria-label="Pixelle-Video" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Pixelle-Video
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Pixelle 工程实践手册
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="选择当前语言">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../engineering-playbook/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="zh" class="md-select__link">
+              中文
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="分享" aria-label="分享" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/AIDC-AI/Pixelle-Video" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AIDC-AI/Pixelle-Video
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  快速开始
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../user-guide/web-ui/" class="md-tabs__link">
+          
+  
+  
+  用户指南
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../gallery/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  示例库
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tutorials/your-first-video/" class="md-tabs__link">
+          
+  
+  
+  教程
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../reference/api-overview/" class="md-tabs__link">
+          
+  
+  
+  参考
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../development/architecture/" class="md-tabs__link">
+          
+  
+  
+  开发指南
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  常见问题
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../troubleshooting/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  故障排查
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../" title="Pixelle-Video" class="md-nav__button md-logo" aria-label="Pixelle-Video" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Pixelle-Video
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/AIDC-AI/Pixelle-Video" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AIDC-AI/Pixelle-Video
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    快速开始
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    快速开始
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    安装
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    快速入门
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    配置
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    用户指南
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    用户指南
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/web-ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Web 界面
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API 使用
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    工作流定制
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    模板开发
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gallery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    示例库
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    教程
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    教程
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/your-first-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    生成你的第一个视频
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/custom-style/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    自定义视觉风格
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/voice-cloning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    声音克隆
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    参考
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    参考
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/api-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API 概览
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/config-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    配置文件详解
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开发指南
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    开发指南
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    架构设计
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    贡献指南
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    常见问题
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    故障排查
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        原理摘要
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 适用范围
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 核心原则
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 开发前必须回答的问题
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 先判断根因，再选择手段
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 默认采用最小充分方案
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 局部解决优先于全局抽象
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. 局部解决优先于全局抽象">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 职责拆分不等于公共抽象
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 复用与新增的判断顺序
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-design-token-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Design Token 和公共 UI 的边界
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 合同、Schema 和状态机的使用边界
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 自动化的使用边界
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 评分和智能决策的使用边界
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. 不为未确认的未来提前建设
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. UI 和用户操作复杂度
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. 新基础设施和新机制的成本说明
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. 真实结果优先于交付数量
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. 方案评审的停止问题
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. 允许例外的情况
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. 极小概率场景与分支控制
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. 禁止半实现和断头代码
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. 分支、状态和兼容代码必须可追溯
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19. 兼容不是默认要求
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="19. 兼容不是默认要求">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#191" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19.1 单一权威
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#192" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19.2 兼容必须与删除同时设计
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#193" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19.3 回滚不等于永久保留旧代码
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#194" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19.4 控制清理范围
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20. 每份实施方案的最小模板
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        21. 功能完成定义
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22. 不过度设计不等于降低工程质量
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="22. 不过度设计不等于降低工程质量">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#221" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.1 清晰架构边界
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#222" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.2 代码质量
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#223" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.3 稳定性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#224" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.4 安全性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#225" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.5 扩展性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#226" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.6 可观察性和性能
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#227" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.7 风险相称原则
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#228" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.8 架构投入的判断标准
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#229" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.9 评审平衡问题
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2210-spike" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.10 技术探索与 Spike
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2211" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.11 成熟框架、项目约定与应用骨架
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="22.11 成熟框架、项目约定与应用骨架">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#22111" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.11.1 约定优于自由发挥
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22112-feature-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.11.2 Feature-first 与模块化单体
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22113-portsadapters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.11.3 依赖装配和 Ports/Adapters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22114" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.11.4 边界校验、权限和异步能力
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22115" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.11.5 成熟能力优先，第三方依赖受控
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22116" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.11.6 测试支持持续设计
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22117" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22.11.7 超级文件是评审信号
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        23. 与其他文档的关系
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="pixelle">Pixelle 工程实践手册<a class="headerlink" href="#pixelle" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>状态：解释性参考，不是需要逐条执行的门禁清单。</p>
+<p>强制核心规则见 <a href="../development-principles/"><code>development-principles.md</code></a>。本手册保留详细边界、案例、目录示例和判断依据；开发者只需按当前变更读取相关章节，不要求低风险修改每次通读全文。若本手册与核心规则、Accepted ADR 或明确产品决策冲突，以核心规则中定义的优先级为准。</p>
+</blockquote>
+<h2 id="_1">原理摘要<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>本手册解释核心规则的判断依据和实践边界，不是需要在运行时实现的治理框架。日常开发先遵守 <a href="../development-principles/"><code>development-principles.md</code></a>；以下内容用于理解其来源：</p>
+<ol>
+<li>从当前真实问题和根因出发，不从熟悉的技术方案反推需求；</li>
+<li>选择职责正确、能够完整解决问题的最低复杂度方案；</li>
+<li>“最小”不能牺牲单一权威、架构边界、安全、数据一致性和明确失败；</li>
+<li>用户可见功能按纵向闭环交付，不合入假成功、无调用者或不可达的核心代码；</li>
+<li>主观质量由业务、模型、Prompt、素材、模板和用户判断解决，不建设伪精确的质量合同；</li>
+<li>没有当前事实依据，不增加平台、状态、分支、兼容层或未来系统；</li>
+<li>临时兼容和发布切换必须单一权威、可观察、可删除，不能层层叠加；</li>
+<li>方案、测试、评审和恢复投入与风险相称，小改动不套用重流程，高风险边界不为速度让步。</li>
+</ol>
+<p>默认开发节奏：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>守住工程底座
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>→ 先复用项目已有且语义匹配的能力，再使用当前技术栈和成熟框架
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>→ 选择职责正确的最低复杂度实现
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>→ 交付完整纵向闭环
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>→ 观察真实使用和维护压力
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>→ 达到明确触发条件后演进架构
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>→ 完成迁移并删除旧路径
+</span></code></pre></div>
+<p>Pixelle 默认采用：</p>
+<blockquote>
+<p>敏捷纵向交付 + 持续设计 + 模块化单体 + Feature-first + 语义化 Design Token + 只用于真实边界的 Ports/Adapters。</p>
+</blockquote>
+<p>这套组合是工程方向，不要求为每个功能建立完整分层、接口、目录和 Adapter。架构元素只在当前职责和边界需要时出现。</p>
+<p>详细条款用于解释边界，不应被转化成新的合同平台、评分系统或运行时门禁。</p>
+<h2 id="1">1. 适用范围<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<p>本手册可用于解释 Pixelle 项目的以下工作：</p>
+<ul>
+<li>产品功能；</li>
+<li>UI 与交互；</li>
+<li>后端服务；</li>
+<li>数据模型；</li>
+<li>AI 与媒体能力；</li>
+<li>自动化任务；</li>
+<li>测试、部署和运维；</li>
+<li>重构与架构演进；</li>
+<li>实施方案和代码评审。</li>
+</ul>
+<p>它帮助理解“如何做开发决策”，不是一个需要在运行时实现的框架，也不是要求逐条打勾的评审清单。</p>
+<p>所有新功能和重构遵循核心开发原则；存在安全、合规、数据一致性要求或 Accepted ADR 时，同时遵守对应的更具体约束。</p>
+<p>本文件中的关键术语：</p>
+<ul>
+<li><strong>当前真实问题</strong>：已批准需求、可复现缺陷、真实运行事故、当前用户反馈，或能够明确说明影响的安全、数据和外部协议风险；</li>
+<li><strong>当前调用方</strong>：当前代码或已批准阶段中真实存在并会使用该能力的页面、服务、任务、客户端或外部系统；</li>
+<li><strong>已确认演进方向</strong>：已进入明确阶段并有时间、所有者和调用方，或已由 Accepted ADR 作出具体决定的变化；</li>
+<li><strong>高损失风险</strong>：可能造成安全、隐私、权限、资金、数据丢失、不可逆外部操作或重大业务中断的风险；</li>
+<li><strong>所有者</strong>：对能力演进、故障处理和删除负责的明确人员、团队或模块责任方。</li>
+</ul>
+<hr />
+<h2 id="2">2. 核心原则<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>从当前真实问题出发，先找到根因，再使用能够解决问题的最小充分方案；没有经过真实重复验证的共性，不提前抽象。</p>
+</blockquote>
+<p>“完整、先进、可扩展、智能化”本身不是开发理由。</p>
+<p>一项能力只有在解决当前真实问题时才有价值。未来可能使用、理论上更通用、架构看起来更完整，不能单独构成立项依据。</p>
+<p>“最小充分”不是最低成本、最少代码或只保证当前演示能运行。它必须同时满足当前功能所需要的：</p>
+<ul>
+<li>正确性；</li>
+<li>稳定性；</li>
+<li>安全性；</li>
+<li>可维护性；</li>
+<li>与已确认演进方向相称的扩展边界；</li>
+<li>与风险相称的测试、恢复和可观察性。</li>
+</ul>
+<p>本原则反对的是没有现实依据的复杂度，不反对必要的工程质量投入。</p>
+<hr />
+<h2 id="3">3. 开发前必须回答的问题<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<p>任何功能、重构或机制在实施前，都必须用与风险相称的变更说明回答：</p>
+<ol>
+<li>当前是谁遇到了什么问题？</li>
+<li>这个问题实际造成了什么影响？</li>
+<li>已有实现为什么不能满足？</li>
+<li>已确认的根因是什么？</li>
+<li>最小的有效修改是什么？</li>
+<li>用户操作或系统行为会怎样变化？</li>
+<li>如何用真实结果证明问题被解决？</li>
+<li>本次明确不做什么？</li>
+</ol>
+<p>如果这些问题没有回答清楚，不进入实现。</p>
+<p>不要求所有改动都编写独立方案文档。按风险分级执行：</p>
+<ul>
+<li><strong>低风险小改</strong>：用简短说明写清问题、根因、修改和验证即可，例如文案、间距、局部样式和不改变业务语义的小修复；</li>
+<li><strong>普通功能</strong>：使用轻量纵向闭环方案，覆盖上述八个问题；</li>
+<li><strong>高风险变更</strong>：涉及架构边界、安全、权限、持久化、数据迁移、支付、不可逆外部操作、跨进程协议或新基础设施时，必须使用完整实施方案；形成长期架构决策时同步编写或修订 ADR。</li>
+</ul>
+<p>风险分级用于减少无价值流程，不允许把高风险变更拆小后按低风险处理。</p>
+<p>不得用以下内容替代问题定义：</p>
+<ul>
+<li>“提高质量”；</li>
+<li>“增强扩展性”；</li>
+<li>“完善闭环”；</li>
+<li>“统一能力”；</li>
+<li>“为未来做准备”；</li>
+<li>“行业最佳实践”；</li>
+<li>“建立平台化基础”。</li>
+</ul>
+<p>这些可以是结果，但不能作为没有具体用户问题的开发起点。</p>
+<hr />
+<h2 id="4">4. 先判断根因，再选择手段<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<p>不得从熟悉的技术方案反推问题。</p>
+<p>例如，结果不好不等于需要评分系统；运行失败不等于需要状态机；两个页面相似不等于需要平台组件；未来可能有多个调用方不等于现在需要中台。</p>
+<p>先把问题归入真实根因：</p>
+<ul>
+<li>信息不完整；</li>
+<li>业务流程不合理；</li>
+<li>文案或模型能力不足；</li>
+<li>UI 信息组织不清；</li>
+<li>数据边界错误；</li>
+<li>外部服务不稳定；</li>
+<li>媒体工作流或模板效果不足；</li>
+<li>重复操作确实造成成本；</li>
+<li>安全、恢复或一致性存在风险。</li>
+</ul>
+<p>解决方案必须直接对应根因。</p>
+<hr />
+<h2 id="5">5. 默认采用最小充分方案<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<p>默认从较低复杂度向较高复杂度评估：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>复用项目已有且语义匹配的实现
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>→ 使用当前技术栈、标准库或成熟框架能力
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>→ 修正现有配置或内容
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>→ 修改局部逻辑
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>→ 扩展现有组件或服务
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>→ 新增当前功能自己的模块
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>→ 抽取共享能力
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>→ 新建平台、引擎或基础设施
+</span></code></pre></div>
+<p>这不是强制实现顺序。应选择第一个能够完整解决问题、同时保持职责边界和单一权威的层级。</p>
+<p>如果局部修改虽然技术上可行，却会继续扩大巨型组件、把业务逻辑堆进路由或页面、复制核心规则、制造多权威或循环依赖，应直接在当前功能内建立职责清楚的小模块。不得为了少新增文件而破坏架构。</p>
+<p>“最小”不是少写代码，而是：</p>
+<ul>
+<li>用户新增的理解成本最小；</li>
+<li>新增的状态和数据源最少；</li>
+<li>对现有链路的影响范围最小；</li>
+<li>需要长期维护的机制最少；</li>
+<li>回滚和替换成本可控；</li>
+<li>足以解决当前问题。</li>
+</ul>
+<hr />
+<h2 id="6">6. 局部解决优先于全局抽象<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
+<p>一个功能的问题默认在该功能内部解决。</p>
+<p>只有满足以下条件时，才考虑抽取共享能力：</p>
+<ol>
+<li>同类问题已经在多个独立场景真实出现；</li>
+<li>各场景对该能力的定义、输入和行为基本稳定；</li>
+<li>局部实现已经造成可观察的重复、冲突或维护成本；</li>
+<li>抽象后的接口比保留局部实现更简单；</li>
+<li>已有当前调用方，不以假设中的未来调用方作为主要依据。</li>
+</ol>
+<p>默认遵循“重复三次再抽象”的经验规则。安全、权限、数据一致性和外部协议边界可以例外，但必须说明原因。</p>
+<p>“重复三次”只适用于尚未稳定的候选复用模式，不适用于同一个业务事实或权威规则。同一份权限、计费、状态归属、持久化事实和安全规则从第一次出现起就必须只有一个所有者；不同功能不得各自复制一份。</p>
+<p>共享视觉样式、基础控件和稳定数据边界，不等于共享业务逻辑。</p>
+<h3 id="61">6.1 职责拆分不等于公共抽象<a class="headerlink" href="#61" title="Permanent link">&para;</a></h3>
+<p>“不过度抽象”不等于“不建设架构底座”；“没有三个调用方”也不等于不能拆函数、拆组件、拆文件。</p>
+<p>以下拆分用于保持当前代码职责清楚，即使暂时只有一个调用方也可以实施：</p>
+<ul>
+<li>把一个页面拆成职责独立的输入区、结果区、选择器、弹窗和状态组件；</li>
+<li>把状态、副作用和异步流程拆进当前功能自己的 Hook、Model 或 Service；</li>
+<li>把业务规则从 UI、Router、脚本入口和启动文件移入当前领域模块；</li>
+<li>把 API 调用、数据转换和持久化访问移入当前功能自己的 Client、Service 或 Repository；</li>
+<li>把功能样式移入当前功能自己的样式文件；</li>
+<li>把过长函数按真实业务步骤拆成可命名、可测试的局部函数。</li>
+</ul>
+<p>这些内部模块默认留在当前 feature 或 domain，不因为拆出来就放进 <code>shared</code>、<code>common</code>、<code>core</code> 或全局容器。</p>
+<p>只有准备建立跨功能公共依赖时，才适用本节的多调用方、稳定语义和“重复三次”判断。</p>
+<h3 id="62">6.2 复用与新增的判断顺序<a class="headerlink" href="#62" title="Permanent link">&para;</a></h3>
+<p>开发功能或页面前，按以下顺序检查：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>项目已有且语义匹配的能力
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>→ 当前技术栈、标准库或成熟框架已有能力
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>→ 当前 feature/domain 内新增职责清楚的实现
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>→ 多个真实场景稳定后再提升为共享能力
+</span></code></pre></div>
+<p>复用必须以语义和行为匹配为前提，不能只因为名称相似或少写代码就强行复用。如果复用现有函数或组件需要不断增加布尔参数、调用方判断和特殊分支，应重新判断职责边界，而不是继续扩大错误抽象。</p>
+<p>为代码可读性提取一个局部函数、为页面拆出一个单用途组件，与建设通用函数库或公共组件库不是同一件事。</p>
+<h3 id="63-design-token-ui">6.3 Design Token 和公共 UI 的边界<a class="headerlink" href="#63-design-token-ui" title="Permanent link">&para;</a></h3>
+<p>以下稳定的产品语义可以从第一次出现时进入统一主题或设计底座：</p>
+<ul>
+<li>品牌主色、文字色、背景、边框和状态色；</li>
+<li>字体层级、圆角、阴影、间距和页面容器规则；</li>
+<li>按钮、Tab、状态 Tag、表单和反馈的统一产品语义；</li>
+<li>无障碍、禁用、错误和焦点状态。</li>
+</ul>
+<p>只在单个页面使用的装饰、插画、渐变和特殊布局默认留在功能内。两个 CSS 值偶然相同不构成 Design Token；Token 必须表达稳定语义，而不是记录某个页面的具体像素。</p>
+<p>基础控件优先使用当前 UI 框架。只有产品语义、交互或视觉规则真实重复时，才建立 Pixelle 公共组件；不得重新实现成熟框架已经可靠提供的 Button、Select、Modal、Form 等基础能力。</p>
+<hr />
+<h2 id="7-schema">7. 合同、Schema 和状态机的使用边界<a class="headerlink" href="#7-schema" title="Permanent link">&para;</a></h2>
+<p>合同机制用于保护客观边界，例如：</p>
+<ul>
+<li>外部 API；</li>
+<li>前后端数据结构；</li>
+<li>数据持久化；</li>
+<li>文件和媒体引用；</li>
+<li>权限和租户隔离；</li>
+<li>支付、订单和资金；</li>
+<li>幂等、恢复和并发；</li>
+<li>不可逆或高风险操作；</li>
+<li>多个真实实现必须共同遵守的稳定协议。</li>
+</ul>
+<p>合同机制不用于替代主观业务判断，例如：</p>
+<ul>
+<li>内容是否有感染力；</li>
+<li>页面是否好看；</li>
+<li>表达是否自然；</li>
+<li>创意是否足够好；</li>
+<li>用户是否喜欢；</li>
+<li>模型结果是否“高级”。</li>
+</ul>
+<p>主观结果应通过业务设计、模型、Prompt、素材、模板、真实用户评审或人工决策解决。</p>
+<p>新增合同前必须说明：</p>
+<ul>
+<li>它保护的具体边界；</li>
+<li>不使用合同会发生什么确定性错误；</li>
+<li>当前有哪些生产者和消费者；</li>
+<li>谁负责版本演进和兼容。</li>
+</ul>
+<p>生产者和消费者不要求各有多个；一个真实的持久化、跨进程、外部输入或信任边界也可以成立。普通函数参数、局部类型和为了代码可读性使用的数据类，不自动构成需要版本治理的“平台合同”。</p>
+<p><code>schema</code>、<code>validator</code> 和 <code>repair</code> 只能处理机器可验证的结构与协议错误，例如字段缺失、类型错误、枚举非法和格式损坏。它们不得用于给标题、文案、画面或创意做主观质量判定，也不得因为主观结果“不够好”自动重试。</p>
+<p>回答不出来时，不新增合同。</p>
+<hr />
+<h2 id="8">8. 自动化的使用边界<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
+<p>一项操作只有同时满足以下条件，才适合自动化：</p>
+<ul>
+<li>规则明确；</li>
+<li>输入和成功结果可以观察；</li>
+<li>失败能够停止或恢复；</li>
+<li>重复频率足以产生真实收益；</li>
+<li>自动化不会掩盖用户应当作出的业务选择；</li>
+<li>维护成本低于人工成本。</li>
+</ul>
+<p>自动重试只适用于可确认的暂时性技术失败，并且必须：</p>
+<ul>
+<li>有明确失败原因；</li>
+<li>操作幂等或不会产生重复副作用；</li>
+<li>次数有限；</li>
+<li>可观察、可停止；</li>
+<li>不会造成不可控费用。</li>
+</ul>
+<p>主观结果“不够好”不是自动重试的理由。应让用户明确选择重新生成、修改输入、更换方式或接受当前结果。</p>
+<hr />
+<h2 id="9">9. 评分和智能决策的使用边界<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<p>不得因为某个结果难评价，就默认增加评分。</p>
+<p>引入评分或自动决策前必须证明：</p>
+<ul>
+<li>评分对象可以被稳定定义；</li>
+<li>有可信的真实样本或人工结论可用于校准；</li>
+<li>分数高低会触发明确、合理的动作；</li>
+<li>错误评分的后果可接受；</li>
+<li>用户或运维人员能理解最终决定；</li>
+<li>分数比直接规则或人工判断更有价值。</li>
+</ul>
+<p>如果分数只能生成一个看似精确的数字，却不能可靠指导行动，就不应实现。</p>
+<hr />
+<h2 id="10">10. 不为未确认的未来提前建设<a class="headerlink" href="#10" title="Permanent link">&para;</a></h2>
+<p>未来需求只有满足以下任一条件时，才进入当前设计：</p>
+<ul>
+<li>已经在批准的路线图中；</li>
+<li>已有明确时间、负责人和调用方；</li>
+<li>当前方案如果不保留边界，将造成高成本或不可逆迁移；</li>
+<li>属于必须提前满足的安全、合规或数据隔离要求。</li>
+</ul>
+<p>“批准的路线图”必须已经进入明确阶段，并能指出时间或阶段、所有者和真实调用方。愿景、讨论记录、普通待办、竞品可能会做或“以后也许需要”都不构成已确认演进方向。</p>
+<p>对于其他未来可能：</p>
+<ul>
+<li>可以在文档中记录；</li>
+<li>可以保留清晰代码边界；</li>
+<li>不提前创建数据库、服务、管理后台、消息系统或通用引擎；</li>
+<li>不增加当前用户的操作步骤。</li>
+</ul>
+<p>“保留未来扩展空间”优先通过模块边界和命名实现，而不是提前实现未来功能。</p>
+<hr />
+<h2 id="11-ui">11. UI 和用户操作复杂度<a class="headerlink" href="#11-ui" title="Permanent link">&para;</a></h2>
+<p>每增加一个用户可见字段、按钮、步骤、状态或配置，都必须说明：</p>
+<ul>
+<li>用户为什么必须理解它；</li>
+<li>系统为什么不能自动使用可靠默认值；</li>
+<li>它是否属于当前主任务；</li>
+<li>不展示它会造成什么问题。</li>
+</ul>
+<p>默认处理方式：</p>
+<ul>
+<li>稳定默认值由系统自动使用；</li>
+<li>低频项放入“更多设置”；</li>
+<li>技术信息放入诊断或日志；</li>
+<li>管理操作留在对应管理页面；</li>
+<li>当前页面只展示完成当前任务所需的内容。</li>
+</ul>
+<p>不能把后端的数据结构直接映射成前端表单，也不能把系统内部流程当作用户操作流程。</p>
+<hr />
+<h2 id="12">12. 新基础设施和新机制的成本说明<a class="headerlink" href="#12" title="Permanent link">&para;</a></h2>
+<p>新增以下能力时必须单独说明必要性：</p>
+<ul>
+<li>新数据库或新数据源；</li>
+<li>新服务或新进程；</li>
+<li>队列、缓存或消息系统；</li>
+<li>插件平台；</li>
+<li>规则引擎；</li>
+<li>工作流引擎；</li>
+<li>通用评分系统；</li>
+<li>通用配置中心；</li>
+<li>大范围状态机；</li>
+<li>双写、迁移和兼容层。</li>
+</ul>
+<p>方案必须写明：</p>
+<ul>
+<li>当前问题；</li>
+<li>为什么现有能力无法解决；</li>
+<li>当前调用方；</li>
+<li>新增的状态和维护责任；</li>
+<li>失败和回滚方式；</li>
+<li>不建设它的现实代价。</li>
+</ul>
+<p>收益不能证明高于复杂度时，维持现有实现。</p>
+<hr />
+<h2 id="13">13. 真实结果优先于交付数量<a class="headerlink" href="#13" title="Permanent link">&para;</a></h2>
+<p>完成不能只依据：</p>
+<ul>
+<li>新增了多少文件；</li>
+<li>增加了多少 Schema；</li>
+<li>测试数量；</li>
+<li>文档数量；</li>
+<li>架构是否完整；</li>
+<li>所有内部状态是否覆盖。</li>
+</ul>
+<p>验收必须回到最初问题：</p>
+<ul>
+<li>用户是否能更顺利地完成任务；</li>
+<li>实际结果是否改善；</li>
+<li>原问题是否可以稳定复现并确认已解决；</li>
+<li>是否引入新的理解或维护成本；</li>
+<li>是否保留必要的失败、恢复和安全边界。</li>
+</ul>
+<p>测试和文档用于证明实现，不是实现价值本身。</p>
+<hr />
+<h2 id="14">14. 方案评审的停止问题<a class="headerlink" href="#14" title="Permanent link">&para;</a></h2>
+<p>评审任何方案时，依次询问：</p>
+<ol>
+<li>如果不做，会发生什么现实问题？</li>
+<li>能否通过修改现有逻辑解决？</li>
+<li>是否把一个局部问题扩大成了全局系统？</li>
+<li>新增的每个状态、表、接口和配置是否有当前使用者？</li>
+<li>是否用技术机制替代了本应由产品、内容或人工完成的判断？</li>
+<li>用户是否被迫理解系统内部概念？</li>
+<li>是否为了极少发生的情况增加了主流程复杂度？</li>
+<li>验收证明的是用户问题解决，还是只证明机制运行？</li>
+</ol>
+<p>任一问题暴露出范围扩大时，先缩减方案，再进入实现。</p>
+<hr />
+<h2 id="15">15. 允许例外的情况<a class="headerlink" href="#15" title="Permanent link">&para;</a></h2>
+<p>以下情况可以在问题尚未重复三次前建设稳定边界：</p>
+<ul>
+<li>认证和权限；</li>
+<li>隐私和安全；</li>
+<li>财务、支付和订单；</li>
+<li>数据丢失风险；</li>
+<li>不可逆操作；</li>
+<li>并发写入和幂等；</li>
+<li>第三方外部协议；</li>
+<li>跨进程或跨服务通信；</li>
+<li>法律、合规和审计要求；</li>
+<li>已接受 ADR 明确要求的架构边界。</li>
+</ul>
+<p>例外只允许解决对应风险，不能借机扩大到无关平台建设。</p>
+<hr />
+<h2 id="16">16. 极小概率场景与分支控制<a class="headerlink" href="#16" title="Permanent link">&para;</a></h2>
+<p>不能因为“理论上可能发生”，就在主流程中不断增加分支。</p>
+<p>新增异常分支、兜底逻辑、兼容路径或降级路径，至少需要满足以下一项：</p>
+<ul>
+<li>已在真实运行中发生；</li>
+<li>是当前批准需求明确要求支持的场景；</li>
+<li>如果发生会造成安全、隐私、支付、数据丢失或不可逆后果；</li>
+<li>属于必须遵守的外部协议或法律要求。</li>
+</ul>
+<p>对于低概率且低损失的场景，默认处理方式是：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>停止当前操作
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>→ 给出清楚错误信息
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>→ 保留必要日志
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>→ 允许人工恢复或重新操作
+</span></code></pre></div>
+<p>不要为了让所有理论情况都“自动继续”而增加隐藏分支。</p>
+<p>如果安全 fallback 比报错路径更简单，并且同时满足以下条件，可以使用：</p>
+<ul>
+<li>行为对用户或调用方可理解，不伪装成原目标成功；</li>
+<li>不产生第二个权威来源或长期执行路径；</li>
+<li>不隐藏需要修复的上游错误；</li>
+<li>不增加新的持久化状态、重复副作用或不可控费用；</li>
+<li>有必要日志或结果说明。</li>
+</ul>
+<p>每个会改变业务结果、状态、安全结论或外部副作用的新增分支必须同时具备：</p>
+<ul>
+<li>明确触发条件；</li>
+<li>明确用户或系统影响；</li>
+<li>对应的真实需求、事故或风险说明；</li>
+<li>与风险相称的验证证据；</li>
+<li>清楚的失败结果，不能静默吞错。</li>
+</ul>
+<p>验证证据可以是单元测试、集成测试、受控 fixture、真实运行或明确的人工验收。一个测试可以覆盖多个相关分支；不要求为每个普通防御性条件单独创建测试。</p>
+<p>以下做法默认禁止：</p>
+<ul>
+<li>为无法说明概率和影响的假设场景增加分支；</li>
+<li>使用层层 fallback 掩盖上游数据或设计错误；</li>
+<li>捕获所有异常后返回看似成功的结果；</li>
+<li>为同一任务长期维护多条行为近似的执行路径；</li>
+<li>为了兼容未知未来客户端预留当前没有调用者的判断；</li>
+<li>在多个下游重复判断同一脏数据，而不修复数据来源。</li>
+</ul>
+<p>风险处理必须与影响相称：</p>
+<ul>
+<li>极低概率但会造成重大损失：建立必要保护；</li>
+<li>高频但影响较小：直接简化主流程；</li>
+<li>极低概率且影响较小：清楚失败，不建设复杂自动处理。</li>
+</ul>
+<hr />
+<h2 id="17">17. 禁止半实现和断头代码<a class="headerlink" href="#17" title="Permanent link">&para;</a></h2>
+<p>一项功能应以可使用的纵向闭环交付，而不是分别堆积接口、Schema、按钮和占位实现。</p>
+<p>完整纵向闭环至少包括：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>真实入口
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>→ 有效输入
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>→ 实际业务处理
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>→ 用户可见或系统可消费的结果
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>→ 明确失败处理
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>→ 对应测试与实际运行验证
+</span></code></pre></div>
+<p>以下情况不得作为完成的生产功能合入：</p>
+<ul>
+<li>页面有按钮，但没有真实处理能力；</li>
+<li>后端有接口，但没有当前调用者；</li>
+<li>已定义 Schema，但运行链路不读写它；</li>
+<li>已创建 Adapter、Repository 或 Service，但没有真实入口；</li>
+<li>返回固定成功、假数据或占位结果；</li>
+<li>只实现创建，没有查询、继续或完成路径；</li>
+<li>只实现正常路径，没有当前已知的必要失败处理；</li>
+<li>旧流程和新流程同时存在，但没有明确切换和删除计划；</li>
+<li>使用 <code>TODO</code>、空函数或临时分支代表核心业务尚未完成，却将阶段标为完成。</li>
+</ul>
+<p>如果一个阶段不能交付完整纵向闭环，应在自然边界停止：</p>
+<ul>
+<li>只提交方案或原型；</li>
+<li>只提交独立实验；</li>
+<li>只提交不可见的基础改动；</li>
+<li>不把未接通部分暴露给用户；</li>
+<li>不宣称目标功能已经完成。</li>
+</ul>
+<p>阶段性代码只有在确实必须提前合入时，才允许使用默认关闭的 feature flag 隔离，并必须写明：</p>
+<ul>
+<li>当前为什么需要提前合入；</li>
+<li>哪个后续阶段负责接通；</li>
+<li>负责人或所有者；</li>
+<li>完成或删除条件；</li>
+<li>最迟复查时间。</li>
+</ul>
+<p>本节所指的是用于提前合入、发布观察、迁移或新旧切换的临时 <code>Rollout/Migration Flag</code>。它不能长期替代完成实现，也不能成为保留无用代码的理由。</p>
+<p>长期存在的 <code>Product/Policy Flag</code> 用于真实产品能力、套餐权益、管理员策略或安全确认边界，可以不设删除时间，但必须有：</p>
+<ul>
+<li>稳定且用户或运营能够理解的业务语义；</li>
+<li>明确所有者；</li>
+<li>默认值和权限边界；</li>
+<li>覆盖启用与关闭行为的测试；</li>
+<li>单一权威实现，不能借开关长期保留两套近似业务逻辑。</li>
+</ul>
+<hr />
+<h2 id="18">18. 分支、状态和兼容代码必须可追溯<a class="headerlink" href="#18" title="Permanent link">&para;</a></h2>
+<p>每一个新增的以下元素都必须能追溯到当前事实：</p>
+<ul>
+<li><code>if/else</code> 业务分支；</li>
+<li>状态和状态迁移；</li>
+<li>数据表和字段；</li>
+<li>API 和事件；</li>
+<li>重试与降级；</li>
+<li>兼容层和 Adapter；</li>
+<li>feature flag；</li>
+<li>后台配置；</li>
+<li>用户可见选项。</li>
+</ul>
+<p>可接受的事实来源包括：</p>
+<ul>
+<li>当前批准需求；</li>
+<li>可复现缺陷；</li>
+<li>真实生产事故；</li>
+<li>已接受 ADR；</li>
+<li>外部协议；</li>
+<li>安全、合规或数据风险。</li>
+</ul>
+<p>如果无法指出它服务的当前场景，就应删除或不实现。</p>
+<p>兼容层、双写、旧版路径和临时 feature flag 必须有：</p>
+<ul>
+<li>引入原因；</li>
+<li>当前调用方；</li>
+<li>观察窗口；</li>
+<li>删除条件；</li>
+<li>删除负责人。</li>
+</ul>
+<p>观察窗口结束且旧路径不再需要时，应删除旧代码，不能让 V1/V2、legacy/new 和 temporary/final 永久并存。</p>
+<hr />
+<h2 id="19">19. 兼容不是默认要求<a class="headerlink" href="#19" title="Permanent link">&para;</a></h2>
+<p>旧代码、旧接口、旧 Schema、旧测试或旧文档仍然存在，不等于必须兼容。</p>
+<p>两个仍被正式支持的产品模式、套餐能力或部署形态同时存在，不自动构成兼容层。例如本地桌面模式与未来云端模式可以各自是正式产品能力；只有旧字段转换、旧接口转发、旧数据读取和新旧运行路径切换属于兼容问题。</p>
+<p>兼容层只有同时满足以下条件时才允许新增：</p>
+<ol>
+<li>有当前真实用户、已发布客户端、外部调用方或真实持久化数据依赖旧行为；</li>
+<li>无法在同一次受控切换阶段或同一发布周期内安全完成调用方升级或数据迁移；</li>
+<li>直接切换造成的现实损失明显高于临时兼容的复杂度；</li>
+<li>已明确新旧权威、观察窗口、删除条件和负责人。</li>
+</ol>
+<p>“同一次受控切换”不要求所有代码位于同一个 commit 或 PR。迁移准备、数据迁移、切换和清理可以分批提交，但必须属于同一个有明确终点、不中断单一权威的迁移计划。</p>
+<p>以下对象不构成兼容理由：</p>
+<ul>
+<li>尚未正式发布的草稿接口；</li>
+<li>仅供当前开发使用的 fixture；</li>
+<li>已经过时的测试断言；</li>
+<li>没有真实调用者的旧方法；</li>
+<li>为旧实现编写的内部文档；</li>
+<li>“以后也许有人会用”的假设调用方；</li>
+<li>为了少修改几个当前调用点而保留的旧入口。</li>
+</ul>
+<p>处理旧实现的优先级固定为：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>更新当前调用方并直接切换
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>→ 一次性迁移真实数据
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>→ 使用明确版本边界完成短期切换
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>→ 最后才考虑临时兼容层
+</span></code></pre></div>
+<p>对本地桌面数据，优先使用：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>备份
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>→ 一次性迁移
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>→ 验证
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>→ 运行时只保留新结构
+</span></code></pre></div>
+<p>不得为了避免迁移，在每次读取和写入时永久判断新旧格式。</p>
+<h3 id="191">19.1 单一权威<a class="headerlink" href="#191" title="Permanent link">&para;</a></h3>
+<p>新旧实现并存期间必须明确哪一方是唯一权威。</p>
+<p>默认禁止：</p>
+<ul>
+<li>新旧双写但没有对账和结束时间；</li>
+<li>先读新、失败读旧、再回写新的无限循环；</li>
+<li>多层 Adapter 互相调用；</li>
+<li>V1 调 V2、V2 再回退 V1；</li>
+<li>新状态机和旧状态机同时决定业务状态；</li>
+<li>新旧页面、接口和任务流都可以修改同一份业务事实；</li>
+<li>在已有兼容层外再叠加一层兼容层。</li>
+</ul>
+<p>如果需要在兼容层上继续增加兼容层，应停止实现，重新制定一次性迁移和切换方案。</p>
+<h3 id="192">19.2 兼容必须与删除同时设计<a class="headerlink" href="#192" title="Permanent link">&para;</a></h3>
+<p>临时兼容层在创建时必须同时登记：</p>
+<ul>
+<li>当前真实依赖者；</li>
+<li>兼容的准确行为；</li>
+<li>新实现的唯一权威；</li>
+<li>观察窗口；</li>
+<li>最迟删除阶段或日期；</li>
+<li>删除前需要满足的证据；</li>
+<li>删除负责人。</li>
+</ul>
+<p>缺少任何一项，不新增兼容层。</p>
+<p>功能完成时应满足以下二选一：</p>
+<ol>
+<li>旧路径已经删除；</li>
+<li>存在经过明确批准、仍在观察窗口内的临时兼容例外。</li>
+</ol>
+<p>“新功能已实现，但旧路径以后再清理”不能标记为完成。</p>
+<h3 id="193">19.3 回滚不等于永久保留旧代码<a class="headerlink" href="#193" title="Permanent link">&para;</a></h3>
+<p>回滚优先依靠：</p>
+<ul>
+<li>版本化发布包；</li>
+<li>数据备份；</li>
+<li>可逆迁移；</li>
+<li>feature flag 的短期发布切换；</li>
+<li>明确的发布回退步骤。</li>
+</ul>
+<p>不能把永久保留整套旧业务实现当作默认回滚方案。</p>
+<p>用于发布观察、迁移和兼容切换的 <code>Rollout/Migration Flag</code> 必须有删除时间，不能让两套实现无限期共存。具有稳定业务语义的 <code>Product/Policy Flag</code> 按第 17 节管理，不属于临时兼容机制。</p>
+<p>为了审计、历史查看、回滚证据或数据迁移而保留旧事实和旧版本记录，不等于保留旧运行时代码。没有真实调用方时，应保留必要数据并删除旧执行路径，而不是让历史数据成为永久兼容理由。</p>
+<h3 id="194">19.4 控制清理范围<a class="headerlink" href="#194" title="Permanent link">&para;</a></h3>
+<p>发现历史兼容垃圾时，不自动启动全仓库大重写。</p>
+<p>正确处理方式：</p>
+<ul>
+<li>立即停止继续增加新的兼容层；</li>
+<li>只清理当前功能实际触达的旧路径；</li>
+<li>先确认真实调用方和真实数据；</li>
+<li>在当前纵向闭环内完成切换和删除；</li>
+<li>与当前任务无关的历史代码单独登记，不顺手扩大范围。</li>
+</ul>
+<p>这样既避免继续堆积，也避免“开发一周、全量清理一周、核心功能仍未交付”。</p>
+<hr />
+<h2 id="20">20. 每份实施方案的最小模板<a class="headerlink" href="#20" title="Permanent link">&para;</a></h2>
+<p>普通功能和高风险变更的实施方案至少包含：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>当前问题
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>真实用户或系统影响
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>根因
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>最小解决方案
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>用户体验变化
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>实现范围
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>明确不做
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>真实验收方法
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>风险与回滚
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>低概率场景如何处理
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>是否存在阶段性或未接通代码
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>是否涉及旧代码、旧数据或旧调用方
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>若需兼容，真实依赖者、唯一权威和删除条件是什么
+</span></code></pre></div>
+<p>低风险小改不要求套用完整模板，按第 3 节保留简短变更说明即可。不得为了形式完整，把同一个事实重复写入多份方案、合同和台账。</p>
+<p>除非当前问题确实需要，否则方案不必固定包含：</p>
+<ul>
+<li>新 ADR；</li>
+<li>新 Schema；</li>
+<li>新状态机；</li>
+<li>新评分；</li>
+<li>新队列；</li>
+<li>新迁移；</li>
+<li>新管理后台；</li>
+<li>新通用平台。</li>
+</ul>
+<hr />
+<h2 id="21">21. 功能完成定义<a class="headerlink" href="#21" title="Permanent link">&para;</a></h2>
+<p>只有同时满足以下条件，功能才可以标记为完成：</p>
+<ul>
+<li>目标用户或系统可以从真实入口进入；</li>
+<li>主任务可以走到真实结果；</li>
+<li>结果可以被查看、保存、消费或继续交付；</li>
+<li>当前已知的必要失败可以被用户理解或被系统明确记录；</li>
+<li>涉及持久化或长任务时，重启后的行为符合需求；</li>
+<li>关键逻辑有针对性测试；</li>
+<li>已按风险比例完成一次真实运行验证；</li>
+<li>页面、接口、数据结构和实际行为一致；</li>
+<li>没有本功能引入的不可达核心代码、占位成功或未说明的永久分支；</li>
+<li>旧路径已经删除，或仍处于经过批准且有明确截止时间的兼容观察窗口。</li>
+</ul>
+<p>如果真实验证必须等待用户授权、第三方账户、付费资源、生产窗口或不可逆人工确认，可以标记为“实现完成，等待外部验收”，但不能标记为“功能可用”或使用模拟结果代替真实证据。等待期间应明确缺少的证据和后续验收入口。</p>
+<p>以下内容可以被标记为“已完成的阶段交付”，但不能被标记为“功能完成”：</p>
+<ul>
+<li>方案；</li>
+<li>原型；</li>
+<li>数据迁移准备；</li>
+<li>接口草稿；</li>
+<li>基础组件；</li>
+<li>实验；</li>
+<li>默认关闭且尚未接通的能力。</li>
+</ul>
+<p>评审发现半实现、无调用者代码或无法到达的核心路径时，结论必须是“未完成”或“阶段边界完成”，不能用测试数量、合同齐全或构建成功代替。</p>
+<hr />
+<h2 id="22">22. 不过度设计不等于降低工程质量<a class="headerlink" href="#22" title="Permanent link">&para;</a></h2>
+<p>简单设计的目标是减少概念、状态、分支和维护负担，不是牺牲正确性、稳定性、安全性或长期可维护性。</p>
+<p>以下投入默认属于必要工程质量，不应被当作过度设计：</p>
+<h3 id="221">22.1 清晰架构边界<a class="headerlink" href="#221" title="Permanent link">&para;</a></h3>
+<ul>
+<li>业务逻辑不堆在路由、页面或脚本入口中；</li>
+<li>模块有明确职责和数据所有权；</li>
+<li>外部 Provider、文件系统、数据库和 UI 之间有清楚边界；</li>
+<li>同一业务事实只有一个权威来源；</li>
+<li>高变化实现与稳定领域逻辑适当隔离；</li>
+<li>当前已经确认的替换点保留清晰接口。</li>
+</ul>
+<p>清晰边界可以通过小模块、明确函数和稳定接口实现，不等于提前建设中台、插件系统或微服务。</p>
+<h3 id="222">22.2 代码质量<a class="headerlink" href="#222" title="Permanent link">&para;</a></h3>
+<ul>
+<li>命名表达真实业务含义；</li>
+<li>核心函数职责单一；</li>
+<li>错误处理明确，不静默吞错；</li>
+<li>资源能够正确释放；</li>
+<li>不复制业务状态和核心规则；</li>
+<li>测试覆盖关键行为而不是只覆盖实现细节；</li>
+<li>删除失效代码和无调用者代码；</li>
+<li>注释解释原因和边界，不复述代码。</li>
+</ul>
+<p>为了快速交付而加入难以理解的条件嵌套、复制粘贴和临时成功返回，同样属于应被拒绝的复杂度。</p>
+<h3 id="223">22.3 稳定性<a class="headerlink" href="#223" title="Permanent link">&para;</a></h3>
+<p>根据当前功能风险，必要时必须考虑：</p>
+<ul>
+<li>超时和取消；</li>
+<li>并发写入；</li>
+<li>幂等和重复提交；</li>
+<li>长任务重启恢复；</li>
+<li>事务和数据一致性；</li>
+<li>外部服务失败；</li>
+<li>文件损坏和资源释放；</li>
+<li>清楚的错误提示和必要日志。</li>
+</ul>
+<p>不是每个功能都需要完整状态机、队列或恢复系统。只有长任务、外部副作用、持久化写入或高损失操作需要相应机制。</p>
+<h3 id="224">22.4 安全性<a class="headerlink" href="#224" title="Permanent link">&para;</a></h3>
+<p>安全不是可选优化。涉及相应边界时必须做到：</p>
+<ul>
+<li>密钥和凭证不进入日志、前端或长期证据；</li>
+<li>不信任外部输入、客户端路径和第三方返回；</li>
+<li>文件访问限制在可信目录；</li>
+<li>权限遵循最小授权；</li>
+<li>高风险操作有明确确认边界；</li>
+<li>用户数据、租户数据和外部调用保持隔离；</li>
+<li>依赖和外部服务使用已知安全配置。</li>
+</ul>
+<p>安全措施应针对真实威胁边界，不能以安全名义无限扩大到无关平台建设。</p>
+<h3 id="225">22.5 扩展性<a class="headerlink" href="#225" title="Permanent link">&para;</a></h3>
+<p>扩展性优先通过以下方式保留：</p>
+<ul>
+<li>清晰模块边界；</li>
+<li>依赖方向稳定；</li>
+<li>外部能力通过窄接口接入；</li>
+<li>数据结构具备明确版本语义；</li>
+<li>避免把供应商实现写入领域逻辑；</li>
+<li>避免把当前 UI 结构固化为领域模型；</li>
+<li>对已经确认的近期变化保留替换点。</li>
+</ul>
+<p>扩展性不等于提前实现未来功能。可以保留一个清晰接缝，但不提前创建未来的数据库、服务、管理页面、配置和分支。</p>
+<h3 id="226">22.6 可观察性和性能<a class="headerlink" href="#226" title="Permanent link">&para;</a></h3>
+<ul>
+<li>关键失败要有足够日志定位原因；</li>
+<li>长任务需要可见进度和最终结果；</li>
+<li>外部调用需要记录非敏感身份和失败类型；</li>
+<li>性能问题以测量结果为依据；</li>
+<li>对真实主流程设置合理响应和资源目标。</li>
+</ul>
+<p>不因为需要几条关键日志就建设完整监控平台，也不因为担心未来性能就提前引入缓存、队列或分布式架构。</p>
+<h3 id="227">22.7 风险相称原则<a class="headerlink" href="#227" title="Permanent link">&para;</a></h3>
+<p>工程投入应由“发生概率 × 影响程度 × 恢复难度”共同决定：</p>
+<table>
+<thead>
+<tr>
+<th>情况</th>
+<th>默认处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>高频、高影响</td>
+<td>完整设计、测试、恢复和观察</td>
+</tr>
+<tr>
+<td>低频、高影响</td>
+<td>必要保护、明确停止和可靠恢复</td>
+</tr>
+<tr>
+<td>高频、低影响</td>
+<td>简单直接地优化主流程</td>
+</tr>
+<tr>
+<td>低频、低影响</td>
+<td>清楚失败或人工处理，不增加复杂自动化</td>
+</tr>
+</tbody>
+</table>
+<p>安全、支付、数据丢失、权限和不可逆操作，即使低频也需要可靠保护。</p>
+<h3 id="228">22.8 架构投入的判断标准<a class="headerlink" href="#228" title="Permanent link">&para;</a></h3>
+<p>架构投入满足以下任一条件时通常合理：</p>
+<ul>
+<li>消除当前已经存在的多权威或数据冲突；</li>
+<li>保护安全、支付、权限、持久化或不可逆边界；</li>
+<li>支撑当前确定的多个调用方；</li>
+<li>隔离当前已经存在的外部供应商变化；</li>
+<li>解决已经测量到的性能或稳定性问题；</li>
+<li>显著降低当前功能的理解和维护成本；</li>
+<li>避免已经确定的近期演进造成高成本重写。</li>
+</ul>
+<p>如果架构投入主要服务假设中的远期场景，或新增的概念、状态和维护责任多于它消除的复杂度，就应缩减。</p>
+<p>出现以下任一事实时，应主动进行架构调整评审，不能继续用“避免过度设计”推迟必要重构：</p>
+<ul>
+<li>同一业务事实出现多个权威来源；</li>
+<li>一个模块同时承担多个独立业务职责，并持续增长；</li>
+<li>同类变更反复跨越多个层级或修改大量无关文件；</li>
+<li>核心业务规则被复制；</li>
+<li>依赖方向混乱、出现循环依赖或 Provider 细节进入领域逻辑；</li>
+<li>测试、发布、排障或新人理解成本持续上升；</li>
+<li>当前多个真实调用方已经需要稳定边界。</li>
+</ul>
+<p>评审只解决已经出现的结构压力，不借机重写与当前问题无关的全仓库代码。</p>
+<h3 id="229">22.9 评审平衡问题<a class="headerlink" href="#229" title="Permanent link">&para;</a></h3>
+<p>评审不能只问“是不是做多了”，还必须问：</p>
+<ol>
+<li>最小方案是否仍然正确、安全、稳定？</li>
+<li>是否为了少写代码把业务逻辑堆在错误层级？</li>
+<li>是否产生新的单点、数据不一致或不可恢复风险？</li>
+<li>当前已确认的变化能否在清晰边界内完成？</li>
+<li>代码是否容易理解、测试、替换和删除？</li>
+<li>删除某项工程投入后，节省的复杂度是否大于新增风险？</li>
+</ol>
+<p>只有同时通过“没有过度设计”和“没有牺牲工程质量”两方面评审，方案才可以进入实现。</p>
+<h3 id="2210-spike">22.10 技术探索与 Spike<a class="headerlink" href="#2210-spike" title="Permanent link">&para;</a></h3>
+<p>存在真实技术不确定性时，可以先进行时间受控的实验，而不是直接把猜测设计成生产架构。实验必须：</p>
+<ul>
+<li>写清需要回答的问题或假设；</li>
+<li>设定时间范围和停止条件；</li>
+<li>与正式运行路径和真实数据隔离；</li>
+<li>记录能够支持决策的结果；</li>
+<li>结束后删除实验代码，或按生产标准重新实现并接入真实纵向闭环。</li>
+</ul>
+<p>实验成功不等于生产功能完成。不得把实验脚本、临时依赖、假数据或绕过安全边界的实现直接演变成长期产品代码。</p>
+<h3 id="2211">22.11 成熟框架、项目约定与应用骨架<a class="headerlink" href="#2211" title="Permanent link">&para;</a></h3>
+<p>本节总结的原则可见于 Laravel 等成熟框架，但 Pixelle 当前使用 React、Tauri、FastAPI 和 Python。Laravel 仅是工程思想的参考来源之一，不是项目依赖、目标架构、目录规范或迁移方向。Pixelle 借鉴的是“提供一条清楚、低决策成本的默认开发道路”，不复制其语言、Facade、Active Record 或框架魔法。</p>
+<h4 id="22111">22.11.1 约定优于自由发挥<a class="headerlink" href="#22111" title="Permanent link">&para;</a></h4>
+<p>同类功能默认使用统一的：</p>
+<ul>
+<li>目录和命名；</li>
+<li>依赖方向；</li>
+<li>输入校验和错误表达；</li>
+<li>配置与服务装配入口；</li>
+<li>主题 Token 和基础组件；</li>
+<li>测试入口和真实验收方式。</li>
+</ul>
+<p>开发者可以因真实业务需要偏离约定，但必须说明默认结构为什么不能满足。约定持续造成重复绕行时，应修订约定，不能让错误结构以“一致性”为理由永久存在。</p>
+<h4 id="22112-feature-first">22.11.2 Feature-first 与模块化单体<a class="headerlink" href="#22112-feature-first" title="Permanent link">&para;</a></h4>
+<p>前端优先按用户功能组织代码，后端优先按业务领域和数据所有权组织代码。页面、Router、脚本和启动入口负责组合，不承载核心业务。</p>
+<p>推荐的前端自然边界：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>features/&lt;feature&gt;/
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>├── components/
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>├── model/
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>├── api/
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>├── hooks/
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>├── styles/
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>└── tests/
+</span></code></pre></div>
+<p>这是可选示例，不是固定脚手架。测试可以与源码共置，也可以放在 feature 自己的测试目录；不得只为匹配示例迁移现有目录。</p>
+<p>推荐的后端自然边界：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>&lt;domain&gt;/
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>├── models
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>├── service
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>├── repository
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>├── ports       # 只在存在真实外部边界时
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>└── errors
+</span></code></pre></div>
+<p>目录和文件名同样只是自然边界示例。不得把一个领域的所有逻辑固定堆进单个 <code>service.py</code> 或 <code>repository.py</code>；出现多个用例、聚合、数据所有权或独立副作用时，应沿真实职责继续拆分。</p>
+<p>目录按当前需要创建，不为了看起来完整而生成空目录、空接口和占位文件。一个小功能可以只有两三个文件；一个复杂功能应按职责继续拆分。</p>
+<p>模块化单体要求边界清楚、进程内调用直接、业务事实单一权威。它不要求提前拆微服务、微前端、独立数据库或消息系统。</p>
+<h4 id="22113-portsadapters">22.11.3 依赖装配和 Ports/Adapters<a class="headerlink" href="#22113-portsadapters" title="Permanent link">&para;</a></h4>
+<p>依赖在明确的组合根集中装配，例如应用启动、FastAPI dependency provider 或 Tauri 启动层。业务代码显式声明需要的依赖，不在任意位置查找全局 Service、创建数据库连接或解析 Provider 配置。</p>
+<p>Ports/Adapters 只用于真实边界：</p>
+<ul>
+<li>外部 LLM、TTS、RunningHub 和发布平台；</li>
+<li>数据库、文件系统和对象引用；</li>
+<li>跨进程、跨服务和操作系统能力；</li>
+<li>已确认存在多个实现或近期替换点的能力。</li>
+</ul>
+<p>普通内部函数、单一稳定实现和局部组件不需要 Interface、Port、Adapter 或依赖注入。容器只负责组装，不能变成隐藏依赖的 Service Locator。</p>
+<h4 id="22114">22.11.4 边界校验、权限和异步能力<a class="headerlink" href="#22114" title="Permanent link">&para;</a></h4>
+<ul>
+<li>外部输入在 API、文件、Provider 和用户输入边界完成客观结构与安全校验；</li>
+<li>权限和高风险确认集中在对应资源或领域策略中，不散落在页面和 Router 的条件判断里；</li>
+<li>长任务、媒体处理、需要恢复、并发控制或外部副作用的操作进入任务执行层；</li>
+<li>普通同步操作不为了架构统一强制进入队列；</li>
+<li>事件表达已经发生的事实，并且至少满足一个真实需要：存在多个独立消费者、跨进程边界、需要可靠异步交付，或生产者与消费者生命周期独立；存在必要同步顺序时应直接调用，不能用事件隐藏流程。</li>
+</ul>
+<h4 id="22115">22.11.5 成熟能力优先，第三方依赖受控<a class="headerlink" href="#22115" title="Permanent link">&para;</a></h4>
+<p>路由、表单、验证、主题、基础控件、日志、测试、HTTP、存储和常见安全能力，优先使用项目已有且语义匹配的实现、当前技术栈、标准库和成熟框架已经提供的能力。检索和评估深度与变更风险相称，小修改不要求进行框架级选型。</p>
+<p>新增第三方依赖前必须确认：</p>
+<ul>
+<li>当前能力为什么不能满足；</li>
+<li>项目是否活跃维护；</li>
+<li>安全记录、许可和供应链风险；</li>
+<li>包体、运行时和升级成本；</li>
+<li>API 是否稳定；</li>
+<li>移除或替换是否可控。</li>
+</ul>
+<p>“不重复造轮子”不等于为一个简单函数引入大型依赖，也不允许同时引入多个解决同一问题的框架。</p>
+<h4 id="22116">22.11.6 测试支持持续设计<a class="headerlink" href="#22116" title="Permanent link">&para;</a></h4>
+<p>测试优先保护用户行为、领域规则、边界和真实纵向闭环。Feature/Integration Test 用于证明用户行为和模块协作；Unit Test 用于证明隔离的领域规则、状态迁移、关键错误路径、纯函数和复杂算法。根据风险选择测试层级，不围绕内部实现细节堆积孤立测试。</p>
+<p>重构应在行为测试保护下持续进行，不等待文件变得无法修改后再启动全量重写。</p>
+<h4 id="22117">22.11.7 超级文件是评审信号<a class="headerlink" href="#22117" title="Permanent link">&para;</a></h4>
+<p>行数不是自动质量合同，但以下情况必须触发职责检查：</p>
+<ul>
+<li>一个函数同时完成多个可命名业务步骤；</li>
+<li>一个 React 组件同时负责 API、领域状态、表单、布局、弹窗和多个副作用；</li>
+<li>一个 Router、Service、Repository 或页面持续承接不同业务领域；</li>
+<li>修改一个功能经常需要在同一巨型文件中触碰无关区域；</li>
+<li>文件已经难以独立理解、测试、评审或删除。</li>
+</ul>
+<p>可使用以下软阈值提醒评审，但不得机械按行数拆分：</p>
+<ul>
+<li>普通函数超过约 80 行；</li>
+<li>React 组件超过约 300–500 行；</li>
+<li>普通手写源码文件超过约 800–1000 行。</li>
+</ul>
+<p>达到提醒阈值后只需在代码评审或变更说明中给出“职责仍单一，保留”或“沿哪些职责拆分”的简短结论，不新增独立审批、合同或门禁。</p>
+<p>生成代码、静态数据和第三方文件可以例外。拆分必须沿真实职责、数据所有权和依赖方向进行，不能只把一个巨型文件机械切成多个仍然互相耦合的文件。</p>
+<hr />
+<h2 id="23">23. 与其他文档的关系<a class="headerlink" href="#23" title="Permanent link">&para;</a></h2>
+<p>权威顺序以 <a href="../development-principles/"><code>development-principles.md</code></a> 的“文档优先级”为准。本手册只提供解释和示例，不覆盖产品范围、Accepted ADR 或核心开发原则。</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="最后更新">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 31, 2026 07:27:32 UTC">July 31, 2026 07:27:32</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="创建日期">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 31, 2026 07:27:32 UTC">July 31, 2026 07:27:32</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Pixelle.AI
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/AIDC-AI/Pixelle-Video" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

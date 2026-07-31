@@ -1390,7 +1390,7 @@
   <a href="#5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. 当前为未来保留的兼容性
+        5. 当前保留的演进接缝
       
     </span>
   </a>
@@ -1509,6 +1509,7 @@
 <ul>
 <li>状态：Accepted（应用中心 AC-0 前置架构决策）</li>
 <li>日期：2026-07-18</li>
+<li>最近修订：2026-07-31（对齐项目开发原则，澄清结构校验、重试、产品配置与兼容边界）</li>
 <li>负责人：Pixelle Video</li>
 <li>适用范围：应用中心、模型配置复用、AI/媒体执行后端，以及未来账户、商业化和云端多租户平台</li>
 </ul>
@@ -1575,10 +1576,10 @@
 <li>manifest 只声明 <code>llm</code> capability，不包含 provider、model、base URL、API key 或动态代码路径；</li>
 <li>执行 API 不接受模型配置覆盖，AppRun、Artifact、Task 和日志不保存密钥；</li>
 <li>P0 所有应用共享当前 <code>local-default</code>，不做按应用选模型、fallback chain、成本路由或模型 A/B；</li>
-<li><code>LLMService</code> 继续负责实际 provider 兼容和结构化调用，应用 Executor 只负责领域 prompt、schema、validator 和 repair；</li>
-<li>P0 通过内置 Registry、manifest、feature flag 和 Program Gate 控制应用上线，不增加 <code>AppControlPolicy</code> 数据库或管理 UI。</li>
+<li><code>LLMService</code> 继续负责实际 provider 兼容和结构化调用；应用 Executor 负责领域 prompt，以及当前结果确实需要的机器可验证结构。<code>schema</code>、<code>validator</code> 和 <code>repair</code> 只处理字段、类型、枚举和格式等客观协议错误，不评价标题、文案、画面或创意的主观质量，也不因为主观结果“不够好”自动重试；</li>
+<li>P0 通过内置 Registry、manifest、稳定产品能力开关或临时发布开关和 Program Gate 控制应用上线，不增加 <code>AppControlPolicy</code> 数据库或管理 UI。长期产品开关具有稳定业务语义；临时发布与迁移开关必须有删除条件。</li>
 </ul>
-<p>未来出现运营后台或多租户 SaaS 后，NestJS 控制面增加可视化 <code>ModelProfile/ModelRoutingPolicy</code>，负责可用模型目录、默认选择、按应用/租户/套餐映射、限额、灰度、回滚和审计；Python 执行面继续负责 provider adapter、凭证解析、模型调用、结构化输出和调用证据。任务只携带版本化 <code>model_profile_ref</code>，不得携带明文密钥。当前 <code>local-default</code> 必须作为兼容 profile 保留，使旧桌面项目无需迁移即可继续执行。</p>
+<p>未来出现运营后台或多租户 SaaS 后，NestJS 控制面增加可视化 <code>ModelProfile/ModelRoutingPolicy</code>，负责可用模型目录、默认选择、按应用/租户/套餐映射、限额、灰度、回滚和审计；Python 执行面继续负责 provider adapter、凭证解析、模型调用、结构化输出和调用证据。任务只携带版本化 <code>model_profile_ref</code>，不得携带明文密钥。只要桌面本地模式仍是正式支持的产品形态，<code>local-default</code> 就作为该模式的正式配置保留，而不是临时兼容层；只有旧字段转换、旧接口转发或旧数据读取属于需要迁移和删除的兼容代码。</p>
 <p>管理后台作为 <code>AC-ADMIN-CONTROL（P1/P2 Deferred Capability）</code> 登记。以下任一条件成立即触发独立评审与实施 Program：</p>
 <ol>
 <li>应用数量明显增加；</li>
@@ -1655,13 +1656,13 @@
 <li>Redis/队列不是长期事实来源；最终状态必须回写 PostgreSQL；</li>
 <li>跨服务共享稳定 ID 和版本化契约，不共享语言内部对象或直接访问对方私有表。</li>
 </ul>
-<h3 id="5">5. 当前为未来保留的兼容性<a class="headerlink" href="#5" title="Permanent link">&para;</a></h3>
-<p>应用中心 P0 在不引入 SaaS 复杂度的前提下必须保留以下演进空间：</p>
+<h3 id="5">5. 当前保留的演进接缝<a class="headerlink" href="#5" title="Permanent link">&para;</a></h3>
+<p>应用中心 P0 在不引入 SaaS 复杂度的前提下保留以下已经确认的演进接缝：</p>
 <ul>
 <li>所有 project、run、attempt、artifact 使用全局唯一稳定 ID；</li>
 <li>领域记录允许未来增加 <code>tenant_id</code>、<code>workspace_id</code>、<code>owner_id</code>，当前不伪造本地租户；</li>
 <li>输入、上下文、产物和任务消息都有 <code>schema_version</code>；</li>
-<li>App Runner 和媒体执行支持幂等键、取消、重试和 attempt；</li>
+<li>当前任务存在持久化写入、长任务、外部副作用或重复提交风险时，App Runner 和媒体执行使用幂等键、取消和 attempt；自动重试只用于可确认的暂时性技术失败，并且操作幂等、次数有限、费用可控，不用于主观内容质量重试；</li>
 <li>API 不返回供客户端长期保存的绝对路径；</li>
 <li>artifact 使用文件引用抽象，不把 SQLite BLOB 作为主媒体存储；</li>
 <li>账户、权限和计费判断不写进 Prompt、Executor 或媒体服务；</li>
@@ -1670,7 +1671,7 @@
 <li>provider adapter、模型调用和 workflow 执行细节留在 Python 执行面；</li>
 <li>NestJS 将来可以通过 OpenAPI/JSON Schema 和任务消息契约接入，而不重写 P0 应用语义。</li>
 </ul>
-<p>这些是兼容性要求，不授权当前提前建设 PostgreSQL、Redis、对象存储、NestJS 或多租户 UI。</p>
+<p>这些是模块边界和演进接缝，不是提前实现未来系统的授权，也不要求当前建设 PostgreSQL、Redis、对象存储、NestJS 或多租户 UI。</p>
 <h2 id="_3">备选方案<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <h3 id="express">全量迁移 Express：拒绝<a class="headerlink" href="#express" title="Permanent link">&para;</a></h3>
 <p>Express 只替换 HTTP 框架，不能替代 Python AI/媒体生态，也不自动提供领域架构、结构化输出、任务恢复和数据模型。迁移将带来高重写成本和双运行时复杂度，当前没有对应收益。</p>
@@ -1692,7 +1693,7 @@
 <li>支付、订单、Webhook 的签名、幂等、审计与对账；</li>
 <li>可观测性、成本、容量、备份、灾备和回滚；</li>
 <li>分阶段流量迁移和旧 FastAPI 本地模式的兼容策略。</li>
-<li>ModelProfile/ModelRoutingPolicy、凭证解析、租户权益、灰度回滚与 <code>local-default</code> 兼容策略。</li>
+<li>ModelProfile/ModelRoutingPolicy、凭证解析、租户权益、灰度回滚，以及桌面 <code>local-default</code> 正式产品模式与云端配置的共存或迁移策略。</li>
 </ol>
 <p>在该 Gate 通过前，不允许因为单个账户页面、简单 Webhook 或团队偏好就启动全量重写。</p>
 <h2 id="_5">后果<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
@@ -1734,7 +1735,7 @@
     <span class="md-icon" title="最后更新">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 21, 2026 23:55:05 UTC">July 21, 2026 23:55:05</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-datetime" title="July 31, 2026 07:27:32 UTC">July 31, 2026 07:27:32</span>
   </span>
 
     

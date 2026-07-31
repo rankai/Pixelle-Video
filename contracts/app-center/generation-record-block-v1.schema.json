@@ -1,0 +1,583 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pixelle.local/contracts/app-center/generation-record-block-v1.schema.json",
+  "title": "Application Center Generation Record Block V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_id",
+    "app_run_id",
+    "project_id",
+    "app_id",
+    "app_name",
+    "result_shape",
+    "status",
+    "created_at",
+    "result_available_at",
+    "summary",
+    "compatibility",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "record_id": {
+      "$ref": "#/$defs/opaqueId"
+    },
+    "app_run_id": {
+      "$ref": "#/$defs/opaqueId"
+    },
+    "project_id": {
+      "$ref": "#/$defs/opaqueId"
+    },
+    "app_id": {
+      "type": "string",
+      "enum": [
+        "builtin.marketing-copy",
+        "builtin.viral-titles",
+        "builtin.douyin-carousel",
+        "builtin.digital-human-video"
+      ]
+    },
+    "app_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40
+    },
+    "result_shape": {
+      "type": "string",
+      "enum": [
+        "multi_copy",
+        "multi_title",
+        "single_carousel",
+        "single_video"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "running",
+        "needs_review",
+        "completed",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "created_at": {
+      "$ref": "#/$defs/dateTime"
+    },
+    "result_available_at": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/dateTime"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "legacy_unavailable"
+          ]
+        },
+        "unavailable_reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "legacy_unavailable"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "unavailable_reason"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "unavailable_reason"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "items": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/copyItem"
+          },
+          {
+            "$ref": "#/$defs/titleItem"
+          },
+          {
+            "$ref": "#/$defs/carouselItem"
+          },
+          {
+            "$ref": "#/$defs/videoItem"
+          }
+        ]
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "compatibility": {
+            "properties": {
+              "state": {
+                "const": "legacy_unavailable"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "items": {
+            "maxItems": 0
+          }
+        }
+      },
+      "else": {
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "status": {
+                  "enum": [
+                    "needs_review",
+                    "completed"
+                  ]
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "items": {
+                  "minItems": 1
+                },
+                "result_available_at": {
+                  "$ref": "#/$defs/dateTime"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "items": {
+                  "maxItems": 0
+                },
+                "result_available_at": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "app_id": {
+            "const": "builtin.marketing-copy"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "result_shape": {
+            "const": "multi_copy"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/$defs/copyItem"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "app_id": {
+            "const": "builtin.viral-titles"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "result_shape": {
+            "const": "multi_title"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/$defs/titleItem"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "app_id": {
+            "const": "builtin.douyin-carousel"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "result_shape": {
+            "const": "single_carousel"
+          },
+          "items": {
+            "maxItems": 1,
+            "items": {
+              "$ref": "#/$defs/carouselItem"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "app_id": {
+            "const": "builtin.digital-human-video"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "result_shape": {
+            "const": "single_video"
+          },
+          "items": {
+            "maxItems": 1,
+            "items": {
+              "$ref": "#/$defs/videoItem"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "opaqueId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "relativeUrl": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^(?!.*\\.\\.)(?!.*\\\\)(?!.*://)(?!.*[#?])/api/[A-Za-z0-9._~!$&'()*+,;=:@%/-]+$"
+    },
+    "copyItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "item_id",
+        "kind",
+        "text",
+        "actions"
+      ],
+      "properties": {
+        "item_id": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "kind": {
+          "const": "copy"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 30
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5000
+        },
+        "actions": {
+          "$ref": "#/$defs/textActions"
+        }
+      }
+    },
+    "titleItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "item_id",
+        "kind",
+        "text",
+        "actions",
+        "selected"
+      ],
+      "properties": {
+        "item_id": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "kind": {
+          "const": "title"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 30
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "actions": {
+          "$ref": "#/$defs/textActions"
+        },
+        "selected": {
+          "type": "boolean"
+        }
+      }
+    },
+    "textActions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "copy",
+          "select",
+          "edit"
+        ]
+      }
+    },
+    "carouselItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "item_id",
+        "kind",
+        "title",
+        "cover_url",
+        "preview_url",
+        "download_url",
+        "page_count",
+        "missing_facts",
+        "actions",
+        "artifact_version_ids"
+      ],
+      "properties": {
+        "item_id": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "kind": {
+          "const": "carousel"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "cover_url": {
+          "$ref": "#/$defs/versionedRelativeUrl"
+        },
+        "preview_url": {
+          "$ref": "#/$defs/versionedRelativeUrl"
+        },
+        "download_url": {
+          "$ref": "#/$defs/versionedRelativeUrl"
+        },
+        "page_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "missing_facts": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "actions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "preview",
+              "publish"
+            ]
+          }
+        },
+        "details_available": {
+          "type": "array",
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "pages",
+              "publish_copy"
+            ]
+          }
+        },
+        "artifact_version_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/opaqueId"
+          }
+        }
+      }
+    },
+    "videoItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "item_id",
+        "kind",
+        "title",
+        "poster_url",
+        "playback_url",
+        "preview_url",
+        "download_url",
+        "duration_seconds",
+        "digital_human_name",
+        "voice_name",
+        "actions",
+        "artifact_version_ids"
+      ],
+      "properties": {
+        "item_id": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "kind": {
+          "const": "video"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "poster_url": {
+          "$ref": "#/$defs/versionedRelativeUrl"
+        },
+        "playback_url": {
+          "$ref": "#/$defs/versionedRelativeUrl"
+        },
+        "preview_url": {
+          "$ref": "#/$defs/versionedRelativeUrl"
+        },
+        "download_url": {
+          "$ref": "#/$defs/versionedRelativeUrl"
+        },
+        "duration_seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 3600
+        },
+        "digital_human_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "voice_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "actions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "play",
+              "publish"
+            ]
+          }
+        },
+        "details_available": {
+          "type": "array",
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "cover",
+              "publish_copy",
+              "spoken_script",
+              "download"
+            ]
+          }
+        },
+        "artifact_version_ids": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/opaqueId"
+          }
+        }
+      }
+    },
+    "versionedRelativeUrl": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4608,
+      "pattern": "^(?!.*\\.\\.)(?!.*\\\\)(?!.*://)(?!.*#)/api/[A-Za-z0-9._~!$&'()*+,;=:@%/-]+\\?version=[A-Za-z0-9_-]+$"
+    }
+  }
+}
