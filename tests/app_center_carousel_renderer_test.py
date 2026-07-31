@@ -13,9 +13,12 @@ from api.schemas.app_center import CarouselPageRetryRequest
 from pixelle_video.app_center.carousel import (
     CAROUSEL_HEIGHT,
     CAROUSEL_WIDTH,
+    CarouselPlanOutput,
     CarouselRenderError,
     DouyinCarouselExecutor,
+    DouyinCarouselPlanner,
     DouyinCarouselRenderer,
+    _validate_carousel_text_facts,
     resolve_registered_asset,
 )
 from pixelle_video.app_center.llm_port import FakeLLMPort
@@ -156,6 +159,58 @@ def test_renderer_retry_isolates_page_and_requires_new_version(tmp_path):
     with pytest.raises(CarouselRenderError) as version_error:
         renderer.retry_page(changed_page, run_ref="retry-run", version_number=0)
     assert version_error.value.code == "RETRY_VERSION_INVALID"
+
+
+def test_renderer_uses_distinct_cover_content_and_action_layout_roles(tmp_path):
+    asset_path = _asset(tmp_path)
+    renderer = DouyinCarouselRenderer(tmp_path / "role-exports", asset_root=tmp_path)
+    _, refs = renderer.render_package(_pages(asset_path), run_ref="roles")
+    image_refs = [item for item in refs if item["kind"] == "image"]
+    assert len({item["sha256"] for item in image_refs}) == 3
+
+
+def test_renderer_rejects_inconsistent_layout_role_sequence(tmp_path):
+    asset_path = _asset(tmp_path)
+    pages = _pages(asset_path)
+    pages[1]["layout_role"] = "cover"
+    with pytest.raises(CarouselRenderError) as error:
+        DouyinCarouselRenderer(tmp_path / "role-errors", asset_root=tmp_path).render_package(
+            pages, run_ref="invalid-role"
+        )
+    assert error.value.code == "LAYOUT_ROLE_INVALID"
+
+
+def test_renderer_applies_selected_template_style(tmp_path):
+    asset_path = _asset(tmp_path)
+    renderer = DouyinCarouselRenderer(tmp_path / "template-exports", asset_root=tmp_path)
+    clean_content, clean_refs = renderer.render_package(
+        _pages(asset_path), template_id="template:clean-01", run_ref="clean"
+    )
+    focus_content, focus_refs = renderer.render_package(
+        _pages(asset_path), template_id="template:cover-focus-01", run_ref="focus"
+    )
+    assert clean_content["template_id"] == "template:clean-01"
+    assert focus_content["template_id"] == "template:cover-focus-01"
+    assert clean_refs[0]["sha256"] != focus_refs[0]["sha256"]
+    with pytest.raises(CarouselRenderError, match="图文风格暂不支持"):
+        renderer.render_page(
+            _pages(asset_path)[0],
+            tmp_path / "template-exports" / "invalid",
+            template_id="template:unknown",
+        )
+
+
+def test_carousel_plan_normalizes_provider_envelope_and_roles():
+    plan = CarouselPlanOutput.model_validate({
+        "$defs": {"CarouselPlanPage": {"type": "object"}},
+        "carousel_pages": [
+            {"page_index": 1, "purpose": "封面", "text": "看这里", "asset_ref": "asset:1"},
+            {"page_index": 2, "purpose": "内容", "text": "了解更多", "asset_ref": "asset:1"},
+            {"page_index": 3, "purpose": "行动", "text": "到店看看", "asset_ref": "asset:1"},
+        ],
+    })
+    assert plan.page_count == 3
+    assert [page.layout_role for page in plan.pages] == ["cover", "content", "action"]
 
 
 def test_carousel_executor_integrates_with_app_runner_and_review_lifecycle(tmp_path):
@@ -474,7 +529,7 @@ def test_carousel_executor_plans_pages_through_shared_llm_port(tmp_path):
         {
             "page_count": 3,
             "template_id": "template:clean-01",
-            "missing_facts": [],
+            "missing_facts": ["未提供门店地址"],
             "pages": [
                 {
                     "page_index": index,
@@ -494,6 +549,11 @@ def test_carousel_executor_plans_pages_through_shared_llm_port(tmp_path):
             "goal": "到店咨询",
             "page_count": 3,
             "asset_refs": ["asset-1"],
+            "asset_descriptions": [{
+                "asset_ref": "asset-1",
+                "description": "门店外立面图片",
+                "metadata_basis": "门店外立面；竖版",
+            }],
             "source_artifact_version_ids": [source_version.artifact_version_id],
         },
         idempotency_key="carousel-llm-plan",
@@ -519,10 +579,80 @@ def test_carousel_executor_plans_pages_through_shared_llm_port(tmp_path):
     request = llm.requests[0]
     assert request.app_id == "builtin.douyin-carousel"
     assert request.prompt_variables["asset_refs"] == ["asset-1"]
+    assert request.prompt_variables["asset_descriptions"][0]["description"] == "门店外立面图片"
     assert request.context == {"brand_tone": "可信、克制"}
     package = repository.get_artifact(result.output_artifact_ids[0])
     package_version = repository.list_artifact_versions(package.artifact_id)[0]
     assert package_version.content["page_count"] == 3
+    assert package_version.content["missing_facts"] == ["未提供门店地址"]
+    plan_artifact = next(item for item in repository.list_artifacts(project.project_id) if item.artifact_type == "carousel_plan")
+    plan_version = repository.get_artifact_version(plan_artifact.current_version_id)
+    assert plan_version.content["missing_facts"] == ["未提供门店地址"]
+    assert plan_version.content["asset_descriptions"][0]["description"] == "门店外立面图片"
+
+
+def test_carousel_planner_persists_llm_description_when_asset_description_is_missing(tmp_path):
+    repository = AppCenterRepository(tmp_path / "description.sqlite")
+    project = repository.create_project("描述补全", "用已有图片制作图文")
+    source = repository.create_artifact(project.project_id, "selected_title", "标题")
+    source_version = repository.append_artifact_version(
+        source.artifact_id, content={"title": "门店亮点"}
+    )
+    llm = FakeLLMPort(
+        {
+            "page_count": 3,
+            "template_id": "template:clean-01",
+            "missing_facts": [],
+            "pages": [
+                {
+                    "page_index": index,
+                    "purpose": "内容",
+                    "text": f"第{index}页",
+                    "asset_ref": "asset-1",
+                    "asset_description": "绿色门头与门店外立面",
+                }
+                for index in range(1, 4)
+            ],
+        }
+    )
+    run = repository.create_app_run(
+        project.project_id,
+        "builtin.douyin-carousel",
+        "1.0.0",
+        {"goal": "到店", "page_count": 3, "asset_refs": ["asset-1"]},
+        idempotency_key="carousel-description-plan",
+    )
+    asset_path = _asset(tmp_path)
+    pages, missing_facts, model_ref, provider_class = asyncio.run(
+        DouyinCarouselPlanner(
+            repository,
+            llm,
+            asset_resolver=lambda _ref: asset_path,
+        ).plan(
+            run,
+            source_ids=[source_version.artifact_version_id],
+            asset_refs=["asset-1"],
+            goal="到店",
+            payload={
+                "page_count": 3,
+                "asset_refs": ["asset-1"],
+                "asset_descriptions": [
+                    {
+                        "asset_ref": "asset-1",
+                        "description": "",
+                        "metadata_basis": "门店外立面",
+                    }
+                ],
+            },
+        )
+    )
+    assert missing_facts == []
+    assert model_ref == "local-default:fake"
+    assert provider_class == "fake"
+    assert pages[0]["asset_description"] == "绿色门头与门店外立面"
+    assert llm.requests[0].prompt_variables["asset_descriptions"][0]["description_status"] == "generate_on_demand"
+    assert llm.requests[0].visual_inputs[0]["asset_ref"] == "asset-1"
+    assert llm.requests[0].visual_inputs[0]["data_url"].startswith("data:image/png;base64,")
 
 
 def test_carousel_planner_rejects_model_asset_ref_not_in_input(tmp_path):
@@ -575,6 +705,97 @@ def test_carousel_planner_rejects_model_asset_ref_not_in_input(tmp_path):
     ] == ["selected_title"]
 
 
+def test_carousel_executor_fails_closed_on_unconfirmed_claims(tmp_path):
+    repository = AppCenterRepository(tmp_path / "carousel-facts.sqlite")
+    project = repository.create_project("图文事实边界", "到店咨询")
+    source = repository.create_artifact(project.project_id, "selected_title", "标题")
+    source_version = repository.append_artifact_version(
+        source.artifact_id, content={"title": "到店咨询"}
+    )
+    asset_path = _asset(tmp_path)
+    pages = _pages(asset_path, include_path=False)
+    for page in pages:
+        page["asset_refs"] = ["asset-1"]
+    pages[0]["text"] = "专业可靠，随时放心咨询"
+    run = repository.create_app_run(
+        project.project_id,
+        "builtin.douyin-carousel",
+        "1.0.0",
+        {
+            "goal": "到店咨询",
+            "page_count": 3,
+            "asset_refs": ["asset-1"],
+            "source_artifact_version_ids": [source_version.artifact_version_id],
+            "pages": pages,
+        },
+        idempotency_key="carousel-unsupported-claim",
+    )
+    result = asyncio.run(
+        AppRunner(
+            repository,
+            executors={
+                "builtin.douyin-carousel": DouyinCarouselExecutor(
+                    DouyinCarouselRenderer(
+                        tmp_path / "exports",
+                        asset_resolver=lambda _ref: asset_path,
+                    ),
+                    repository=repository,
+                )
+            },
+            enforce_readiness=False,
+        ).run(run.app_run_id)
+    )
+    assert result.state == "failed"
+    assert result.error_code == "CAROUSEL_UNSUPPORTED_FACT"
+    assert result.output_artifact_ids == []
+
+
+def test_carousel_fact_validation_rejects_unconfirmed_target_group_details():
+    with pytest.raises(CarouselRenderError) as error:
+        _validate_carousel_text_facts(
+            [{"page_index": 3, "text": "有缺牙问题的居民可咨询种植服务"}],
+            payload={"goal": "到店咨询"},
+            context={},
+            source_contents=[],
+            missing_facts=["三类服务的适用人群未提供"],
+        )
+    assert error.value.code == "CAROUSEL_UNSUPPORTED_FACT"
+
+
+def test_carousel_explicit_pages_reject_asset_refs_outside_input(tmp_path):
+    repository = AppCenterRepository(tmp_path / "explicit-assets.sqlite")
+    project = repository.create_project("图文资产边界", "拒绝未选图片")
+    source = repository.create_artifact(project.project_id, "selected_title", "标题")
+    source_version = repository.append_artifact_version(
+        source.artifact_id, content={"title": "门店亮点"}
+    )
+    asset_path = _asset(tmp_path)
+    run = repository.create_app_run(
+        project.project_id,
+        "builtin.douyin-carousel",
+        "1.0.0",
+        {
+            "goal": "到店",
+            "page_count": 3,
+            "asset_refs": ["asset:allowed"],
+            "pages": _pages(asset_path, include_path=False),
+            "source_artifact_version_ids": [source_version.artifact_version_id],
+        },
+        idempotency_key="explicit-asset-boundary",
+    )
+    executor = DouyinCarouselExecutor(
+        DouyinCarouselRenderer(
+            tmp_path / "explicit-exports",
+            asset_root=tmp_path,
+            asset_resolver=lambda _ref: asset_path,
+        ),
+        repository=repository,
+    )
+    with pytest.raises(CarouselRenderError, match="本次输入") as error:
+        asyncio.run(executor.execute(run))
+    assert error.value.code == "CAROUSEL_ASSET_REF_INVALID"
+
+
 def test_carousel_page_retry_creates_new_version_and_invalidates_publish_package(
     monkeypatch, tmp_path
 ):
@@ -590,6 +811,9 @@ def test_carousel_page_retry_creates_new_version_and_invalidates_publish_package
         "1.0.0",
         {
             "goal": "到店",
+            "page_count": 3,
+            "template_id": "template:clean-01",
+            "asset_refs": ["asset:known", "asset:second"],
             "source_artifact_version_ids": [source_version.artifact_version_id],
             "pages": [],
         },
@@ -607,8 +831,12 @@ def test_carousel_page_retry_creates_new_version_and_invalidates_publish_package
             content={
                 "artifact_type": "carousel_page",
                 "page_index": index,
+                "layout_role": "cover" if index == 1 else "action" if index == 3 else "content",
+                "template_id": "template:clean-01",
                 "text": f"第{index}页",
                 "asset_refs": ["asset:known"],
+                "asset_description": "门店外立面",
+                "asset_description_status": "generated_by_llm",
             },
             file_refs=[
                 {"file_key": f"page-{index:02d}.png", "kind": "image", "path": str(asset_path)}
@@ -678,6 +906,36 @@ def test_carousel_page_retry_creates_new_version_and_invalidates_publish_package
     assert response["publish_package"]["package_id"] != old_package.package_id
     latest_package = repository.get_artifact(package_artifact.artifact_id)
     latest_package_version = repository.get_artifact_version(latest_package.current_version_id)
+    assert latest_package_version.content["asset_descriptions"][0] == {
+        "asset_ref": "asset:known",
+        "description": "门店外立面",
+        "description_status": "generated_by_llm",
+        "metadata_basis": "重试时基于当前登记素材重新确认",
+    }
+    replacement_llm = FakeLLMPort({"description": "第二张门店服务照片"})
+    monkeypatch.setattr(app_center_router, "resolve_registered_asset", lambda _ref: asset_path)
+    monkeypatch.setattr(app_center_router, "ConfigAppLLMPort", lambda: replacement_llm)
+    replacement = app_center_router.retry_carousel_page(
+        page_artifacts[1].artifact_id,
+        CarouselPageRetryRequest(text="第二页替换为新门店照片", asset_refs=["asset:second"]),
+    )
+    assert replacement["page_artifact_version"]["content"]["asset_description"] == "第二张门店服务照片"
+    assert replacement["page_artifact_version"]["content"]["asset_description_model_ref"] == "local-default:fake"
+    assert replacement["page_artifact_version"]["content"]["asset_description_provider_class"] == "fake"
+    replacement_package = repository.get_artifact(package_artifact.artifact_id)
+    replacement_package_version = repository.get_artifact_version(
+        replacement_package.current_version_id
+    )
+    second_description = next(
+        item
+        for item in replacement_package_version.content["asset_descriptions"]
+        if item["asset_ref"] == "asset:second"
+    )
+    assert second_description["description"] == "第二张门店服务照片"
+    assert second_description["description_status"] == "generated_by_llm"
+    assert replacement_package_version.content["asset_description_model_ref"] == "local-default:fake"
+    assert replacement_package_version.content["asset_description_provider_class"] == "fake"
+    assert replacement_llm.requests[0].visual_inputs[0]["asset_ref"] == "asset:second"
     zip_ref = next(item for item in latest_package_version.file_refs if item.get("kind") == "zip")
     zip_path = publish_service.carousel_root / zip_ref["relative_path"]
     assert zip_path.is_file()
@@ -686,6 +944,14 @@ def test_carousel_page_retry_creates_new_version_and_invalidates_publish_package
         page_ref = response["page_artifact_version"]["file_refs"][0]
         page_path = publish_service.carousel_root / page_ref["relative_path"]
         assert archive.read("page-01.png") == page_path.read_bytes()
+
+    with pytest.raises(HTTPException) as invalid_asset:
+        app_center_router.retry_carousel_page(
+            page_artifacts[1].artifact_id,
+            CarouselPageRetryRequest(text="不应替换为外部素材", asset_refs=["asset:not-in-run"]),
+        )
+    assert invalid_asset.value.status_code == 409
+    assert invalid_asset.value.detail == "CAROUSEL_ASSET_REF_INVALID"
 
     class FailingPublishService:
         def create_from_artifact_versions(self, *_args, **_kwargs):

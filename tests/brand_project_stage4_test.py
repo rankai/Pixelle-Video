@@ -1016,7 +1016,7 @@ def test_carousel_and_digital_local_delivery_consume_pinned_logo_colors_and_bgm(
     page_path = renderer.resolve_file_ref(carousel_output.file_refs[0])
     with Image.open(page_path).convert("RGB") as rendered:
         assert rendered.getpixel((1, 1)) == (17, 34, 51)
-        assert rendered.getpixel((1, 1_000)) == (68, 85, 102)
+        assert rendered.getpixel((1, 1_000)) == (17, 34, 51)
         assert rendered.getpixel((1_005, 77)) != (17, 34, 51)
 
     sessions = IpBroadcastSessionStore(tmp_path / "sessions")

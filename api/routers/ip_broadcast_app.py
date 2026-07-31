@@ -14,6 +14,9 @@ from api.schemas.app_center import (
     IpBroadcastAppRunCreateRequest,
     IpBroadcastAppRunResponse,
     IpBroadcastProviderRetryPlanRequest,
+    IpBroadcastResultPresentation,
+    IpBroadcastSpokenScriptPrepareRequest,
+    IpBroadcastSpokenScriptPrepareResponse,
 )
 from pixelle_video.app_center.brand_project import ProjectContextResolver
 from pixelle_video.app_center.ip_broadcast_adapter import (
@@ -21,6 +24,7 @@ from pixelle_video.app_center.ip_broadcast_adapter import (
     IpBroadcastAppAdapter,
     IpBroadcastInputError,
 )
+from pixelle_video.app_center.llm_port import ConfigAppLLMPort
 from pixelle_video.app_center.repository import AppCenterRepositoryError
 
 router = APIRouter(prefix="/app-center/ip-broadcast", tags=["application-center-ip-broadcast"])
@@ -109,6 +113,25 @@ def _response(handle) -> IpBroadcastAppRunResponse:
             }
         except Exception:
             continue
+    human = run.input_payload.get("digital_human")
+    human = human if isinstance(human, dict) else {}
+    voice = run.input_payload.get("voice")
+    voice = voice if isinstance(voice, dict) else {}
+    session_human_name = handle.session.state.get("digital_human_name")
+    session_voice = handle.session.state.get("voice_binding")
+    session_voice = session_voice if isinstance(session_voice, dict) else {}
+    digital_human_name = str(
+        human.get("display_name")
+        or session_human_name
+        or human.get("portrait_id")
+        or handle.session.state.get("portrait_id")
+        or "已选择数字人"
+    ).strip()[:200]
+    voice_name = str(
+        voice.get("voice_name")
+        or session_voice.get("voice_name")
+        or ("系统推荐男声" if voice.get("resolution_source") == "system_default" else "生成时固定声音")
+    ).strip()[:200]
     return IpBroadcastAppRunResponse(
         app_run_id=run.app_run_id,
         project_id=run.project_id,
@@ -131,6 +154,10 @@ def _response(handle) -> IpBroadcastAppRunResponse:
             )
         ),
         artifact_details=artifact_details,
+        presentation=IpBroadcastResultPresentation(
+            digital_human_name=digital_human_name,
+            voice_name=voice_name,
+        ),
         created_at=run.created_at,
         updated_at=run.updated_at,
     )
@@ -148,6 +175,29 @@ def _raise_adapter_error(exc: Exception):
     if isinstance(exc, ValueError):
         raise HTTPException(status_code=422, detail={"code": "INPUT_PAYLOAD_INVALID"}) from exc
     raise exc
+
+
+@router.post(
+    "/prepare-script",
+    response_model=IpBroadcastSpokenScriptPrepareResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def prepare_spoken_script(request: IpBroadcastSpokenScriptPrepareRequest):
+    """Prepare an editable spoken script before creating the media Run."""
+
+    try:
+        result = await get_ip_broadcast_app_adapter().prepare_spoken_script(
+            request.project_id,
+            {"project_id": request.project_id, **request.input_payload},
+            llm_port=ConfigAppLLMPort(),
+            context_snapshot_id=request.context_snapshot_id,
+        )
+        return IpBroadcastSpokenScriptPrepareResponse(
+            spoken_script=result["spoken_script"],
+            source_revision=result["source_revision"],
+        )
+    except Exception as exc:
+        _raise_adapter_error(exc)
 
 
 @router.post("/runs", response_model=IpBroadcastAppRunResponse, status_code=status.HTTP_201_CREATED)

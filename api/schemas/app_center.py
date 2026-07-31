@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -146,6 +146,165 @@ class AppRunResponse(BaseModel):
     updated_at: str
 
 
+class _StrictResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class ResultCompatibilityResponse(_StrictResponse):
+    state: Literal["normal", "legacy_unavailable"]
+    unavailable_reason: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=120,
+        exclude_if=lambda value: value is None,
+    )
+
+
+class CopyResultItemResponse(_StrictResponse):
+    item_id: str
+    kind: Literal["copy"]
+    label: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=30,
+        exclude_if=lambda value: value is None,
+    )
+    text: str = Field(min_length=1, max_length=5000)
+    actions: list[Literal["copy", "select", "edit"]] = Field(min_length=1, max_length=3)
+
+
+class TitleResultItemResponse(_StrictResponse):
+    item_id: str
+    kind: Literal["title"]
+    label: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=30,
+        exclude_if=lambda value: value is None,
+    )
+    text: str = Field(min_length=1, max_length=200)
+    actions: list[Literal["copy", "select", "edit"]] = Field(min_length=1, max_length=3)
+    selected: bool = False
+
+
+class CarouselResultItemResponse(_StrictResponse):
+    item_id: str
+    kind: Literal["carousel"]
+    title: str = Field(min_length=1, max_length=80)
+    cover_url: str
+    preview_url: str
+    download_url: str
+    page_count: int = Field(ge=1, le=100)
+    missing_facts: list[str] = Field(default_factory=list, max_length=20)
+    actions: list[Literal["preview", "publish"]] = Field(min_length=1, max_length=2)
+    details_available: list[Literal["pages", "publish_copy"]] = Field(
+        default_factory=list, max_length=4
+    )
+    artifact_version_ids: list[str] = Field(min_length=1, max_length=8)
+
+
+class VideoResultItemResponse(_StrictResponse):
+    item_id: str
+    kind: Literal["video"]
+    title: str = Field(min_length=1, max_length=80)
+    poster_url: str
+    playback_url: str
+    preview_url: str
+    download_url: str
+    duration_seconds: float = Field(gt=0, le=3600)
+    digital_human_name: str = Field(min_length=1, max_length=200)
+    voice_name: str = Field(min_length=1, max_length=200)
+    actions: list[Literal["play", "publish"]] = Field(min_length=1, max_length=2)
+    details_available: list[Literal["cover", "publish_copy", "spoken_script", "download"]] = Field(
+        default_factory=list, max_length=4
+    )
+    artifact_version_ids: list[str] = Field(min_length=2, max_length=8)
+
+
+GenerationRecordItemResponse = (
+    CopyResultItemResponse
+    | TitleResultItemResponse
+    | CarouselResultItemResponse
+    | VideoResultItemResponse
+)
+
+
+class GenerationRecordBlockResponse(_StrictResponse):
+    schema_version: Literal[1] = 1
+    record_id: str
+    app_run_id: str
+    project_id: str
+    app_id: Literal[
+        "builtin.marketing-copy",
+        "builtin.viral-titles",
+        "builtin.douyin-carousel",
+        "builtin.digital-human-video",
+    ]
+    app_name: str = Field(min_length=1, max_length=40)
+    result_shape: Literal["multi_copy", "multi_title", "single_carousel", "single_video"]
+    status: Literal["queued", "running", "needs_review", "completed", "failed", "cancelled"]
+    created_at: str
+    result_available_at: str | None
+    summary: str = Field(min_length=1, max_length=120)
+    compatibility: ResultCompatibilityResponse
+    items: list[GenerationRecordItemResponse]
+
+
+class GenerationRecordPageResponse(_StrictResponse):
+    schema_version: Literal[1] = 1
+    project_id: str
+    scope: Literal["current_app", "all_results"]
+    app_id: (
+        Literal[
+            "builtin.marketing-copy",
+            "builtin.viral-titles",
+            "builtin.douyin-carousel",
+            "builtin.digital-human-video",
+        ]
+        | None
+    )
+    records: list[GenerationRecordBlockResponse] = Field(max_length=20)
+    next_cursor: str | None
+
+
+class GenerationPublishCopyResponse(_StrictResponse):
+    title: str = Field(max_length=80)
+    description: str = Field(max_length=2000)
+    hashtags: list[str] = Field(default_factory=list, max_length=20)
+
+
+class GenerationCarouselPageResponse(_StrictResponse):
+    page_index: int = Field(ge=1, le=100)
+    image_url: str
+    download_url: str
+
+
+class GenerationCarouselPreviewResponse(_StrictResponse):
+    schema_version: Literal[1] = 1
+    kind: Literal["carousel"]
+    record_id: str
+    title: str = Field(min_length=1, max_length=80)
+    page_count: int = Field(ge=1, le=100)
+    pages: list[GenerationCarouselPageResponse] = Field(min_length=1, max_length=100)
+    publish_copy: GenerationPublishCopyResponse | None
+    download_url: str
+
+
+class GenerationVideoPreviewResponse(_StrictResponse):
+    schema_version: Literal[1] = 1
+    kind: Literal["video"]
+    record_id: str
+    title: str = Field(min_length=1, max_length=80)
+    duration_seconds: float = Field(gt=0, le=3600)
+    poster_url: str
+    playback_url: str
+    download_url: str
+    publish_copy: GenerationPublishCopyResponse | None
+
+
+GenerationMediaPreviewResponse = GenerationCarouselPreviewResponse | GenerationVideoPreviewResponse
+
+
 class IpBroadcastAppRunCreateRequest(BaseModel):
     project_id: str = Field(min_length=1, max_length=200)
     input_payload: dict[str, Any] = Field(default_factory=dict)
@@ -154,9 +313,26 @@ class IpBroadcastAppRunCreateRequest(BaseModel):
     context_snapshot_id: str | None = Field(default=None, min_length=1, max_length=200)
 
 
+class IpBroadcastSpokenScriptPrepareRequest(_StrictRequest):
+    project_id: str = Field(min_length=1, max_length=200)
+    input_payload: dict[str, Any] = Field(default_factory=dict)
+    context_snapshot_id: str | None = Field(default=None, min_length=1, max_length=200)
+
+
+class IpBroadcastSpokenScriptPrepareResponse(_StrictResponse):
+    schema_version: Literal[1] = 1
+    spoken_script: str = Field(min_length=1, max_length=2000)
+    source_revision: str = Field(min_length=1, max_length=200)
+
+
 class IpBroadcastProviderRetryPlanRequest(BaseModel):
     root_cause: str = Field(min_length=1, max_length=500)
     retry_reason: str = Field(min_length=1, max_length=500)
+
+
+class IpBroadcastResultPresentation(_StrictResponse):
+    digital_human_name: str = Field(min_length=1, max_length=200)
+    voice_name: str = Field(min_length=1, max_length=200)
 
 
 class IpBroadcastAppRunResponse(BaseModel):
@@ -177,5 +353,6 @@ class IpBroadcastAppRunResponse(BaseModel):
     notices: dict[int, dict[str, str]]
     artifact_keys: list[str]
     artifact_details: dict[str, Any] = Field(default_factory=dict)
+    presentation: IpBroadcastResultPresentation
     created_at: str
     updated_at: str

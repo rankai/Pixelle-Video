@@ -23,7 +23,9 @@ def _pages(case: dict) -> list[dict]:
         return [
             {
                 "page_index": index,
+                "layout_role": "cover" if index == 1 else "action" if index == case["page_count"] else "content",
                 "text": f"第{index}页",
+                "asset_description": "已登记图片素材",
                 "asset_refs": [] if case.get("missing_asset_on_page") == index else [f"asset:page-{index}"],
                 "render_state": state,
                 "dimensions": dimensions,
@@ -32,7 +34,7 @@ def _pages(case: dict) -> list[dict]:
         ]
     if isinstance(case["pages"], list):
         return [
-            {"page_index": index, "text": f"第{index}页", "asset_refs": [f"asset:page-{index}"], "render_state": "ready", "dimensions": {"width_px": 1080, "height_px": 1440}}
+            {"page_index": index, "layout_role": "cover" if index == 1 else "action" if index == case["page_count"] else "content", "text": f"第{index}页", "asset_description": "已登记图片素材", "asset_refs": [f"asset:page-{index}"], "render_state": "ready", "dimensions": {"width_px": 1080, "height_px": 1440}}
             for index in case["pages"]
         ]
     raise AssertionError(f"unsupported fixture pages: {case['pages']}")
@@ -159,17 +161,17 @@ def test_ac4_flag_contract_and_entry_has_no_executor_ui_or_platform_action():
     assert flags["frontend_cannot_write"] is True
     assert contract["feature_flag_contract"]["legacy_templates_and_video_rendering_unchanged_when_disabled"] is True
     assert contract["entry_implementation_boundary"] == {
-        "executor_implemented": False,
-        "renderer_implemented": False,
-        "frontend_ui_implemented": False,
+        "executor_implemented": True,
+        "renderer_implemented": True,
+        "frontend_ui_implemented": True,
         "platform_action_enabled": False,
-        "allowed_changes": ["contract", "fixture", "entry_test", "review_evidence"],
+        "allowed_changes": ["contract", "fixture", "entry_test", "review_evidence", "workbench", "renderer"],
     }
     assert not (ROOT / "pixelle_video/app_center/executors/douyin_carousel_v1.py").exists()
     assert not (ROOT / "desktop/src/features/app-center/carousel").exists()
 
 
-def test_ac4_entry_review_keeps_business_implementation_out_of_scope():
-    review = (ROOT / "docs/reviews/application-publishing-program/AC-4-entry-review-2026-07-20.md").read_text()
-    for marker in ("entry_in_progress", "不实现真实图文 Executor", "不上传到抖音", "不点击最终发布", "AC-4 implementation"):
-        assert marker in review
+def test_ac4_entry_review_points_to_current_business_implementation():
+    plan = (ROOT / "docs/superpowers/specs/2026-07-31-four-application-business-flow-and-output-experience-optimization-plan.md").read_text()
+    for marker in ("APP-BIZ-3：抖音图文纵向闭环", "完整真实预览、下载和发布中心交付", "独立六维评审"):
+        assert marker in plan

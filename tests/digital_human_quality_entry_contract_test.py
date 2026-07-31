@@ -31,7 +31,7 @@ def test_quality_entry_freezes_source_ownership_and_field_separation():
     required_fields = contract["field_separation"]["required_run_fields"]
     assert (
         required_fields["spoken_script"]["path"]
-        == "content_source.script | source_artifact.variants[selected_variant_index].full_text"
+        == "content_source.spoken_script | content_source.script | source_artifact.variants[selected_variant_index].full_text"
     )
     assert contract["content_sources"][0]["run_field"] == "spoken_script"
     assert contract["delivery_payload"]["fields"]["publish_description"]["type"] == "string"

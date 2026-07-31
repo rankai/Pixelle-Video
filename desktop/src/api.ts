@@ -5,6 +5,7 @@ export type RuntimeInfo = {
   desktopToken: string;
   featureFlags: {
     brandProjectBoundaryV1: boolean;
+    appResultHistoryV1: boolean;
   };
 };
 
@@ -194,6 +195,115 @@ export type AppRunExecutionAccepted = {
   state: "queued" | "running";
 };
 
+export type GenerationTextResultItem = {
+  item_id: string;
+  kind: "copy" | "title";
+  label?: string;
+  text: string;
+  actions: Array<"copy" | "select" | "edit">;
+  selected?: boolean;
+};
+
+export type GenerationCarouselResultItem = {
+  item_id: string;
+  kind: "carousel";
+  title: string;
+  cover_url: string;
+  preview_url: string;
+  download_url: string;
+  page_count: number;
+  missing_facts?: string[];
+  actions: Array<"preview" | "publish">;
+  details_available: Array<"pages" | "publish_copy">;
+  artifact_version_ids: string[];
+};
+
+export type GenerationVideoResultItem = {
+  item_id: string;
+  kind: "video";
+  title: string;
+  poster_url: string;
+  playback_url: string;
+  preview_url: string;
+  download_url: string;
+  duration_seconds: number;
+  digital_human_name: string;
+  voice_name: string;
+  actions: Array<"play" | "publish">;
+  details_available: Array<"cover" | "publish_copy" | "spoken_script" | "download">;
+  artifact_version_ids: string[];
+};
+
+export type GenerationRecordItem =
+  | GenerationTextResultItem
+  | GenerationCarouselResultItem
+  | GenerationVideoResultItem;
+
+export type GenerationRecordBlock = {
+  schema_version: 1;
+  record_id: string;
+  app_run_id: string;
+  project_id: string;
+  app_id:
+    | "builtin.marketing-copy"
+    | "builtin.viral-titles"
+    | "builtin.douyin-carousel"
+    | "builtin.digital-human-video";
+  app_name: string;
+  result_shape: "multi_copy" | "multi_title" | "single_carousel" | "single_video";
+  status: "queued" | "running" | "needs_review" | "completed" | "failed" | "cancelled";
+  created_at: string;
+  result_available_at: string | null;
+  summary: string;
+  compatibility: {
+    state: "normal" | "legacy_unavailable";
+    unavailable_reason?: string;
+  };
+  items: GenerationRecordItem[];
+};
+
+export type GenerationRecordPage = {
+  schema_version: 1;
+  project_id: string;
+  scope: "current_app" | "all_results";
+  app_id: GenerationRecordBlock["app_id"] | null;
+  records: GenerationRecordBlock[];
+  next_cursor: string | null;
+};
+
+export type GenerationPublishCopy = {
+  title: string;
+  description: string;
+  hashtags: string[];
+};
+
+export type GenerationCarouselPreview = {
+  schema_version: 1;
+  kind: "carousel";
+  record_id: string;
+  title: string;
+  page_count: number;
+  pages: Array<{ page_index: number; image_url: string; download_url?: string }>;
+  publish_copy: GenerationPublishCopy | null;
+  download_url: string;
+};
+
+export type GenerationVideoPreview = {
+  schema_version: 1;
+  kind: "video";
+  record_id: string;
+  title: string;
+  duration_seconds: number;
+  poster_url: string;
+  playback_url: string;
+  download_url: string;
+  publish_copy: GenerationPublishCopy | null;
+};
+
+export type GenerationMediaPreview =
+  | GenerationCarouselPreview
+  | GenerationVideoPreview;
+
 export type StylePreset = {
   style_id: string;
   version: number;
@@ -241,6 +351,10 @@ export type IpBroadcastAppRun = {
     content?: Record<string, unknown>;
     file_refs?: Array<Record<string, unknown>>;
   }>;
+  presentation: {
+    digital_human_name: string;
+    voice_name: string;
+  };
   context_snapshot_id?: string | null;
   created_at: string;
   updated_at: string;
@@ -582,6 +696,7 @@ export async function getRuntime(): Promise<RuntimeInfo> {
       desktopToken: import.meta.env.VITE_DESKTOP_TOKEN || "",
       featureFlags: {
         brandProjectBoundaryV1: false,
+        appResultHistoryV1: false,
       },
     };
     browserRuntime.apiBaseUrl = await resolveBrowserApiBaseUrl();
@@ -914,6 +1029,20 @@ export function createIpBroadcastAppRun(values: {
   });
 }
 
+export function prepareIpBroadcastSpokenScript(values: {
+  project_id: string;
+  input_payload: Record<string, unknown>;
+  context_snapshot_id?: string | null;
+}) {
+  return apiFetch<{ schema_version: 1; spoken_script: string; source_revision: string }>(
+    "/api/app-center/ip-broadcast/prepare-script",
+    {
+      method: "POST",
+      body: JSON.stringify(values),
+    },
+  );
+}
+
 export function getIpBroadcastAppRun(appRunId: string, projectId: string) {
   return apiFetch<IpBroadcastAppRun>(
     `/api/app-center/ip-broadcast/runs/${encodeURIComponent(appRunId)}?project_id=${encodeURIComponent(projectId)}`,
@@ -1086,6 +1215,51 @@ export function listAppRuns(projectId?: string) {
   return apiFetch<AppRun[]>(`/api/app-runs${query}`);
 }
 
+export function listGenerationRecords(
+  projectId: string,
+  values: {
+    scope?: "current_app" | "all_results";
+    app_id?: GenerationRecordBlock["app_id"];
+    cursor?: string | null;
+    limit?: number;
+  } = {},
+) {
+  const scope = values.scope || "current_app";
+  const query = new URLSearchParams({ scope, limit: String(values.limit || 10) });
+  if (scope === "current_app" && values.app_id) query.set("app_id", values.app_id);
+  if (values.cursor) query.set("cursor", values.cursor);
+  return apiFetch<GenerationRecordPage>(
+    `/api/content-projects/${encodeURIComponent(projectId)}/result-records?${query.toString()}`,
+  );
+}
+
+export function getGenerationRecordPreview(path: string) {
+  return apiFetch<GenerationMediaPreview>(path);
+}
+
+export function generationRecordMediaBlobUrl(path: string) {
+  return assetBlobUrl(path);
+}
+
+export async function downloadGenerationRecordMedia(path: string, filename: string) {
+  const { apiBaseUrl, desktopToken } = await getRuntime();
+  const headers = new Headers();
+  if (desktopToken) headers.set("X-Pixelle-Desktop-Token", desktopToken);
+  const response = await fetch(apiUrl(apiBaseUrl, path), { headers });
+  if (!response.ok) throw new Error(await response.text());
+  const blobUrl = URL.createObjectURL(await response.blob());
+  try {
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } finally {
+    URL.revokeObjectURL(blobUrl);
+  }
+}
+
 export function createAppRun(values: {
   project_id: string;
   app_id: string;
@@ -1182,9 +1356,10 @@ export async function downloadAppArtifactFile(artifactId: string, fileKey: strin
 }
 
 export function appendArtifactVersion(artifactId: string, content: Record<string, unknown>, source: "edited" | "generated" = "edited") {
+  const schemaVersion = typeof content.schema_version === "number" ? content.schema_version : 1;
   return apiFetch<ArtifactVersion>(`/api/artifacts/${artifactId}/versions`, {
     method: "POST",
-    body: JSON.stringify({ content, source }),
+    body: JSON.stringify({ content, source, schema_version: schemaVersion }),
   });
 }
 
@@ -1354,6 +1529,7 @@ export function createDigitalHumanV2(payload: {
   name: string;
   provider?: string;
   poster_asset_id?: string | null;
+  default_voice_id?: string | null;
   source_asset_id?: string | null;
   source_revision_id?: string | null;
   gender?: string | null;
@@ -1379,7 +1555,7 @@ export function createDigitalHumanSceneV2(profileId: string, payload: {
   return apiFetch<Record<string, unknown>>(`/api/v2/domain/digital-humans/${profileId}/scenes`, { method: "POST", body: JSON.stringify(payload) });
 }
 
-export function patchDigitalHumanV2(profileId: string, payload: { name?: string; provider?: string; poster_asset_id?: string | null; gender?: string | null; style?: string | null; posture?: string | null; supported_workflows?: string[]; default_scene_id?: string | null; quality_state?: string; status?: string }) {
+export function patchDigitalHumanV2(profileId: string, payload: { name?: string; provider?: string; poster_asset_id?: string | null; default_voice_id?: string | null; gender?: string | null; style?: string | null; posture?: string | null; supported_workflows?: string[]; default_scene_id?: string | null; quality_state?: string; status?: string }) {
   return apiFetch<LibraryItemV2>(`/api/v2/domain/digital-humans/${encodeURIComponent(profileId)}`, { method: "PATCH", body: JSON.stringify(payload) });
 }
 

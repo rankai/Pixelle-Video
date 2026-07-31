@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from PIL import Image, ImageColor, UnidentifiedImageError
+from pydantic import BaseModel, Field
 
 from pixelle_video.app_center.brand_project import ProjectContextResolver
 from pixelle_video.app_center.digital_human_feature_gate import (
@@ -39,7 +40,13 @@ from pixelle_video.app_center.digital_human_workflow_catalog import (
     DigitalHumanWorkflowError,
     resolve_workflow_profile,
 )
+from pixelle_video.app_center.llm_port import (
+    AppLLMPort,
+    AppLLMPortError,
+    StructuredGenerationRequest,
+)
 from pixelle_video.app_center.models import AppRun, ArtifactVersion
+from pixelle_video.app_center.project_context import ProjectContextError
 from pixelle_video.app_center.registry import get_app
 from pixelle_video.app_center.repository import (
     AppCenterRepository,
@@ -49,9 +56,11 @@ from pixelle_video.app_center.repository import (
 from pixelle_video.app_center.runner import AppRunner, ExecutorOutput, RelatedArtifactOutput
 from pixelle_video.app_center.state_machine import InvalidAppRunTransition
 from pixelle_video.app_center.validation import validate_business_payload
+from pixelle_video.prompts.ip_broadcast import build_spoken_script_prompt
 from pixelle_video.services.ip_broadcast_workflow import (
     IpBroadcastSession,
     IpBroadcastSessionStore,
+    _normalize_script_paragraphs,
     run_ip_broadcast_step,
 )
 from pixelle_video.utils.os_util import get_data_path, get_output_path, get_temp_path
@@ -138,6 +147,12 @@ class IpBroadcastInputError(IpBroadcastAdapterError):
 
 class IpBroadcastSessionError(IpBroadcastAdapterError):
     pass
+
+
+class SpokenScriptOutput(BaseModel):
+    """The only model-owned field needed before media generation."""
+
+    spoken_script: str = Field(min_length=1, max_length=2000)
 
 
 @dataclass(frozen=True)
@@ -377,6 +392,7 @@ class IpBroadcastAppAdapter:
         enforce_feature_flag: bool = True,
         trusted_roots: Sequence[str | Path] | None = None,
         digital_human_asset_resolver=None,
+        digital_human_voice_resolver=None,
         allow_unreleased_workflows_for_controlled_live: bool = False,
         dual_backend_flag: bool | None = None,
         dual_desktop_flag: bool | None = None,
@@ -389,6 +405,7 @@ class IpBroadcastAppAdapter:
         self.task_projector = task_projector
         self.enforce_feature_flag = enforce_feature_flag
         self.digital_human_asset_resolver = digital_human_asset_resolver
+        self.digital_human_voice_resolver = digital_human_voice_resolver
         self.allow_unreleased_workflows_for_controlled_live = (
             allow_unreleased_workflows_for_controlled_live
         )
@@ -473,7 +490,102 @@ class IpBroadcastAppAdapter:
         if not gate.v2_enabled:
             raise IpBroadcastInputError("APP_DUAL_MODE_NOT_READY")
 
-    def validate_input(self, project_id: str, input_payload: dict[str, Any]) -> dict[str, Any]:
+    def _resolve_voice_binding(
+        self,
+        profile_id: str,
+        voice_request: dict[str, Any],
+    ) -> dict[str, Any]:
+        try:
+            if self.digital_human_voice_resolver is not None:
+                voice = self.digital_human_voice_resolver(
+                    profile_id,
+                    requested_voice_id=voice_request.get("voice_profile_id"),
+                    requested_audio_asset_id=voice_request.get("audio_asset_id"),
+                    requested_audio_revision_id=voice_request.get("audio_revision_id"),
+                )
+            elif self.digital_human_asset_resolver is not None:
+                # A custom media resolver may represent a profile outside the
+                # local asset repository (the test seam uses this deliberately).
+                if voice_request.get("voice_profile_id"):
+                    raise ValueError("VOICE_PROFILE_NOT_FOUND")
+                voice = {
+                    "voice_profile_id": None,
+                    "voice_name": "系统推荐男声",
+                    "audio_asset_id": None,
+                    "audio_revision_id": None,
+                    "authorization_status": "system",
+                    "resolution_source": "system_default",
+                    "tts_provider": "edge",
+                }
+            else:
+                from pixelle_video.services.assets_v2.repository import (
+                    AssetLibraryRepository,
+                )
+
+                voice = AssetLibraryRepository().resolve_digital_human_voice_binding(
+                    profile_id,
+                    requested_voice_id=voice_request.get("voice_profile_id"),
+                    requested_audio_asset_id=voice_request.get("audio_asset_id"),
+                    requested_audio_revision_id=voice_request.get("audio_revision_id"),
+                )
+        except (OSError, RuntimeError, ValueError) as exc:
+            code = str(exc).split(":", 1)[0].strip() or "DIGITAL_HUMAN_VOICE_INVALID"
+            raise IpBroadcastInputError(code) from exc
+        if not isinstance(voice, dict) or not voice.get("resolution_source"):
+            raise IpBroadcastInputError("DIGITAL_HUMAN_VOICE_INVALID")
+        return voice
+
+    def _revalidate_pinned_voice_binding(
+        self,
+        profile_id: str,
+        pinned_voice: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Validate a historical voice snapshot without reclassifying its source."""
+
+        resolution_source = str(pinned_voice.get("resolution_source") or "")
+        if resolution_source == "system_default":
+            if (
+                pinned_voice.get("voice_profile_id") not in (None, "")
+                or pinned_voice.get("audio_asset_id") not in (None, "")
+                or pinned_voice.get("audio_revision_id") not in (None, "")
+                or pinned_voice.get("tts_provider") != "edge"
+            ):
+                raise IpBroadcastInputError("DIGITAL_HUMAN_VOICE_INVALID")
+            return dict(pinned_voice)
+        if resolution_source not in {"run_override", "digital_human_default"}:
+            raise IpBroadcastInputError("DIGITAL_HUMAN_VOICE_INVALID")
+        voice_profile_id = str(pinned_voice.get("voice_profile_id") or "").strip()
+        audio_revision_id = str(pinned_voice.get("audio_revision_id") or "").strip()
+        if not voice_profile_id or not audio_revision_id:
+            raise IpBroadcastInputError("DIGITAL_HUMAN_VOICE_INVALID")
+        resolved = self._resolve_voice_binding(
+            profile_id,
+            {
+                "voice_profile_id": voice_profile_id,
+                "audio_asset_id": pinned_voice.get("audio_asset_id"),
+                "audio_revision_id": audio_revision_id,
+            },
+        )
+        for field in (
+            "voice_profile_id",
+            "audio_asset_id",
+            "audio_revision_id",
+            "tts_provider",
+        ):
+            if resolved.get(field) != pinned_voice.get(field):
+                raise IpBroadcastInputError("DIGITAL_HUMAN_VOICE_INVALID")
+        # Name and authorization labels are historical display facts. The
+        # resolver above still enforces the current revoked/denied boundary,
+        # while this return preserves the immutable AppRun fingerprint.
+        return dict(pinned_voice)
+
+    def validate_input(
+        self,
+        project_id: str,
+        input_payload: dict[str, Any],
+        *,
+        pinned_voice_snapshot: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Validate and normalize source facts; return a pinned revision."""
 
         if not isinstance(input_payload, dict):
@@ -566,7 +678,10 @@ class IpBroadcastAppAdapter:
                 content = {**content, "title": selected_title}
             elif content_mode == "custom_script":
                 source_text = str(content.get("script") or "").strip()
-            human = normalized_v2.payload["digital_human"]
+            spoken_script_override = str(content.get("spoken_script") or "").strip()
+            if spoken_script_override:
+                source_text = spoken_script_override
+            human = dict(normalized_v2.payload["digital_human"])
             try:
                 resolver = self.digital_human_asset_resolver or resolve_asset_library_scene
                 asset, scene = resolver(str(human["scene_id"]))
@@ -576,8 +691,31 @@ class IpBroadcastAppAdapter:
                     scene=scene,
                     require_released_workflow=not self.allow_unreleased_workflows_for_controlled_live,
                 )
+                human["display_name"] = str(
+                    (scene or {}).get("name")
+                    or (asset or {}).get("name")
+                    or human["portrait_id"]
+                ).strip()[:200]
             except DigitalHumanInputError as exc:
                 raise IpBroadcastInputError(exc.code) from exc
+            if pinned_voice_snapshot is not None:
+                voice = self._revalidate_pinned_voice_binding(
+                    str(human["portrait_id"]),
+                    pinned_voice_snapshot,
+                )
+            else:
+                voice = self._resolve_voice_binding(
+                    str(human["portrait_id"]),
+                    normalized_v2.payload.get("voice_request") or {},
+                )
+            canonical_snapshot = {
+                "project_id": project_id,
+                "schema_version": normalized_v2.schema_version,
+                "content_source": content,
+                "digital_human": human,
+                "voice": voice,
+                "delivery": normalized_v2.payload["delivery"],
+            }
             return {
                 "app_version": normalized_v2.app_version,
                 "schema_version": normalized_v2.schema_version,
@@ -589,9 +727,10 @@ class IpBroadcastAppAdapter:
                 "source_text": source_text,
                 "source_artifact_version_ids": source_ids,
                 "selected_variant_index": content.get("selected_variant_index"),
-                "source_revision": normalized_v2.source_revision,
+                "source_revision": _fingerprint(canonical_snapshot),
                 "content_source": content,
                 "digital_human": human,
+                "voice": voice,
                 "digital_human_mode": human["mode"],
                 "digital_human_workflow_profile": human["workflow_profile"],
                 "portrait_id": human["portrait_id"],
@@ -695,6 +834,91 @@ class IpBroadcastAppAdapter:
             ),
         }
 
+    async def prepare_spoken_script(
+        self,
+        project_id: str,
+        input_payload: dict[str, Any],
+        *,
+        llm_port: AppLLMPort,
+        context_snapshot_id: str | None = None,
+    ) -> dict[str, str]:
+        """Turn confirmed content into an editable script before media work.
+
+        This is deliberately a preparation call, not a second AppRun path. The
+        eventual AppRun still stores the original source binding plus the
+        user's confirmed ``content_source.spoken_script`` override.
+        """
+
+        self._ensure_entry_enabled()
+        if input_payload.get("schema_version") != 2:
+            raise IpBroadcastInputError("DIGITAL_HUMAN_SPOKEN_SCRIPT_REQUIRES_V2")
+        self._ensure_dual_mode_gate()
+        if self.context_resolver is not None and context_snapshot_id is not None:
+            try:
+                self.repository.resolve_run_context_snapshot(
+                    project_id,
+                    input_payload,
+                    expected_context_snapshot_id=context_snapshot_id,
+                )
+            except ProjectContextError as exc:
+                raise IpBroadcastInputError(exc.code) from exc
+        normalized = self.validate_input(project_id, input_payload)
+        source_text = str(normalized.get("source_text") or "").strip()
+        if not source_text:
+            raise IpBroadcastInputError("DIGITAL_HUMAN_CONTENT_SOURCE_INCOMPLETE")
+        content_source = normalized.get("content_source")
+        content_source = content_source if isinstance(content_source, dict) else {}
+        supporting_facts = str(content_source.get("selling_points") or "").strip()
+        request = StructuredGenerationRequest(
+            app_id=self.app_id,
+            prompt_version="digital-human-spoken-script-v1",
+            input_schema_ref="digital-human-video-input.v2",
+            output_schema_ref="digital-human-spoken-script-output.v1",
+            prompt_variables={
+                "confirmed_content": source_text,
+                "confirmed_supporting_facts": supporting_facts,
+            },
+            context={
+                "task": "整理为可朗读的数字人口播稿",
+                "prompt_instructions": build_spoken_script_prompt(
+                    source_text,
+                    supporting_facts,
+                ),
+            },
+            request_id=f"{project_id}:digital-human-spoken-script:{normalized['source_revision']}",
+            idempotency_key=f"digital-human-spoken-script:{normalized['source_revision']}",
+            trusted_style_rules=(
+                "句子短、停顿自然，按自然语义分成 3-6 个短段落",
+                "前几秒进入主题，不堆叠卖点，结尾只保留一个行动指引",
+                "只保留已确认内容，不新增价格、时间、地址、效果或资格承诺",
+                "不改变用户核心意思，不添加标题、编号或解释",
+            ),
+        )
+        try:
+            response = await llm_port.generate_structured(
+                request,
+                response_type=SpokenScriptOutput,
+            )
+        except AppLLMPortError as exc:
+            raise IpBroadcastInputError(exc.code) from exc
+        output = response.parsed_output
+        if isinstance(output, SpokenScriptOutput):
+            raw_script = output.spoken_script
+        else:
+            try:
+                raw_script = SpokenScriptOutput.model_validate(output).spoken_script
+            except Exception as exc:
+                raise IpBroadcastInputError("DIGITAL_HUMAN_SPOKEN_SCRIPT_INVALID") from exc
+        spoken_script = _normalize_script_paragraphs(raw_script, source_text=source_text).strip()
+        if not spoken_script:
+            raise IpBroadcastInputError("DIGITAL_HUMAN_SPOKEN_SCRIPT_INVALID")
+        return {
+            "spoken_script": spoken_script,
+            "source_revision": str(normalized["source_revision"]),
+            "model_ref": response.model_ref,
+            "provider_class": response.provider_class,
+        }
+
     def _revalidate_v2_snapshot(self, run: AppRun, session: IpBroadcastSession) -> None:
         """Re-check current asset/revision facts before any resumed execution."""
 
@@ -723,7 +947,14 @@ class IpBroadcastAppAdapter:
                 "digital_human": run.input_payload.get("digital_human") or {},
                 "delivery": run.input_payload.get("delivery") or {},
             }
-            normalized = self.validate_input(run.project_id, canonical_payload)
+            pinned_voice = run.input_payload.get("voice")
+            if not isinstance(pinned_voice, dict):
+                raise IpBroadcastInputError("DIGITAL_HUMAN_VOICE_INVALID")
+            normalized = self.validate_input(
+                run.project_id,
+                canonical_payload,
+                pinned_voice_snapshot=pinned_voice,
+            )
         except IpBroadcastInputError as exc:
             if exc.code in {
                 "DIGITAL_HUMAN_ASSET_REVISION_MISMATCH",
@@ -737,6 +968,7 @@ class IpBroadcastAppAdapter:
         fixed_inputs = {
             "content_source": normalized.get("content_source"),
             "digital_human": normalized.get("digital_human"),
+            "voice": normalized.get("voice"),
             "delivery": normalized.get("delivery"),
         }
         expected_fingerprint = _fingerprint(fixed_inputs)
@@ -1055,6 +1287,7 @@ class IpBroadcastAppAdapter:
                 or input_payload.get("content_source"),
                 "digital_human": normalized.get("digital_human")
                 or input_payload.get("digital_human"),
+                "voice": normalized.get("voice") or input_payload.get("voice"),
                 "delivery": normalized.get("delivery") or input_payload.get("delivery"),
             }
             session.state["quality_fixed_inputs"] = fixed_inputs
@@ -1128,6 +1361,8 @@ class IpBroadcastAppAdapter:
             "digital_human_width",
             "digital_human_height",
             "tts_ref_audio_id",
+            "tts_ref_audio_asset_id",
+            "tts_ref_audio_revision_id",
             "tts_inference_mode",
             "tts_voice",
             "tts_speed",
@@ -1150,6 +1385,8 @@ class IpBroadcastAppAdapter:
                 value = nested_human.get(source_key)
                 if value not in (None, ""):
                     session.state[state_key] = value
+            if nested_human.get("display_name"):
+                session.state["digital_human_name"] = str(nested_human["display_name"]).strip()[:200]
         if normalized.get("digital_human_mode"):
             mode = str(normalized["digital_human_mode"])
             profile = str(normalized.get("digital_human_workflow_profile") or "stable")
@@ -1165,6 +1402,23 @@ class IpBroadcastAppAdapter:
             if workflow_key not in workflow_paths:
                 raise IpBroadcastInputError("DIGITAL_HUMAN_WORKFLOW_PROFILE_INVALID")
             session.state["digital_human_workflow"] = workflow_paths[workflow_key]
+        voice = normalized.get("voice")
+        if isinstance(voice, dict):
+            session.state["voice_binding"] = dict(voice)
+            voice_profile_id = str(voice.get("voice_profile_id") or "").strip()
+            if voice_profile_id:
+                session.state["tts_inference_mode"] = "comfyui"
+                session.state["tts_workflow"] = "runninghub/tts_index_custom.json"
+                session.state["tts_ref_audio_id"] = voice_profile_id
+                session.state["tts_ref_audio_asset_id"] = str(
+                    voice.get("audio_asset_id") or ""
+                )
+                session.state["tts_ref_audio_revision_id"] = str(
+                    voice.get("audio_revision_id") or ""
+                )
+            else:
+                session.state["tts_inference_mode"] = "local"
+                session.state["tts_voice"] = "zh-CN-YunjianNeural"
         session.step_status[1] = "done"
         session.step_status[2] = "done"
         session.step_status[3] = "pending"

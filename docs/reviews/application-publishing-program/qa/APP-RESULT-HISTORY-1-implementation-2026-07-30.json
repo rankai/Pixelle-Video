@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "stage": "APP-RESULT-HISTORY-1",
+  "gate": "PG-ARH-B",
+  "status": "implementation_review_pending",
+  "change_request": "CR-APP-RESULT-HISTORY-001",
+  "implementation": {
+    "read_projection_only": true,
+    "new_result_fact_table": false,
+    "migration_changed": false,
+    "stable_keyset_cursor": true,
+    "cursor_sort_anchor": "result_available_at,app_run_id",
+    "cursor_revision_rejects_mutated_result_set": true,
+    "cursor_revision_all_visible_rows_sha256": true,
+    "cursor_canonical_base64url_required": true,
+    "cursor_bound_to_project_scope_app_shape_status": true,
+    "project_isolation_in_sql": true,
+    "legacy_per_record_fallback": true,
+    "feature_flag_default": false
+  },
+  "business_cardinality": {
+    "marketing_copy": {
+      "records": 1,
+      "items": 3
+    },
+    "viral_titles": {
+      "records": 1,
+      "items": 6,
+      "persisted_25_candidate_case": 25
+    },
+    "douyin_carousel": {
+      "records": 1,
+      "items": 1,
+      "pages": 5
+    },
+    "digital_human": {
+      "records": 1,
+      "items": 1,
+      "duration_seconds": 22.4
+    }
+  },
+  "read_safety": {
+    "selects_per_full_page": 5,
+    "three_reads_selects": 15,
+    "sqlite_all_table_snapshot_unchanged": true,
+    "n_plus_one": false
+  },
+  "performance": {
+    "fixture_app_runs": 100,
+    "page_size": 10,
+    "latest_ten_ms": 2.159,
+    "budget_ms": 350,
+    "passed": true
+  },
+  "tests": {
+    "targeted": "11 passed",
+    "entry_plus_targeted": "32 passed",
+    "application_center_regression": "191 passed",
+    "json_schema": "passed",
+    "ruff_check": "passed",
+    "ruff_format_check": "passed",
+    "diff_check": "passed"
+  },
+  "external_actions": {
+    "llm_calls": 0,
+    "tts_calls": 0,
+    "runninghub_calls": 0,
+    "platform_actions": 0,
+    "uploads": 0,
+    "final_publish_clicks": 0
+  },
+  "independent_review": {
+    "pending": false,
+    "p0": 0,
+    "p1": 0,
+    "p2": 0,
+    "result": "PG-ARH-B_passed"
+  },
+  "next_stage_blocked_until_review": false
+}

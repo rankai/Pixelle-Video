@@ -175,6 +175,20 @@ def test_desktop_sidecar_receives_brand_project_rollout_flag():
     assert "legacy interaction" in source
 
 
+def test_desktop_sidecar_keeps_result_history_rollout_flag_aligned():
+    source = Path("desktop/src-tauri/src/main.rs").read_text()
+    main_source = Path("desktop/src/main.tsx").read_text()
+    feature_source = Path("desktop/src/featureFlags.ts").read_text()
+
+    assert 'std::env::var("PIXELLE_APP_RESULT_HISTORY_V1")' in source
+    assert '.env("PIXELLE_APP_RESULT_HISTORY_V1", app_result_history_v1)' in source
+    assert "app_result_history_v1," in source
+    assert "feature_flags: RuntimeFeatureFlags" in source
+    assert "initializeDesktopRuntime" in main_source
+    assert "applyRuntimeFeatureFlags(runtime.featureFlags)" in main_source
+    assert "mergeRuntimeFeatureFlags" in feature_source
+
+
 def test_digital_human_source_tabs_stay_inside_the_workbench_pane():
     styles = Path("desktop/src/styles.css").read_text()
 

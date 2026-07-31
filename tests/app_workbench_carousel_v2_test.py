@@ -170,6 +170,9 @@ def test_carousel_v2_uses_pinned_context_style_source_and_asset_revision(tmp_pat
     result = asyncio.run(runner.run(run.app_run_id))
 
     assert result.state == "needs_review"
+    attempt = repository.list_attempts(run.app_run_id)[-1]
+    assert attempt.model_ref == "local-default:fake"
+    assert attempt.provider_class == "fake"
     assert port.requests[0].input_schema_ref == "douyin-carousel-input.v2"
     assert port.requests[0].prompt_version == CAROUSEL_PROMPT_VERSION_V2
     assert "每页只承载一个主要信息" in port.requests[0].trusted_style_rules

@@ -7,8 +7,11 @@ import {
   createContentProject,
   createIpBroadcastAppRun,
   createPublishPackageV2,
+  downloadGenerationRecordMedia,
   downloadArtifact,
   executeIpBroadcastAppRun,
+  generationRecordMediaBlobUrl,
+  getGenerationRecordPreview,
   getIpBroadcastAppRun,
   getCurrentContextSnapshot,
   getBrandProjectSummary,
@@ -17,8 +20,10 @@ import {
   listArtifactVersions,
   listApplications,
   listContentProjects,
+  listGenerationRecords,
   listProjectBrands,
   listProjectArtifacts,
+  prepareIpBroadcastSpokenScript,
   replaceProjectBrand,
   retryIpBroadcastAppRun,
   syncProjectBrand,
@@ -33,8 +38,11 @@ vi.mock("../../api", () => ({
   createContentProject: vi.fn(),
   createIpBroadcastAppRun: vi.fn(),
   createPublishPackageV2: vi.fn(),
+  downloadGenerationRecordMedia: vi.fn(),
   downloadArtifact: vi.fn(),
   executeIpBroadcastAppRun: vi.fn(),
+  generationRecordMediaBlobUrl: vi.fn(),
+  getGenerationRecordPreview: vi.fn(),
   getIpBroadcastAppRun: vi.fn(),
   getCurrentContextSnapshot: vi.fn(),
   getBrandProjectSummary: vi.fn(),
@@ -44,8 +52,10 @@ vi.mock("../../api", () => ({
   listArtifactVersions: vi.fn(),
   listApplications: vi.fn(),
   listContentProjects: vi.fn(),
+  listGenerationRecords: vi.fn(),
   listProjectBrands: vi.fn(),
   listProjectArtifacts: vi.fn(),
+  prepareIpBroadcastSpokenScript: vi.fn(),
   replaceProjectBrand: vi.fn(),
   retryIpBroadcastAppRun: vi.fn(),
   syncProjectBrand: vi.fn(),
@@ -53,17 +63,25 @@ vi.mock("../../api", () => ({
 }));
 
 vi.mock("../assets/components/AssetPickerDialog", () => ({
-  AssetPickerDialog: ({ open, context, onSelectScene }: { open: boolean; context?: { media_type?: "image" | "video" }; onSelectScene?: (item: unknown, sceneId: string) => void }) => {
+  AssetPickerDialog: ({ open, kind, context, onSelect, onSelectScene }: { open: boolean; kind?: string; context?: { media_type?: "image" | "video" }; onSelect?: (item: unknown) => void; onSelectScene?: (item: unknown, sceneId: string) => void }) => {
     if (!open) return null;
-    const mediaType = context?.media_type || "image";
+    if (kind === "voice") {
+      return <button type="button" aria-label="测试选择老板自然声" onClick={() => onSelect?.({ resource_id: "voice-owner", name: "老板自然声", summary: {} })}>确认测试声音</button>;
+    }
+    const mediaTypes: Array<"image" | "video"> = context?.media_type ? [context.media_type] : ["image", "video"];
     return (
-      <button
-        type="button"
-        aria-label={`测试选择${mediaType === "video" ? "视频" : "图片"}场景`}
-        onClick={() => onSelectScene?.({ resource_id: `portrait-${mediaType}`, name: `测试${mediaType === "video" ? "视频" : "图片"}数字人`, status: "ready", summary: { width: mediaType === "video" ? 1080 : 1080, height: mediaType === "video" ? 1920 : 1920, duration_ms: 0 }, scenes: [{ scene_id: `scene-${mediaType}`, preview_media_type: mediaType, source_revision_id: `revision-${mediaType}`, width: mediaType === "video" ? 1920 : 1080, height: mediaType === "video" ? 1080 : 1920, duration_ms: mediaType === "video" ? 12000 : 0 }] }, `scene-${mediaType}`)}
-      >
-        确认测试场景
-      </button>
+      <>
+        {mediaTypes.map((mediaType) => (
+          <button
+            key={mediaType}
+            type="button"
+            aria-label={`测试选择${mediaType === "video" ? "视频" : "图片"}场景`}
+            onClick={() => onSelectScene?.({ resource_id: `portrait-${mediaType}`, name: `测试${mediaType === "video" ? "视频" : "图片"}数字人`, status: "ready", summary: { width: 1080, height: 1920, duration_ms: 0, default_voice_id: "voice-owner", default_voice_name: "老板自然声" }, scenes: [{ scene_id: `scene-${mediaType}`, preview_media_type: mediaType, source_revision_id: `revision-${mediaType}`, width: mediaType === "video" ? 1920 : 1080, height: mediaType === "video" ? 1080 : 1920, duration_ms: mediaType === "video" ? 12000 : 0 }] }, `scene-${mediaType}`)}
+          >
+            确认测试场景
+          </button>
+        ))}
+      </>
     );
   },
 }));
@@ -75,8 +93,11 @@ const mocks = {
   createContentProject: vi.mocked(createContentProject),
   createIpBroadcastAppRun: vi.mocked(createIpBroadcastAppRun),
   createPublishPackageV2: vi.mocked(createPublishPackageV2),
+  downloadGenerationRecordMedia: vi.mocked(downloadGenerationRecordMedia),
   downloadArtifact: vi.mocked(downloadArtifact),
   executeIpBroadcastAppRun: vi.mocked(executeIpBroadcastAppRun),
+  generationRecordMediaBlobUrl: vi.mocked(generationRecordMediaBlobUrl),
+  getGenerationRecordPreview: vi.mocked(getGenerationRecordPreview),
   getIpBroadcastAppRun: vi.mocked(getIpBroadcastAppRun),
   getCurrentContextSnapshot: vi.mocked(getCurrentContextSnapshot),
   getBrandProjectSummary: vi.mocked(getBrandProjectSummary),
@@ -85,8 +106,10 @@ const mocks = {
   listArtifactVersions: vi.mocked(listArtifactVersions),
   listApplications: vi.mocked(listApplications),
   listContentProjects: vi.mocked(listContentProjects),
+  listGenerationRecords: vi.mocked(listGenerationRecords),
   listProjectBrands: vi.mocked(listProjectBrands),
   listProjectArtifacts: vi.mocked(listProjectArtifacts),
+  prepareIpBroadcastSpokenScript: vi.mocked(prepareIpBroadcastSpokenScript),
   replaceProjectBrand: vi.mocked(replaceProjectBrand),
   retryIpBroadcastAppRun: vi.mocked(retryIpBroadcastAppRun),
   syncProjectBrand: vi.mocked(syncProjectBrand),
@@ -126,6 +149,7 @@ const run = {
     cover: { artifact_id: "artifact-cover", artifact_version_id: "cover-v1" },
     publish_copy: { artifact_id: "artifact-copy", artifact_version_id: "copy-v1" },
   },
+  presentation: { digital_human_name: "测试图片数字人", voice_name: "老板自然声" },
   created_at: "now",
   updated_at: "now",
 };
@@ -153,9 +177,34 @@ describe("DigitalHumanApplicationView", () => {
       }],
     });
     mocks.listContentProjects.mockResolvedValue([project]);
+    mocks.listGenerationRecords.mockResolvedValue({
+      schema_version: 1,
+      project_id: "project-1",
+      scope: "current_app",
+      app_id: "builtin.digital-human-video",
+      records: [],
+      next_cursor: null,
+    });
+    mocks.getGenerationRecordPreview.mockResolvedValue({
+      schema_version: 1,
+      kind: "video",
+      record_id: "run-1",
+      title: "门店新品口播",
+      duration_seconds: 18,
+      poster_url: "/poster",
+      playback_url: "/play",
+      download_url: "/download",
+      publish_copy: {
+        title: "门店新品口播",
+        description: "今天带你看看门店新品。",
+        hashtags: ["门店", "新品"],
+      },
+    });
+    mocks.generationRecordMediaBlobUrl.mockResolvedValue("blob:media");
     mocks.listProjectArtifacts.mockResolvedValue([]);
     mocks.listArtifactVersions.mockResolvedValue([]);
     mocks.createIpBroadcastAppRun.mockResolvedValue(run);
+    mocks.prepareIpBroadcastSpokenScript.mockResolvedValue({ schema_version: 1, spoken_script: "整理后的口播稿。", source_revision: "sha256:prepared" });
     mocks.createPublishPackageV2.mockResolvedValue({ package_id: "publish-package-1" } as never);
     mocks.executeIpBroadcastAppRun.mockResolvedValue({ ...run, state: "queued", projection: { ...run.projection, when: "queued_for_execution", task_status: "pending", app_run_state: "queued" } });
     mocks.artifactBlobUrl.mockResolvedValue("blob:final-video");
@@ -190,6 +239,92 @@ describe("DigitalHumanApplicationView", () => {
     expect(screen.getByText("等待开始")).toBeInTheDocument();
   });
 
+  it("shows one restrained video product card with real preview under the shared result history", async () => {
+    window.localStorage.setItem("pixelle_ip_broadcast_app_state_v1", JSON.stringify({
+      route: "/apps/digital-human-video",
+      project_id: "project-1",
+      app_run_id: "run-1",
+      session_id: "session-1",
+      source_mode: "blank_project",
+      source_revision: "sha256:source",
+      context_snapshot_id: null,
+      digital_human_mode: "image_talking",
+      portrait_id: "portrait-image",
+      digital_human_scene_id: "scene-image",
+      digital_human_asset_revision_id: "revision-image",
+      digital_human_media_type: "image",
+    }));
+    mocks.listGenerationRecords.mockResolvedValue({
+      schema_version: 1,
+      project_id: "project-1",
+      scope: "current_app",
+      app_id: "builtin.digital-human-video",
+      records: [{
+        schema_version: 1,
+        record_id: "run-1",
+        app_run_id: "run-1",
+        project_id: "project-1",
+        app_id: "builtin.digital-human-video",
+        app_name: "数字人口播",
+        result_shape: "single_video",
+        status: "completed",
+        created_at: "2026-07-30T18:00:00+08:00",
+        result_available_at: "2026-07-30T18:02:00+08:00",
+        summary: "门店新品口播",
+        compatibility: { state: "normal" },
+        items: [{
+          item_id: "artifact-video",
+          kind: "video",
+          title: "门店新品口播",
+          poster_url: "/poster",
+          playback_url: "/play",
+          preview_url: "/preview",
+          download_url: "/download",
+          duration_seconds: 18,
+          digital_human_name: "测试图片数字人",
+          voice_name: "老板自然声",
+          actions: ["play", "publish"],
+          details_available: ["cover", "publish_copy", "download"],
+          artifact_version_ids: ["video-v1", "cover-v1", "copy-v1"],
+        }],
+      }],
+      next_cursor: null,
+    });
+    mocks.listProjectArtifacts.mockResolvedValue([
+      { artifact_id: "artifact-video", project_id: "project-1", source_app_run_id: "run-1", artifact_type: "video", name: "成片", status: "ready", current_version_id: "video-v1", created_at: "now", updated_at: "now" },
+      { artifact_id: "artifact-cover", project_id: "project-1", source_app_run_id: "run-1", artifact_type: "cover", name: "封面", status: "ready", current_version_id: "cover-v1", created_at: "now", updated_at: "now" },
+      { artifact_id: "artifact-copy", project_id: "project-1", source_app_run_id: "run-1", artifact_type: "publish_copy", name: "发布文案", status: "ready", current_version_id: "copy-v1", created_at: "now", updated_at: "now" },
+    ]);
+    const onOpenPublishCenter = vi.fn();
+
+    render(
+      <DigitalHumanApplicationView
+        desktopEnabled
+        workbenchV2
+        resultHistoryV1
+        onBack={vi.fn()}
+        onOpenPublishCenter={onOpenPublishCenter}
+      />,
+    );
+
+    expect(await screen.findByRole("article", { name: "门店新品口播成品" })).toBeInTheDocument();
+    expect(screen.queryByText("运行：")).not.toBeInTheDocument();
+    expect(screen.queryByText("任务：")).not.toBeInTheDocument();
+    expect(screen.getByText("00:18")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "播放" }));
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByLabelText("门店新品口播")).toHaveAttribute("controls");
+    fireEvent.click(screen.getByRole("button", { name: /关\s*闭/ }));
+
+    fireEvent.click(screen.getByRole("button", { name: "去发布" }));
+    await waitFor(() => expect(mocks.createPublishPackageV2).toHaveBeenCalledWith({
+      project_id: "project-1",
+      artifact_version_ids: ["video-v1", "cover-v1", "copy-v1"],
+    }));
+    expect(onOpenPublishCenter).toHaveBeenCalledWith("publish-package-1");
+  });
+
   it("shows explicit legacy-brand association for a null-snapshot digital-human project", async () => {
     render(
       <DigitalHumanApplicationView
@@ -221,12 +356,13 @@ describe("DigitalHumanApplicationView", () => {
     fireEvent.click(screen.getByRole("button", { name: "测试选择图片场景" }));
     const startButton = screen.getByRole("button", { name: "开始生成" });
     fireEvent.click(startButton);
-    fireEvent.click(startButton);
+    await waitFor(() => expect(screen.getByLabelText("最终口播稿")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /确认口播稿并生成视频/ }));
 
     await waitFor(() => expect(mocks.createIpBroadcastAppRun).toHaveBeenCalledWith(expect.objectContaining({
       project_id: "project-1",
       context_snapshot_id: "context-v2",
-      input_payload: expect.objectContaining({ schema_version: 2, app_version: "1.1.0", project_id: "project-1", content_source: { mode: "custom_script", script: "开业介绍" }, digital_human: expect.objectContaining({ mode: "image_talking", scene_id: "scene-image", asset_revision_id: "revision-image" }), delivery: expect.objectContaining({ subtitle_enabled: false }) }),
+      input_payload: expect.objectContaining({ schema_version: 2, app_version: "1.1.0", project_id: "project-1", content_source: expect.objectContaining({ mode: "custom_script", script: "开业介绍", spoken_script: "整理后的口播稿。" }), digital_human: expect.objectContaining({ mode: "image_talking", scene_id: "scene-image", asset_revision_id: "revision-image" }), delivery: expect.objectContaining({ subtitle_enabled: false }) }),
     })));
     expect(mocks.createIpBroadcastAppRun).toHaveBeenCalledTimes(1);
     await waitFor(() => expect(mocks.executeIpBroadcastAppRun).toHaveBeenCalledWith("run-1"));
@@ -240,30 +376,71 @@ describe("DigitalHumanApplicationView", () => {
       digital_human_asset_revision_id: "revision-image",
       digital_human_media_type: "image",
       goal: "开业介绍",
+      voice_snapshot_profile_id: "voice-owner",
+      voice_snapshot_name: "老板自然声",
+      voice_resolution_source: "digital_human_default",
     }));
     expect(mocks.getIpBroadcastAppRun).not.toHaveBeenCalled();
   });
 
-  it("switches to video digital-human mode and filters the picker context without clearing the copy", async () => {
+  it("uses the avatar default voice and sends only a run-scoped override when changed", async () => {
+    render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} />);
+    expect(await screen.findByText("门店项目")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("制作目标"), { target: { value: "今天介绍门店新品。" } });
+    fireEvent.click(screen.getByRole("button", { name: "选择数字人形象" }));
+    fireEvent.click(screen.getByRole("button", { name: "测试选择图片场景" }));
+    expect(screen.getByText("老板自然声")).toBeInTheDocument();
+    expect(screen.getByText("跟随当前数字人默认声音")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "更换口播声音" }));
+    fireEvent.click(screen.getByRole("button", { name: "测试选择老板自然声" }));
+    expect(screen.getByText("仅本次使用，不修改人物默认声音")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "开始生成" }));
+    await waitFor(() => expect(screen.getByLabelText("最终口播稿")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /确认口播稿并生成视频/ }));
+
+    await waitFor(() => expect(mocks.createIpBroadcastAppRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        input_payload: expect.objectContaining({ voice_profile_id: "voice-owner" }),
+      }),
+    ));
+    await waitFor(() => expect(JSON.parse(window.localStorage.getItem("pixelle_ip_broadcast_app_state_v1") || "{}")).toEqual(expect.objectContaining({
+      voice_snapshot_profile_id: "voice-owner",
+      voice_snapshot_name: "老板自然声",
+      voice_resolution_source: "run_override",
+    })));
+  });
+
+  it("blocks confirmation when the final spoken script is cleared", async () => {
+    render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} />);
+    expect(await screen.findByText("门店项目")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("制作目标"), { target: { value: "今天介绍门店新品。" } });
+    fireEvent.click(screen.getByRole("button", { name: "选择数字人形象" }));
+    fireEvent.click(screen.getByRole("button", { name: "测试选择图片场景" }));
+    fireEvent.click(screen.getByRole("button", { name: "开始生成" }));
+    const script = await screen.findByLabelText("最终口播稿");
+    fireEvent.change(script, { target: { value: "   " } });
+    fireEvent.click(screen.getByRole("button", { name: /确认口播稿并生成视频/ }));
+    expect(await screen.findByText(/最终口播稿不能为空/)).toBeInTheDocument();
+    expect(mocks.createIpBroadcastAppRun).not.toHaveBeenCalled();
+  });
+
+  it("infers image or video mode from the selected scene without clearing the copy", async () => {
     render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} />);
     expect(await screen.findByText("门店项目")).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("制作目标"), { target: { value: "打架先动手和后动手有什么区别" } });
     fireEvent.click(screen.getByRole("button", { name: "选择数字人形象" }));
     fireEvent.click(screen.getByRole("button", { name: "测试选择图片场景" }));
-    expect(screen.getByText("图片场景")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: "视频数字人" }));
-    expect(screen.getByText(/保留源视频动作与背景/)).toBeInTheDocument();
+    expect(screen.getByText(/图片形象 · 自动生成口播动作/)).toBeInTheDocument();
     expect(screen.getByLabelText("制作目标")).toHaveValue("打架先动手和后动手有什么区别");
     expect(screen.getByRole("button", { name: "选择数字人形象" })).toBeInTheDocument();
-    expect(screen.queryByText("图片场景")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "选择数字人形象" }));
     expect(screen.getByRole("button", { name: "测试选择视频场景" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "测试选择视频场景" }));
-    expect(screen.getByRole("button", { name: "测试视频数字人" })).toBeInTheDocument();
-    expect(screen.getByText("视频场景")).toBeInTheDocument();
-    expect(screen.getByLabelText("数字人素材详情")).toHaveTextContent("1920×1080");
-    expect(screen.getByLabelText("数字人素材详情")).toHaveTextContent("12 秒");
-    expect(screen.getByLabelText("数字人素材详情")).toHaveTextContent("质量：已就绪");
+    expect(screen.getByText("测试视频数字人")).toBeInTheDocument();
+    expect(screen.getByText(/视频形象 · 保留原动作并匹配口型/)).toBeInTheDocument();
+    expect(screen.getByLabelText("数字人素材详情")).toHaveTextContent("视频形象");
+    expect(screen.getByLabelText("数字人素材详情")).toHaveTextContent("已就绪");
   });
 
   it("shows final video, cover, and publish copy as the default result delivery", async () => {
@@ -283,17 +460,12 @@ describe("DigitalHumanApplicationView", () => {
     }));
     render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} />);
     expect(await screen.findByLabelText("生成结果")).toBeInTheDocument();
-    expect(screen.getByText("默认预览：最终视频")).toBeInTheDocument();
-    expect(screen.getByText("最终视频")).toBeInTheDocument();
+    expect(screen.getByText("口播视频")).toBeInTheDocument();
     expect(screen.getByText("封面")).toBeInTheDocument();
     expect(screen.getByText("发布文案")).toBeInTheDocument();
     expect(screen.getByText("口播稿")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByLabelText("最终视频预览").querySelector("video")).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "下载最终视频" }));
-    expect(mocks.downloadArtifact).toHaveBeenCalledWith("session-1", "video");
-    const inlineVideoDownload = screen.getAllByRole("button").find((button) => button.textContent?.replace(/\s/g, "") === "下载");
-    expect(inlineVideoDownload).toBeDefined();
-    fireEvent.click(inlineVideoDownload!);
     expect(mocks.downloadArtifact).toHaveBeenCalledWith("session-1", "video");
   });
 
@@ -354,14 +526,17 @@ describe("DigitalHumanApplicationView", () => {
     fireEvent.click(screen.getByRole("button", { name: "选择数字人形象" }));
     fireEvent.click(screen.getByRole("button", { name: "测试选择图片场景" }));
     fireEvent.click(screen.getByRole("button", { name: "开始生成" }));
+    await waitFor(() => expect(screen.getByLabelText("最终口播稿")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /确认口播稿并生成视频/ }));
     await waitFor(() => expect(mocks.createIpBroadcastAppRun).toHaveBeenCalledWith(expect.objectContaining({
       input_payload: expect.objectContaining({
-        content_source: {
+        content_source: expect.objectContaining({
           mode: "title_plus_copywriting",
           title_artifact_version_id: "title-v1",
           source_artifact_version_id: "copy-v1",
           selected_variant_index: 0,
-        },
+          spoken_script: "整理后的口播稿。",
+        }),
         delivery: {
           subtitle_preset: "readable_v2",
           subtitle_enabled: true,
@@ -452,8 +627,56 @@ describe("DigitalHumanApplicationView", () => {
     }));
     render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} />);
 
-    expect(await screen.findByRole("button", { name: "已选择数字人" })).toBeInTheDocument();
-    expect(screen.getByText("已选场景")).toBeInTheDocument();
+    expect(await screen.findByText("已选择数字人")).toBeInTheDocument();
+    expect(mocks.createIpBroadcastAppRun).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    {
+      resolutionSource: "digital_human_default",
+      profileId: "voice-owner",
+      voiceName: "老板自然声",
+      description: "本次运行固定的人物默认声音",
+    },
+    {
+      resolutionSource: "run_override",
+      profileId: "voice-campaign",
+      voiceName: "活动女声",
+      description: "本次运行固定的自定义声音",
+    },
+    {
+      resolutionSource: "system_default",
+      profileId: undefined,
+      voiceName: "系统推荐男声",
+      description: "本次运行使用系统推荐男声",
+    },
+  ])("restores the pinned $resolutionSource voice label only after the AppRun binding is verified", async ({
+    resolutionSource,
+    profileId,
+    voiceName,
+    description,
+  }) => {
+    window.localStorage.setItem("pixelle_ip_broadcast_app_state_v1", JSON.stringify({
+      route: "/apps/digital-human-video",
+      project_id: "project-1",
+      app_run_id: "run-1",
+      session_id: "session-1",
+      source_mode: "blank_project",
+      source_revision: "sha256:source",
+      context_snapshot_id: null,
+      portrait_id: "portrait-image",
+      digital_human_scene_id: "scene-image",
+      voice_resolution_source: resolutionSource,
+      voice_snapshot_name: voiceName,
+      ...(profileId ? { voice_snapshot_profile_id: profileId } : {}),
+    }));
+
+    render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} />);
+
+    expect(await screen.findByText(description)).toBeInTheDocument();
+    expect(screen.getAllByText(voiceName).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole("button", { name: "更换口播声音" })).toBeDisabled();
+    expect(mocks.getIpBroadcastAppRun).toHaveBeenCalledWith("run-1", "project-1");
     expect(mocks.createIpBroadcastAppRun).not.toHaveBeenCalled();
   });
 
@@ -532,7 +755,7 @@ describe("DigitalHumanApplicationView", () => {
     expect(window.localStorage.getItem("pixelle_ip_broadcast_app_state_v1")).toBeNull();
   });
 
-  it("restores a non-first source artifact and reuses its pending idempotency key", async () => {
+  it("restores a non-first source artifact and does not reuse an unprepared pending key", async () => {
     mocks.listProjectArtifacts.mockResolvedValue([
       { artifact_id: "artifact-1", project_id: "project-1", source_app_run_id: null, artifact_type: "copywriting", name: "旧文案", status: "draft", current_version_id: "version-1", created_at: "now", updated_at: "now" },
       { artifact_id: "artifact-2", project_id: "project-1", source_app_run_id: null, artifact_type: "copywriting", name: "新文案", status: "draft", current_version_id: "version-2", created_at: "now", updated_at: "now" },
@@ -567,12 +790,14 @@ describe("DigitalHumanApplicationView", () => {
     render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} />);
 
     await waitFor(() => expect(screen.getByRole("combobox", { name: "来源产物" })).toHaveValue("artifact-2"));
-    expect(screen.getByRole("tab", { name: "图片数字人" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText(/图片形象 · 自动生成口播动作/)).toBeInTheDocument();
     const startButton = screen.getByRole("button", { name: "开始生成" });
     await waitFor(() => expect(startButton).toBeEnabled(), { timeout: 10_000 });
     fireEvent.click(startButton);
+    await waitFor(() => expect(screen.getByLabelText("最终口播稿")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /确认口播稿并生成视频/ }));
     await waitFor(
-      () => expect(mocks.createIpBroadcastAppRun).toHaveBeenCalledWith(expect.objectContaining({ idempotency_key: "pending-key-2" })),
+      () => expect(mocks.createIpBroadcastAppRun).toHaveBeenCalledWith(expect.objectContaining({ idempotency_key: expect.stringMatching(/^desktop-digital-human:project-1:/) })),
       { timeout: 10_000 },
     );
   });
@@ -593,6 +818,8 @@ describe("DigitalHumanApplicationView", () => {
     fireEvent.click(screen.getByRole("button", { name: "选择数字人形象" }));
     fireEvent.click(screen.getByRole("button", { name: "测试选择图片场景" }));
     fireEvent.click(screen.getByRole("button", { name: "开始生成" }));
+    await waitFor(() => expect(screen.getByLabelText("最终口播稿")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /确认口播稿并生成视频/ }));
     await waitFor(() => expect(screen.getByText("simulated response lost after server commit")).toBeInTheDocument());
     expect(window.localStorage.getItem("pixelle_ip_broadcast_app_pending_v1")).toContain("desktop-digital-human:project-1:");
   });
@@ -605,6 +832,8 @@ describe("DigitalHumanApplicationView", () => {
     fireEvent.click(screen.getByRole("button", { name: "选择数字人形象" }));
     fireEvent.click(screen.getByRole("button", { name: "测试选择图片场景" }));
     fireEvent.click(screen.getByRole("button", { name: "开始生成" }));
+    await waitFor(() => expect(screen.getByLabelText("最终口播稿")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /确认口播稿并生成视频/ }));
 
     await waitFor(() => expect(screen.getByText("execute response lost")).toBeInTheDocument());
     expect(JSON.parse(window.localStorage.getItem("pixelle_ip_broadcast_app_pending_v1") || "{}")).toEqual(expect.objectContaining({
@@ -634,10 +863,11 @@ describe("DigitalHumanApplicationView", () => {
     render(<DigitalHumanApplicationView desktopEnabled onBack={vi.fn()} />);
 
     await waitFor(() => expect(screen.getByLabelText("制作目标")).toHaveValue("打架先动手和后动手有什么区别"));
-    expect(screen.getByRole("tab", { name: "视频数字人" })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByRole("button", { name: "已选择数字人" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: "图片数字人" }));
-    expect(screen.getByRole("tab", { name: "视频数字人" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText(/视频形象 · 保留原动作并匹配口型/)).toBeInTheDocument();
+    expect(screen.getByText("已选择数字人")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "选择数字人形象" }));
+    fireEvent.click(screen.getByRole("button", { name: "测试选择图片场景" }));
+    expect(screen.getByText(/视频形象 · 保留原动作并匹配口型/)).toBeInTheDocument();
     expect(screen.getByText(/上次提交尚未收到确认，请先恢复或清理待提交状态，再切换数字人模式/)).toBeInTheDocument();
     expect(screen.getByLabelText("制作目标")).toHaveValue("打架先动手和后动手有什么区别");
   });

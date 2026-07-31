@@ -16,6 +16,7 @@ describe("resolveFeatureFlags", () => {
       appWorkbenchTextV2: false,
       appWorkbenchCarouselV2: false,
       appWorkbenchDigitalHumanV2: false,
+      appResultHistoryV1: false,
       assetCenterV2: true,
     });
   });
@@ -65,6 +66,19 @@ describe("resolveFeatureFlags", () => {
     }).appWorkbenchV2).toBe(false);
   });
 
+  it("resolves result history only from a consistent canonical or alias value", () => {
+    expect(resolveFeatureFlags({
+      VITE_APP_RESULT_HISTORY_V1: "true",
+    }).appResultHistoryV1).toBe(true);
+    expect(resolveFeatureFlags({
+      PIXELLE_APP_RESULT_HISTORY_V1: "on",
+    }).appResultHistoryV1).toBe(true);
+    expect(resolveFeatureFlags({
+      VITE_APP_RESULT_HISTORY_V1: "true",
+      PIXELLE_APP_RESULT_HISTORY_V1: "false",
+    }).appResultHistoryV1).toBe(false);
+  });
+
   it("fails closed for present non-string values, including the true-default asset flag", () => {
     expect(resolveFeatureFlags({ VITE_ASSET_CENTER_V2: 123 }).assetCenterV2).toBe(false);
     expect(resolveFeatureFlags({ VITE_ASSET_CENTER_V2: null }).assetCenterV2).toBe(false);
@@ -84,9 +98,11 @@ describe("resolveFeatureFlags", () => {
     });
     expect(mergeRuntimeFeatureFlags(enabledBuild, {
       brandProjectBoundaryV1: true,
+      appResultHistoryV1: false,
     }).brandProjectBoundaryV1).toBe(true);
     expect(mergeRuntimeFeatureFlags(enabledBuild, {
       brandProjectBoundaryV1: false,
+      appResultHistoryV1: false,
     }).brandProjectBoundaryV1).toBe(false);
   });
 
@@ -96,6 +112,31 @@ describe("resolveFeatureFlags", () => {
     });
     expect(mergeRuntimeFeatureFlags(disabledBuild, {
       brandProjectBoundaryV1: true,
+      appResultHistoryV1: false,
     }).brandProjectBoundaryV1).toBe(false);
+  });
+
+  it("keeps packaged result history aligned with the sidecar runtime", () => {
+    const enabledBuild = resolveFeatureFlags({
+      VITE_APP_RESULT_HISTORY_V1: "true",
+    });
+    const enabled = mergeRuntimeFeatureFlags(enabledBuild, {
+      brandProjectBoundaryV1: false,
+      appResultHistoryV1: true,
+    });
+    const disabled = mergeRuntimeFeatureFlags(enabledBuild, {
+      brandProjectBoundaryV1: false,
+      appResultHistoryV1: false,
+    });
+    const enabledAgain = mergeRuntimeFeatureFlags(enabledBuild, {
+      brandProjectBoundaryV1: false,
+      appResultHistoryV1: true,
+    });
+
+    expect([
+      enabled.appResultHistoryV1,
+      disabled.appResultHistoryV1,
+      enabledAgain.appResultHistoryV1,
+    ]).toEqual([true, false, true]);
   });
 });

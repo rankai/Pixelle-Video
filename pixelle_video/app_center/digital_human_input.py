@@ -35,6 +35,7 @@ _CONTENT_MODE_ALIASES = {
 }
 _QUALITY_SUBTITLE_PRESETS = {"readable_v2"}
 _QUALITY_DEFAULT_DELIVERY = {"subtitle_preset": "readable_v2", "subtitle_enabled": True}
+_MAX_SPOKEN_SCRIPT_CHARS = 2000
 
 
 class DigitalHumanInputError(ValueError):
@@ -120,6 +121,25 @@ def _normalize_quality_delivery(value: Any) -> dict[str, Any]:
     return normalized
 
 
+def _normalize_voice_request(payload: dict[str, Any]) -> dict[str, str | None]:
+    direct_voice_id = payload.get("voice_profile_id")
+    nested_voice = payload.get("voice")
+    if direct_voice_id not in (None, "") and nested_voice not in (None, {}):
+        raise DigitalHumanInputError("DIGITAL_HUMAN_VOICE_INPUT_CONFLICT")
+    # A pinned voice snapshot is a server-owned AppRun fact. Public callers may
+    # only express a profile override and must never choose an audio revision.
+    if nested_voice not in (None, {}):
+        raise DigitalHumanInputError("DIGITAL_HUMAN_VOICE_INVALID")
+    if direct_voice_id not in (None, ""):
+        if not isinstance(direct_voice_id, str) or not direct_voice_id.strip():
+            raise DigitalHumanInputError("DIGITAL_HUMAN_VOICE_INVALID")
+        return {
+            "voice_profile_id": direct_voice_id.strip(),
+            "audio_revision_id": None,
+        }
+    return {"voice_profile_id": None, "audio_revision_id": None}
+
+
 def _normalize_v2(payload: dict[str, Any], project_id: str) -> NormalizedDigitalHumanInput:
     if any(
         key in payload
@@ -164,6 +184,13 @@ def _normalize_v2(payload: dict[str, Any], project_id: str) -> NormalizedDigital
         index = content.get("selected_variant_index")
         if not isinstance(index, int) or isinstance(index, bool) or index < 0:
             raise DigitalHumanInputError("DIGITAL_HUMAN_CONTENT_SOURCE_INCOMPLETE")
+    spoken_script = content.get("spoken_script")
+    if spoken_script is not None:
+        if not isinstance(spoken_script, str) or not spoken_script.strip():
+            raise DigitalHumanInputError("DIGITAL_HUMAN_SPOKEN_SCRIPT_INVALID")
+        if len(spoken_script.strip()) > _MAX_SPOKEN_SCRIPT_CHARS:
+            raise DigitalHumanInputError("DIGITAL_HUMAN_SPOKEN_SCRIPT_TOO_LONG")
+        content["spoken_script"] = spoken_script.strip()
     human = _require_object(payload.get("digital_human"), "DIGITAL_HUMAN_MODE_REQUIRED")
     if any(
         key in human
@@ -201,6 +228,7 @@ def _normalize_v2(payload: dict[str, Any], project_id: str) -> NormalizedDigital
         "schema_version": V2_SCHEMA_VERSION,
         "content_source": content,
         "digital_human": {**human, "workflow_revision": workflow.workflow_revision},
+        "voice_request": _normalize_voice_request(payload),
         "delivery": _normalize_quality_delivery(payload.get("delivery")),
     }
     return NormalizedDigitalHumanInput(

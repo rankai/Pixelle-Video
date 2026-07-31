@@ -13,6 +13,7 @@ from pixelle_video.app_center.ip_broadcast_adapter import (
     IpBroadcastBindingStore,
     IpBroadcastSessionError,
 )
+from pixelle_video.app_center.llm_port import FakeLLMPort
 from pixelle_video.app_center.repository import AppCenterRepository
 from pixelle_video.services.ip_broadcast_templates import (
     build_ass_force_style,
@@ -138,6 +139,55 @@ def test_v2_adapter_pins_delivery_and_spoken_script_into_session(tmp_path: Path)
     assert session.state["hashtags"] == payload["delivery"]["hashtags"]
     assert session.state["subtitle_preset"] == "readable_v2"
     assert created.run.input_payload["delivery"]["subtitle_preset"] == "readable_v2"
+
+
+def test_v2_spoken_script_preparation_returns_editable_model_output_and_preserves_source_binding(
+    tmp_path: Path,
+):
+    repository = AppCenterRepository(tmp_path / "app-center.sqlite")
+    project = repository.create_project("门店项目", "到店咨询")
+    payload = _payload(project.project_id)
+    payload["content_source"]["script"] = "原始内容先讲清楚，再给一个行动。"
+    adapter = IpBroadcastAppAdapter(
+        repository,
+        session_store=IpBroadcastSessionStore(tmp_path / "sessions"),
+        binding_store=IpBroadcastBindingStore(tmp_path / "bindings.json"),
+        enforce_feature_flag=False,
+        dual_backend_flag=True,
+        dual_desktop_flag=True,
+        dual_desktop_ready=True,
+        digital_human_asset_resolver=lambda _scene_id: (
+            {
+                "media_type": "image",
+                "status": "ready",
+                "revision_id": "revision-a",
+                "mime_type": "image/jpeg",
+                "width": 1080,
+                "height": 1920,
+            },
+            {"media_type": "image", "profile_id": "portrait-a"},
+        ),
+    )
+    prepared = asyncio.run(
+        adapter.prepare_spoken_script(
+            project.project_id,
+            payload,
+            llm_port=FakeLLMPort(
+                {"spoken_script": "开头先说重点。\n最后提醒到店咨询。"},
+            ),
+        )
+    )
+    assert prepared["spoken_script"] == "开头先说重点。\n最后提醒到店咨询。"
+    assert prepared["model_ref"] == "local-default:fake"
+    assert prepared["provider_class"] == "fake"
+    payload["content_source"]["spoken_script"] = prepared["spoken_script"]
+    created = adapter.create_or_resume(
+        project.project_id,
+        payload,
+        idempotency_key="quality-spoken-script-override",
+    )
+    assert created.session.state["spoken_script"] == prepared["spoken_script"]
+    assert created.run.input_payload["content_source"]["spoken_script"] == prepared["spoken_script"]
 
 
 def test_readable_v2_force_style_is_explicitly_large_and_safe():

@@ -1,0 +1,371 @@
+{
+  "schema_version": 1,
+  "valid": {
+    "marketing_copy": {
+      "schema_version": 1,
+      "record_id": "run-copy-001",
+      "app_run_id": "run-copy-001",
+      "project_id": "project-cafe-001",
+      "app_id": "builtin.marketing-copy",
+      "app_name": "门店营销文案",
+      "result_shape": "multi_copy",
+      "status": "completed",
+      "created_at": "2026-07-30T09:00:00+08:00",
+      "result_available_at": "2026-07-30T09:00:06+08:00",
+      "summary": "工作日下午茶到店文案",
+      "compatibility": {
+        "state": "normal"
+      },
+      "items": [
+        {
+          "item_id": "copy-1",
+          "kind": "copy",
+          "label": "老板口吻",
+          "text": "下午三点来店里坐坐，现磨咖啡和刚出炉的面包都准备好了。",
+          "actions": [
+            "copy",
+            "edit"
+          ]
+        },
+        {
+          "item_id": "copy-2",
+          "kind": "copy",
+          "label": "体验视角",
+          "text": "忙了一下午，来一杯现磨咖啡配当日烘焙面包，刚好歇一会儿。",
+          "actions": [
+            "copy",
+            "edit"
+          ]
+        },
+        {
+          "item_id": "copy-3",
+          "kind": "copy",
+          "label": "到店邀请",
+          "text": "现磨咖啡、当日烘焙面包，工作日下午茶套餐已经准备好，等你来店里慢慢享用。",
+          "actions": [
+            "copy",
+            "edit"
+          ]
+        }
+      ]
+    },
+    "viral_titles": {
+      "schema_version": 1,
+      "record_id": "run-title-001",
+      "app_run_id": "run-title-001",
+      "project_id": "project-cafe-001",
+      "app_id": "builtin.viral-titles",
+      "app_name": "爆款标题",
+      "result_shape": "multi_title",
+      "status": "completed",
+      "created_at": "2026-07-30T09:10:00+08:00",
+      "result_available_at": "2026-07-30T09:10:04+08:00",
+      "summary": "下午茶套餐标题",
+      "compatibility": {
+        "state": "normal"
+      },
+      "items": [
+        {
+          "item_id": "title-1",
+          "kind": "title",
+          "label": "利益点",
+          "text": "三公里上班族的下午茶，咖啡加面包怎么选",
+          "actions": [
+            "copy",
+            "edit",
+            "select"
+          ],
+          "selected": true
+        },
+        {
+          "item_id": "title-2",
+          "kind": "title",
+          "label": "场景感",
+          "text": "下午三点别硬撑，来杯现磨咖啡歇一会儿",
+          "actions": [
+            "copy",
+            "edit",
+            "select"
+          ],
+          "selected": false
+        },
+        {
+          "item_id": "title-3",
+          "kind": "title",
+          "label": "好奇心",
+          "text": "为什么附近上班族下午都来点这份套餐",
+          "actions": [
+            "copy",
+            "edit",
+            "select"
+          ],
+          "selected": false
+        },
+        {
+          "item_id": "title-4",
+          "kind": "title",
+          "label": "口语化",
+          "text": "咖啡现磨，面包刚出炉，下午茶就该这样吃",
+          "actions": [
+            "copy",
+            "edit",
+            "select"
+          ],
+          "selected": false
+        },
+        {
+          "item_id": "title-5",
+          "kind": "title",
+          "label": "清单式",
+          "text": "工作日下午茶的两个刚需：咖啡和热面包",
+          "actions": [
+            "copy",
+            "edit",
+            "select"
+          ],
+          "selected": false
+        },
+        {
+          "item_id": "title-6",
+          "kind": "title",
+          "label": "到店引导",
+          "text": "下班前先补充能量，这份下午茶已经备好",
+          "actions": [
+            "copy",
+            "edit",
+            "select"
+          ],
+          "selected": false
+        }
+      ]
+    },
+    "douyin_carousel": {
+      "schema_version": 1,
+      "record_id": "run-carousel-001",
+      "app_run_id": "run-carousel-001",
+      "project_id": "project-cafe-001",
+      "app_id": "builtin.douyin-carousel",
+      "app_name": "抖音图文",
+      "result_shape": "single_carousel",
+      "status": "completed",
+      "created_at": "2026-07-30T09:20:00+08:00",
+      "result_available_at": "2026-07-30T09:20:12+08:00",
+      "summary": "下午茶套餐抖音图文",
+      "compatibility": {
+        "state": "normal"
+      },
+      "items": [
+        {
+          "item_id": "carousel-1",
+          "kind": "carousel",
+          "title": "三公里上班族下午茶",
+          "cover_url": "/api/app-results/run-carousel-001/cover?version=djE",
+          "preview_url": "/api/app-results/run-carousel-001/preview?version=djE",
+          "download_url": "/api/app-results/run-carousel-001/download?version=djE",
+          "page_count": 5,
+          "missing_facts": [],
+          "actions": [
+            "preview",
+            "publish"
+          ],
+          "details_available": [
+            "pages",
+            "publish_copy"
+          ],
+          "artifact_version_ids": [
+            "carousel-package-v1",
+            "carousel-copy-v1"
+          ]
+        }
+      ]
+    },
+    "digital_human": {
+      "schema_version": 1,
+      "record_id": "run-video-001",
+      "app_run_id": "run-video-001",
+      "project_id": "project-cafe-001",
+      "app_id": "builtin.digital-human-video",
+      "app_name": "数字人口播",
+      "result_shape": "single_video",
+      "status": "completed",
+      "created_at": "2026-07-30T09:30:00+08:00",
+      "result_available_at": "2026-07-30T09:31:20+08:00",
+      "summary": "下午茶套餐数字人口播",
+      "compatibility": {
+        "state": "normal"
+      },
+      "items": [
+        {
+          "item_id": "video-1",
+          "kind": "video",
+          "title": "工作日下午茶推荐",
+          "poster_url": "/api/app-results/run-video-001/poster?version=djE",
+          "playback_url": "/api/app-results/run-video-001/play?version=djE",
+          "preview_url": "/api/app-results/run-video-001/preview?version=djE",
+          "download_url": "/api/app-results/run-video-001/download?version=djE",
+          "duration_seconds": 22.4,
+          "digital_human_name": "店长数字人",
+          "voice_name": "老板自然声",
+          "actions": [
+            "play",
+            "publish"
+          ],
+          "details_available": [
+            "cover",
+            "publish_copy",
+            "spoken_script",
+            "download"
+          ],
+          "artifact_version_ids": [
+            "video-v1",
+            "cover-v1",
+            "publish-copy-v1"
+          ]
+        }
+      ]
+    },
+    "running": {
+      "schema_version": 1,
+      "record_id": "run-running-001",
+      "app_run_id": "run-running-001",
+      "project_id": "project-cafe-001",
+      "app_id": "builtin.viral-titles",
+      "app_name": "爆款标题",
+      "result_shape": "multi_title",
+      "status": "running",
+      "created_at": "2026-07-30T09:40:00+08:00",
+      "result_available_at": null,
+      "summary": "正在生成标题",
+      "compatibility": {
+        "state": "normal"
+      },
+      "items": []
+    },
+    "failed": {
+      "schema_version": 1,
+      "record_id": "run-failed-001",
+      "app_run_id": "run-failed-001",
+      "project_id": "project-cafe-001",
+      "app_id": "builtin.marketing-copy",
+      "app_name": "门店营销文案",
+      "result_shape": "multi_copy",
+      "status": "failed",
+      "created_at": "2026-07-30T09:41:00+08:00",
+      "result_available_at": null,
+      "summary": "本次生成失败，可按原输入重试",
+      "compatibility": {
+        "state": "normal"
+      },
+      "items": []
+    },
+    "legacy_unavailable": {
+      "schema_version": 1,
+      "record_id": "legacy-run-001",
+      "app_run_id": "legacy-run-001",
+      "project_id": "project-cafe-001",
+      "app_id": "builtin.digital-human-video",
+      "app_name": "数字人口播",
+      "result_shape": "single_video",
+      "status": "completed",
+      "created_at": "2026-07-20T08:00:00+08:00",
+      "result_available_at": "2026-07-20T08:02:00+08:00",
+      "summary": "旧版数字人口播",
+      "compatibility": {
+        "state": "legacy_unavailable",
+        "unavailable_reason": "这条旧记录暂时无法预览"
+      },
+      "items": []
+    }
+  },
+  "invalid": [
+    {
+      "id": "carousel-pages-split-into-results",
+      "from": "douyin_carousel",
+      "mutation": "duplicate items[0] as a second carousel item",
+      "expected_error": "single_carousel must contain exactly one product item"
+    },
+    {
+      "id": "digital-human-cover-split-into-result",
+      "from": "digital_human",
+      "mutation": "append a second media item for the cover",
+      "expected_error": "single_video must contain exactly one final product item"
+    },
+    {
+      "id": "too-many-primary-actions",
+      "from": "digital_human",
+      "mutation": "append a third primary action to items[0].actions",
+      "expected_error": "media card supports at most two primary actions"
+    },
+    {
+      "id": "absolute-local-path-leak",
+      "from": "digital_human",
+      "mutation": "set items[0].playback_url to C:\\\\Users\\\\demo\\\\video.mp4",
+      "expected_error": "media URLs must use the relative API projection"
+    },
+    {
+      "id": "technical-provider-leak",
+      "from": "viral_titles",
+      "mutation": "add provider to items[0]",
+      "expected_error": "primary record rejects unknown technical fields"
+    },
+    {
+      "id": "mixed-project-record",
+      "from": "viral_titles",
+      "mutation": "project the record under another project cursor",
+      "expected_error": "query layer must enforce project isolation"
+    },
+    {
+      "id": "app-shape-mismatch",
+      "from": "marketing_copy",
+      "mutation": "set result_shape to multi_title",
+      "expected_error": "app_id and result_shape must match"
+    },
+    {
+      "id": "duplicate-app-run-block",
+      "from": "viral_titles",
+      "mutation": "append the same app_run_id as a second record with another record_id",
+      "expected_error": "one AppRun can appear at most once in a page"
+    }
+  ],
+  "query_cases": [
+    {
+      "id": "current-app-default",
+      "project_id": "project-cafe-001",
+      "scope": "current_app",
+      "app_id": "builtin.viral-titles",
+      "cursor": null,
+      "expected_record_ids": [
+        "run-title-001"
+      ]
+    },
+    {
+      "id": "all-project-results",
+      "project_id": "project-cafe-001",
+      "scope": "all_results",
+      "app_id": null,
+      "cursor": null,
+      "expected_record_ids": [
+        "run-video-001",
+        "run-carousel-001",
+        "run-title-001",
+        "run-copy-001"
+      ]
+    },
+    {
+      "id": "current-app-second-page",
+      "project_id": "project-cafe-001",
+      "scope": "current_app",
+      "app_id": "builtin.viral-titles",
+      "cursor": "eyJ2IjoxLCJwIjoicHJvamVjdC1jYWZlLTAwMSJ9",
+      "expected_record_ids": []
+    },
+    {
+      "id": "tampered-cursor",
+      "project_id": "project-other-001",
+      "scope": "current_app",
+      "app_id": "builtin.viral-titles",
+      "cursor": "eyJ2IjoxLCJwIjoicHJvamVjdC1jYWZlLTAwMSJ9",
+      "expected_error": "APP_RESULT_CURSOR_INVALID"
+    }
+  ]
+}

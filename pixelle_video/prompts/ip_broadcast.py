@@ -135,6 +135,34 @@ def build_rewrite_prompt(
 - 直接输出改写后的文案，不要有前缀说明"""
 
 
+def build_spoken_script_prompt(
+    confirmed_content: str,
+    supporting_facts: str = "",
+) -> str:
+    """Prompt used by the digital-human app's pre-media script step."""
+
+    facts = (
+        f"\n已确认的补充卖点（只能保留，不能扩写）：{supporting_facts.strip()}\n"
+        if supporting_facts.strip()
+        else ""
+    )
+    return f"""你是数字人口播视频的脚本整理助手。请把用户确认的内容整理成适合真人朗读的最终口播稿。
+
+【用户确认内容】
+{confirmed_content}
+{facts}
+【整理要求】
+- 不改变核心意思，只调整口语顺序、断句和停顿；
+- 开头尽快进入主题；卖点不要堆在同一句；
+- 结尾只保留一个清楚的行动指引；
+- 保留原文已确认的价格、活动、时间、地址和门店事实；
+- 禁止新增未确认的价格、时间、地址、效果、资格或绝对化承诺；
+- 按自然语义分成 3-6 个短段落，每段单独换行；
+- 不要输出标题、编号、解释或前缀，只返回口播稿正文。
+
+请以 JSON 返回，格式为：{{"spoken_script":"口播稿正文"}}"""
+
+
 def _format_script_structure(script_structure: list[str] | None) -> str:
     if not script_structure:
         return ""

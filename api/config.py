@@ -66,6 +66,13 @@ class APIConfig(BaseModel):
             "available when the rollout switch is off."
         ),
     )
+    app_result_history_v1_enabled: bool = Field(
+        default_factory=lambda: _env_flag("PIXELLE_APP_RESULT_HISTORY_V1", False),
+        description=(
+            "Read-only AppRun result-history projection. It remains disabled "
+            "until the desktop history UI and rollback evidence pass."
+        ),
+    )
 
     # API settings
     api_prefix: str = "/api"

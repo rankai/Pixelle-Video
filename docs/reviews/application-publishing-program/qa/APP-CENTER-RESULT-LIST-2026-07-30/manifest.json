@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "stage": "APP-RESULT-HISTORY-0",
+  "purpose": "Four-application Entry visual baseline captured before result-history business UI implementation.",
+  "capture_scope": "Local application pages and existing completed local fixtures only; no new provider call, upload or publish action.",
+  "starting_commit": "54f032e9f9bcfe510c5f8c5fa82df4d5ac5406e7",
+  "runtime": {
+    "surface": "Codex in-app Browser",
+    "application": "local desktop development service",
+    "source_reports": [
+      "docs/reviews/application-publishing-program/APP-CENTER-four-apps-simplicity-closure-2026-07-30.md",
+      "docs/reviews/application-publishing-program/BRAND-PROJECT-4-implementation-2026-07-30.md",
+      "docs/reviews/application-publishing-program/qa/BRAND-PROJECT-4-implementation-2026-07-30.json"
+    ],
+    "console_product_errors": 0,
+    "known_non_product_warnings": [
+      "Ant Design List deprecation",
+      "Ant Design Input addonAfter deprecation"
+    ]
+  },
+  "images": [
+    {
+      "application": "builtin.marketing-copy",
+      "path": "../APP-CENTER-FOUR-APPS-AUDIT-2026-07-30/05-marketing-copy-after.jpg",
+      "sha256": "9546ba442b55f08893738503ebdb75f24a3ac308ae86b966400db2dd022799f9",
+      "width": 1265,
+      "height": 712,
+      "captured_at": "2026-07-30T18:19:21+08:00",
+      "capture_url": "http://127.0.0.1:1421/#/apps/marketing-copy",
+      "state": "existing real project and generated result",
+      "finding": "Only the latest run is visible; prior complete three-copy result blocks are not directly recoverable."
+    },
+    {
+      "application": "builtin.viral-titles",
+      "path": "../APP-CENTER-FOUR-APPS-AUDIT-2026-07-30/06-viral-titles-after.jpg",
+      "sha256": "8bba894f84b016d0608675724f347d56d9a02b7dc86ffe873e490a7640e8c82c",
+      "width": 1265,
+      "height": 712,
+      "captured_at": "2026-07-30T18:19:38+08:00",
+      "capture_url": "http://127.0.0.1:1421/#/apps/viral-titles",
+      "state": "existing real project and generated result",
+      "finding": "Candidates are visible for the latest run, but there is no complete chronological block history."
+    },
+    {
+      "application": "builtin.douyin-carousel",
+      "path": "01-carousel-current.jpg",
+      "sha256": "ca8d9228a1ba617f2c99ba3033c81915874e4397b6f3ba6e74ddf044fad44bd8",
+      "width": 1265,
+      "height": 712,
+      "captured_at": "2026-07-30T19:10:11+08:00",
+      "capture_url": "http://127.0.0.1:1421/#/apps/douyin-carousel",
+      "state": "existing real project and rendered three-page result",
+      "finding": "The current carousel result surface still reads as a delivery and editing panel instead of one restrained product history card."
+    },
+    {
+      "application": "builtin.digital-human-video",
+      "path": "../BRAND-PROJECT-4-visual-2026-07-30/digital-human-stage4.png",
+      "sha256": "5bf6bb479286220a699a0df50d9a1ba307a247f5f70c18ec152ad088fdb4e971",
+      "width": 1905,
+      "height": 965,
+      "captured_at": "2026-07-30T09:38:38+08:00",
+      "capture_url": "http://127.0.0.1:1424/#/apps/digital-human-video",
+      "state": "persisted completed AppRun with final video, cover and publish-copy result rows",
+      "finding": "The completed result exposes six workflow steps and separate auxiliary rows; the new surface must show one playable video card and move those details behind preview."
+    }
+  ],
+  "business_file_entry_hashes": [
+    {
+      "path": "api/routers/app_center.py",
+      "sha256": "edfc8d70f4909828f3cfd0519ab939cbf5a73c3fdf8919f2a69f82f1210d7746"
+    },
+    {
+      "path": "api/schemas/app_center.py",
+      "sha256": "320d34687aa161b063a1c3897d4ebaf90f33150d7c2628187f1d19eed34d5299"
+    },
+    {
+      "path": "pixelle_video/app_center/repository.py",
+      "sha256": "a9b3844b2fa44f3d4f353db4a49c19c8904e1c9d141510d936a3a860977efec3"
+    },
+    {
+      "path": "desktop/src/features/creation/CreationWorkspace.tsx",
+      "sha256": "e5ae9ef2b5850636860d30609f4d1ea41dbafccba494f9bfb43e3f8b80620e12"
+    },
+    {
+      "path": "desktop/src/features/app-center/DigitalHumanApplicationView.tsx",
+      "sha256": "7a83abb30449ea8611362323065b500dccdc3b9ed88905fe4336d8f0e7364020"
+    },
+    {
+      "path": "desktop/src/features/app-center/DigitalHumanResultPanel.tsx",
+      "sha256": "6940254003a4b07fdfcaed55b3013da79c04c75d2247327529be09d4180cab78"
+    },
+    {
+      "path": "desktop/src/api.ts",
+      "sha256": "55868f5d43acf1cb2f73247c6bde215d70af675e627d3274bf3943d9d1c7eced"
+    },
+    {
+      "path": "desktop/src/styles.css",
+      "sha256": "44923fde0af0e3d3d3e0c9b8d0ebad46ff18a56d65d1f5e62122b129fa9bd1b1"
+    }
+  ],
+  "entry_external_actions": {
+    "llm_calls": 0,
+    "tts_calls": 0,
+    "runninghub_calls": 0,
+    "uploads": 0,
+    "platform_actions": 0,
+    "final_publish_clicks": 0
+  }
+}

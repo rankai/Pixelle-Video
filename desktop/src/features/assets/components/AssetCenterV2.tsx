@@ -52,6 +52,7 @@ import {
 import { recordAssetTelemetry } from "../model/assetTelemetry";
 import { toAssetViewModel } from "../model/assetViewModel";
 import { AssetUploadQueue } from "./AssetUploadQueue";
+import { AssetPickerDialog } from "./AssetPickerDialog";
 import { BrandKitEditor, TemplateLayoutEditor } from "./AssetDomainEditors";
 import {
   AssetImageInspector,
@@ -397,6 +398,7 @@ function DigitalHumanBrowser({ items, onUse, manageMode, selectedKeys, onToggle,
   const [newSceneShotSize, setNewSceneShotSize] = useState("medium");
   const [newSceneLocation, setNewSceneLocation] = useState("");
   const [sceneBusy, setSceneBusy] = useState(false);
+  const [voicePickerOpen, setVoicePickerOpen] = useState(false);
   useEffect(() => {
     setSelected((current) => items.find((item) => item.resource_id === current?.resource_id) || items[0] || null);
   }, [items]);
@@ -473,6 +475,18 @@ function DigitalHumanBrowser({ items, onUse, manageMode, selectedKeys, onToggle,
       setSceneBusy(false);
     }
   }
+  async function setDefaultVoice(voiceId: string | null) {
+    setSceneBusy(true);
+    try {
+      const updated = await patchDigitalHumanV2(profile.resource_id, {
+        default_voice_id: voiceId,
+      });
+      setSelected(updated);
+      await onChanged?.();
+    } finally {
+      setSceneBusy(false);
+    }
+  }
   return (
     <div className="digital-human-browser">
       <div className="digital-human-list" aria-label="数字人列表">
@@ -484,6 +498,17 @@ function DigitalHumanBrowser({ items, onUse, manageMode, selectedKeys, onToggle,
       <div className="digital-human-preview-panel">
         <div className="digital-human-preview-title"><div><span>数字人预览</span><h3>{selected.name}</h3></div><button type="button" className="primary" onClick={() => onUse?.(selected, selectedScene || String(selected.summary.default_scene_id || ""))} disabled={!selectedScene && !selected.summary.default_scene_id}><Check size={15} /> 确认用于视频生产</button></div>
         <div className="digital-human-preview-media">{previewSrc ? <ProtectedAssetMedia src={previewSrc} kind={previewKind} title={selected.name} /> : <UserRound size={48} />}</div>
+        <div className="digital-human-default-voice" aria-label="数字人默认声音">
+          <div>
+            <small>默认声音</small>
+            <strong>{String(selected.summary.default_voice_name || "系统推荐男声")}</strong>
+            <span>应用生成时会自动使用；单次创作仍可临时更换。</span>
+          </div>
+          <div>
+            <button type="button" onClick={() => setVoicePickerOpen(true)} disabled={sceneBusy}>更换声音</button>
+            {selected.summary.default_voice_id ? <button type="button" onClick={() => void setDefaultVoice(null)} disabled={sceneBusy}>恢复系统默认</button> : null}
+          </div>
+        </div>
         <div className="digital-human-scene-list"><strong>场景</strong><div>{(selected.scenes || []).map((scene) => <button type="button" key={scene.scene_id} className={selectedScene === scene.scene_id ? "selected" : ""} onClick={() => setSelectedScene(scene.scene_id)}><span>{scene.name}</span><small>{scene.preview_media_type === "video" ? "演示视频" : "图片场景"} · {scene.shot_size || "默认景别"}</small></button>)}</div><small>先选择场景预览，再点击“确认用于视频生产”；浏览不会修改当前任务。</small></div>
         <div className="digital-human-scene-editor" aria-label="场景管理">
           <strong>维护当前场景</strong>
@@ -491,6 +516,25 @@ function DigitalHumanBrowser({ items, onUse, manageMode, selectedKeys, onToggle,
           <details><summary>新增场景</summary><div className="digital-human-scene-new"><label>名称<input value={newSceneName} onChange={(event) => setNewSceneName(event.target.value)} placeholder="例如：收银台侧身" /></label><label>景别<select value={newSceneShotSize} onChange={(event) => setNewSceneShotSize(event.target.value)}><option value="close_up">近景</option><option value="medium">中景</option><option value="full">全身</option></select></label><label>地点<input value={newSceneLocation} onChange={(event) => setNewSceneLocation(event.target.value)} /></label><button type="button" onClick={() => void createScene()} disabled={sceneBusy || !newSceneName.trim()}>新增场景</button></div></details>
         </div>
       </div>
+      <AssetPickerDialog
+        open={voicePickerOpen}
+        kind="voice"
+        selectedId={String(selected.summary.default_voice_id || "")}
+        onClose={() => setVoicePickerOpen(false)}
+        onSelect={(voice) => {
+          void setDefaultVoice(voice.resource_id);
+          setVoicePickerOpen(false);
+        }}
+        context={{
+          session_id: selected.resource_id,
+          step: "digital_human_profile",
+          purpose: "数字人默认声音",
+          slot_id: "default-voice",
+          allowed_kinds: ["voice"],
+          required_capabilities: ["use"],
+          selection_mode: "single",
+        }}
+      />
     </div>
   );
 }

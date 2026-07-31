@@ -76,48 +76,58 @@ export function DigitalHumanResultPanel({ run, busy, onDownload }: { run: IpBroa
   return (
     <div className="digital-human-app-result" aria-label="生成结果">
       <div className="digital-human-app-result-heading">
-        <Typography.Text strong>结果交付</Typography.Text>
-        <Tag color="processing">默认预览：最终视频</Tag>
-        {hasFinalVideo ? <Button size="small" onClick={() => onDownload(finalVideoKey)} disabled={busy}>下载最终视频</Button> : null}
-      </div>
-      <div className="digital-human-app-result-list">
-        {[
-          [finalVideoKey, "最终视频", hasFinalVideo],
-          ["cover", "封面", run.artifact_keys?.includes("cover")],
-          ["publish_copy", "发布文案", run.artifact_keys?.includes("publish_copy")],
-          ["spoken_script", "口播稿", run.artifact_keys?.includes("spoken_script")],
-        ].map(([key, label, available]) => (
-          <div key={String(key)} className="digital-human-app-result-item">
-            <span>{label}</span>
-            <div className="digital-human-app-result-item-actions">
-              <Tag color={available ? "success" : "default"}>{available ? "已生成" : "待生成"}</Tag>
-              {available ? <Button size="small" onClick={() => onDownload(String(key))} disabled={busy}>{key === finalVideoKey ? "下载" : "查看/下载"}</Button> : null}
-            </div>
+        <div>
+          <Typography.Text strong>口播视频</Typography.Text>
+          <Typography.Text type="secondary">检查成片，满意后即可下载或交给发布中心。</Typography.Text>
+          <div className="digital-human-app-result-meta" aria-label="成片元数据">
+            <Tag>{run.presentation?.digital_human_name || "已选择数字人"}</Tag>
+            <Tag>{run.presentation?.voice_name || "生成时固定声音"}</Tag>
           </div>
-        ))}
+        </div>
+        {hasFinalVideo ? <Button size="small" onClick={() => onDownload(finalVideoKey)} disabled={busy}>下载最终视频</Button> : null}
       </div>
       {hasFinalVideo ? (
         <div className="digital-human-app-result-preview" aria-label="最终视频预览">
           {previewUrl ? <video src={previewUrl} controls muted preload="metadata" /> : <Typography.Text type="secondary">{previewError ? "最终视频预览暂不可用，仍可下载最终视频。" : "正在加载最终视频预览…"}</Typography.Text>}
         </div>
       ) : null}
-      {hasCover ? (
-        <div className="digital-human-app-result-content" aria-label="封面预览">
-          <div className="digital-human-app-result-content-heading"><Typography.Text strong>封面预览</Typography.Text><Button size="small" onClick={() => onDownload("cover")} disabled={busy}>下载封面</Button></div>
-          {coverUrl ? <img src={coverUrl} alt="生成封面" /> : <Typography.Text type="secondary">{coverError ? "封面预览暂不可用，仍可下载封面。" : "正在加载封面预览…"}</Typography.Text>}
-        </div>
-      ) : null}
-      {publishText ? (
-        <div className="digital-human-app-result-content" aria-label="发布文案内容">
-          <div className="digital-human-app-result-content-heading"><Typography.Text strong>发布文案</Typography.Text><Button size="small" onClick={() => void copyText(publishText)} disabled={busy}>复制文案</Button></div>
-          <pre>{publishText}</pre>
-        </div>
-      ) : null}
-      {scriptText ? (
-        <div className="digital-human-app-result-content" aria-label="口播稿内容">
-          <div className="digital-human-app-result-content-heading"><Typography.Text strong>口播稿</Typography.Text><Button size="small" onClick={() => void copyText(scriptText)} disabled={busy}>复制口播稿</Button></div>
-          <pre>{scriptText}</pre>
-        </div>
+      {(hasCover || publishText || scriptText) ? (
+        <details className="digital-human-app-result-extras">
+          <summary>封面、发布文案和口播稿</summary>
+          <div className="digital-human-app-result-list">
+            {[
+              ["cover", "封面", run.artifact_keys?.includes("cover")],
+              ["publish_copy", "发布文案", run.artifact_keys?.includes("publish_copy")],
+              ["spoken_script", "口播稿", run.artifact_keys?.includes("spoken_script")],
+            ].map(([key, label, available]) => (
+              <div key={String(key)} className="digital-human-app-result-item">
+                <span>{label}</span>
+                <div className="digital-human-app-result-item-actions">
+                  <Tag color={available ? "success" : "default"}>{available ? "已生成" : "待生成"}</Tag>
+                  {available ? <Button size="small" onClick={() => onDownload(String(key))} disabled={busy}>下载</Button> : null}
+                </div>
+              </div>
+            ))}
+          </div>
+          {hasCover ? (
+            <div className="digital-human-app-result-content" aria-label="封面预览">
+              <div className="digital-human-app-result-content-heading"><Typography.Text strong>封面预览</Typography.Text><Button size="small" onClick={() => onDownload("cover")} disabled={busy}>下载封面</Button></div>
+              {coverUrl ? <img src={coverUrl} alt="生成封面" /> : <Typography.Text type="secondary">{coverError ? "封面预览暂不可用，仍可下载封面。" : "正在加载封面预览…"}</Typography.Text>}
+            </div>
+          ) : null}
+          {publishText ? (
+            <div className="digital-human-app-result-content" aria-label="发布文案内容">
+              <div className="digital-human-app-result-content-heading"><Typography.Text strong>发布文案</Typography.Text><Button size="small" onClick={() => void copyText(publishText)} disabled={busy}>复制文案</Button></div>
+              <pre>{publishText}</pre>
+            </div>
+          ) : null}
+          {scriptText ? (
+            <div className="digital-human-app-result-content" aria-label="口播稿内容">
+              <div className="digital-human-app-result-content-heading"><Typography.Text strong>口播稿</Typography.Text><Button size="small" onClick={() => void copyText(scriptText)} disabled={busy}>复制口播稿</Button></div>
+              <pre>{scriptText}</pre>
+            </div>
+          ) : null}
+        </details>
       ) : null}
       {run.artifact_keys?.includes("digital_human_video") ? (
         <details className="digital-human-app-result-diagnostics">

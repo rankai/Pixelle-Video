@@ -176,6 +176,7 @@ class AppRunner:
                         content=_resolve_artifact_output_refs(related.content, related_version_ids),
                         file_refs=related.file_refs,
                         source=related.source,
+                        schema_version=_artifact_schema_version(related.content),
                     )
                     related_artifact_ids.append(related_version.artifact_id)
                     related_version_ids[related.key] = related_version.artifact_version_id
@@ -191,6 +192,7 @@ class AppRunner:
                     content=_resolve_artifact_output_refs(output.content, related_version_ids),
                     file_refs=output.file_refs,
                     source=output.source,
+                    schema_version=_artifact_schema_version(output.content),
                 )
                 self.repository.set_output_artifacts(
                     run.app_run_id, [version.artifact_id, *related_artifact_ids]
@@ -331,3 +333,12 @@ def _resolve_artifact_output_refs(value: Any, refs: dict[str, str]) -> Any:
     if isinstance(value, dict):
         return {key: _resolve_artifact_output_refs(item, refs) for key, item in value.items()}
     return value
+
+
+def _artifact_schema_version(content: dict[str, Any] | None) -> int:
+    """Persist the schema emitted by an executor instead of defaulting to v1."""
+
+    if not isinstance(content, dict):
+        return 1
+    value = content.get("schema_version", 1)
+    return value if isinstance(value, int) and not isinstance(value, bool) and value >= 1 else 1

@@ -46,6 +46,7 @@ class StructuredGenerationRequest:
     trusted_style_rules: tuple[str, ...] = ()
     timeout_ms: int = 120000
     cancel_event: asyncio.Event | None = field(default=None, compare=False)
+    visual_inputs: tuple[dict[str, str], ...] = ()
 
     def __post_init__(self) -> None:
         if (
@@ -56,6 +57,17 @@ class StructuredGenerationRequest:
             raise ValueError("timeout_ms must be an integer between 1000 and 120000")
         if not isinstance(self.prompt_variables, dict) or not isinstance(self.context, dict):
             raise ValueError("prompt_variables and context must be JSON objects")
+        if not isinstance(self.visual_inputs, tuple) or any(
+            not isinstance(item, dict)
+            or not isinstance(item.get("asset_ref"), str)
+            or not isinstance(item.get("mime_type"), str)
+            or not isinstance(item.get("data_url"), str)
+            or not item["asset_ref"].strip()
+            or not item["mime_type"].startswith("image/")
+            or not item["data_url"].startswith("data:image/")
+            for item in self.visual_inputs
+        ):
+            raise ValueError("visual_inputs must contain trusted image data URLs")
         if not isinstance(self.trusted_style_rules, tuple) or not all(
             isinstance(item, str) and item.strip() for item in self.trusted_style_rules
         ):
@@ -116,14 +128,15 @@ def _trusted_app_contract(app_id: str) -> str:
 
     if app_id == "builtin.marketing-copy":
         return (
-            "For marketing-copy, return exactly 3 variants; each variant must include hook, body, cta, and full_text "
-            "containing all three. Set word_count to the Unicode code-point length of full_text and set "
-            "estimated_seconds to ceil(word_count/4); do not use tokenizer length or an estimate."
+            "For marketing-copy, return exactly 3 variants and each variant must contain only one non-empty full_text "
+            "string. Write the three variants for direct benefit, concrete customer scene, and natural owner/store "
+            "voice. Do not invent project facts or return internal angle, risk, or derived timing fields."
         )
     if app_id == "builtin.viral-titles":
         return (
-            "For viral-titles, return exactly input.count candidates (5-10); use exactly one supplied source; each title "
-            "must be at most 30 Unicode code points and unique after normalization."
+            "For viral-titles, return exactly 6 candidates and each candidate must contain only one non-empty title "
+            "string. Use the supplied content and facts, use visibly different entry points, and respect the "
+            "platform hard length. Do not return angle, risk, banned-match, or derived length fields."
         )
     if app_id == "builtin.douyin-carousel":
         return (
@@ -183,8 +196,17 @@ class ConfigAppLLMPort:
             "</PIXELLE_CONTEXT>"
         )
         try:
+            service_kwargs: dict[str, Any] = {"prompt": prompt, "response_type": response_type}
+            if request.visual_inputs:
+                service_kwargs["image_inputs"] = [
+                    {
+                        "mime_type": item["mime_type"],
+                        "data_url": item["data_url"],
+                    }
+                    for item in request.visual_inputs
+                ]
             result = await _await_with_cancellation(
-                self.service(prompt=prompt, response_type=response_type),
+                self.service(**service_kwargs),
                 cancel_event=request.cancel_event,
                 timeout_ms=request.timeout_ms,
             )
