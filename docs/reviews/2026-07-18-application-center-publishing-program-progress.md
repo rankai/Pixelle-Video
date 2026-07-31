@@ -1,22 +1,22 @@
 # 应用中心与桌面自动发布 Program 进度台账
 
 current_stage: PROGRAM-ROLLOUT
-current_substage: PG-L-BRAND-ROLLOUT
-current_stage_status: delivery_in_progress
+current_substage: PG-L-WINDOWS-AND-PRODUCT-ACCEPTANCE
+current_stage_status: waiting_user
 program_status: in_progress
-gate_status: PROGRAM-ROLLOUT/implementation_pass_with_boundary
-completed_subplan_gate: PG-BP-F_passed_with_boundary
-paused_checkpoint: none
+gate_status: PROGRAM-ROLLOUT/PG-L_waiting_user
+completed_subplan_gate: PG-ARH-E_passed
+paused_checkpoint: -
 
 - 日期：2026-07-18
 - 上位方案：`docs/superpowers/specs/2026-07-18-application-center-publishing-program-master-plan.md`
 - 执行模式：单 Luna 严格串行
 - 当前 Program 状态：`in_progress`
 - 启动审查结论：`conditional_go_for_coord_0_only`
-- 当前 Stage：`PROGRAM-ROLLOUT/PG-L-BRAND-ROLLOUT`
-- 当前 Stage 状态：`delivery_in_progress`（正式启用独立六维复审已通过；正在分批提交、PR 合并和构建 Windows 安装包）
-- 暂停 checkpoint：无；`PROGRAM-ROLLOUT/PG-L` 已恢复为当前入口
-- 最后更新时间：2026-07-30（用户批准 `CR-BRAND-PROJECT-ROLLOUT-001`；品牌项目开发 Gate 已通过，当前只执行正式启用和交付，不扩大产品范围）
+- 当前 Stage：`PROGRAM-ROLLOUT/PG-L-WINDOWS-AND-PRODUCT-ACCEPTANCE`
+- 当前 Stage 状态：`waiting_user`（应用结果历史子计划 `PG-ARH-E` 已独立终验通过；恢复 Windows 实机、产品签字和真实 rollback/WebView SLA 外部验收）
+- 暂停 checkpoint：无；已恢复原 `PG-L` 入口
+- 最后更新时间：2026-07-30（`APP-RESULT-HISTORY-0..4` 全部通过，唯一入口恢复 `PROGRAM-ROLLOUT/PG-L`）
 - 更新人：主线程/协调层
 
 ## 1. 使用规则
@@ -59,8 +59,10 @@ paused_checkpoint: none
 | 21 | BRAND-PROJECT | 品牌包—我的项目领域边界收口 | `completed_with_boundary` | PG-BP-D | `passed_with_boundary` | 2026-07-29 | 2026-07-30 | [`BRAND-PROJECT-3-implementation-2026-07-29.md`](application-publishing-program/BRAND-PROJECT-3-implementation-2026-07-29.md)；[`qa/BRAND-PROJECT-3-implementation-2026-07-29.json`](application-publishing-program/qa/BRAND-PROJECT-3-implementation-2026-07-29.json)；独立六维终验 P0/P1/P2=0 |
 | 22 | BRAND-PROJECT | 四应用固定品牌上下文与交付 | `completed_with_boundary` | PG-BP-E | `passed_with_boundary` | 2026-07-30 | 2026-07-30 | [`BRAND-PROJECT-4-implementation-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-4-implementation-2026-07-30.md)；[`qa/BRAND-PROJECT-4-implementation-2026-07-30.json`](application-publishing-program/qa/BRAND-PROJECT-4-implementation-2026-07-30.json)；Python full split 931、Desktop 123、build、sidecar 与真实交付证据通过；独立六维终验 P0/P1/P2=0 |
 | 23 | BRAND-PROJECT | 受控启用、回滚与收口 | `completed_with_boundary` | PG-BP-F | `passed_with_boundary` | 2026-07-30 | 2026-07-30 | [`BRAND-PROJECT-5-implementation-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-5-implementation-2026-07-30.md)；[`BRAND-PROJECT-5-final-review-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-5-final-review-2026-07-30.md)；[`qa/BRAND-PROJECT-5-implementation-2026-07-30.json`](application-publishing-program/qa/BRAND-PROJECT-5-implementation-2026-07-30.json)；最终独立六维终验 `PASS with boundary`，P0/P1/实质性 P2=0 |
+| 24 | DH-LITE-VOICE | 数字人口播轻应用与默认声音绑定 | `completed` | PG-DLV-D | `passed` | 2026-07-30 | 2026-07-30 | [`2026-07-30-digital-human-lite-and-voice-binding-implementation-plan.md`](../superpowers/specs/2026-07-30-digital-human-lite-and-voice-binding-implementation-plan.md)；[`DH-LITE-VOICE-implementation-2026-07-30.md`](application-publishing-program/DH-LITE-VOICE-implementation-2026-07-30.md)；[`DH-LITE-VOICE-final-review-2026-07-30.md`](application-publishing-program/DH-LITE-VOICE-final-review-2026-07-30.md)；81 后端、25 前端、production build、真实 Browser；独立六维终审 P0/P1/实质性 P2=0 |
+| 25 | APP-RESULT-HISTORY | 生成记录块、完整候选与单媒体成品预览 | `completed_with_boundary` | PG-ARH-A → PG-ARH-E | `passed` | 2026-07-30 | 2026-07-30 | [`2026-07-30-application-center-project-result-history-implementation-plan.md`](../superpowers/specs/2026-07-30-application-center-project-result-history-implementation-plan.md)；[`APP-RESULT-HISTORY-4-final-review-2026-07-30.md`](application-publishing-program/APP-RESULT-HISTORY-4-final-review-2026-07-30.md)；五个 Gate 独立终审通过；P0/P1/实质性P2=0 |
 
-原始 Program Gate 进度：`9 / 12`；本次新增增强 Stage 尚未计入已通过 Gate，不改变 PG-L 或原始 Program 结论。
+原始 Program Gate 进度：`9 / 12`；本次新增增强 Stage 已单独通过，不改变 PG-L 或原始 Program 结论。
 
 ## 3. COORD-0 控制卡（已归档）
 
@@ -658,6 +660,32 @@ PG-A 交接边界：task8 恢复、DOM 行为 harness、真实 Guard/live smoke�
 
 | 11 | PROGRAM-ROLLOUT | AC-6 + PUB-7D | `implementation_in_progress` | PG-L | `entry_passed_with_boundary` |
 
+### 当前 Stage 控制卡：PROGRAM-ROLLOUT/PG-L
+
+- 状态：`waiting_user`
+- Gate：`PROGRAM-ROLLOUT/PG-L_waiting_user`
+- 已完成增强：`APP-RESULT-HISTORY-0..4`，`PG-ARH-E=passed`，见 [`APP-RESULT-HISTORY-4-final-review-2026-07-30.md`](application-publishing-program/APP-RESULT-HISTORY-4-final-review-2026-07-30.md)。
+- 当前剩余外部验收：Windows 真实用户设备安装、产品负责人签字、真实平台 rollback/WebView SLA。
+- 不变边界：最终发布自动点击关闭；旧图文样片质量不通过；数字人样片受控可用。
+
+### 已归档 Stage 控制卡：APP-RESULT-HISTORY-4
+
+- 来源：`CR-APP-RESULT-HISTORY-001` / [`应用中心生成记录块与真实结果预览实施方案`](../superpowers/specs/2026-07-30-application-center-project-result-history-implementation-plan.md)
+- 状态：`completed_with_boundary`
+- Gate：`PG-ARH-E_passed`
+- 前置结论：`PG-ARH-A=passed_with_boundary`；`PG-ARH-B/C/D=passed`，Stage3 独立六维 P0/P1/P2=`0/0/0`，见 [`APP-RESULT-HISTORY-3-final-review-2026-07-30.md`](application-publishing-program/APP-RESULT-HISTORY-3-final-review-2026-07-30.md)。
+- 目标：完成 on→off→on、四应用一致性、新旧记录读取、空态/失败/性能/窄屏回归、真实可视化与内容质量边界评审。
+- 当前允许修改：Feature flag 接线与测试、Stage4 回滚/回归证据、用户文档和协调台账；仅修复终审发现的范围内缺陷。
+- 当前禁止修改：数据库迁移、Provider/模型能力、发布平台自动化、最终发布按钮、与本 CR 无关的页面重构。
+- Stage4 通过条件：
+  - 四应用记录块语义一致且保留业务形态差异；
+  - 新旧记录均可读取；
+  - 关闭开关恢复旧结果区且数据不变，再次开启恢复记录流；
+  - 空态、失败、性能、窄屏和 production build 通过；
+  - 内容质量评审不与功能 Gate 混淆；
+  - 独立六维终审 P0/P1/实质性 P2=0。
+- 回滚锚点：恢复 `current_stage=PROGRAM-ROLLOUT`、`current_substage=PG-L-WINDOWS-AND-PRODUCT-ACCEPTANCE`、`current_stage_status=waiting_user`、`gate_status=PG-L_implementation_pass_with_boundary`；不删除项目、AppRun、Artifact、历史媒体或既有证据。
+
 ## 4. 风险登记
 
 | ID | 风险 | 当前状态 | 负责人 | 缓解/下一步 |
@@ -682,6 +710,7 @@ PG-A 交接边界：task8 恢复、DOM 行为 harness、真实 Guard/live smoke�
 | R-018 | 三平台已有有界 live evidence 但仍显示未验证，用户无法按抖音同级进入发布前填充 | open/CR | Luna/协调层 | 以 `CR-PLATFORM-PILOT-001` 仅提升至 pilot/manual 状态；保留平台特定边界、重启 fail-closed、最终点击 0 和默认 rollout 关闭 |
 | R-019 | 四应用继续各自堆叠输入、结果和项目状态，造成交互不一致和跨应用复制 | open/CR | Luna/协调层 | 以 `CR-APP-WORKBENCH-001` 建立共享 AppWorkbench、ContextSnapshot v2、ArtifactVersion 和 typed handoff；每 Stage 单独 Gate，旧 UI 可回滚 |
 | R-020 | 品牌包与项目资料重复维护，项目未真正绑定品牌 revision，品牌更新可能导致生成事实漂移 | open/CR | Luna/协调层 | 以 `CR-BRAND-PROJECT-BOUNDARY-001` 建立品牌 1:N 项目、ContextSnapshot v3、显式同步、项目覆盖和读不写 Gate；旧 `brand_id=null` 不自动绑定 |
+| R-021 | 右侧结果区只展示当前交付清单或技术字段，用户无法直接比较本次完整结果并找回历史 | closed | Luna/协调层 | `CR-APP-RESULT-HISTORY-001` 已完成；一次 AppRun 一个完整记录块、标题/文案内联候选、图文/数字人单成品真实预览、旧结果只读兼容和 Feature flag 回滚均通过 `PG-ARH-E` |
 
 ## 5. Change Request
 
@@ -760,6 +789,28 @@ CR-BRAND-PROJECT-ROLLOUT-001：品牌项目新版正式启用与 Windows 交付�
 - 测试影响：执行生产配置/Windows sidecar 同步契约、Desktop 全量、production build、Tauri 编译单测、四应用真实桌面/窄屏可视化和独立六维复审；合并后由 GitHub Windows Runner 生成 NSIS 安装包，再进入真实 Windows 人工验收。
 - 回滚：启动桌面时显式设置 `PIXELLE_BRAND_PROJECT_BOUNDARY_V1=0`；必要时回退本 CR 的生产开关提交；不回滚或删除已生成的历史数据。
 - 批准结论：用户于 2026-07-30 明确要求“确认启用品牌项目新版 → 分批提交推送并合并 → 构建新版安装包 → 最终可视化与 Windows 验收”；当前唯一入口切换为 `PROGRAM-ROLLOUT/PG-L-BRAND-ROLLOUT`。
+
+CR-DH-LITE-VOICE-001：数字人口播轻应用与默认声音绑定（2026-07-30，用户批准）
+
+- 问题与证据：当前数字人应用虽然复用真实 TTS、图片/视频数字人和后期链路，但最短路径仍暴露项目迁移、文案产物/变体、图片/视频模式、人物/场景两级选择和发布字段；图片与视频都静默回退到默认 `zh-CN-YunjianNeural`，数字人 Profile 与 VoiceProfile 没有默认关系，可能出现形象与声音不匹配。
+- 受影响 Stage/契约/文件：新增 `DH-LITE-VOICE-0` 至 `DH-LITE-VOICE-3`；资产库数字人 Profile、VoiceProfile 引用校验、数字人 V2 输入可选 voice 快照、AppRun/legacy session TTS 固定、资产库默认声音 UI、数字人轻量主路径和真实 Browser 视觉证据。
+- 备选方案：A. 每次强制选择声音（增加轻应用负担）；B. 永久使用系统默认声音（形象与品牌声音不一致）；C. 企业资产库维护人物默认声音，应用只显示试听/本次更换，同时由服务端固定声音 revision（选定）。
+- 选定方案：唯一入口切换为 `DH-LITE-VOICE-0/PG-DLV-A_entry_in_progress`；复用 FastAPI/Python、SQLite、现有 VoiceProfile、TTS/RunningHub/后期和发布中心，不重写即刻成片。
+- 数据与迁移影响：对本地单组织资产库做 additive `default_voice_id` 迁移；旧数字人不静默回填；新 AppRun 固定声音 profile/audio revision 和解析来源；旧 Run 无 voice 字段继续兼容恢复；未来多租户由 NestJS 控制面增加 tenant_id/RBAC，本次不伪造账户体系。
+- 测试影响：覆盖绑定/换绑/解绑、归档/授权/revision、运行覆盖、系统 fallback、图片/视频共享解析、重启/重试不漂移、前端轻量路径、四视口和 production build；已通过的真实 RunningHub 媒体能力不无目的重复付费测试；最终发布点击=0。
+- 回滚：关闭现有 `VITE_APP_WORKBENCH_DIGITAL_HUMAN_V2` 回到旧数字人工作区；保留 additive 字段、历史资产、Run 和 Artifact；恢复 `PROGRAM-ROLLOUT/PG-L-WINDOWS-AND-PRODUCT-ACCEPTANCE` checkpoint。
+- 批准结论：用户明确同意把数字人精简和声音—数字人形象绑定放到一个方案执行，并要求完成后启动独立线程严格评审。
+
+CR-APP-RESULT-HISTORY-001：应用中心生成记录块与真实结果预览（2026-07-30，用户批准）
+
+- 问题与证据：现有右侧结果区仍偏向当前交付清单、版本选择和技术状态，历史结果难以直接找回；用户提供的万相营造标题、文案和视频页面确认“一次生成一个时间记录块，块内完整展示本次输出”更符合门店老板比较和复用内容的路径。
+- 受影响 Stage/契约/文件：新增 `APP-RESULT-HISTORY-0` 至 `APP-RESULT-HISTORY-4`；AppRun/ArtifactVersion 只读投影、记录块 API、共享历史组件、标题/文案多候选、图文/数字人单成品卡、真实媒体预览、Feature flag、视觉与回滚证据。
+- 备选方案：A. 保持本次交付清单（无法找回历史）；B. 每个候选拆成一条历史记录（破坏 AppRun 边界）；C. 一次 AppRun 一个完整记录块，块内按业务结果形态展示全部输出（选定）。
+- 选定方案：标题/文案是多候选，记录块内直接展示全部实际结果；抖音图文和数字人每次各只有一个完整成品卡，点击直接查看真实预览；媒体卡只显示封面/首帧、标题、页数/时长以及最多两个操作，技术信息和次级动作进入预览或更多菜单。
+- 数据与迁移影响：优先以现有 `app_runs`、`artifacts`、`artifact_versions`、`artifact_handoffs` 和 `app_events` 建立只读投影，不新增第二套结果事实表；旧来源不明记录 fail-closed，只读不回写；索引仅在性能证据证明需要时 additive 增加。
+- 测试影响：覆盖 6 标题一块、多文案一块、多页图文一个成品、数字人附件聚合为一个视频成品、再次生成/重试/编辑语义、项目隔离、稳定 cursor、旧数据零写、四视口、真实图文/视频预览、回滚和 Windows 构建；完成后必须进行可视化验证和产出结果评审。
+- 回滚：关闭同步前后端 Feature flag，回到现有结果区；保留 AppRun、Artifact、ArtifactVersion、历史媒体和交接事件；恢复 `PROGRAM-ROLLOUT/PG-L-WINDOWS-AND-PRODUCT-ACCEPTANCE` checkpoint。
+- 批准结论：用户于 2026-07-30 明确要求“按照方案执行，完成后做可视化验证并评审产出结果”；协调层已切换唯一入口至 `APP-RESULT-HISTORY-0`，PG-ARH-A 通过前不得进入业务实现。
 
 新增时使用：
 
@@ -974,3 +1025,11 @@ CR ID：
 | 2026-07-30 | BRAND-PROJECT-5 受控启用、回滚与本地实施收口 | 默认 flag 后端/契约/前端均保持 false；隔离环境完成 on→off→on-again 真实 Browser/DB 回滚，旧 UI v3 项目与历史结果非空且零写；真实历史 SQLite 副本迁移、失败注入回滚、显式同步后新增 snapshot/run/artifact/version、既有行逐行哈希不变；10 次 sidecar 和 repository/API 各 10 次基准通过 | [`BRAND-PROJECT-5-implementation-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-5-implementation-2026-07-30.md)；[`qa/BRAND-PROJECT-5-implementation-2026-07-30.json`](application-publishing-program/qa/BRAND-PROJECT-5-implementation-2026-07-30.json)；[`qa/BRAND-PROJECT-5-2026-07-30/browser-rollback-manifest.json`](application-publishing-program/qa/BRAND-PROJECT-5-2026-07-30/browser-rollback-manifest.json)；Python 800+131=931、Desktop 18 files/123、build 4610、Ruff/format/JSON/diff/hash clean | `PG-BP-F_implementation_review_pending`；初始 on 为真实 DOM-only，off/on-again 有真实截图；性能预算仅宽松本地 regression guard，非 SLA；默认 flags、PG-L paused、Windows/产品签字/真实平台 rollback、外部平台、最终发布、Git 边界不变 | 交最终独立六维终审；P0/P1/实质性 P2=0 前不关闭 PG-BP-F、不恢复 PROGRAM-ROLLOUT |
 | 2026-07-30 | PG-BP-F 最终独立终验通过并恢复 PROGRAM-ROLLOUT/PG-L | 严格只读审查确认品牌包唯一资料源、项目工作流边界、固定 revision、显式同步、历史不可变、四应用统一消费及 on/off 回滚完整闭环；P0/P1/实质性 P2=0；品牌子计划关闭为 `completed_with_boundary` | [`BRAND-PROJECT-5-final-review-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-5-final-review-2026-07-30.md)；[`BRAND-PROJECT-5-implementation-2026-07-30.md`](application-publishing-program/BRAND-PROJECT-5-implementation-2026-07-30.md)；独立审查 `/root/brand_project_stage5_final_reviewer`：`PG-BP-F PASS with boundary` | 初始 on 仅 DOM 证据、性能仅本地 guard；Windows 实机、产品签字、真实平台 rollback/WebView SLA 仍 open；PG-L 未通过；默认 Publish V2 与最终自动点击仍关闭 | 唯一入口恢复 `PROGRAM-ROLLOUT/PG-L_waiting_user`，等待外部验收，不启动新业务 Stage |
 | 2026-07-30 | CR-BRAND-PROJECT-ROLLOUT-001 正式启用独立六维终审通过 | 桌面生产构建同步开启应用工作台与品牌项目新版；Tauri `desktop_runtime` 与 FastAPI sidecar 使用同一运行时解析结果，`0/false` 前后端同步回滚；修复 375px 旧项目提示按钮挤压正文和数字人来源 Tab 裁切；数字人普通 UI 移除技术词；独立审查确认无范围偏离 | [`PROGRAM-ROLLOUT-brand-project-enable-2026-07-30.md`](application-publishing-program/PROGRAM-ROLLOUT-brand-project-enable-2026-07-30.md)；[`PROGRAM-ROLLOUT-brand-project-enable-review-2026-07-30.md`](application-publishing-program/PROGRAM-ROLLOUT-brand-project-enable-review-2026-07-30.md)；[`qa/PROGRAM-ROLLOUT-brand-project-enable-2026-07-30/manifest.json`](application-publishing-program/qa/PROGRAM-ROLLOUT-brand-project-enable-2026-07-30/manifest.json)；Python 137、Desktop 125、Tauri 2、build 4610；P0/P1/P2=0 | `PROGRAM-ROLLOUT/implementation_pass_with_boundary`；Windows 实机、产品签字、真实平台 rollback/WebView SLA 仍 open；最终发布自动点击不变 | 分批提交、推送、更新现有 PR #16 并合并；以合并提交构建 Windows NSIS 安装包 |
+| 2026-07-30 | DH-LITE-VOICE 轻应用与默认声音绑定终审通过 | 数字人主路径收敛为内容、形象、声音和一次生成；图片/视频由场景自动识别；企业资产库维护人物默认声音；本次覆盖不修改默认；Run 固定 VoiceProfile、音频资产/revision 和解析来源；三类声音重启恢复显示创建时快照 | [`DH-LITE-VOICE-implementation-2026-07-30.md`](application-publishing-program/DH-LITE-VOICE-implementation-2026-07-30.md)；[`DH-LITE-VOICE-final-review-2026-07-30.md`](application-publishing-program/DH-LITE-VOICE-final-review-2026-07-30.md)；后端 81、Desktop 25、production build、Ruff/diff、四视口 Browser；独立终审 `PASS` | `PG-DLV-D=passed`；P0/P1/实质性 P2=0；未新增付费 Provider 或平台发布动作；Windows 实机、产品签字、真实 rollback/WebView SLA 不变 | 关闭 DH-LITE-VOICE，唯一入口恢复 `PROGRAM-ROLLOUT/PG-L-WINDOWS-AND-PRODUCT-ACCEPTANCE` |
+| 2026-07-30 | 应用中心四应用轻量化收口 | 按“一应用一问题”重新核对门店文案、爆款标题、抖音图文和数字人口播；共享工作台去除重复标题/状态，旧项目提示压成单行，内容检查、分段编辑、生成步骤和辅助交付物默认折叠；四个主结果分别收敛为选文案、选标题、看图文、看成片 | [`APP-CENTER-four-apps-simplicity-closure-2026-07-30.md`](application-publishing-program/APP-CENTER-four-apps-simplicity-closure-2026-07-30.md)；[`qa/APP-CENTER-FOUR-APPS-AUDIT-2026-07-30`](application-publishing-program/qa/APP-CENTER-FOUR-APPS-AUDIT-2026-07-30)；Desktop 定向 56 passed、production build、真实 Browser 四路复验 | 不改变当前 Stage/Gate；未调用付费 Provider、未点击最终发布；数字人成片结果使用组件与既有运行证据，本轮未重新生成 | 保持唯一入口 `PROGRAM-ROLLOUT/PG-L-WINDOWS-AND-PRODUCT-ACCEPTANCE`，等待 Windows 与产品验收 |
+| 2026-07-30 | CR-APP-RESULT-HISTORY-001 登记并切换 APP-RESULT-HISTORY-0 | 用户批准按生成记录块方案实施；冻结一次 AppRun 一个完整记录块、标题/文案多候选、图文/数字人单成品、媒体卡显示预算、真实预览与回滚方向；方案 SHA-256 `be7496f…` | 当前 `PG-ARH-A_entry_in_progress`；Entry contract/fixture/test/视觉基线待完成 | PG-L 外部验收保持暂停 checkpoint；业务代码、数据库、Provider 和发布动作尚未修改 | 完成 APP-RESULT-HISTORY-0 Entry 交付并启动独立六维审查；PG-ARH-A 通过前不得进入后端或 UI 实现 |
+| 2026-07-30 | PG-ARH-A 四轮独立 Entry 终审通过 | 完成精确四结果基数、状态/legacy、page/cursor/项目隔离、候选全量、媒体显示预算、路径安全、四应用视觉基线和回滚契约；首轮 0/6/3、二轮 0/1/3、三轮 0/1/0、四轮 0/0/0 | [`APP-RESULT-HISTORY-0-entry-2026-07-30.md`](application-publishing-program/APP-RESULT-HISTORY-0-entry-2026-07-30.md)；[`APP-RESULT-HISTORY-0-final-review-2026-07-30.md`](application-publishing-program/APP-RESULT-HISTORY-0-final-review-2026-07-30.md)；49 passed；7 artifact、4 图、8 business hash 全匹配 | `PG-ARH-A=passed_with_boundary`；只证明 Entry，不证明真实 Repository/API、SQLite 零写、N+1/性能、UI/媒体预览/回滚/Windows | 唯一入口切换 `APP-RESULT-HISTORY-1/READ_PROJECTION_AND_API`；只做后端只读实现与独立审查 |
+| 2026-07-30 | PG-ARH-B 后端只读投影独立六维终验通过 | 完成一 AppRun 一记录、四形态聚合、完整历史候选、项目/应用隔离、严格结果时间排序、canonical HMAC cursor、逐行 SHA-256 revision、legacy 单条降级、零写与固定查询预算；两轮 P1 均闭环 | [`APP-RESULT-HISTORY-1-implementation-2026-07-30.md`](application-publishing-program/APP-RESULT-HISTORY-1-implementation-2026-07-30.md)；[`APP-RESULT-HISTORY-1-final-review-2026-07-30.md`](application-publishing-program/APP-RESULT-HISTORY-1-final-review-2026-07-30.md)；projection+Entry 32、应用中心回归 191、5 SELECT/页、100 runs P95 1.493ms | `PG-ARH-B=passed`；P0/P1/P2=0；仅证明后端只读投影/API，不证明桌面记录流、媒体预览、真实视觉、Windows | 唯一入口切换 `APP-RESULT-HISTORY-2/TEXT_RECORD_BLOCKS`；只实现标题/文案记录块、交互和响应式体验 |
+| 2026-07-30 | PG-ARH-C 文本记录块独立六维终验通过并切换 APP-RESULT-HISTORY-3 | 标题/文案一次运行一个完整记录块；复制、编辑、采用、重复生成、当前应用/全部成果、过期响应隔离、四视口/200%/焦点态通过；首轮编辑失败丢输入 P1 已闭环 | [`APP-RESULT-HISTORY-2-implementation-2026-07-30.md`](application-publishing-program/APP-RESULT-HISTORY-2-implementation-2026-07-30.md)；[`APP-RESULT-HISTORY-2-final-review-2026-07-30.md`](application-publishing-program/APP-RESULT-HISTORY-2-final-review-2026-07-30.md)；Desktop 20 files/148、后端 39、build/Ruff/format/diff；独立审查 P0/P1/P2=0 | `PG-ARH-C=passed`；仅证明文本记录块，不使用 Stage3 实现提前证明媒体 Gate；PG-L 外部 checkpoint 不变 | 唯一入口切换 `APP-RESULT-HISTORY-3/SINGLE_MEDIA_RECORD_BLOCKS`；只验收图文/数字人单成品卡、真实预览、版本一致性和回退 |
+| 2026-07-30 | PG-ARH-D 单成品媒体记录块独立六维终验通过并切换 APP-RESULT-HISTORY-4 | 图文 3/5/8 页单卡与全页预览、数字人单视频卡与真实播放器、固定版本、失败回退、Blob 回收、重启可读和媒体 200/content-type/hash 全部通过 | [`APP-RESULT-HISTORY-3-implementation-2026-07-30.md`](application-publishing-program/APP-RESULT-HISTORY-3-implementation-2026-07-30.md)；[`APP-RESULT-HISTORY-3-final-review-2026-07-30.md`](application-publishing-program/APP-RESULT-HISTORY-3-final-review-2026-07-30.md)；后端 39、前端媒体 33、build/Ruff/diff；独立审查 P0/P1/P2=0 | `PG-ARH-D=passed`；旧图文样片内容质量不通过、数字人受控可用，明确为功能 Gate 外边界；最终发布点击0 | 唯一入口切换 `APP-RESULT-HISTORY-4/ENABLE_AND_CLOSE`；只做回滚、回归、可视化和最终终审 |
+| 2026-07-30 | PG-ARH-E 最终独立六维终验通过并恢复 PROGRAM-ROLLOUT/PG-L | 四应用记录语义、on→off→on、旧结果回退、新旧数据只读、性能/空态/失败/窄屏、Windows 静态契约与真实可视化全部收口；首轮回滚截图证据 P1 已重采并闭环 | [`APP-RESULT-HISTORY-4-implementation-2026-07-30.md`](application-publishing-program/APP-RESULT-HISTORY-4-implementation-2026-07-30.md)；[`APP-RESULT-HISTORY-4-final-review-2026-07-30.md`](application-publishing-program/APP-RESULT-HISTORY-4-final-review-2026-07-30.md)；[`APP-RESULT-HISTORY-output-quality-review-2026-07-30.md`](application-publishing-program/APP-RESULT-HISTORY-output-quality-review-2026-07-30.md)；P0/P1/实质性P2=0 | `PG-ARH-E=passed`；Windows 实机 PG-L 未完成；旧图文质量失败、数字人受控可用、文本候选需人工审核；最终发布点击0 | 关闭 APP-RESULT-HISTORY 子计划；唯一入口恢复 `PROGRAM-ROLLOUT/PG-L-WINDOWS-AND-PRODUCT-ACCEPTANCE` |

@@ -17,41 +17,21 @@ from pixelle_video.app_center.structured_apps import (
 
 def _copy_output():
     variants = []
-    for index, angle in enumerate(("利益", "好奇", "场景"), start=1):
-        hook = f"门店亮点{index}"
-        body = f"这是第{index}版真实内容"
-        cta = "到店了解"
-        full_text = hook + body + cta
+    for index in range(1, 4):
         variants.append(
             {
-                "version_name": f"版本{index}",
-                "angle": angle,
-                "hook": hook,
-                "body": body,
-                "cta": cta,
-                "full_text": full_text,
-                "word_count": len(full_text),
-                "estimated_seconds": (len(full_text) + 3) // 4,
+                "full_text": f"门店亮点{index}，这是第{index}版真实内容，到店了解。",
             }
         )
-    return {"variants": variants, "missing_facts": [], "risk_flags": []}
+    return {"variants": variants}
 
 
-def _title_output(objective="click", count=5):
+def _title_output(objective="click", count=6):
     return {
         "candidates": [
-            {
-                "title": f"门店体验第{index}招",
-                "angle": "场景",
-                "objective": objective,
-                "length": len(f"门店体验第{index}招"),
-                "banned_matches": [],
-                "risk_labels": ["无"],
-            }
+            {"title": f"门店体验第{index}招"}
             for index in range(1, count + 1)
         ],
-        "missing_facts": [],
-        "risk_flags": [],
     }
 
 
@@ -76,7 +56,7 @@ def test_marketing_executor_validates_and_writes_contract_content(tmp_path):
     assert output.content["validation_facts"]["input"]["product_or_service"] == "咖啡"
 
 
-def test_marketing_executor_recalculates_provider_derived_fields_locally(tmp_path):
+def test_marketing_executor_does_not_persist_provider_derived_fields(tmp_path):
     output = _copy_output()
     output["variants"][0]["word_count"] = 999
     output["variants"][0]["estimated_seconds"] = 1
@@ -88,8 +68,7 @@ def test_marketing_executor_recalculates_provider_derived_fields_locally(tmp_pat
         FakeLLMPort(output),
     )
     variant = result.content["variants"][0]
-    assert variant["word_count"] == len(variant["full_text"])
-    assert variant["estimated_seconds"] == (variant["word_count"] + 3) // 4
+    assert set(variant) == {"full_text"}
 
 
 def test_structured_executor_repairs_invalid_output_once_and_preserves_request(tmp_path):
@@ -99,7 +78,7 @@ def test_structured_executor_repairs_invalid_output_once_and_preserves_request(t
 
         async def generate_structured(self, request, *, response_type=None):
             self.calls.append(request)
-            payload = {"variants": [], "missing_facts": [], "risk_flags": []} if len(self.calls) == 1 else _copy_output()
+            payload = {"variants": []} if len(self.calls) == 1 else _copy_output()
             return StructuredGenerationResponse(payload, "local-default:test", "fake", request_id=request.request_id)
 
     port = SequencePort()
@@ -120,7 +99,7 @@ def test_structured_executor_repairs_invalid_output_once_and_preserves_request(t
 
 def test_structured_executor_maps_second_invalid_output_to_stable_error(tmp_path):
     repository = AppCenterRepository(tmp_path / "invalid.sqlite")
-    port = FakeLLMPort({"variants": [], "missing_facts": [], "risk_flags": []})
+    port = FakeLLMPort({"variants": []})
     project = repository.create_project("AC-3 测试", "验证错误")
     run = repository.create_app_run(
         project.project_id,
@@ -141,14 +120,13 @@ def test_structured_executor_maps_second_invalid_output_to_stable_error(tmp_path
     [
         ("price", "到店优惠99元", "UNSUPPORTED_PRICE_FACT"),
         ("address", "欢迎到人民路8号", "UNSUPPORTED_ADDRESS_FACT"),
+        ("efficacy", "这杯咖啡提神醒脑，下午不困", "UNSUPPORTED_EFFICACY_FACT"),
+        ("efficacy-recovery", "下午喝一杯，立刻回血", "UNSUPPORTED_EFFICACY_FACT"),
     ],
 )
 def test_marketing_executor_rejects_concrete_facts_absent_from_input(tmp_path, field, claim, expected_diagnostic):
     output = _copy_output()
-    output["variants"][0]["body"] = claim
-    output["variants"][0]["full_text"] = output["variants"][0]["hook"] + claim + output["variants"][0]["cta"]
-    output["variants"][0]["word_count"] = len(output["variants"][0]["full_text"])
-    output["variants"][0]["estimated_seconds"] = (output["variants"][0]["word_count"] + 3) // 4
+    output["variants"][0]["full_text"] = claim
     repository = AppCenterRepository(tmp_path / f"invented-{field}.sqlite")
     project = repository.create_project("AC-3 事实", "拒绝编造")
     run = repository.create_app_run(
@@ -166,17 +144,14 @@ def test_marketing_executor_rejects_concrete_facts_absent_from_input(tmp_path, f
 
 def test_generated_fact_is_preserved_for_safe_edit_version_validation(tmp_path):
     output = _copy_output()
-    output["variants"][0]["body"] = "到店优惠99元"
-    output["variants"][0]["full_text"] = output["variants"][0]["hook"] + output["variants"][0]["body"] + output["variants"][0]["cta"]
-    output["variants"][0]["word_count"] = len(output["variants"][0]["full_text"])
-    output["variants"][0]["estimated_seconds"] = (output["variants"][0]["word_count"] + 3) // 4
+    output["variants"][0]["full_text"] = "门店亮点，到店优惠99元。"
     repository = AppCenterRepository(tmp_path / "edit-facts.sqlite")
     project = repository.create_project("AC-3 编辑", "保留事实")
     run = repository.create_app_run(project.project_id, "builtin.marketing-copy", "1.0.0", {"goal": "到店", "product_or_service": "咖啡", "content_format": "oral", "length_bucket": "short_15s", "facts": {"price": "99元"}}, idempotency_key="edit-facts-001")
     generated = asyncio.run(StructuredLLMExecutor(repository, FakeLLMPort(output), app_id="builtin.marketing-copy").execute(run))
     artifact = repository.create_artifact(project.project_id, "copywriting", "文案")
     version = repository.append_artifact_version(artifact.artifact_id, content=generated.content or {})
-    assert version.content and version.content["variants"][0]["word_count"] == len(version.content["variants"][0]["full_text"])
+    assert version.content and set(version.content["variants"][0]) == {"full_text"}
 
 
 def test_title_executor_enforces_exact_source_and_deterministic_length(tmp_path):
@@ -185,24 +160,48 @@ def test_title_executor_enforces_exact_source_and_deterministic_length(tmp_path)
     _, _, output = _run(
         repository,
         "builtin.viral-titles",
-        {"platform": "douyin", "objective": "click", "count": 5, "topic": "咖啡店体验"},
+        {"platform": "douyin", "objective": "click", "count": 6, "topic": "咖啡店体验"},
         port,
     )
     assert output.artifact_type == "title_set"
-    assert len(output.content["candidates"]) == 5
-    assert "exactly input.count" in port.requests[0].prompt_variables["output_contract"]
+    assert len(output.content["candidates"]) == 6
+    assert "exactly 6" in port.requests[0].prompt_variables["output_contract"]
 
     project = repository.create_project("AC-3 输入", "校验来源")
     run = repository.create_app_run(
         project.project_id,
         "builtin.viral-titles",
         "1.0.0",
-        {"platform": "douyin", "objective": "click", "count": 5, "topic": "咖啡", "source_text": "同时提供"},
+        {"platform": "douyin", "objective": "click", "count": 6, "topic": "咖啡", "source_text": "同时提供"},
         idempotency_key="invalid-title-source-001",
     )
     with pytest.raises(AppLLMPortError) as raised:
         asyncio.run(StructuredLLMExecutor(repository, FakeLLMPort(_title_output()), app_id="builtin.viral-titles").execute(run))
     assert raised.value.code == "APP_INPUT_INVALID"
+
+
+def test_title_executor_rejects_unsupported_efficacy_or_guarantee_claim(tmp_path):
+    output = _title_output()
+    output["candidates"][0]["title"] = "附近上班族下午茶首选，咖啡瞬间回状态"
+    repository = AppCenterRepository(tmp_path / "title-claims.sqlite")
+    project = repository.create_project("标题事实", "拒绝无依据承诺")
+    run = repository.create_app_run(
+        project.project_id,
+        "builtin.viral-titles",
+        "1.0.0",
+        {"platform": "douyin", "objective": "click", "count": 6, "topic": "咖啡"},
+        idempotency_key="title-claims-001",
+    )
+    with pytest.raises(AppLLMPortError) as raised:
+        asyncio.run(
+            StructuredLLMExecutor(
+                repository,
+                FakeLLMPort(output),
+                app_id="builtin.viral-titles",
+            ).execute(run)
+        )
+    assert raised.value.code == "STRUCTURED_OUTPUT_INVALID"
+    assert raised.value.diagnostic == "UNSUPPORTED_EFFICACY_FACT"
 
 
 def test_title_executor_resolves_same_project_artifact_source(tmp_path):
@@ -217,7 +216,7 @@ def test_title_executor_resolves_same_project_artifact_source(tmp_path):
         project.project_id,
         "builtin.viral-titles",
         "1.0.0",
-        {"platform": "douyin", "objective": "click", "count": 5, "source_artifact_version_id": source_version.artifact_version_id},
+        {"platform": "douyin", "objective": "click", "count": 6, "source_artifact_version_id": source_version.artifact_version_id},
         idempotency_key="title-source-run-001",
     )
     asyncio.run(StructuredLLMExecutor(repository, port, app_id="builtin.viral-titles").execute(run))

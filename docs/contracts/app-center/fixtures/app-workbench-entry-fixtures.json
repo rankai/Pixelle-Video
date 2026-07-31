@@ -64,7 +64,7 @@
       "project_id": "project-cafe",
       "context_snapshot_id": "context-cafe-v2",
       "task_brief": {
-        "goal": "吸引附近上班族到店",
+        "marketing_goal": "吸引附近上班族到店",
         "offer_name": "工作日午后咖啡套餐",
         "selling_point_fact_ids": [
           "fact-sell-1"
@@ -73,8 +73,7 @@
           "到店"
         ],
         "audience": "附近上班族",
-        "content_format": "oral",
-        "length_bucket": "short_15s",
+        "benefit_text": "工作日下午有明确套餐信息",
         "must_include": [
           "工作日 14:00 至 17:00"
         ],
@@ -96,7 +95,7 @@
       "task_brief": {
         "platform": "douyin",
         "objective": "store_visit",
-        "count": 5,
+        "count": 6,
         "topic": null,
         "source_text": null,
         "keywords": [
@@ -175,13 +174,12 @@
         "project_id": "project-cafe",
         "context_snapshot_id": "context-cafe-v2",
         "task_brief": {
-          "goal": "到店",
+          "marketing_goal": "到店",
           "offer_name": "咖啡",
           "selling_point_fact_ids": [],
           "benefit_tags": [],
           "audience": "上班族",
-          "content_format": "oral",
-          "length_bucket": "short_15s"
+          "benefit_text": null
         },
         "style_ref": null,
         "custom_style_reference": null,
@@ -199,13 +197,12 @@
         "project_id": "project-cafe",
         "context_snapshot_id": "context-cafe-v2",
         "task_brief": {
-          "goal": "到店",
+          "marketing_goal": "到店",
           "offer_name": "咖啡",
           "selling_point_fact_ids": [],
           "benefit_tags": [],
           "audience": "上班族",
-          "content_format": "oral",
-          "length_bucket": "short_15s"
+          "benefit_text": null
         },
         "style_ref": {
           "style_id": "copy.owner_voice",
@@ -239,6 +236,31 @@
         "style_ref": null,
         "custom_style_reference": null,
         "source_artifact_version_ids": []
+      }
+    },
+    {
+      "id": "title-multiple-sources",
+      "expected_error": "TITLE_SOURCE_EXACTLY_ONE",
+      "payload": {
+        "schema_version": 2,
+        "app_id": "builtin.viral-titles",
+        "input_schema_ref": "viral-titles-input.v2",
+        "project_id": "project-cafe",
+        "context_snapshot_id": "context-cafe-v2",
+        "task_brief": {
+          "platform": "douyin",
+          "objective": "click",
+          "count": 6,
+          "topic": "午后咖啡",
+          "source_text": "同时提供主题和原文",
+          "keywords": []
+        },
+        "style_ref": {
+          "style_id": "title.identity_scene",
+          "version": 1
+        },
+        "custom_style_reference": null,
+        "source_artifact_version_ids": ["artifact-version-copy-1"]
       }
     },
     {

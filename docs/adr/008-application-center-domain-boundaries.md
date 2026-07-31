@@ -5,3 +5,4 @@
 - 禁止：Task 代替 Project/Run、Asset 代替 Artifact、应用中心创建第二份 PublishPackage。
 - 交接：应用中心输出 `publish_package_ref`，发布域在创建 V2 package 时生成 immutable snapshot。
 - 回滚：关闭 app-center flags；保留事实表和版本，不删除旧口播/旧任务。
+- 边界说明：保留事实表、历史版本和审计记录不等于保留旧运行时代码。没有真实调用方时，应迁移或保留必要数据并删除旧执行路径；临时发布或迁移 flag 按项目开发原则登记删除条件。

@@ -7,14 +7,19 @@ deterministic ZIP manifest. It never opens a browser or calls a platform.
 
 from __future__ import annotations
 
+import base64
 import hashlib
+import json
+import mimetypes
+import re
+import unicodedata
 import zipfile
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 from PIL import Image, ImageColor, ImageDraw, ImageFont, ImageOps, UnidentifiedImageError
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from pixelle_video.services.font_registry import resolve_font_path
 from pixelle_video.utils.os_util import get_data_path
@@ -36,6 +41,30 @@ MAX_TEXT_LINES = 10
 MAX_TEXT_CHARS = 480
 CAROUSEL_PROMPT_VERSION = "ac4-carousel-plan-v1"
 CAROUSEL_PROMPT_VERSION_V2 = "app-workbench-carousel-v2"
+CAROUSEL_LAYOUT_ROLES = ("cover", "content", "action")
+CAROUSEL_TEMPLATE_STYLES = {
+    "template:clean-01": {"primary": (31, 41, 55), "secondary": (248, 245, 238)},
+    "template:cover-focus-01": {"primary": (14, 116, 144), "secondary": (236, 254, 255)},
+    "template:action-card-01": {"primary": (109, 40, 217), "secondary": (245, 243, 255)},
+}
+CAROUSEL_UNSUPPORTED_CLAIM_MARKERS = (
+    "专业",
+    "可靠",
+    "放心",
+    "随时",
+    "任何",
+    "保证",
+    "一定",
+    "绝对",
+    "第一",
+    "最佳",
+    "领先",
+    "顶级",
+    "权威",
+    "无痛",
+    "无风险",
+    "立即见效",
+)
 
 
 class CarouselRenderError(ValueError):
@@ -54,18 +83,82 @@ class CarouselPlanPage(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     page_index: int = Field(ge=1, le=8)
+    layout_role: Literal["cover", "content", "action"] = "content"
     purpose: str = Field(min_length=1, max_length=40)
     text: str = Field(min_length=1, max_length=MAX_TEXT_CHARS)
     asset_ref: str = Field(min_length=1, max_length=300)
+    asset_description: str = Field(default="", max_length=240)
 
 
 class CarouselPlanOutput(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    # Some OpenAI-compatible Responses providers echo JSON-schema metadata
+    # (notably `$defs`) or use `carousel_pages` for the same bounded list.
+    # Normalize that provider envelope here; the planner below still emits
+    # the canonical `pages` shape and applies the hard page/asset checks.
+    model_config = ConfigDict(extra="ignore")
 
-    page_count: int
+    page_count: int = Field(default=0)
     template_id: str = Field(min_length=1, max_length=100)
     pages: list[CarouselPlanPage]
     missing_facts: list[str] = Field(default_factory=list, max_length=20)
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_provider_envelope(cls, value: Any) -> Any:
+        if not isinstance(value, dict):
+            return value
+        normalized = dict(value)
+        if "pages" not in normalized and isinstance(normalized.get("carousel_pages"), list):
+            normalized["pages"] = normalized["carousel_pages"]
+        if not normalized.get("page_count") and isinstance(normalized.get("pages"), list):
+            normalized["page_count"] = len(normalized["pages"])
+        if isinstance(normalized.get("pages"), list):
+            page_count = int(normalized.get("page_count") or len(normalized["pages"]))
+            normalized["pages"] = [
+                {
+                    **page,
+                    "layout_role": page.get(
+                        "layout_role", _expected_layout_role(int(page.get("page_index") or 0), page_count)
+                    ),
+                }
+                if isinstance(page, dict)
+                else page
+                for page in normalized["pages"]
+            ]
+        normalized.setdefault("template_id", "template:clean-01")
+        return normalized
+
+
+class CarouselAssetDescriptionOutput(BaseModel):
+    """One objective sentence describing a trusted input image."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    description: str = Field(min_length=1, max_length=240)
+
+
+def _expected_layout_role(page_index: int, page_count: int) -> str:
+    if page_index == 1:
+        return "cover"
+    if page_index == page_count:
+        return "action"
+    return "content"
+
+
+def _normalize_page_roles(pages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    page_count = len(pages)
+    normalized: list[dict[str, Any]] = []
+    for index, page in enumerate(pages, start=1):
+        expected = _expected_layout_role(index, page_count)
+        supplied = page.get("layout_role")
+        if supplied is not None and str(supplied) != expected:
+            raise CarouselRenderError(
+                "LAYOUT_ROLE_INVALID",
+                "图文版式角色必须按封面、内容、行动连续分配",
+                page_index=index,
+            )
+        normalized.append({**page, "layout_role": expected})
+    return normalized
 
 
 @dataclass(frozen=True)
@@ -110,7 +203,10 @@ class DouyinCarouselRenderer:
         *,
         version_label: str | None = None,
         brand_render: dict[str, Any] | None = None,
+        template_id: str = "template:clean-01",
     ) -> RenderedPage:
+        if template_id not in CAROUSEL_TEMPLATE_STYLES:
+            raise CarouselRenderError("CAROUSEL_TEMPLATE_INVALID", "图文风格暂不支持")
         page_index = page.get("page_index")
         if not isinstance(page_index, int) or page_index < 1:
             raise CarouselRenderError(
@@ -131,6 +227,9 @@ class DouyinCarouselRenderer:
             raise CarouselRenderError(
                 "TEXT_OVERFLOW", "图文页文案超出首期模板容量", page_index=page_index
             )
+        layout_role = str(page.get("layout_role") or _expected_layout_role(page_index, 3))
+        if layout_role not in CAROUSEL_LAYOUT_ROLES:
+            raise CarouselRenderError("LAYOUT_ROLE_INVALID", "图文页版式角色无效", page_index=page_index)
 
         font_id = str(page.get("font_id") or "noto-sans-sc-bold")
         font_path = resolve_font_path(font_id)
@@ -147,8 +246,13 @@ class DouyinCarouselRenderer:
             ) from exc
 
         brand_render = brand_render or {}
-        primary_color = _safe_color(brand_render.get("primary_color"), (31, 41, 55))
-        secondary_color = _safe_color(brand_render.get("secondary_color"), (248, 245, 238))
+        template_style = CAROUSEL_TEMPLATE_STYLES.get(
+            template_id, CAROUSEL_TEMPLATE_STYLES["template:clean-01"]
+        )
+        primary_color = _safe_color(brand_render.get("primary_color"), template_style["primary"])
+        secondary_color = _safe_color(
+            brand_render.get("secondary_color"), template_style["secondary"]
+        )
         image = Image.new("RGB", (CAROUSEL_WIDTH, CAROUSEL_HEIGHT), secondary_color)
         self._draw_asset(image, page, page_index)
         # The asset canvas is RGB; passing a 4-tuple to ImageDraw on it ignores
@@ -157,13 +261,19 @@ class DouyinCarouselRenderer:
         # visible while the copy remains readable.
         overlay = Image.new("RGBA", image.size, (0, 0, 0, 0))
         overlay_draw = ImageDraw.Draw(overlay)
-        overlay_draw.rectangle((0, 155, CAROUSEL_WIDTH, 775), fill=(*secondary_color, 120))
+        overlay_bottom = 775 if layout_role != "action" else 860
+        overlay_draw.rectangle((0, 155, CAROUSEL_WIDTH, overlay_bottom), fill=(*secondary_color, 120))
         image = Image.alpha_composite(image.convert("RGBA"), overlay).convert("RGB")
         draw = ImageDraw.Draw(image)
         draw.rectangle((0, 0, CAROUSEL_WIDTH, 155), fill=primary_color)
         brand_name = str(brand_render.get("display_name") or "抖音图文")
         draw.text((72, 52), brand_name, fill=(255, 255, 255), font=font)
         self._draw_brand_logo(image, brand_render)
+
+        if layout_role == "cover":
+            draw.rectangle((0, 840, CAROUSEL_WIDTH, 1260), fill=(*primary_color,))
+        elif layout_role == "action":
+            draw.rectangle((0, 820, CAROUSEL_WIDTH, 1280), fill=(*primary_color,))
 
         lines = _wrap_text(draw, text, font, max_width=CAROUSEL_WIDTH - 144)
         if len(lines) > MAX_TEXT_LINES:
@@ -172,8 +282,13 @@ class DouyinCarouselRenderer:
             )
         line_height = font_size + 24
         start_y = 480
+        if layout_role == "cover":
+            start_y = 900
+        elif layout_role == "action":
+            start_y = 885
+        text_color = (255, 255, 255) if layout_role in {"cover", "action"} else (17, 24, 39)
         for line_number, line in enumerate(lines):
-            draw.text((72, start_y + line_number * line_height), line, fill=(17, 24, 39), font=font)
+            draw.text((72, start_y + line_number * line_height), line, fill=text_color, font=font)
         draw.text((72, CAROUSEL_HEIGHT - 100), f"{page_index:02d}", fill=(107, 114, 128), font=font)
 
         output_dir_path = Path(output_dir).resolve()
@@ -188,6 +303,7 @@ class DouyinCarouselRenderer:
         self,
         pages: list[dict[str, Any]],
         *,
+        template_id: str = "template:clean-01",
         title: str = "",
         description: str = "",
         hashtags: list[str] | None = None,
@@ -195,10 +311,21 @@ class DouyinCarouselRenderer:
         run_ref: str = "local",
         brand_render: dict[str, Any] | None = None,
     ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+        if template_id not in CAROUSEL_TEMPLATE_STYLES:
+            raise CarouselRenderError("CAROUSEL_TEMPLATE_INVALID", "图文风格暂不支持")
         _validate_page_set(pages)
+        pages = _normalize_page_roles(pages)
         run_dir = self.output_root / _safe_run_ref(run_ref)
         pages_dir = run_dir / "pages"
-        rendered = [self.render_page(page, pages_dir, brand_render=brand_render) for page in pages]
+        rendered = [
+            self.render_page(
+                page,
+                pages_dir,
+                brand_render=brand_render,
+                template_id=template_id,
+            )
+            for page in pages
+        ]
         zip_path = run_dir / "carousel-package.zip"
         with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
             for item in rendered:
@@ -222,6 +349,7 @@ class DouyinCarouselRenderer:
             "schema_version": CAROUSEL_SCHEMA_VERSION,
             "artifact_type": "carousel_package",
             "page_count": len(rendered),
+            "template_id": template_id,
             "page_artifact_version_ids": page_ids,
             "title": title,
             "description": description,
@@ -321,16 +449,20 @@ class DouyinCarouselRenderer:
         run_ref: str,
         version_number: int,
         brand_render: dict[str, Any] | None = None,
+        template_id: str = "template:clean-01",
     ) -> RenderedPage:
         if not isinstance(version_number, int) or version_number < 1:
             raise CarouselRenderError(
                 "RETRY_VERSION_INVALID", "重试版本必须是正整数", page_index=page.get("page_index")
             )
+        if template_id not in CAROUSEL_TEMPLATE_STYLES:
+            raise CarouselRenderError("CAROUSEL_TEMPLATE_INVALID", "图文风格暂不支持")
         return self.render_page(
             page,
             self.output_root / _safe_run_ref(run_ref) / "retries",
             version_label=str(version_number),
             brand_render=brand_render,
+            template_id=template_id,
         )
 
     def _draw_asset(self, canvas: Image.Image, page: dict[str, Any], page_index: int) -> None:
@@ -406,10 +538,12 @@ class DouyinCarouselPlanner:
         llm_port: AppLLMPort,
         *,
         context_resolver: ProjectContextResolver | None = None,
+        asset_resolver: AssetResolver | None = None,
     ):
         self.repository = repository
         self.llm_port = llm_port
         self.context_resolver = context_resolver
+        self.asset_resolver = asset_resolver
 
     async def plan(
         self,
@@ -422,7 +556,7 @@ class DouyinCarouselPlanner:
         selected_style: StylePreset | None = None,
         custom_style_reference: dict[str, Any] | None = None,
         execution_context: dict[str, Any] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> tuple[list[dict[str, Any]], list[str], str, str]:
         payload = payload or app_run.input_payload
         page_count = payload.get("page_count", 3)
         if (
@@ -434,6 +568,29 @@ class DouyinCarouselPlanner:
         if not asset_refs:
             raise CarouselRenderError("ASSET_REF_REQUIRED", "AI 分页前必须提供已登记的图片资产引用")
         _validate_asset_refs(asset_refs)
+        asset_descriptions = _asset_description_inputs(payload, asset_refs)
+        visual_inputs: list[dict[str, str]] = []
+        if any(not item["description"] for item in asset_descriptions) and self.asset_resolver:
+            for item in asset_descriptions:
+                if item["description"]:
+                    continue
+                resolved = self.asset_resolver(item["asset_ref"])
+                if not resolved:
+                    continue
+                path = Path(resolved).resolve()
+                if not path.is_file() or path.stat().st_size > 8 * 1024 * 1024:
+                    continue
+                mime_type = mimetypes.guess_type(path.name)[0] or "image/png"
+                if not mime_type.startswith("image/"):
+                    continue
+                encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+                visual_inputs.append(
+                    {
+                        "asset_ref": item["asset_ref"],
+                        "mime_type": mime_type,
+                        "data_url": f"data:{mime_type};base64,{encoded}",
+                    }
+                )
         context: dict[str, Any] = execution_context or {}
         if app_run.context_snapshot_id:
             try:
@@ -491,19 +648,25 @@ class DouyinCarouselPlanner:
                 if app_run.input_schema_version == 2
                 else "douyin-carousel-input.v1"
             ),
-            output_schema_ref="douyin-carousel-plan-output.v1",
+            output_schema_ref=(
+                "douyin-carousel-plan-output.v2"
+                if app_run.input_schema_version == 2
+                else "douyin-carousel-plan-output.v1"
+            ),
             prompt_variables={
                 "goal": goal,
                 "page_count": page_count,
                 "template_id": template_id,
                 "asset_refs": asset_refs,
+                "asset_descriptions": asset_descriptions,
                 "source_artifacts": source_contents,
                 "cover_hook": str(payload.get("cover_hook") or ""),
                 "cta": str(payload.get("cta") or ""),
                 "custom_style_reference": custom_style_reference,
                 "fact_policy": "仅使用 source_artifacts 与 goal 中的事实；不确定事实进入 missing_facts，不得补造价格、地址、日期、功效或承诺",
+                "claim_policy": "任何未在 input、context 或 source_artifacts 中明确出现的专业性、可靠性、保证性、营业时间或效果承诺都必须避免；无法确认的表述宁可改为中性事实或写入 missing_facts",
                 "style_policy": "风格参考只控制表达和分页结构，不得导入任何业务事实",
-                "output_contract": "返回恰好 page_count 个连续 page_index；每页 asset_ref 必须来自 asset_refs；只返回结构化 JSON",
+                "output_contract": "返回恰好 page_count 个连续 page_index；第 1 页 layout_role=cover，最后一页 layout_role=action，其余为 content；每页 asset_ref 必须来自 asset_refs；缺少素材描述时，为所引用素材返回一句客观 asset_description；只返回结构化 JSON",
             },
             context=context,
             request_id=f"{app_run.app_run_id}:carousel-plan",
@@ -514,6 +677,7 @@ class DouyinCarouselPlanner:
                 if selected_style
                 else ()
             ),
+            visual_inputs=tuple(visual_inputs),
         )
         original_error: AppLLMPortError | None = None
         for attempt in range(2):
@@ -548,23 +712,60 @@ class DouyinCarouselPlanner:
                         "图文页码必须连续递增",
                         diagnostic="CAROUSEL_PAGE_INDEX",
                     )
+                if any(
+                    page.layout_role != _expected_layout_role(page.page_index, page_count)
+                    for page in plan.pages
+                ):
+                    raise AppLLMPortError(
+                        "STRUCTURED_OUTPUT_INVALID",
+                        "图文版式角色必须按封面、内容、行动连续分配",
+                        diagnostic="CAROUSEL_LAYOUT_ROLE",
+                    )
                 if any(page.asset_ref not in asset_refs for page in plan.pages):
                     raise AppLLMPortError(
                         "STRUCTURED_OUTPUT_INVALID",
                         "图文只能引用输入中的已有资产",
                         diagnostic="CAROUSEL_ASSET_REF",
                     )
-                return [
+                description_by_ref = {
+                    item["asset_ref"]: item["description"] for item in asset_descriptions
+                }
+                generated_pages = [
                     {
                         "page_index": page.page_index,
+                        "layout_role": page.layout_role,
                         "purpose": page.purpose,
                         "text": page.text,
                         "asset_refs": [page.asset_ref],
+                        "asset_description": (
+                            description_by_ref.get(page.asset_ref, "")
+                            or page.asset_description.strip()
+                        ),
                         "font_id": "noto-sans-sc-bold",
                         "dimensions": {"width_px": CAROUSEL_WIDTH, "height_px": CAROUSEL_HEIGHT},
                     }
                     for page in plan.pages
                 ]
+                try:
+                    _validate_carousel_text_facts(
+                        generated_pages,
+                        payload=payload,
+                        context=context,
+                        source_contents=source_contents,
+                        missing_facts=plan.missing_facts,
+                    )
+                except CarouselRenderError as exc:
+                    raise AppLLMPortError(
+                        "STRUCTURED_OUTPUT_INVALID",
+                        str(exc),
+                        diagnostic=exc.code,
+                    ) from exc
+                return (
+                    generated_pages,
+                    plan.missing_facts,
+                    response.model_ref,
+                    response.provider_class,
+                )
             except AppLLMPortError as exc:
                 if exc.code != "STRUCTURED_OUTPUT_INVALID":
                     raise
@@ -578,6 +779,106 @@ class DouyinCarouselPlanner:
         raise original_error or AppLLMPortError(
             "STRUCTURED_OUTPUT_INVALID", "图文分页结构不符合契约"
         )
+
+
+async def generate_carousel_asset_description(
+    llm_port: AppLLMPort,
+    *,
+    asset_ref: str,
+    asset_path: str | Path,
+    request_id: str,
+) -> tuple[str, str, str]:
+    """Describe one resolved image through the shared structured LLM port."""
+
+    path = Path(asset_path).resolve()
+    if not path.is_file() or path.stat().st_size > 8 * 1024 * 1024:
+        raise CarouselRenderError("ASSET_DESCRIPTION_SOURCE_INVALID", "图片素材无法用于描述")
+    mime_type = mimetypes.guess_type(path.name)[0] or "image/png"
+    if not mime_type.startswith("image/"):
+        raise CarouselRenderError("ASSET_DESCRIPTION_SOURCE_INVALID", "图片素材格式不受支持")
+    encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+    request = StructuredGenerationRequest(
+        app_id=CAROUSEL_APP_ID,
+        prompt_version="app-workbench-carousel-asset-description-v1",
+        input_schema_ref="douyin-carousel-asset-description-input.v1",
+        output_schema_ref="douyin-carousel-asset-description-output.v1",
+        prompt_variables={
+            "asset_ref": asset_ref,
+            "instruction": "只描述画面中客观可见的主体、场景和招牌文字；不推断价格、功效、地址或其他未确认事实；只返回一句描述。",
+        },
+        context={},
+        request_id=request_id,
+        idempotency_key=request_id,
+        trusted_style_rules=(
+            "素材描述必须客观、简短、可核验",
+            "不得从图片推断未明确出现的业务事实",
+        ),
+        visual_inputs=(
+            {
+                "asset_ref": asset_ref,
+                "mime_type": mime_type,
+                "data_url": f"data:{mime_type};base64,{encoded}",
+            },
+        ),
+    )
+    response = await llm_port.generate_structured(
+        request, response_type=CarouselAssetDescriptionOutput
+    )
+    output = response.parsed_output
+    parsed = (
+        output
+        if isinstance(output, CarouselAssetDescriptionOutput)
+        else CarouselAssetDescriptionOutput.model_validate(output)
+    )
+    return parsed.description.strip(), response.model_ref, response.provider_class
+
+
+def _asset_description_inputs(
+    payload: dict[str, Any], asset_refs: list[str]
+) -> list[dict[str, Any]]:
+    raw = payload.get("asset_descriptions")
+    by_ref = {
+        str(item.get("asset_ref")): item
+        for item in raw or []
+        if isinstance(item, dict) and str(item.get("asset_ref") or "").strip()
+    } if isinstance(raw, list) else {}
+    result: list[dict[str, Any]] = []
+    for asset_ref in asset_refs:
+        item = by_ref.get(asset_ref, {})
+        description = str(item.get("description") or "").strip()
+        basis = [
+            str(item.get(key) or "").strip()
+            for key in ("metadata_basis", "name", "tags", "dimensions")
+        ]
+        result.append({
+            "asset_ref": asset_ref,
+            "description": description,
+            "description_status": "provided" if description else "generate_on_demand",
+            "metadata_basis": "；".join(value for value in basis if value)
+            or "未提供图片描述；只能根据已登记素材生成客观描述",
+        })
+    return result
+
+
+def _asset_description_outputs(
+    payload: dict[str, Any], pages: list[dict[str, Any]], asset_refs: list[str]
+) -> list[dict[str, Any]]:
+    """Persist supplied descriptions plus bounded planner-generated fallbacks."""
+
+    result = _asset_description_inputs(payload, asset_refs)
+    generated_by_ref = {
+        str(page.get("asset_refs", [""])[0]): str(page.get("asset_description") or "").strip()
+        for page in pages
+        if isinstance(page, dict)
+        and isinstance(page.get("asset_refs"), list)
+        and page.get("asset_refs")
+        and str(page.get("asset_description") or "").strip()
+    }
+    for item in result:
+        if not item["description"] and generated_by_ref.get(item["asset_ref"]):
+            item["description"] = generated_by_ref[item["asset_ref"]]
+            item["description_status"] = "generated_by_llm"
+    return result
 
 
 class DouyinCarouselExecutor(AppExecutor):
@@ -599,6 +900,7 @@ class DouyinCarouselExecutor(AppExecutor):
                 repository,
                 llm_port,
                 context_resolver=context_resolver,
+                asset_resolver=self.renderer.asset_resolver,
             )
             if repository and llm_port
             else None
@@ -649,6 +951,13 @@ class DouyinCarouselExecutor(AppExecutor):
                     (source_artifact.artifact_type, source_version.content or {})
                 )
         pages = payload.get("pages")
+        plan_model_ref: str | None = None
+        plan_provider_class: str | None = None
+        missing_facts = [
+            str(item).strip()
+            for item in payload.get("missing_facts") or []
+            if str(item).strip()
+        ][:20]
         if pages is None:
             if not self.planner:
                 raise AppLLMPortError(
@@ -657,7 +966,7 @@ class DouyinCarouselExecutor(AppExecutor):
             asset_refs = [
                 str(item).strip() for item in payload.get("asset_refs") or [] if str(item).strip()
             ]
-            pages = await self.planner.plan(
+            pages, missing_facts, plan_model_ref, plan_provider_class = await self.planner.plan(
                 app_run,
                 payload=payload,
                 source_ids=[str(item) for item in source_ids],
@@ -669,6 +978,26 @@ class DouyinCarouselExecutor(AppExecutor):
             )
         if not isinstance(pages, list):
             raise CarouselRenderError("CAROUSEL_PLAN_REQUIRED", "图文运行必须先提供分页计划")
+        pages = _normalize_page_roles(pages)
+        _validate_planned_page_assets(pages, payload)
+        try:
+            _validate_carousel_text_facts(
+                pages,
+                payload=payload,
+                context=execution_context,
+                source_contents=source_contents,
+                missing_facts=missing_facts,
+            )
+        except CarouselRenderError as exc:
+            raise AppLLMPortError(
+                exc.code,
+                str(exc),
+                diagnostic=(
+                    f"page_index={exc.page_index}"
+                    if exc.page_index is not None
+                    else None
+                ),
+            ) from exc
         if any(isinstance(page, dict) and page.get("asset_path") for page in pages):
             raise CarouselRenderError(
                 "ASSET_PATH_NOT_ALLOWED", "图文运行只能使用已登记的 asset_refs"
@@ -693,8 +1022,12 @@ class DouyinCarouselExecutor(AppExecutor):
             "logo_path": str(logo_path) if logo_path else None,
             "context_snapshot_id": app_run.context_snapshot_id,
         }
+        asset_refs_for_output = [
+            str(item).strip() for item in payload.get("asset_refs") or [] if str(item).strip()
+        ]
         content, file_refs = self.renderer.render_package(
             pages,
+            template_id=str(payload.get("template_id") or "template:clean-01"),
             title=title,
             description=description,
             hashtags=hashtags,
@@ -715,12 +1048,19 @@ class DouyinCarouselExecutor(AppExecutor):
                     "page_outline": [
                         {
                             "page_index": page["page_index"],
+                            "layout_role": str(page.get("layout_role") or "content"),
                             "purpose": str(page.get("purpose") or "content"),
                         }
                         for page in pages
                     ],
                     "template_id": str(payload.get("template_id") or "template:clean-01"),
                     "source_artifact_version_ids": list(source_ids),
+                    "model_ref": plan_model_ref or "local-renderer:preplanned",
+                    "provider_class": plan_provider_class or "local-renderer",
+                    "asset_descriptions": _asset_description_outputs(
+                        payload, pages, asset_refs_for_output
+                    ),
+                    "missing_facts": missing_facts,
                     "goal": goal,
                     "execution_context": execution_context,
                 },
@@ -738,8 +1078,21 @@ class DouyinCarouselExecutor(AppExecutor):
                         "schema_version": CAROUSEL_SCHEMA_VERSION,
                         "artifact_type": "carousel_page",
                         "page_index": page_index,
+                        "layout_role": str(page.get("layout_role") or "content"),
                         "text": str(page.get("text") or ""),
                         "asset_refs": list(page.get("asset_refs") or []),
+                        "asset_description": str(page.get("asset_description") or ""),
+                        "asset_description_status": (
+                            "provided"
+                            if any(
+                                isinstance(item, dict)
+                                and item.get("asset_ref") in (page.get("asset_refs") or [])
+                                and str(item.get("description") or "").strip()
+                                for item in payload.get("asset_descriptions") or []
+                            )
+                            else "generated_by_llm"
+                        ),
+                        "template_id": str(payload.get("template_id") or "template:clean-01"),
                         "render_state": "ready",
                         "dimensions": {"width_px": CAROUSEL_WIDTH, "height_px": CAROUSEL_HEIGHT},
                         "source_plan_artifact_version_id": "artifact_output:plan",
@@ -751,14 +1104,21 @@ class DouyinCarouselExecutor(AppExecutor):
         content["page_artifact_version_ids"] = [
             f"artifact_output:page:{page['page_index']}" for page in pages
         ]
+        content["missing_facts"] = missing_facts
+        content["asset_descriptions"] = _asset_description_outputs(
+            payload, pages, asset_refs_for_output
+        )
         content["source_plan_artifact_version_id"] = "artifact_output:plan"
+        content["model_ref"] = plan_model_ref or "local-renderer:preplanned"
+        content["provider_class"] = plan_provider_class or "local-renderer"
         return ExecutorOutput(
             artifact_type="carousel_package",
             name="抖音图文内容包",
             content=content,
             file_refs=file_refs,
             source="rendered",
-            provider_class="local-renderer",
+            model_ref=plan_model_ref or "local-renderer:preplanned",
+            provider_class=plan_provider_class or "local-renderer",
             related_artifacts=related,
         )
 
@@ -769,6 +1129,122 @@ def _validate_page_set(pages: list[dict[str, Any]]) -> None:
     indexes = [page.get("page_index") for page in pages]
     if indexes != list(range(1, len(pages) + 1)):
         raise CarouselRenderError("PAGE_INDEX_NOT_CONTIGUOUS", "图文页码必须从 1 连续递增")
+
+
+def _normalize_claim_text(value: str) -> str:
+    normalized = unicodedata.normalize("NFKC", value).casefold()
+    return "".join(
+        char
+        for char in normalized
+        if not char.isspace() and not unicodedata.category(char).startswith("P")
+    )
+
+
+def _validate_carousel_text_facts(
+    pages: list[dict[str, Any]],
+    *,
+    payload: dict[str, Any],
+    context: dict[str, Any],
+    source_contents: list[tuple[str, dict[str, Any]]],
+    missing_facts: list[str] | None = None,
+) -> None:
+    """Fail closed when page copy adds unconfirmed high-risk claims."""
+
+    supplied = _normalize_claim_text(
+        json.dumps(
+            {
+                # Explicit pages are proposed output, not trusted business
+                # facts.  Including them here would let an untrusted caller
+                # bless its own unsupported claims.
+                "payload": {
+                    key: value
+                    for key, value in payload.items()
+                    if key not in {"pages", "missing_facts"}
+                },
+                "context": context,
+                "source_artifacts": source_contents,
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+    )
+    for page in pages:
+        text = str(page.get("text") or "")
+        normalized = _normalize_claim_text(text)
+        for marker in CAROUSEL_UNSUPPORTED_CLAIM_MARKERS:
+            if _normalize_claim_text(marker) in normalized and _normalize_claim_text(marker) not in supplied:
+                raise CarouselRenderError(
+                    "CAROUSEL_UNSUPPORTED_FACT",
+                    f"第{page.get('page_index')}页包含未确认的承诺性表述：{marker}",
+                    page_index=page.get("page_index"),
+                )
+        for pattern, label in (
+            (r"(?:¥|￥)?\s*\d+(?:\.\d+)?\s*(?:元|块|折)", "价格"),
+            (r"\d{4}\s*年(?:\d{1,2}\s*月)?(?:\d{1,2}\s*日)?", "日期"),
+            (r"\d+\s*(?:号|路|街|巷)", "地址"),
+        ):
+            for match in re.findall(pattern, text, flags=re.IGNORECASE):
+                if _normalize_claim_text(match) not in supplied:
+                    raise CarouselRenderError(
+                        "CAROUSEL_UNSUPPORTED_FACT",
+                        f"第{page.get('page_index')}页包含未确认的{label}事实",
+                        page_index=page.get("page_index"),
+                    )
+        # Concrete target-group details are checked even when the model
+        # failed to list them in missing_facts.  Otherwise the model could
+        # bless its own unsupported audience inference by omitting the gap.
+        unsupported_detail_patterns = (
+            r"[\u4e00-\u9fff]{1,12}(?:不齐|不正|缺牙|缺失|疼痛|敏感|松动|异常)",
+            r"[\u4e00-\u9fff]{0,8}(?:美白|贴面|龋齿|牙周)",
+        )
+        for pattern in unsupported_detail_patterns:
+            for match in re.findall(pattern, text):
+                normalized_match = _normalize_claim_text(match)
+                # Broad category language such as “口腔相关需求” is
+                # supported by a source that only establishes the category;
+                # specific conditions and service indications still require
+                # an exact trusted fact.
+                broad_category_supported = (
+                    "相关需求" in normalized_match
+                    and "口腔" in normalized_match
+                    and "口腔" in supplied
+                )
+                if normalized_match not in supplied and not broad_category_supported:
+                    raise CarouselRenderError(
+                        "CAROUSEL_UNSUPPORTED_FACT",
+                        f"第{page.get('page_index')}页包含来源未确认的具体适用事实：{match}",
+                        page_index=page.get("page_index"),
+                    )
+
+
+def _validate_planned_page_assets(
+    pages: list[dict[str, Any]], payload: dict[str, Any]
+) -> None:
+    supplied = payload.get("asset_refs")
+    if not isinstance(supplied, list) or not supplied:
+        # Legacy callers placed the selected refs only on each explicit page.
+        # Keep that shape readable, while still applying the same stable-ref
+        # and page-level checks below.
+        supplied = [
+            ref
+            for page in pages
+            if isinstance(page, dict) and isinstance(page.get("asset_refs"), list)
+            for ref in page["asset_refs"]
+        ]
+    allowed = {str(ref) for ref in supplied if isinstance(ref, str) and ref.strip()}
+    if not allowed:
+        raise CarouselRenderError("ASSET_REF_REQUIRED", "图文页至少需要一个已有资产引用")
+    _validate_asset_refs(list(allowed))
+    for page in pages:
+        refs = page.get("asset_refs") if isinstance(page, dict) else None
+        if not isinstance(refs, list) or not refs or any(
+            not isinstance(ref, str) or ref not in allowed for ref in refs
+        ):
+            raise CarouselRenderError(
+                "CAROUSEL_ASSET_REF_INVALID",
+                "图文页只能引用本次输入中的图片资产",
+                page_index=page.get("page_index") if isinstance(page, dict) else None,
+            )
 
 
 def _validate_asset_refs(asset_refs: list[str]) -> None:
@@ -853,6 +1329,7 @@ def _normalize_carousel_input(
         "page_count": page_count,
         "template_id": template_id,
         "asset_refs": list(asset_refs),
+        "asset_descriptions": list(brief.get("asset_descriptions") or []),
         "source_artifact_version_ids": list(source_ids),
         "cover_hook": str(brief.get("cover_hook") or "").strip(),
         "cta": str(brief.get("cta") or "").strip(),

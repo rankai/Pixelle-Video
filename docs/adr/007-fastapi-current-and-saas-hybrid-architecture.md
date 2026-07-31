@@ -2,6 +2,7 @@
 
 - 状态：Accepted（应用中心 AC-0 前置架构决策）
 - 日期：2026-07-18
+- 最近修订：2026-07-31（对齐项目开发原则，澄清结构校验、重试、产品配置与兼容边界）
 - 负责人：Pixelle Video
 - 适用范围：应用中心、模型配置复用、AI/媒体执行后端，以及未来账户、商业化和云端多租户平台
 
@@ -85,10 +86,10 @@ Application Executor
 - manifest 只声明 `llm` capability，不包含 provider、model、base URL、API key 或动态代码路径；
 - 执行 API 不接受模型配置覆盖，AppRun、Artifact、Task 和日志不保存密钥；
 - P0 所有应用共享当前 `local-default`，不做按应用选模型、fallback chain、成本路由或模型 A/B；
-- `LLMService` 继续负责实际 provider 兼容和结构化调用，应用 Executor 只负责领域 prompt、schema、validator 和 repair；
-- P0 通过内置 Registry、manifest、feature flag 和 Program Gate 控制应用上线，不增加 `AppControlPolicy` 数据库或管理 UI。
+- `LLMService` 继续负责实际 provider 兼容和结构化调用；应用 Executor 负责领域 prompt，以及当前结果确实需要的机器可验证结构。`schema`、`validator` 和 `repair` 只处理字段、类型、枚举和格式等客观协议错误，不评价标题、文案、画面或创意的主观质量，也不因为主观结果“不够好”自动重试；
+- P0 通过内置 Registry、manifest、稳定产品能力开关或临时发布开关和 Program Gate 控制应用上线，不增加 `AppControlPolicy` 数据库或管理 UI。长期产品开关具有稳定业务语义；临时发布与迁移开关必须有删除条件。
 
-未来出现运营后台或多租户 SaaS 后，NestJS 控制面增加可视化 `ModelProfile/ModelRoutingPolicy`，负责可用模型目录、默认选择、按应用/租户/套餐映射、限额、灰度、回滚和审计；Python 执行面继续负责 provider adapter、凭证解析、模型调用、结构化输出和调用证据。任务只携带版本化 `model_profile_ref`，不得携带明文密钥。当前 `local-default` 必须作为兼容 profile 保留，使旧桌面项目无需迁移即可继续执行。
+未来出现运营后台或多租户 SaaS 后，NestJS 控制面增加可视化 `ModelProfile/ModelRoutingPolicy`，负责可用模型目录、默认选择、按应用/租户/套餐映射、限额、灰度、回滚和审计；Python 执行面继续负责 provider adapter、凭证解析、模型调用、结构化输出和调用证据。任务只携带版本化 `model_profile_ref`，不得携带明文密钥。只要桌面本地模式仍是正式支持的产品形态，`local-default` 就作为该模式的正式配置保留，而不是临时兼容层；只有旧字段转换、旧接口转发或旧数据读取属于需要迁移和删除的兼容代码。
 
 管理后台作为 `AC-ADMIN-CONTROL（P1/P2 Deferred Capability）` 登记。以下任一条件成立即触发独立评审与实施 Program：
 
@@ -153,14 +154,14 @@ NestJS 不通过本机子进程直接运行 Python，也不复制 AI/媒体实�
 - Redis/队列不是长期事实来源；最终状态必须回写 PostgreSQL；
 - 跨服务共享稳定 ID 和版本化契约，不共享语言内部对象或直接访问对方私有表。
 
-### 5. 当前为未来保留的兼容性
+### 5. 当前保留的演进接缝
 
-应用中心 P0 在不引入 SaaS 复杂度的前提下必须保留以下演进空间：
+应用中心 P0 在不引入 SaaS 复杂度的前提下保留以下已经确认的演进接缝：
 
 - 所有 project、run、attempt、artifact 使用全局唯一稳定 ID；
 - 领域记录允许未来增加 `tenant_id`、`workspace_id`、`owner_id`，当前不伪造本地租户；
 - 输入、上下文、产物和任务消息都有 `schema_version`；
-- App Runner 和媒体执行支持幂等键、取消、重试和 attempt；
+- 当前任务存在持久化写入、长任务、外部副作用或重复提交风险时，App Runner 和媒体执行使用幂等键、取消和 attempt；自动重试只用于可确认的暂时性技术失败，并且操作幂等、次数有限、费用可控，不用于主观内容质量重试；
 - API 不返回供客户端长期保存的绝对路径；
 - artifact 使用文件引用抽象，不把 SQLite BLOB 作为主媒体存储；
 - 账户、权限和计费判断不写进 Prompt、Executor 或媒体服务；
@@ -169,7 +170,7 @@ NestJS 不通过本机子进程直接运行 Python，也不复制 AI/媒体实�
 - provider adapter、模型调用和 workflow 执行细节留在 Python 执行面；
 - NestJS 将来可以通过 OpenAPI/JSON Schema 和任务消息契约接入，而不重写 P0 应用语义。
 
-这些是兼容性要求，不授权当前提前建设 PostgreSQL、Redis、对象存储、NestJS 或多租户 UI。
+这些是模块边界和演进接缝，不是提前实现未来系统的授权，也不要求当前建设 PostgreSQL、Redis、对象存储、NestJS 或多租户 UI。
 
 ## 备选方案
 
@@ -202,7 +203,7 @@ Express 只替换 HTTP 框架，不能替代 Python AI/媒体生态，也不自�
 7. 支付、订单、Webhook 的签名、幂等、审计与对账；
 8. 可观测性、成本、容量、备份、灾备和回滚；
 9. 分阶段流量迁移和旧 FastAPI 本地模式的兼容策略。
-10. ModelProfile/ModelRoutingPolicy、凭证解析、租户权益、灰度回滚与 `local-default` 兼容策略。
+10. ModelProfile/ModelRoutingPolicy、凭证解析、租户权益、灰度回滚，以及桌面 `local-default` 正式产品模式与云端配置的共存或迁移策略。
 
 在该 Gate 通过前，不允许因为单个账户页面、简单 Webhook 或团队偏好就启动全量重写。
 

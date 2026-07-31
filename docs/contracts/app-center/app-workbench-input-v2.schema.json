@@ -135,16 +135,14 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "goal",
+            "marketing_goal",
             "offer_name",
             "selling_point_fact_ids",
             "benefit_tags",
-            "audience",
-            "content_format",
-            "length_bucket"
+            "audience"
           ],
           "properties": {
-            "goal": {
+            "marketing_goal": {
               "type": "string",
               "minLength": 1,
               "maxLength": 500
@@ -178,19 +176,12 @@
               "minLength": 1,
               "maxLength": 300
             },
-            "content_format": {
-              "enum": [
-                "oral",
-                "carousel",
-                "general"
-              ]
-            },
-            "length_bucket": {
-              "enum": [
-                "short_15s",
-                "medium_30s",
-                "long_60s"
-              ]
+            "benefit_text": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 500
             },
             "must_include": {
               "type": "array",
@@ -299,8 +290,7 @@
             },
             "count": {
               "type": "integer",
-              "minimum": 5,
-              "maximum": 10
+              "const": 6
             },
             "topic": {
               "type": [
@@ -355,7 +345,7 @@
           }
         },
         {
-          "anyOf": [
+          "oneOf": [
             {
               "properties": {
                 "source_artifact_version_ids": {
@@ -466,6 +456,25 @@
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 200
+              }
+            },
+            "asset_descriptions": {
+              "type": "array",
+              "maxItems": 50,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["asset_ref", "description", "description_status", "metadata_basis"],
+                "properties": {
+                  "asset_ref": {"type": "string", "minLength": 1, "maxLength": 200},
+                  "name": {"type": "string", "maxLength": 200},
+                  "description": {"type": "string", "maxLength": 240},
+                  "description_status": {
+                    "type": "string",
+                    "enum": ["provided", "generate_on_demand"]
+                  },
+                  "metadata_basis": {"type": "string", "maxLength": 500}
+                }
               }
             },
             "cover_hook": {

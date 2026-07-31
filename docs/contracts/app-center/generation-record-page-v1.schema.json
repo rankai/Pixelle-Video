@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pixelle.local/contracts/app-center/generation-record-page-v1.schema.json",
+  "title": "Application Center Generation Record Page V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project_id",
+    "scope",
+    "app_id",
+    "records",
+    "next_cursor"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "current_app",
+        "all_results"
+      ]
+    },
+    "app_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "builtin.marketing-copy",
+            "builtin.viral-titles",
+            "builtin.douyin-carousel",
+            "builtin.digital-human-video"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "records": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "$ref": "https://pixelle.local/contracts/app-center/generation-record-block-v1.schema.json"
+      }
+    },
+    "next_cursor": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "scope": {
+            "const": "current_app"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "app_id": {
+            "type": "string"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "app_id": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ]
+}

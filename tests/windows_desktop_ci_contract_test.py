@@ -94,6 +94,20 @@ def test_windows_sidecar_keeps_brand_project_gate_in_sync_with_desktop_shell():
     assert "legacy interaction" in source
 
 
+def test_windows_sidecar_keeps_result_history_gate_in_sync_with_desktop_shell():
+    source = TAURI_MAIN.read_text(encoding="utf-8")
+    main_source = Path("desktop/src/main.tsx").read_text(encoding="utf-8")
+    feature_source = Path("desktop/src/featureFlags.ts").read_text(encoding="utf-8")
+
+    assert 'std::env::var("PIXELLE_APP_RESULT_HISTORY_V1")' in source
+    assert '"PIXELLE_APP_RESULT_HISTORY_V1"' in source
+    assert "app_result_history_v1," in source
+    assert "feature_flags: RuntimeFeatureFlags" in source
+    assert "initializeDesktopRuntime" in main_source
+    assert "applyRuntimeFeatureFlags(runtime.featureFlags)" in main_source
+    assert "mergeRuntimeFeatureFlags" in feature_source
+
+
 def test_artifact_manifest_requires_windows_executables_and_marks_install_pending():
     source = ARTIFACT_CHECK.read_text(encoding="utf-8")
     assert 'expected_suffix=".exe"' in source

@@ -399,6 +399,7 @@ class AssetLibraryRepository:
                     name TEXT NOT NULL,
                     provider TEXT NOT NULL DEFAULT 'custom',
                     poster_asset_id TEXT,
+                    default_voice_id TEXT REFERENCES voice_profiles(voice_id),
                     gender TEXT,
                     style TEXT,
                     posture TEXT,
@@ -734,6 +735,15 @@ class AssetLibraryRepository:
             "CREATE INDEX IF NOT EXISTS idx_voice_profiles_status "
             "ON voice_profiles(status, updated_at DESC)"
         )
+        profile_columns = {
+            str(row["name"])
+            for row in connection.execute("PRAGMA table_info(digital_human_profiles)").fetchall()
+        }
+        if "default_voice_id" not in profile_columns:
+            connection.execute(
+                "ALTER TABLE digital_human_profiles "
+                "ADD COLUMN default_voice_id TEXT REFERENCES voice_profiles(voice_id)"
+            )
         scene_columns = {
             str(row["name"])
             for row in connection.execute("PRAGMA table_info(digital_human_scenes)").fetchall()
@@ -1592,9 +1602,12 @@ class AssetLibraryRepository:
                 rows = connection.execute(
                     "SELECT p.*, a.asset_id AS poster_asset_id_resolved, "
                     "a.media_kind AS poster_media_kind, r.relative_path AS poster_relative_path, "
-                    "r.mime_type AS poster_mime_type "
+                    "r.mime_type AS poster_mime_type, v.name AS default_voice_name, "
+                    "v.audio_asset_id AS default_voice_audio_asset_id, "
+                    "v.authorization_status AS default_voice_authorization_status "
                     "FROM digital_human_profiles p LEFT JOIN media_assets a ON a.asset_id = p.poster_asset_id "
                     "LEFT JOIN asset_revisions r ON r.revision_id = a.current_revision_id "
+                    "LEFT JOIN voice_profiles v ON v.voice_id = p.default_voice_id "
                     + (
                         "WHERE " + status_clause + "(p.name LIKE ? OR p.legacy_id LIKE ?) "
                         if needle
@@ -2039,6 +2052,16 @@ class AssetLibraryRepository:
                 "provider": data.get("provider") or "custom",
                 "quality_state": data.get("quality_state") or "unchecked",
                 "default_scene_id": data.get("default_scene_id") or "",
+                "default_voice_id": data.get("default_voice_id") or "",
+                "default_voice_name": data.get("default_voice_name") or "",
+                "default_voice_file_url": (
+                    f"/api/v2/media-assets/{data['default_voice_audio_asset_id']}/file"
+                    if data.get("default_voice_audio_asset_id")
+                    else ""
+                ),
+                "default_voice_authorization_status": (
+                    data.get("default_voice_authorization_status") or ""
+                ),
                 "media_type": poster_media_type,
                 "width": poster_asset.get("width") if poster_asset else None,
                 "height": poster_asset.get("height") if poster_asset else None,
@@ -2464,14 +2487,22 @@ class AssetLibraryRepository:
                 source_row = None
             if source_asset_id and not source_revision_id:
                 source_revision_id = source_row["current_revision_id"] if source_row else None
+            default_voice_id = str(values.get("default_voice_id") or "").strip() or None
+            if default_voice_id:
+                self._require_voice_profile_locked(connection, default_voice_id)
             connection.execute(
-                "INSERT INTO digital_human_profiles(profile_id, legacy_id, name, provider, poster_asset_id, gender, style, posture, supported_workflows_json, default_scene_id, quality_state, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unchecked', 'ready', ?, ?)",
+                "INSERT INTO digital_human_profiles(profile_id, legacy_id, name, provider, "
+                "poster_asset_id, default_voice_id, gender, style, posture, "
+                "supported_workflows_json, default_scene_id, quality_state, status, "
+                "created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
+                "'unchecked', 'ready', ?, ?)",
                 (
                     profile_id,
                     values.get("legacy_id"),
                     str(values.get("name") or "未命名数字人"),
                     str(values.get("provider") or "custom"),
                     poster_asset_id,
+                    default_voice_id,
                     values.get("gender"),
                     values.get("style"),
                     values.get("posture"),
@@ -2516,6 +2547,7 @@ class AssetLibraryRepository:
                 "name",
                 "provider",
                 "poster_asset_id",
+                "default_voice_id",
                 "gender",
                 "style",
                 "posture",
@@ -2524,7 +2556,7 @@ class AssetLibraryRepository:
                 "quality_state",
                 "status",
             }
-            and value is not None
+            and (value is not None or key == "default_voice_id")
         }
         if "supported_workflows" in values and values["supported_workflows"] is not None:
             allowed["supported_workflows_json"] = json.dumps(
@@ -2538,6 +2570,12 @@ class AssetLibraryRepository:
                 self._require_media_reference_locked(
                     connection, str(allowed["poster_asset_id"]), {"image", "video"}
                 )
+            if "default_voice_id" in allowed:
+                default_voice_id = str(allowed["default_voice_id"] or "").strip() or None
+                if default_voice_id:
+                    self._require_voice_profile_locked(connection, default_voice_id)
+                allowed["default_voice_id"] = default_voice_id
+                updates = ", ".join(f"{key} = ?" for key in allowed)
             cursor = connection.execute(
                 f"UPDATE digital_human_profiles SET {updates}, updated_at = ? WHERE profile_id = ?",
                 (*allowed.values(), _now(), profile_id),
@@ -2551,6 +2589,110 @@ class AssetLibraryRepository:
                 self._domain_row_payload_locked(connection, "digital_human", profile_id),
             )
         return self.get_domain_item("digital_human", profile_id)
+
+    def _require_voice_profile_locked(
+        self,
+        connection: sqlite3.Connection,
+        voice_id: str,
+        audio_revision_id: str | None = None,
+    ) -> sqlite3.Row:
+        row = connection.execute(
+            "SELECT v.*, a.status AS audio_status, a.current_revision_id, "
+            "r.revision_id AS resolved_audio_revision_id "
+            "FROM voice_profiles v "
+            "JOIN media_assets a ON a.asset_id = v.audio_asset_id "
+            "LEFT JOIN asset_revisions r ON r.asset_id = a.asset_id "
+            "AND r.revision_id = COALESCE(?, v.audio_revision_id, a.current_revision_id) "
+            "WHERE v.voice_id = ?",
+            (audio_revision_id, voice_id),
+        ).fetchone()
+        if row is None:
+            raise ValueError("VOICE_PROFILE_NOT_FOUND")
+        if str(row["status"] or "") != "ready" or str(row["audio_status"] or "") != "ready":
+            raise ValueError("VOICE_PROFILE_NOT_READY")
+        if str(row["authorization_status"] or "").lower() in {"denied", "revoked"}:
+            raise ValueError("VOICE_PROFILE_UNAUTHORIZED")
+        if not row["resolved_audio_revision_id"]:
+            raise ValueError("VOICE_PROFILE_AUDIO_REVISION_NOT_FOUND")
+        return row
+
+    def resolve_digital_human_voice_binding(
+        self,
+        profile_id: str,
+        *,
+        requested_voice_id: str | None = None,
+        requested_audio_asset_id: str | None = None,
+        requested_audio_revision_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Resolve a run-scoped voice and pin its exact audio revision.
+
+        The selected digital-human profile supplies the default.  A run may
+        override it explicitly, but neither path mutates the profile.  When no
+        profile voice exists, the workflow keeps the product's local Edge
+        fallback so existing installations remain usable.
+        """
+
+        with self._connect() as connection:
+            profile = connection.execute(
+                "SELECT profile_id, default_voice_id FROM digital_human_profiles "
+                "WHERE profile_id = ? AND status = 'ready'",
+                (profile_id,),
+            ).fetchone()
+            if profile is None:
+                raise ValueError("DIGITAL_HUMAN_PROFILE_NOT_FOUND")
+            resolved_voice_id = str(requested_voice_id or profile["default_voice_id"] or "").strip()
+            if not resolved_voice_id:
+                return {
+                    "voice_profile_id": None,
+                    "voice_name": "系统推荐男声",
+                    "audio_asset_id": None,
+                    "audio_revision_id": None,
+                    "authorization_status": "system",
+                    "resolution_source": "system_default",
+                    "tts_provider": "edge",
+                }
+            if requested_audio_asset_id:
+                if not requested_voice_id or not requested_audio_revision_id:
+                    raise ValueError("VOICE_PROFILE_PINNED_AUDIO_INVALID")
+                row = connection.execute(
+                    "SELECT * FROM voice_profiles WHERE voice_id = ?",
+                    (resolved_voice_id,),
+                ).fetchone()
+                if row is None:
+                    raise ValueError("VOICE_PROFILE_NOT_FOUND")
+                if str(row["status"] or "") != "ready":
+                    raise ValueError("VOICE_PROFILE_NOT_READY")
+                if str(row["authorization_status"] or "").lower() in {"denied", "revoked"}:
+                    raise ValueError("VOICE_PROFILE_UNAUTHORIZED")
+                media = self._require_media_reference_locked(
+                    connection,
+                    str(requested_audio_asset_id),
+                    {"audio"},
+                    str(requested_audio_revision_id),
+                )
+                if str(media["status"] or "") != "ready":
+                    raise ValueError("VOICE_PROFILE_NOT_READY")
+                audio_asset_id = str(requested_audio_asset_id)
+                audio_revision_id = str(requested_audio_revision_id)
+            else:
+                row = self._require_voice_profile_locked(
+                    connection,
+                    resolved_voice_id,
+                    requested_audio_revision_id,
+                )
+                audio_asset_id = str(row["audio_asset_id"])
+                audio_revision_id = str(row["resolved_audio_revision_id"])
+            return {
+                "voice_profile_id": resolved_voice_id,
+                "voice_name": str(row["name"]),
+                "audio_asset_id": audio_asset_id,
+                "audio_revision_id": audio_revision_id,
+                "authorization_status": str(row["authorization_status"] or "unknown"),
+                "resolution_source": (
+                    "run_override" if requested_voice_id else "digital_human_default"
+                ),
+                "tts_provider": "index_tts",
+            }
 
     def create_digital_human_scene(
         self, profile_id: str, values: dict[str, Any]

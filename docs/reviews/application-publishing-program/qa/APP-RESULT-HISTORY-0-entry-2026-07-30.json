@@ -1,0 +1,123 @@
+{
+  "schema_version": 2,
+  "stage": "APP-RESULT-HISTORY-0",
+  "gate": "PG-ARH-A",
+  "status": "passed_with_boundary",
+  "change_request": "CR-APP-RESULT-HISTORY-001",
+  "starting_commit": "54f032e9f9bcfe510c5f8c5fa82df4d5ac5406e7",
+  "contracts": {
+    "one_app_run_one_record_block": true,
+    "record_id_equals_app_run_id": true,
+    "text_candidates_inline": true,
+    "title_default_target_count": 6,
+    "carousel_multi_page_single_product": true,
+    "digital_human_single_final_video": true,
+    "media_card_primary_action_limit": 2,
+    "default_scope": "current_app",
+    "all_results_scope": true,
+    "project_isolation_required": true,
+    "read_projection_only": true,
+    "second_result_fact_table": false,
+    "legacy_read_backfill": false
+  },
+  "independent_review": {
+    "first_pass": {
+      "result": "blocked",
+      "p0": 0,
+      "p1": 6,
+      "p2": 3
+    },
+    "second_pass": {
+      "result": "blocked",
+      "p0": 0,
+      "p1": 1,
+      "p2": 3
+    },
+    "third_pass": {
+      "result": "blocked",
+      "p0": 0,
+      "p1": 1,
+      "p2": 0
+    },
+    "fourth_pass": {
+      "result": "passed_with_boundary",
+      "p0": 0,
+      "p1": 0,
+      "p2": 0
+    },
+    "remediation_complete": true,
+    "re_review_pending": false
+  },
+  "artifacts": [
+    {
+      "path": "docs/contracts/app-center/generation-record-block-v1.schema.json",
+      "sha256": "e825340bc1a31df3e6eace73cc2c79b55c530c7eef0faf985dbb625672f144c0"
+    },
+    {
+      "path": "docs/contracts/app-center/generation-record-page-v1.schema.json",
+      "sha256": "b8d412a75e68a7eefb8fef7ef6fb2a123a2e08f2f8b74d3c32bbf577a7fe32d1"
+    },
+    {
+      "path": "docs/contracts/app-center/app-result-history-entry.contract.json",
+      "sha256": "1dfb8ea2f9a32a963aea873330d374e3bdbe6f5867dc57cb45af631d0c443741"
+    },
+    {
+      "path": "docs/contracts/app-center/fixtures/app-result-history-entry-fixtures.json",
+      "sha256": "22afa4ffd3ace442894d1adedff168976c6a9dc4e8a7fb32d95e2e5f4b586c50"
+    },
+    {
+      "path": "docs/contracts/app-center/feature-flag-matrix.json",
+      "sha256": "83b09454e79f77a6f9c30d7e76c764d19bd0d4e1863ca2ad5f3e14f618a6b0ba"
+    },
+    {
+      "path": "tests/app_result_history_entry_contract_test.py",
+      "sha256": "d63cfb558eff3cb1a4b2ee919f05bce2f4d13aed0d397321fceb000315e68e27"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-07-30-application-center-project-result-history-implementation-plan.md",
+      "sha256": "c08421575a58b2f82c8617340a9bddf80779e193b3d3e4a32cb34709f9edeec6"
+    }
+  ],
+  "visual_baseline": {
+    "manifest": "docs/reviews/application-publishing-program/qa/APP-CENTER-RESULT-LIST-2026-07-30/manifest.json",
+    "applications_captured": 4,
+    "marketing_copy_sha256": "9546ba442b55f08893738503ebdb75f24a3ac308ae86b966400db2dd022799f9",
+    "viral_titles_sha256": "8bba894f84b016d0608675724f347d56d9a02b7dc86ffe873e490a7640e8c82c",
+    "carousel_sha256": "ca8d9228a1ba617f2c99ba3033c81915874e4397b6f3ba6e74ddf044fad44bd8",
+    "digital_human_completed_sha256": "5bf6bb479286220a699a0df50d9a1ba307a247f5f70c18ec152ad088fdb4e971",
+    "console_product_errors": 0,
+    "business_files_hashed": 8,
+    "business_files_changed_in_entry": 0
+  },
+  "tests": {
+    "command": "uv run pytest -q tests/app_result_history_entry_contract_test.py",
+    "result": "21 passed",
+    "coordination_command": "uv run pytest -q tests/app_result_history_entry_contract_test.py tests/app_workbench_entry_contract_test.py tests/coord0_contract_test.py",
+    "coordination_result": "49 passed",
+    "json_schema": "passed",
+    "json_parse": "passed",
+    "ruff_check": "passed",
+    "ruff_format_check": "passed",
+    "diff_check": "passed"
+  },
+  "feature_flag": {
+    "name": "appResultHistoryV1",
+    "backend_env": "PIXELLE_APP_RESULT_HISTORY_V1",
+    "frontend_env": "VITE_APP_RESULT_HISTORY_V1",
+    "default": false,
+    "runtime_wiring_in_entry": false
+  },
+  "external_actions": {
+    "llm_calls": 0,
+    "tts_calls": 0,
+    "runninghub_calls": 0,
+    "platform_actions": 0,
+    "uploads": 0,
+    "final_publish_clicks": 0
+  },
+  "paused_checkpoint": {
+    "stage": "PROGRAM-ROLLOUT",
+    "gate": "PG-L-WINDOWS-AND-PRODUCT-ACCEPTANCE",
+    "unchanged": true
+  }
+}

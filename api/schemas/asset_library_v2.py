@@ -236,6 +236,7 @@ class DigitalHumanV2Request(ContractModel):
     name: str = "未命名数字人"
     provider: str = "custom"
     poster_asset_id: str | None = None
+    default_voice_id: str | None = None
     gender: str | None = None
     style: str | None = None
     posture: str | None = None
@@ -252,6 +253,7 @@ class DigitalHumanPatchRequest(ContractModel):
     name: str | None = Field(default=None, min_length=1)
     provider: str | None = None
     poster_asset_id: str | None = None
+    default_voice_id: str | None = None
     gender: str | None = None
     style: str | None = None
     posture: str | None = None

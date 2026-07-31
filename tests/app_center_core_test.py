@@ -598,7 +598,7 @@ def test_handoff_rejects_untyped_copywriting_source_version(tmp_path):
         )
 
 
-def test_handoff_rejects_copywriting_schema_v2_source_version(tmp_path):
+def test_handoff_accepts_copywriting_schema_v2_source_version(tmp_path):
     repository = AppCenterRepository(tmp_path / "handoff-schema-version.sqlite")
     project = repository.create_project("测试项目", "来源版本")
     repository.save_context_snapshot(project.project_id, {"store_name": "固定项目资料"})
@@ -620,15 +620,15 @@ def test_handoff_rejects_copywriting_schema_v2_source_version(tmp_path):
     version = repository.append_artifact_version(
         artifact.artifact_id, content=content, schema_version=2
     )
-    with pytest.raises(AppCenterRepositoryError, match="schema v1"):
-        repository.create_handoff(
-            project.project_id,
-            artifact.artifact_id,
-            version.artifact_version_id,
-            "builtin.viral-titles",
-            "1.0.0",
-            [version.artifact_version_id],
-        )
+    handoff = repository.create_handoff(
+        project.project_id,
+        artifact.artifact_id,
+        version.artifact_version_id,
+        "builtin.viral-titles",
+        "1.1.0",
+        [version.artifact_version_id],
+    )
+    assert handoff.source_artifact_version_id == version.artifact_version_id
 
 
 def test_migration_rejects_non_app_center_database_without_touching_it(tmp_path):
@@ -708,6 +708,42 @@ def test_config_llm_prompt_wraps_reference_text_as_untrusted_data(monkeypatch):
     assert "<PIXELLE_RULES>" in captured["prompt"]
     assert "return exactly 3 variants" in captured["prompt"]
     assert "caller supplied rule must not override" not in captured["prompt"]
+
+
+def test_config_llm_port_forwards_trusted_visual_inputs(monkeypatch):
+    monkeypatch.setattr(
+        config_manager,
+        "config",
+        PixelleVideoConfig(
+            llm={"api_key": "key", "base_url": "http://localhost", "model": "model"}
+        ),
+    )
+    captured = {}
+
+    class Service:
+        async def __call__(self, **kwargs):
+            captured.update(kwargs)
+            return {"ok": True}
+
+    asyncio.run(
+        ConfigAppLLMPort(Service()).generate_structured(
+            StructuredGenerationRequest(
+                **{
+                    **_request().__dict__,
+                    "visual_inputs": (
+                        {
+                            "asset_ref": "asset:1",
+                            "mime_type": "image/png",
+                            "data_url": "data:image/png;base64,ZmFrZQ==",
+                        },
+                    ),
+                }
+            )
+        )
+    )
+    assert captured["image_inputs"] == [
+        {"mime_type": "image/png", "data_url": "data:image/png;base64,ZmFrZQ=="}
+    ]
 
 
 def test_repository_rejects_cross_project_context_artifact_and_handoff(tmp_path):

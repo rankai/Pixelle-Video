@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CreationWorkspace } from "./CreationWorkspace";
@@ -6,6 +6,10 @@ import { CreationWorkspace } from "./CreationWorkspace";
 const mocks = vi.hoisted(() => ({
   listContentProjects: vi.fn(),
   listAppRuns: vi.fn(),
+  listGenerationRecords: vi.fn(),
+  getGenerationRecordPreview: vi.fn(),
+  generationRecordMediaBlobUrl: vi.fn(),
+  downloadGenerationRecordMedia: vi.fn(),
   createContentProject: vi.fn(),
   updateContentProject: vi.fn(),
   createAppRun: vi.fn(),
@@ -60,6 +64,17 @@ describe("CreationWorkspace", () => {
   beforeEach(() => {
     listContentProjects.mockResolvedValue([]);
     listAppRuns.mockResolvedValue([]);
+    mocks.listGenerationRecords.mockResolvedValue({
+      schema_version: 1,
+      project_id: "p1",
+      scope: "current_app",
+      app_id: "builtin.marketing-copy",
+      records: [],
+      next_cursor: null,
+    });
+    mocks.generationRecordMediaBlobUrl.mockImplementation(
+      async (path: string) => `blob:${path}`,
+    );
     mocks.getCurrentContextSnapshot.mockResolvedValue(null);
     mocks.listProjectArtifacts.mockResolvedValue([]);
     mocks.listLibraryItemsV2.mockResolvedValue({ items: [], total: 0 });
@@ -122,8 +137,8 @@ describe("CreationWorkspace", () => {
 
   it("keeps project lifecycle actions out of the focused application workbench", () => {
     render(<CreationWorkspace focused workbenchV2 />);
-    expect(screen.getByRole("region", { name: "创作配置" })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "生成结果" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "文案设置" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "文案结果" })).toBeInTheDocument();
     expect(screen.getByText("先选择或新建项目")).toBeInTheDocument();
     expect(screen.getByText("还未生成")).toBeInTheDocument();
     expect(screen.queryByText("项目操作")).not.toBeInTheDocument();
@@ -429,6 +444,10 @@ describe("CreationWorkspace", () => {
         page_count: 3,
         source_artifact_version_ids: ["artifact_version_source"],
         asset_refs: ["asset:image-1", "asset:image-2"],
+        asset_descriptions: [
+          expect.objectContaining({ asset_ref: "asset:image-1", name: "门店图片 1" }),
+          expect.objectContaining({ asset_ref: "asset:image-2", name: "门店图片 2" }),
+        ],
       },
     })));
     await waitFor(() => expect(mocks.executeAppRun).toHaveBeenCalledWith("carousel-run-new"));
@@ -878,6 +897,45 @@ describe("CreationWorkspace", () => {
     })));
   });
 
+  it("defaults title v2 to the latest project copy and always submits six candidates", async () => {
+    listContentProjects.mockResolvedValue([{
+      project_id: "p1", schema_version: 1, name: "咖啡标题项目", status: "active", primary_goal: "吸引附近上班族到店",
+      brand_id: null, current_context_snapshot_id: "ctx-v2", created_at: "now", updated_at: "now",
+    }]);
+    mocks.getCurrentContextSnapshot.mockResolvedValue({
+      context_snapshot_id: "ctx-v2", project_id: "p1", schema_version: 2,
+      payload: { schema_version: 2 }, source_brand_id: null, source_brand_revision_id: null,
+      fingerprint: "sha256:ctx", created_at: "now",
+    });
+    mocks.listProjectArtifacts.mockResolvedValue([{
+      artifact_id: "copy-source", project_id: "p1", source_app_run_id: "copy-run", artifact_type: "copywriting",
+      name: "最新门店文案", status: "active", current_version_id: "copy-v2", created_at: "now", updated_at: "later",
+    }]);
+    mocks.listArtifactVersions.mockResolvedValue([{
+      artifact_version_id: "copy-v2", artifact_id: "copy-source", project_id: "p1", version_number: 2,
+      schema_version: 2, content: { schema_version: 2, artifact_type: "copywriting", variants: [{ full_text: "午后现磨咖啡" }] },
+      file_refs: [], source: "edited", content_fingerprint: "sha", created_at: "now",
+    }]);
+    mocks.listStylePresets.mockResolvedValue({ items: [{
+      style_id: "title.scene", version: 1, family: "title", name: "场景标题", description: "场景化", example: "下班后去哪儿",
+    }] });
+    mocks.createAppRun.mockResolvedValue({ app_run_id: "title-v2-run", project_id: "p1", app_id: "builtin.viral-titles", app_version: "1.1.0" });
+
+    render(<CreationWorkspace focused workbenchV2 textAppsV2 appId="builtin.viral-titles" />);
+    await waitFor(() => expect(screen.getByLabelText("标题来源文案")).toBeInTheDocument());
+    expect(screen.getByText("6 个")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "生成爆款标题" }));
+
+    await waitFor(() => expect(mocks.createAppRun).toHaveBeenCalledWith(expect.objectContaining({
+      app_version: "1.1.0",
+      input_payload: expect.objectContaining({
+        input_schema_ref: "viral-titles-input.v2",
+        task_brief: expect.objectContaining({ count: 6 }),
+        source_artifact_version_ids: ["copy-v2"],
+      }),
+    })));
+  });
+
   it("hands a pinned copywriting version to the title workbench without executing the target", async () => {
     const onOpenApp = vi.fn();
     listContentProjects.mockResolvedValue([{
@@ -923,7 +981,7 @@ describe("CreationWorkspace", () => {
     }));
   });
 
-  it("hands a selected title to the digital-human workbench with an idempotent selected-title version", async () => {
+  it("hands a selected title to the carousel workbench with an idempotent selected-title version", async () => {
     const onOpenApp = vi.fn();
     listContentProjects.mockResolvedValue([{
       project_id: "p1", schema_version: 1, name: "标题项目", status: "active", primary_goal: "目标",
@@ -957,12 +1015,10 @@ describe("CreationWorkspace", () => {
 
     render(<CreationWorkspace focused workbenchV2 textAppsV2 appId="builtin.viral-titles" onOpenApp={onOpenApp} />);
     await waitFor(() => expect(screen.getByText("使用这个标题")).toBeInTheDocument());
-    fireEvent.click(screen.getByRole("button", { name: "更多操作" }));
-    fireEvent.click(await screen.findByText("制作抖音图文"));
+    fireEvent.click(screen.getByRole("button", { name: "使用这个标题" }));
+    await waitFor(() => expect(mocks.createProjectArtifact).toHaveBeenCalledTimes(1));
+    fireEvent.click(await screen.findByRole("button", { name: "制作抖音图文" }));
     await waitFor(() => expect(onOpenApp).toHaveBeenCalledWith("builtin.douyin-carousel", "selected-title-v1"));
-    fireEvent.click(screen.getByText("制作数字人"));
-
-    await waitFor(() => expect(onOpenApp).toHaveBeenCalledWith("builtin.digital-human-video", "selected-title-v1"));
     expect(mocks.createProjectArtifact).toHaveBeenCalledTimes(1);
     expect(mocks.createArtifactHandoff).toHaveBeenCalledWith(expect.objectContaining({
       source_artifact_id: "selected-title-artifact",
@@ -970,13 +1026,278 @@ describe("CreationWorkspace", () => {
       target_app_id: "builtin.douyin-carousel",
       artifact_version_ids: ["selected-title-v1"],
     }));
-    expect(mocks.createArtifactHandoff).toHaveBeenCalledWith(expect.objectContaining({
-      source_artifact_id: "selected-title-artifact",
-      source_artifact_version_id: "selected-title-v1",
-      target_app_id: "builtin.digital-human-video",
-      artifact_version_ids: ["selected-title-v1"],
-    }));
   }, 30_000);
+
+  it("fails closed when a selected title source run has disappeared", async () => {
+    const onOpenApp = vi.fn();
+    listContentProjects.mockResolvedValue([{
+      project_id: "p1", schema_version: 1, name: "标题项目", status: "active", primary_goal: "目标",
+      brand_id: null, current_context_snapshot_id: null, created_at: "now", updated_at: "now",
+    }]);
+    listAppRuns.mockResolvedValue([{
+      app_run_id: "title-run", project_id: "p1", app_id: "builtin.viral-titles", app_version: "1.1.0",
+      state: "needs_review", state_version: 2, idempotency_key: "title-run", input_payload: {},
+      context_snapshot_id: null, output_artifact_ids: ["title-artifact"], error_code: null, archived_at: null,
+      created_at: "now", updated_at: "now",
+    }]);
+    mocks.listProjectArtifacts.mockResolvedValue([{
+      artifact_id: "selected-title-artifact", project_id: "p1", source_app_run_id: "missing-run",
+      artifact_type: "selected_title", name: "午后咖啡怎么选", status: "active", current_version_id: "selected-title-v1",
+      created_at: "now", updated_at: "now",
+    }]);
+    mocks.listArtifactVersions.mockImplementation(async (artifactId: string) => artifactId === "selected-title-artifact"
+      ? [{
+          artifact_version_id: "selected-title-v1", artifact_id: "selected-title-artifact", project_id: "p1", version_number: 1,
+          schema_version: 2, content: { artifact_type: "selected_title", title: "午后咖啡怎么选" },
+          file_refs: [], source: "edited", content_fingerprint: "selected-sha", created_at: "now",
+        }]
+      : [{
+          artifact_version_id: "title-v1", artifact_id: "title-artifact", project_id: "p1", version_number: 1,
+          schema_version: 2, content: { artifact_type: "title_set", candidates: [{ title: "午后咖啡怎么选" }] },
+          file_refs: [], source: "generated", content_fingerprint: "sha", created_at: "now",
+        }]);
+    mocks.createProjectArtifact.mockResolvedValue({ artifact_id: "selected-title-artifact" });
+    mocks.appendArtifactVersion.mockResolvedValue({
+      artifact_version_id: "selected-title-v1", artifact_id: "selected-title-artifact", project_id: "p1", version_number: 1,
+      schema_version: 2, content: { artifact_type: "selected_title", title: "午后咖啡怎么选" },
+      file_refs: [], source: "edited", content_fingerprint: "selected-sha", created_at: "now",
+    });
+
+    render(<CreationWorkspace focused workbenchV2 textAppsV2 appId="builtin.viral-titles" onOpenApp={onOpenApp} />);
+    await waitFor(() => expect(screen.getByText("使用这个标题")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "使用这个标题" }));
+    await waitFor(() => expect(mocks.createProjectArtifact).toHaveBeenCalledTimes(1));
+    fireEvent.click(await screen.findByRole("button", { name: "制作抖音图文" }));
+
+    await waitFor(() => expect(screen.getByText(/来源运行记录不存在，已停止交接/)).toBeInTheDocument());
+    expect(onOpenApp).not.toHaveBeenCalled();
+    expect(mocks.createArtifactHandoff).not.toHaveBeenCalled();
+  }, 30_000);
+
+  it("fails closed when a selected title source run is archived", async () => {
+    const onOpenApp = vi.fn();
+    listContentProjects.mockResolvedValue([{
+      project_id: "p1", schema_version: 1, name: "标题项目", status: "active", primary_goal: "目标",
+      brand_id: null, current_context_snapshot_id: null, created_at: "now", updated_at: "now",
+    }]);
+    listAppRuns.mockResolvedValue([{
+      app_run_id: "title-run", project_id: "p1", app_id: "builtin.viral-titles", app_version: "1.1.0",
+      state: "needs_review", state_version: 2, idempotency_key: "title-run", input_payload: {},
+      context_snapshot_id: null, output_artifact_ids: ["title-artifact", "selected-title-artifact"], error_code: null, archived_at: "archived",
+      created_at: "now", updated_at: "now",
+    }]);
+    mocks.listProjectArtifacts.mockResolvedValue([{
+      artifact_id: "selected-title-artifact", project_id: "p1", source_app_run_id: "title-run",
+      artifact_type: "selected_title", name: "午后咖啡怎么选", status: "active", current_version_id: "selected-title-v1",
+      created_at: "now", updated_at: "now",
+    }]);
+    mocks.listArtifactVersions.mockImplementation(async (artifactId: string) => artifactId === "selected-title-artifact"
+      ? [{
+          artifact_version_id: "selected-title-v1", artifact_id: "selected-title-artifact", project_id: "p1", version_number: 1,
+          schema_version: 2, content: { artifact_type: "selected_title", title: "午后咖啡怎么选" },
+          file_refs: [], source: "edited", content_fingerprint: "selected-sha", created_at: "now",
+        }]
+      : [{
+          artifact_version_id: "title-v1", artifact_id: "title-artifact", project_id: "p1", version_number: 1,
+          schema_version: 2, content: { artifact_type: "title_set", candidates: [{ title: "午后咖啡怎么选" }] },
+          file_refs: [], source: "generated", content_fingerprint: "sha", created_at: "now",
+        }]);
+    mocks.createProjectArtifact.mockResolvedValue({ artifact_id: "selected-title-artifact" });
+    mocks.appendArtifactVersion.mockResolvedValue({
+      artifact_version_id: "selected-title-v1", artifact_id: "selected-title-artifact", project_id: "p1", version_number: 1,
+      schema_version: 2, content: { artifact_type: "selected_title", title: "午后咖啡怎么选" },
+      file_refs: [], source: "edited", content_fingerprint: "selected-sha", created_at: "now",
+    });
+
+    render(<CreationWorkspace focused workbenchV2 textAppsV2 appId="builtin.viral-titles" onOpenApp={onOpenApp} />);
+    await waitFor(() => expect(screen.getByText("使用这个标题")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "使用这个标题" }));
+    await waitFor(() => expect(mocks.createProjectArtifact).toHaveBeenCalledTimes(1));
+    fireEvent.click(await screen.findByRole("button", { name: "制作抖音图文" }));
+
+    await waitFor(() => expect(screen.getByText(/来源运行记录不存在，已停止交接/)).toBeInTheDocument());
+    expect(onOpenApp).not.toHaveBeenCalled();
+    expect(mocks.createArtifactHandoff).not.toHaveBeenCalled();
+  }, 30_000);
+
+  it("adopts an exact title from the lightweight generation history", async () => {
+    listContentProjects.mockResolvedValue([{
+      project_id: "p1", schema_version: 1, name: "标题项目", status: "active", primary_goal: "目标",
+      brand_id: null, current_context_snapshot_id: null, created_at: "now", updated_at: "now",
+    }]);
+    listAppRuns.mockResolvedValue([{
+      app_run_id: "title-run", project_id: "p1", app_id: "builtin.viral-titles", app_version: "1.1.0",
+      state: "completed", state_version: 4, idempotency_key: "title-run", input_payload: {},
+      context_snapshot_id: null, output_artifact_ids: ["title-artifact"], error_code: null, archived_at: null,
+      created_at: "now", updated_at: "now",
+    }]);
+    mocks.listGenerationRecords.mockResolvedValue({
+      schema_version: 1,
+      project_id: "p1",
+      scope: "current_app",
+      app_id: "builtin.viral-titles",
+      records: [{
+        schema_version: 1,
+        record_id: "title-run",
+        app_run_id: "title-run",
+        project_id: "p1",
+        app_id: "builtin.viral-titles",
+        app_name: "爆款标题",
+        result_shape: "multi_title",
+        status: "completed",
+        created_at: "2026-07-30T10:20:00Z",
+        result_available_at: "2026-07-30T10:20:08Z",
+        summary: "本次生成 1 个标题",
+        compatibility: { state: "normal" },
+        items: [{
+          item_id: "title-artifact:title-v1:1",
+          kind: "title",
+          label: "场景切入",
+          text: "下班前，来一杯刚磨好的咖啡",
+          actions: ["copy", "select"],
+        }],
+      }],
+      next_cursor: null,
+    });
+    mocks.listArtifactVersions.mockResolvedValue([{
+      artifact_version_id: "title-v1", artifact_id: "title-artifact", project_id: "p1",
+      version_number: 1, schema_version: 1,
+      content: {
+        artifact_type: "title_set",
+        candidates: [{ title: "下班前，来一杯刚磨好的咖啡", angle: "场景切入", length: 14 }],
+      },
+      file_refs: [], source: "generated", content_fingerprint: "sha", created_at: "now",
+    }]);
+    mocks.createProjectArtifact.mockResolvedValue({
+      artifact_id: "selected-title-artifact",
+      project_id: "p1",
+      source_app_run_id: "title-run",
+      artifact_type: "selected_title",
+      name: "下班前，来一杯刚磨好的咖啡",
+      status: "active",
+      current_version_id: null,
+      created_at: "now",
+      updated_at: "now",
+    });
+    mocks.appendArtifactVersion.mockResolvedValue({
+      artifact_version_id: "selected-title-v1", artifact_id: "selected-title-artifact",
+      project_id: "p1", version_number: 1, schema_version: 1,
+      content: { artifact_type: "selected_title", title: "下班前，来一杯刚磨好的咖啡" },
+      file_refs: [], source: "edited", content_fingerprint: "selected-sha", created_at: "now",
+    });
+
+    render(
+      <CreationWorkspace
+        focused
+        workbenchV2
+        textAppsV2
+        resultHistoryV1
+        appId="builtin.viral-titles"
+      />,
+    );
+    expect(await screen.findByText("下班前，来一杯刚磨好的咖啡")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "采用" }));
+
+    await waitFor(() => expect(mocks.appendArtifactVersion).toHaveBeenCalledWith(
+      "selected-title-artifact",
+      expect.objectContaining({
+        artifact_type: "selected_title",
+        title: "下班前，来一杯刚磨好的咖啡",
+        source_title_set_artifact_id: "title-artifact",
+        source_title_set_version_id: "title-v1",
+        selected_index: 0,
+      }),
+      "edited",
+    ));
+    expect(mocks.recordAppEvent).toHaveBeenCalledWith(
+      "title-run",
+      "result.selected",
+      expect.objectContaining({ artifact_version_id: "selected-title-v1" }),
+    );
+    expect(screen.queryByText("title-artifact")).not.toBeInTheDocument();
+  });
+
+  it("shows one carousel product card and hands its fixed version to publishing", async () => {
+    const onOpenPublishCenter = vi.fn();
+    listContentProjects.mockResolvedValue([{
+      project_id: "p1", schema_version: 1, name: "图文项目", status: "active", primary_goal: "提升到店",
+      brand_id: null, current_context_snapshot_id: null, created_at: "now", updated_at: "now",
+    }]);
+    listAppRuns.mockResolvedValue([{
+      app_run_id: "carousel-run", project_id: "p1", app_id: "builtin.douyin-carousel",
+      app_version: "1.1.0", state: "needs_review", state_version: 3,
+      idempotency_key: "carousel-run", input_payload: {}, context_snapshot_id: null,
+      output_artifact_ids: ["carousel-package"], error_code: null, archived_at: null,
+      created_at: "now", updated_at: "now",
+    }]);
+    mocks.listGenerationRecords.mockResolvedValue({
+      schema_version: 1,
+      project_id: "p1",
+      scope: "current_app",
+      app_id: "builtin.douyin-carousel",
+      records: [{
+        schema_version: 1,
+        record_id: "carousel-run",
+        app_run_id: "carousel-run",
+        project_id: "p1",
+        app_id: "builtin.douyin-carousel",
+        app_name: "抖音图文",
+        result_shape: "single_carousel",
+        status: "needs_review",
+        created_at: "2026-07-30T10:20:00Z",
+        result_available_at: "2026-07-30T10:20:08Z",
+        summary: "工作日下午茶",
+        compatibility: { state: "normal" },
+        items: [{
+          item_id: "carousel-package",
+          kind: "carousel",
+          title: "工作日下午茶",
+          cover_url: "/api/carousel/cover",
+          preview_url: "/api/carousel/preview",
+          download_url: "/api/carousel/download",
+          page_count: 3,
+          actions: ["preview", "publish"],
+          details_available: ["pages"],
+          artifact_version_ids: ["carousel-version-v3"],
+        }],
+      }],
+      next_cursor: null,
+    });
+    mocks.listProjectArtifacts.mockResolvedValue([{
+      artifact_id: "carousel-package",
+      project_id: "p1",
+      source_app_run_id: "carousel-run",
+      artifact_type: "carousel_package",
+      name: "工作日下午茶",
+      status: "ready",
+      current_version_id: "carousel-version-v3",
+      created_at: "now",
+      updated_at: "now",
+    }]);
+    mocks.createPublishPackageV2.mockResolvedValue({ package_id: "publish-package-fixed" });
+
+    render(
+      <CreationWorkspace
+        focused
+        workbenchV2
+        carouselAppsV2
+        resultHistoryV1
+        appId="builtin.douyin-carousel"
+        onOpenPublishCenter={onOpenPublishCenter}
+      />,
+    );
+    expect(await screen.findByText("工作日下午茶")).toBeInTheDocument();
+    const productCard = screen.getByRole("article", { name: "工作日下午茶成品" });
+    expect(within(productCard).getByText("3 页")).toBeInTheDocument();
+    expect(screen.queryByText("下载图片")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "去发布" }));
+
+    await waitFor(() => expect(mocks.createPublishPackageV2).toHaveBeenCalledWith({
+      project_id: "p1",
+      artifact_version_ids: ["carousel-version-v3"],
+    }));
+    expect(onOpenPublishCenter).toHaveBeenCalledWith("publish-package-fixed");
+  });
 
   it("warns when a pinned title source has a newer upstream version", async () => {
     listContentProjects.mockResolvedValue([{

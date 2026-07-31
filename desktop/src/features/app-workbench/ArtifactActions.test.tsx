@@ -25,4 +25,20 @@ describe("ArtifactActions", () => {
     expect(onClick).toHaveBeenCalledTimes(1);
     expect(screen.queryByText("自动发布")).not.toBeInTheDocument();
   });
+
+  it("keeps additional handoffs behind an explicit overflow action", () => {
+    const primary = vi.fn();
+    const secondary = vi.fn();
+    render(<ArtifactActions actions={[
+      { key: "carousel", label: "制作抖音图文", onClick: primary, primary: true },
+      { key: "digital-human", label: "制作数字人", onClick: secondary },
+    ]} />);
+
+    expect(screen.getByRole("button", { name: "制作抖音图文" })).toBeInTheDocument();
+    expect(screen.queryByText("制作数字人")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "更多操作" }));
+    fireEvent.click(screen.getByText("制作数字人"));
+    expect(primary).not.toHaveBeenCalled();
+    expect(secondary).toHaveBeenCalledTimes(1);
+  });
 });

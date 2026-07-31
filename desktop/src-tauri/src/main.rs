@@ -21,6 +21,7 @@ struct RuntimeInfo {
 #[serde(rename_all = "camelCase")]
 struct RuntimeFeatureFlags {
     brand_project_boundary_v1: bool,
+    app_result_history_v1: bool,
 }
 
 /// Return the origin used by the packaged Tauri webview on this platform.
@@ -94,6 +95,11 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
     } else {
         "0"
     };
+    let app_result_history_v1 = if runtime.feature_flags.app_result_history_v1 {
+        "1"
+    } else {
+        "0"
+    };
     // The production desktop UI ships with Publish Center V2 enabled. Keep
     // the sidecar gate in sync so a fresh install does not render the V2
     // shell only to receive V2_DISABLED from the local API. An explicit
@@ -121,6 +127,7 @@ fn spawn_backend(app: &tauri::App, runtime: &RuntimeInfo) -> tauri::Result<Optio
             "PIXELLE_BRAND_PROJECT_BOUNDARY_V1",
             brand_project_boundary_v1,
         )
+        .env("PIXELLE_APP_RESULT_HISTORY_V1", app_result_history_v1)
         .env("PIXELLE_PUBLISH_V2_ENABLED", publish_v2_enabled)
         .args(["--host", "127.0.0.1", "--port", port.as_str()])
         .spawn()
@@ -222,11 +229,18 @@ fn main() {
             .as_deref(),
         true,
     );
+    let app_result_history_v1 = parse_env_flag(
+        std::env::var("PIXELLE_APP_RESULT_HISTORY_V1")
+            .ok()
+            .as_deref(),
+        true,
+    );
     let runtime = RuntimeInfo {
         api_base_url: default_api_base_url(),
         desktop_token: Uuid::new_v4().to_string(),
         feature_flags: RuntimeFeatureFlags {
             brand_project_boundary_v1,
+            app_result_history_v1,
         },
     };
 

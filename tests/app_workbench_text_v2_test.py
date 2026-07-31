@@ -50,41 +50,21 @@ def _context_payload():
 
 def _copy_output():
     variants = []
-    for index, angle in enumerate(("利益", "好奇", "场景"), start=1):
-        hook = f"午后轻松一下{index}"
-        body = "现磨咖啡，适合附近上班族午后休息。"
-        cta = "到店了解"
-        full_text = hook + body + cta
+    for index in range(1, 4):
         variants.append(
             {
-                "version_name": f"版本{index}",
-                "angle": angle,
-                "hook": hook,
-                "body": body,
-                "cta": cta,
-                "full_text": full_text,
-                "word_count": len(full_text),
-                "estimated_seconds": (len(full_text) + 3) // 4,
+                "full_text": f"午后轻松一下{index}，现磨咖啡适合附近上班族休息，到店了解。",
             }
         )
-    return {"variants": variants, "missing_facts": [], "risk_flags": []}
+    return {"variants": variants}
 
 
 def _title_output():
     return {
         "candidates": [
-            {
-                "title": f"午后咖啡选择第{index}招",
-                "angle": "场景",
-                "objective": "click",
-                "length": len(f"午后咖啡选择第{index}招"),
-                "banned_matches": [],
-                "risk_labels": ["无"],
-            }
-            for index in range(1, 6)
+            {"title": f"午后咖啡选择第{index}招"}
+            for index in range(1, 7)
         ],
-        "missing_facts": [],
-        "risk_flags": [],
     }
 
 
@@ -106,7 +86,7 @@ def _marketing_payload(project_id, snapshot_id):
         "project_id": project_id,
         "context_snapshot_id": snapshot_id,
         "task_brief": {
-            "goal": "吸引附近上班族到店",
+            "marketing_goal": "吸引附近上班族到店",
             "offer_name": "午后咖啡套餐",
             "selling_point_fact_ids": ["selling-1"],
             "benefit_tags": ["到店"],
@@ -237,7 +217,7 @@ def test_titles_v2_resolves_one_pinned_copywriting_version(tmp_path):
         "task_brief": {
             "platform": "douyin",
             "objective": "click",
-            "count": 5,
+            "count": 6,
             "topic": None,
             "source_text": None,
             "keywords": ["咖啡"],

@@ -16,10 +16,12 @@ export type ResolvedFeatureFlags = {
   assetCenterV2: boolean;
   assetCenterSmbUx: boolean;
   brandProjectBoundaryV1: boolean;
+  appResultHistoryV1: boolean;
 };
 
 export type RuntimeFeatureFlags = {
   brandProjectBoundaryV1: boolean;
+  appResultHistoryV1: boolean;
 };
 
 const TRUE_VALUES = new Set(["1", "true", "yes", "on"]);
@@ -105,6 +107,12 @@ export function resolveFeatureFlags(env: FeatureFlagEnv): ResolvedFeatureFlags {
       ["PIXELLE_BRAND_PROJECT_BOUNDARY_V1"],
       false,
     ),
+    appResultHistoryV1: readCanonicalWithAliases(
+      env,
+      "VITE_APP_RESULT_HISTORY_V1",
+      ["PIXELLE_APP_RESULT_HISTORY_V1"],
+      false,
+    ),
   };
 }
 
@@ -120,5 +128,7 @@ export function mergeRuntimeFeatureFlags(
     // workflow back together with its FastAPI sidecar.
     brandProjectBoundaryV1:
       buildFlags.brandProjectBoundaryV1 && runtimeFlags.brandProjectBoundaryV1 === true,
+    appResultHistoryV1:
+      buildFlags.appResultHistoryV1 && runtimeFlags.appResultHistoryV1 === true,
   };
 }

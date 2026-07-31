@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "change_request": "CR-APP-RESULT-HISTORY-001",
+  "stage": "APP-RESULT-HISTORY-0",
+  "gate": "PG-ARH-A",
+  "status": "entry_contract",
+  "user_goal": "把每次生成作为一块可找回的记录，直接展示本次完整结果，隐藏实现细节。",
+  "record_boundary": {
+    "one_app_run_one_record_block": true,
+    "record_id_equals_app_run_id": true,
+    "retry_updates_same_run": true,
+    "regenerate_creates_new_run": true,
+    "record_order": "result_available_at DESC, app_run_id DESC",
+    "cursor": "opaque_stable_cursor",
+    "default_scope": "current_app",
+    "supported_scopes": [
+      "current_app",
+      "all_results"
+    ],
+    "project_isolation_required": true
+  },
+  "result_shapes": {
+    "builtin.marketing-copy": {
+      "shape": "multi_copy",
+      "one_record_contains": "all copy candidates produced by the AppRun",
+      "minimum_completed_items": 1
+    },
+    "builtin.viral-titles": {
+      "shape": "multi_title",
+      "one_record_contains": "all title candidates produced by the AppRun",
+      "default_target_count": 6,
+      "minimum_completed_items": 1
+    },
+    "builtin.douyin-carousel": {
+      "shape": "single_carousel",
+      "one_record_contains": "one complete carousel product with all pages",
+      "completed_item_count": 1
+    },
+    "builtin.digital-human-video": {
+      "shape": "single_video",
+      "one_record_contains": "one final playable video product; cover, copy and script remain auxiliary details",
+      "completed_item_count": 1
+    }
+  },
+  "ordinary_user_display": {
+    "record_header": [
+      "result_available_at",
+      "app_name",
+      "summary"
+    ],
+    "text_results": "show every actual candidate inline inside the record block; never silently truncate",
+    "text_candidate_actions": [
+      "copy",
+      "select",
+      "edit"
+    ],
+    "carousel_card": [
+      "real cover",
+      "title",
+      "page count",
+      "preview",
+      "publish"
+    ],
+    "digital_human_card": [
+      "real poster or first frame",
+      "title",
+      "duration",
+      "digital human name",
+      "voice name",
+      "play",
+      "download",
+      "publish"
+    ],
+    "media_card_primary_action_limit": 2,
+    "hidden_from_primary_list": [
+      "artifact id",
+      "artifact version",
+      "provider",
+      "model",
+      "workflow step",
+      "absolute file path",
+      "context snapshot id",
+      "handoff id",
+      "download variants",
+      "script and cover as separate result rows"
+    ]
+  },
+  "read_projection": {
+    "facts": [
+      "app_runs",
+      "artifacts",
+      "artifact_versions",
+      "artifact_handoffs",
+      "app_events"
+    ],
+    "second_result_fact_table": false,
+    "list_and_preview_are_read_only": true,
+    "legacy_unknown_source": "fail_closed_read_only",
+    "legacy_unknown_source_list_behavior": "HTTP 200; preserve the individual record with compatibility.state=legacy_unavailable and keep other records readable",
+    "read_backfill": false,
+    "read_updates_timestamp": false,
+    "read_creates_artifact_version": false,
+    "production_database_writes_in_entry": 0
+  },
+  "feature_flag": {
+    "name": "appResultHistoryV1",
+    "backend_env": "PIXELLE_APP_RESULT_HISTORY_V1",
+    "frontend_env": "VITE_APP_RESULT_HISTORY_V1",
+    "default": false,
+    "unknown_or_conflicting": false,
+    "entry_runtime_wiring": false
+  },
+  "rollback": {
+    "flag_off_restores_existing_result_panels": true,
+    "historical_runs_and_artifacts_retained": true,
+    "new_projection_rows_deleted": 0,
+    "old_data_rewritten": false,
+    "media_deleted": false,
+    "external_publish_actions": 0
+  },
+  "error_behavior": [
+    {
+      "code": "APP_RESULT_HISTORY_DISABLED",
+      "http_status": 404,
+      "user_message": "历史成果功能当前未启用"
+    },
+    {
+      "code": "APP_RESULT_RECORD_NOT_FOUND",
+      "http_status": 404,
+      "user_message": "这条生成记录已不存在"
+    },
+    {
+      "code": "APP_RESULT_MEDIA_UNAVAILABLE",
+      "http_status": 409,
+      "user_message": "成品暂时无法预览，请稍后重试"
+    },
+    {
+      "code": "APP_RESULT_CURSOR_INVALID",
+      "http_status": 400,
+      "user_message": "历史记录位置已失效，请重新加载"
+    }
+  ],
+  "entry_boundaries": {
+    "business_repository_changes": 0,
+    "business_api_changes": 0,
+    "business_ui_changes": 0,
+    "database_migrations": 0,
+    "llm_calls": 0,
+    "tts_calls": 0,
+    "runninghub_calls": 0,
+    "browser_platform_actions": 0,
+    "final_publish_clicks": 0,
+    "paused_checkpoint": "PROGRAM-ROLLOUT/PG-L-WINDOWS-AND-PRODUCT-ACCEPTANCE"
+  }
+}

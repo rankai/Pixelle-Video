@@ -25,6 +25,8 @@ from api.schemas.app_center import (
     ContentProjectResponse,
     ContentProjectUpdateRequest,
     ContextSnapshotCreateRequest,
+    GenerationMediaPreviewResponse,
+    GenerationRecordPageResponse,
     ProjectBrandBindingRequest,
     ProjectBrandSyncRequest,
     ProjectMaterialUpdateRequest,
@@ -36,6 +38,7 @@ from pixelle_video.app_center.brand_project import (
 from pixelle_video.app_center.carousel import (
     DouyinCarouselExecutor,
     DouyinCarouselRenderer,
+    generate_carousel_asset_description,
     resolve_registered_asset,
 )
 from pixelle_video.app_center.ip_broadcast_adapter import IpBroadcastAdapterError
@@ -48,6 +51,11 @@ from pixelle_video.app_center.repository import (
     AppCenterRepositoryError,
     IdempotencyConflict,
     NotFound,
+)
+from pixelle_video.app_center.result_history import (
+    ResultHistoryError,
+    ResultHistoryMediaService,
+    ResultHistoryProjectionService,
 )
 from pixelle_video.app_center.runner import AppRunner, AppRunnerConfigurationError
 from pixelle_video.app_center.structured_apps import build_builtin_structured_executors
@@ -90,6 +98,7 @@ _PROJECT_CONTEXT_MESSAGES = {
     "PROJECT_ARCHIVED": "已归档项目不能修改品牌资料",
 }
 _BRAND_PROJECT_BOUNDARY_DISABLED_MESSAGE = "品牌项目功能当前未启用"
+_RESULT_HISTORY_DISABLED_MESSAGE = "历史成果功能当前未启用"
 
 
 @lru_cache(maxsize=1)
@@ -173,6 +182,30 @@ def _raise_brand_project_boundary_disabled() -> None:
             "message": _BRAND_PROJECT_BOUNDARY_DISABLED_MESSAGE,
         },
     )
+
+
+def _raise_result_history_disabled() -> None:
+    raise HTTPException(
+        status_code=404,
+        detail={
+            "code": "APP_RESULT_HISTORY_DISABLED",
+            "message": _RESULT_HISTORY_DISABLED_MESSAGE,
+        },
+    )
+
+
+def _raise_result_history_error(exc: ResultHistoryError) -> None:
+    status_code = {
+        "RESULT_MEDIA_NOT_FOUND": 404,
+        "RESULT_MEDIA_UNAVAILABLE": 404,
+        "RESULT_MEDIA_FORBIDDEN": 403,
+        "RESULT_MEDIA_NOT_READY": 409,
+        "RESULT_MEDIA_UNSUPPORTED": 409,
+    }.get(exc.code, 400)
+    raise HTTPException(
+        status_code=status_code,
+        detail={"code": exc.code, "message": exc.message},
+    ) from exc
 
 
 @router.post(
@@ -377,6 +410,124 @@ def get_current_context_snapshot(project_id: str, compat_schema_version: int | N
         return snapshot.__dict__
     except Exception as exc:
         _raise_repository_error(exc)
+
+
+@router.get(
+    "/content-projects/{project_id}/result-records",
+    response_model=GenerationRecordPageResponse,
+)
+def list_project_result_records(
+    project_id: str,
+    scope: str = "current_app",
+    app_id: str | None = None,
+    result_shape: str | None = None,
+    status: str | None = None,
+    cursor: str | None = None,
+    limit: int = 10,
+):
+    if not api_config.app_result_history_v1_enabled:
+        _raise_result_history_disabled()
+    try:
+        result = ResultHistoryProjectionService(get_app_center_repository()).list_records(
+            project_id,
+            scope=scope,
+            app_id=app_id,
+            result_shape=result_shape,
+            status=status,
+            cursor=cursor,
+            limit=limit,
+        )
+        return GenerationRecordPageResponse.model_validate(result)
+    except ResultHistoryError as exc:
+        _raise_result_history_error(exc)
+    except Exception as exc:
+        _raise_repository_error(exc)
+
+
+@router.get(
+    "/content-projects/{project_id}/result-records/{app_run_id}/preview",
+    response_model=GenerationMediaPreviewResponse,
+)
+def get_result_record_preview(project_id: str, app_run_id: str, version: str):
+    if not api_config.app_result_history_v1_enabled:
+        _raise_result_history_disabled()
+    try:
+        return ResultHistoryMediaService(get_app_center_repository()).get_preview(
+            project_id,
+            app_run_id,
+            version_token=version,
+        )
+    except ResultHistoryError as exc:
+        _raise_result_history_error(exc)
+
+
+def _result_media_file(
+    project_id: str,
+    app_run_id: str,
+    *,
+    slot: str,
+    version: str,
+    page_index=None,
+):
+    if not api_config.app_result_history_v1_enabled:
+        _raise_result_history_disabled()
+    try:
+        return ResultHistoryMediaService(get_app_center_repository()).get_file(
+            project_id,
+            app_run_id,
+            slot=slot,
+            page_index=page_index,
+            version_token=version,
+        )
+    except ResultHistoryError as exc:
+        _raise_result_history_error(exc)
+
+
+@router.get("/content-projects/{project_id}/result-records/{app_run_id}/cover")
+def get_result_record_cover(project_id: str, app_run_id: str, version: str):
+    media = _result_media_file(project_id, app_run_id, slot="cover", version=version)
+    return FileResponse(media.path, media_type=media.mime_type)
+
+
+@router.get(
+    "/content-projects/{project_id}/result-records/{app_run_id}/pages/{page_index}",
+)
+def get_result_record_page(
+    project_id: str,
+    app_run_id: str,
+    page_index: int,
+    version: str,
+):
+    media = _result_media_file(
+        project_id,
+        app_run_id,
+        slot="page",
+        version=version,
+        page_index=page_index,
+    )
+    return FileResponse(media.path, media_type=media.mime_type)
+
+
+@router.get("/content-projects/{project_id}/result-records/{app_run_id}/poster")
+def get_result_record_poster(project_id: str, app_run_id: str, version: str):
+    media = _result_media_file(project_id, app_run_id, slot="poster", version=version)
+    return FileResponse(media.path, media_type=media.mime_type)
+
+
+@router.get("/content-projects/{project_id}/result-records/{app_run_id}/play")
+def play_result_record_video(project_id: str, app_run_id: str, version: str):
+    media = _result_media_file(project_id, app_run_id, slot="play", version=version)
+    return FileResponse(media.path, media_type=media.mime_type)
+
+
+@router.get("/content-projects/{project_id}/result-records/{app_run_id}/download")
+def download_result_record_media(project_id: str, app_run_id: str, version: str):
+    media = _result_media_file(project_id, app_run_id, slot="download", version=version)
+    return FileResponse(
+        media.path,
+        media_type=media.mime_type,
+        filename=media.filename,
+    )
 
 
 @router.post(
@@ -799,6 +950,114 @@ def retry_carousel_page(artifact_id: str, request: CarouselPageRetryRequest):
         page_index = page_content.get("page_index")
         if not isinstance(page_index, int) or page_index < 1:
             raise AppCenterRepositoryError("CAROUSEL_PAGE_INDEX_INVALID")
+        if not page_artifact.source_app_run_id:
+            raise AppCenterRepositoryError("CAROUSEL_SOURCE_RUN_REQUIRED")
+        try:
+            source_run = repository.get_app_run(page_artifact.source_app_run_id)
+        except Exception as exc:
+            raise AppCenterRepositoryError("CAROUSEL_SOURCE_RUN_REQUIRED") from exc
+        source_payload = source_run.input_payload if isinstance(source_run.input_payload, dict) else {}
+        task_brief = source_payload.get("task_brief")
+        allowed_asset_refs = (
+            task_brief.get("asset_refs")
+            if isinstance(task_brief, dict)
+            else source_payload.get("asset_refs")
+        )
+        if not isinstance(allowed_asset_refs, list) or not allowed_asset_refs:
+            raise AppCenterRepositoryError("CAROUSEL_SOURCE_ASSETS_REQUIRED")
+        allowed_asset_refs = {str(item) for item in allowed_asset_refs if str(item).strip()}
+        if any(ref not in allowed_asset_refs for ref in request.asset_refs):
+            raise AppCenterRepositoryError("CAROUSEL_ASSET_REF_INVALID")
+        raw_descriptions = (
+            task_brief.get("asset_descriptions")
+            if isinstance(task_brief, dict)
+            else source_payload.get("asset_descriptions")
+        )
+        description_by_ref = {
+            str(item.get("asset_ref")): str(item.get("description") or "").strip()
+            for item in raw_descriptions or []
+            if isinstance(item, dict) and str(item.get("asset_ref") or "").strip()
+        } if isinstance(raw_descriptions, list) else {}
+        retry_asset_ref = request.asset_refs[0]
+        source_description_item = next(
+            (
+                item
+                for item in raw_descriptions or []
+                if isinstance(item, dict)
+                and str(item.get("asset_ref") or "").strip() == retry_asset_ref
+            ),
+            None,
+        ) if isinstance(raw_descriptions, list) else None
+        current_asset_refs = {
+            str(item) for item in page_content.get("asset_refs") or [] if str(item).strip()
+        }
+        retry_asset_description = ""
+        retry_asset_description_status = "provided"
+        retry_description_model_ref = str(
+            page_content.get("asset_description_model_ref") or ""
+        ).strip() or None
+        retry_description_provider_class = str(
+            page_content.get("asset_description_provider_class") or ""
+        ).strip() or None
+        if retry_asset_ref in current_asset_refs and str(
+            page_content.get("asset_description") or ""
+        ).strip():
+            # Keep the description generated for the current asset when the
+            # user only retries copy/layout.  A blank source payload must not
+            # erase a previously generated description.
+            retry_asset_description = str(page_content["asset_description"]).strip()
+            retry_asset_description_status = str(
+                page_content.get("asset_description_status") or "generated_by_llm"
+            )
+        elif description_by_ref.get(retry_asset_ref):
+            retry_asset_description = description_by_ref[retry_asset_ref]
+            retry_asset_description_status = str(
+                (source_description_item or {}).get("description_status") or "provided"
+            )
+        else:
+            resolved_asset = resolve_registered_asset(retry_asset_ref)
+            if not resolved_asset:
+                raise AppCenterRepositoryError("CAROUSEL_ASSET_DESCRIPTION_REQUIRED")
+            try:
+                (
+                    retry_asset_description,
+                    retry_description_model_ref,
+                    retry_description_provider_class,
+                ) = asyncio.run(
+                    generate_carousel_asset_description(
+                        ConfigAppLLMPort(),
+                        asset_ref=retry_asset_ref,
+                        asset_path=resolved_asset,
+                        request_id=(
+                            f"{source_run.app_run_id}:carousel-asset-description:"
+                            f"{retry_asset_ref}"
+                        ),
+                    )
+                )
+            except Exception as exc:
+                raise AppCenterRepositoryError(
+                    "CAROUSEL_ASSET_DESCRIPTION_FAILED"
+                ) from exc
+            retry_asset_description_status = "generated_by_llm"
+        source_page_count = (
+            task_brief.get("page_count")
+            if isinstance(task_brief, dict)
+            else source_payload.get("page_count")
+        )
+        if not isinstance(source_page_count, int):
+            for candidate in repository.list_artifacts(page_artifact.project_id):
+                if candidate.artifact_type != "carousel_package" or not candidate.current_version_id:
+                    continue
+                package = repository.get_artifact_version(candidate.current_version_id)
+                if candidate.source_app_run_id == page_artifact.source_app_run_id:
+                    source_page_count = (package.content or {}).get("page_count")
+                    break
+        if not isinstance(source_page_count, int):
+            raise AppCenterRepositoryError("CAROUSEL_PAGE_COUNT_REQUIRED")
+        retry_layout_role = str(
+            page_content.get("layout_role")
+            or ("cover" if page_index == 1 else "action" if page_index == source_page_count else "content")
+        )
         brand_render = (
             dict(page_content.get("brand_render") or {})
             if isinstance(page_content.get("brand_render"), dict)
@@ -813,19 +1072,28 @@ def retry_carousel_page(artifact_id: str, request: CarouselPageRetryRequest):
         rendered = renderer.retry_page(
             {
                 "page_index": page_index,
+                "layout_role": retry_layout_role,
                 "text": request.text,
                 "asset_refs": request.asset_refs,
+                "asset_description": retry_asset_description,
                 "font_id": request.font_id,
                 "dimensions": {"width_px": 1080, "height_px": 1440},
             },
             run_ref=page_artifact.source_app_run_id or artifact_id,
             version_number=current_page.version_number + 1,
             brand_render=brand_render,
+            template_id=str(page_content.get("template_id") or "template:clean-01"),
         )
         page_content.update(
             {
                 "text": request.text,
                 "asset_refs": list(request.asset_refs),
+                "asset_description": retry_asset_description,
+                "asset_description_status": retry_asset_description_status,
+                "asset_description_model_ref": retry_description_model_ref,
+                "asset_description_provider_class": retry_description_provider_class,
+                "layout_role": retry_layout_role,
+                "template_id": str(page_content.get("template_id") or "template:clean-01"),
                 "render_state": "ready",
                 "retry_of_artifact_version_id": current_page.artifact_version_id,
             }
@@ -863,6 +1131,33 @@ def retry_carousel_page(artifact_id: str, request: CarouselPageRetryRequest):
                     else item
                     for item in page_ids
                 ]
+                package_descriptions = package_content.get("asset_descriptions")
+                if not isinstance(package_descriptions, list):
+                    package_descriptions = []
+                package_description_by_ref = {
+                    str(item.get("asset_ref")): dict(item)
+                    for item in package_descriptions
+                    if isinstance(item, dict) and str(item.get("asset_ref") or "").strip()
+                }
+                package_description_by_ref[retry_asset_ref] = {
+                    **package_description_by_ref.get(retry_asset_ref, {}),
+                    "asset_ref": retry_asset_ref,
+                    "description": retry_asset_description,
+                    "description_status": retry_asset_description_status,
+                    "metadata_basis": (
+                        package_description_by_ref.get(retry_asset_ref, {}).get(
+                            "metadata_basis"
+                        )
+                        or "重试时基于当前登记素材重新确认"
+                    ),
+                }
+                package_content["asset_descriptions"] = list(
+                    package_description_by_ref.values()
+                )
+                package_content["asset_description_model_ref"] = retry_description_model_ref
+                package_content["asset_description_provider_class"] = (
+                    retry_description_provider_class
+                )
                 package_content["retry_of_artifact_version_id"] = (
                     current_package.artifact_version_id
                 )

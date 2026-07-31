@@ -72,6 +72,8 @@ VOICE_DEPENDENCY_KEYS = {
     "voice_source",
     "tts_voice",
     "tts_ref_audio_id",
+    "tts_ref_audio_asset_id",
+    "tts_ref_audio_revision_id",
     "tts_speed",
     "tts_ref_audio_path",
     "tts_ref_text",
@@ -207,6 +209,8 @@ def _default_state() -> dict[str, Any]:
         "tts_max_new_tokens": 3000,
         "tts_do_sample": True,
         "tts_ref_audio_id": "",
+        "tts_ref_audio_asset_id": "",
+        "tts_ref_audio_revision_id": "",
         "tts_ref_audio_path": "",
         "audio_path": "",
         "portrait_id": "",
@@ -959,8 +963,13 @@ def _append_tts_params(kwargs: dict[str, Any], state: dict[str, Any]) -> None:
         _append_tts_seed(kwargs, state)
     elif workflow_kind == "index":
         ref_audio = _resolve_v2_audio_path(
-            str(state.get("tts_ref_audio_id") or ""),
+            str(
+                state.get("tts_ref_audio_asset_id")
+                or state.get("tts_ref_audio_id")
+                or ""
+            ),
             str(state.get("tts_ref_audio_path") or ""),
+            str(state.get("tts_ref_audio_revision_id") or "") or None,
         )
         if ref_audio:
             kwargs["ref_audio"] = ref_audio
@@ -980,8 +989,13 @@ def _append_tts_params(kwargs: dict[str, Any], state: dict[str, Any]) -> None:
         _append_tts_seed(kwargs, state)
     else:
         ref_audio = _resolve_v2_audio_path(
-            str(state.get("tts_ref_audio_id") or ""),
+            str(
+                state.get("tts_ref_audio_asset_id")
+                or state.get("tts_ref_audio_id")
+                or ""
+            ),
             str(state.get("tts_ref_audio_path") or ""),
+            str(state.get("tts_ref_audio_revision_id") or "") or None,
         )
         if ref_audio:
             kwargs["ref_audio"] = ref_audio
@@ -1800,7 +1814,11 @@ def _path_exists(value: str) -> bool:
     return bool(value and Path(value).exists())
 
 
-def _resolve_v2_audio_path(resource_id: str, fallback: str) -> str:
+def _resolve_v2_audio_path(
+    resource_id: str,
+    fallback: str,
+    revision_id: str | None = None,
+) -> str:
     """Resolve a V2 voice reference to a local path at provider boundary."""
     if resource_id:
         try:
@@ -1818,7 +1836,14 @@ def _resolve_v2_audio_path(resource_id: str, fallback: str) -> str:
                 profile_asset_id = str((profile or {}).get("asset_id") or "")
                 if profile_asset_id:
                     asset = repository.get_asset(profile_asset_id)
-            path = repository.get_revision_path(asset["asset_id"]) if asset else None
+            path = (
+                repository.get_revision_path(
+                    asset["asset_id"],
+                    revision_id=revision_id or None,
+                )
+                if asset
+                else None
+            )
             if path:
                 return str(path)
         except (OSError, RuntimeError, ValueError) as exc:

@@ -98,6 +98,28 @@
     "mode_change_creates_new_run": true,
     "run_pins_asset_revision_and_workflow_revision": true
   },
+  "voice": {
+    "profile_default_field": "digital_human_profiles.default_voice_id",
+    "run_override_field": "voice_profile_id",
+    "selection_priority": [
+      "run_override",
+      "digital_human_default",
+      "system_default"
+    ],
+    "image_and_video_share_the_same_resolution_rule": true,
+    "run_pins": [
+      "voice_profile_id",
+      "audio_asset_id",
+      "audio_revision_id",
+      "resolution_source"
+    ],
+    "run_override_does_not_mutate_profile_default": true,
+    "profile_default_is_managed_in_enterprise_asset_library": true,
+    "system_default": {
+      "provider": "edge",
+      "voice": "zh-CN-YunjianNeural"
+    }
+  },
   "workflow_profiles": [
     {
       "profile": "stable",
@@ -206,6 +228,13 @@
     "DIGITAL_HUMAN_VIDEO_GEOMETRY_INVALID",
     "DIGITAL_HUMAN_CONTENT_SOURCE_INCOMPLETE",
     "DIGITAL_HUMAN_TITLE_REQUIRES_SCRIPT",
+    "DIGITAL_HUMAN_VOICE_INPUT_CONFLICT",
+    "DIGITAL_HUMAN_VOICE_INVALID",
+    "VOICE_PROFILE_NOT_FOUND",
+    "VOICE_PROFILE_NOT_READY",
+    "VOICE_PROFILE_UNAUTHORIZED",
+    "VOICE_PROFILE_AUDIO_REVISION_NOT_FOUND",
+    "VOICE_PROFILE_PINNED_AUDIO_INVALID",
     "DIGITAL_HUMAN_FINAL_ARTIFACT_MISSING"
   ],
   "security": {

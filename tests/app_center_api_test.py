@@ -12,22 +12,9 @@ from pixelle_video.app_center.task_projection import AppRunTaskProjector
 
 def _copy_response():
     variants = []
-    for index, angle in enumerate(("利益", "好奇", "场景"), start=1):
-        hook, body, cta = f"入口{index}", f"真实内容{index}", "到店了解"
-        full_text = hook + body + cta
-        variants.append(
-            {
-                "version_name": f"版本{index}",
-                "angle": angle,
-                "hook": hook,
-                "body": body,
-                "cta": cta,
-                "full_text": full_text,
-                "word_count": len(full_text),
-                "estimated_seconds": (len(full_text) + 3) // 4,
-            }
-        )
-    return {"variants": variants, "missing_facts": [], "risk_flags": []}
+    for index in range(1, 4):
+        variants.append({"full_text": f"入口{index}真实内容{index}到店了解"})
+    return {"variants": variants}
 
 
 def test_content_project_and_app_run_api_contract(monkeypatch, tmp_path):
@@ -230,15 +217,13 @@ def test_api_executes_marketing_copy_through_structured_executor(monkeypatch, tm
                 "project_id": project["project_id"],
                 "context_snapshot_id": snapshot["context_snapshot_id"],
                 "task_brief": {
-                    "goal": "到店",
+                    "marketing_goal": "到店",
                     "offer_name": "现磨咖啡",
                     "selling_point_fact_ids": ["selling-1"],
                     "benefit_tags": ["下午茶"],
+                    "benefit_text": "下午茶",
                     "audience": "附近上班族",
-                    "content_format": "oral",
-                    "length_bucket": "short_15s",
                     "must_include": [],
-                    "cta": None,
                 },
                 "style_ref": {"style_id": "copy.owner_voice", "version": 1},
                 "custom_style_reference": None,
@@ -264,4 +249,19 @@ def test_api_executes_marketing_copy_through_structured_executor(monkeypatch, tm
     artifact = client.get(f"/api/content-projects/{project['project_id']}/artifacts").json()[0]
     version = client.get(f"/api/artifacts/{artifact['artifact_id']}/versions").json()[0]
     assert version["content"]["artifact_type"] == "copywriting"
+    assert version["schema_version"] == 2
     assert len(version["content"]["variants"]) == 3
+    assert all(set(item) == {"full_text"} for item in version["content"]["variants"])
+    handoff = client.post(
+        f"/api/artifacts/{artifact['artifact_id']}/handoffs",
+        json={
+            "project_id": project["project_id"],
+            "source_artifact_id": artifact["artifact_id"],
+            "source_artifact_version_id": version["artifact_version_id"],
+            "target_app_id": "builtin.viral-titles",
+            "target_app_version": "1.1.0",
+            "artifact_version_ids": [version["artifact_version_id"]],
+            "mapping_version": 2,
+        },
+    )
+    assert handoff.status_code == 201

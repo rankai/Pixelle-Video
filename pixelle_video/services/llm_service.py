@@ -157,19 +157,18 @@ class LLMService:
         client: AsyncOpenAI,
         model: str,
         prompt: str,
+        image_inputs: list[dict[str, str]] | None = None,
     ) -> str:
         """Call Ark with the request shape from its Responses API contract."""
+        content: list[dict[str, object]] = [{"type": "input_text", "text": prompt}]
+        for item in image_inputs or []:
+            content.append({"type": "input_image", "image_url": item["data_url"]})
         response = await client.responses.create(
             model=model,
             input=[
                 {
                     "role": "user",
-                    "content": [
-                        {
-                            "type": "input_text",
-                            "text": prompt,
-                        }
-                    ],
+                    "content": content,
                 }
             ],
         )
@@ -245,6 +244,7 @@ class LLMService:
                     client=client,
                     model=final_model,
                     prompt=response_prompt,
+                    image_inputs=kwargs.get("image_inputs"),
                 )
                 if response_type is not None:
                     return self._parse_response_as_model(content, response_type)
@@ -259,6 +259,7 @@ class LLMService:
                     response_type=response_type,
                     temperature=temperature,
                     max_tokens=max_tokens,
+                    image_inputs=kwargs.pop("image_inputs", None),
                     **kwargs
                 )
             else:
@@ -292,6 +293,7 @@ class LLMService:
         response_type: Type[T],
         temperature: float,
         max_tokens: int,
+        image_inputs: list[dict[str, str]] | None = None,
         **kwargs
     ) -> T:
         """
@@ -317,9 +319,19 @@ class LLMService:
         enhanced_prompt = f"{prompt}\n\n{json_schema_instruction}"
         
         # Call LLM with enhanced prompt
+        message_content: str | list[dict[str, object]] = enhanced_prompt
+        if image_inputs:
+            message_content = [{"type": "text", "text": enhanced_prompt}]
+            message_content.extend(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": item["data_url"]},
+                }
+                for item in image_inputs
+            )
         response = await client.chat.completions.create(
             model=model,
-            messages=[{"role": "user", "content": enhanced_prompt}],
+            messages=[{"role": "user", "content": message_content}],
             temperature=temperature,
             max_tokens=max_tokens,
             **kwargs

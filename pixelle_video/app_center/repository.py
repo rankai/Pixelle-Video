@@ -974,6 +974,156 @@ class AppCenterRepository:
             rows = conn.execute(query, params).fetchall()
         return [self._app_run_from_row(row) for row in rows]
 
+    def list_result_history_runs(
+        self,
+        project_id: str,
+        *,
+        app_ids: tuple[str, ...],
+        app_id: str | None,
+        statuses: tuple[str, ...] | None,
+        before_sort_at: str | None,
+        before_app_run_id: str | None,
+        limit: int,
+    ) -> tuple[list[tuple[AppRun, str]], str]:
+        """Read one stable page of generation runs without mutating old rows.
+
+        Result history is a projection over the existing AppRun facts. Drafts
+        and archived runs are not generation records. The returned revision
+        lets the service reject a stale cursor instead of silently duplicating
+        or omitting a row when mutable run state changes between requests.
+        """
+
+        if limit < 1:
+            raise ValueError("result history limit must be positive")
+        if not app_ids:
+            return [], "none"
+        placeholders = ",".join("?" for _ in app_ids)
+        filters = [
+            "project_id = ?",
+            "archived_at IS NULL",
+            "state <> 'draft'",
+            f"app_id IN ({placeholders})",
+        ]
+        params: list[Any] = [project_id, *app_ids]
+        if app_id is not None:
+            filters.append("app_id = ?")
+            params.append(app_id)
+        if statuses:
+            status_placeholders = ",".join("?" for _ in statuses)
+            filters.append(f"state IN ({status_placeholders})")
+            params.extend(statuses)
+        revision_query = f"""
+            SELECT app_run_id,
+                   state,
+                   state_version,
+                   created_at,
+                   updated_at,
+                   completed_at,
+                   archived_at
+            FROM app_runs
+            WHERE {" AND ".join(filters)}
+            ORDER BY app_run_id
+        """
+        revision_params = tuple(params)
+        if before_sort_at is not None or before_app_run_id is not None:
+            if not before_sort_at or not before_app_run_id:
+                raise ValueError("result history cursor position is incomplete")
+            sort_expression = "COALESCE(completed_at, updated_at, created_at)"
+            filters.append(f"({sort_expression} < ? OR ({sort_expression} = ? AND app_run_id < ?))")
+            params.extend([before_sort_at, before_sort_at, before_app_run_id])
+        params.append(limit)
+        query = f"""
+            SELECT app_runs.*,
+                   COALESCE(completed_at, updated_at, created_at) AS result_sort_at
+            FROM app_runs
+            WHERE {" AND ".join(filters)}
+            ORDER BY result_sort_at DESC, app_run_id DESC
+            LIMIT ?
+        """
+        with self._connect() as conn:
+            conn.execute("BEGIN")
+            project = conn.execute(
+                "SELECT 1 FROM content_projects WHERE project_id = ?",
+                (project_id,),
+            ).fetchone()
+            if project is None:
+                raise NotFound(f"project not found: {project_id}")
+            revision_rows = conn.execute(revision_query, revision_params).fetchall()
+            revision = hashlib.sha256(
+                json.dumps(
+                    [dict(row) for row in revision_rows],
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            ).hexdigest()
+            rows = conn.execute(query, params).fetchall()
+        return (
+            [(self._app_run_from_row(row), str(row["result_sort_at"])) for row in rows],
+            revision,
+        )
+
+    def list_result_history_artifacts(
+        self,
+        project_id: str,
+        *,
+        app_run_ids: list[str],
+        output_artifact_ids: list[str],
+    ) -> list[Artifact]:
+        """Bulk-read current artifacts for a result page in one query."""
+
+        run_ids = list(dict.fromkeys(item for item in app_run_ids if item))
+        artifact_ids = list(dict.fromkeys(item for item in output_artifact_ids if item))
+        if not run_ids and not artifact_ids:
+            return []
+        ownership_filters: list[str] = []
+        params: list[Any] = [project_id]
+        if run_ids:
+            placeholders = ",".join("?" for _ in run_ids)
+            ownership_filters.append(f"source_app_run_id IN ({placeholders})")
+            params.extend(run_ids)
+        if artifact_ids:
+            placeholders = ",".join("?" for _ in artifact_ids)
+            ownership_filters.append(f"artifact_id IN ({placeholders})")
+            params.extend(artifact_ids)
+        query = f"""
+            SELECT *
+            FROM artifacts
+            WHERE project_id = ?
+              AND status <> 'archived'
+              AND ({" OR ".join(ownership_filters)})
+            ORDER BY updated_at DESC, artifact_id DESC
+        """
+        with self._connect() as conn:
+            rows = conn.execute(query, params).fetchall()
+        return [Artifact(**dict(row)) for row in rows]
+
+    def get_result_history_versions(
+        self,
+        project_id: str,
+        version_ids: list[str],
+    ) -> dict[str, ArtifactVersion]:
+        """Bulk-read exact current versions for one result page."""
+
+        ids = list(dict.fromkeys(item for item in version_ids if item))
+        if not ids:
+            return {}
+        placeholders = ",".join("?" for _ in ids)
+        with self._connect() as conn:
+            rows = conn.execute(
+                f"""
+                SELECT *
+                FROM artifact_versions
+                WHERE project_id = ?
+                  AND artifact_version_id IN ({placeholders})
+                """,
+                [project_id, *ids],
+            ).fetchall()
+        return {
+            item.artifact_version_id: item
+            for item in (self._artifact_version_from_row(row) for row in rows)
+        }
+
     def transition_app_run(
         self, app_run_id: str, target_state: str, *, expected_state_version: int | None = None
     ) -> AppRun:
@@ -1460,10 +1610,6 @@ class AppCenterRepository:
         if artifact_type == "copywriting":
             from .structured_apps import MarketingCopyOutput, validate_marketing_output
 
-            for variant in payload.get("variants", []):
-                if isinstance(variant, dict) and isinstance(variant.get("full_text"), str):
-                    variant["word_count"] = len(variant["full_text"])
-                    variant["estimated_seconds"] = (variant["word_count"] + 3) // 4
             model = MarketingCopyOutput.model_validate(payload)
             validate_marketing_output(
                 model,
@@ -1473,16 +1619,13 @@ class AppCenterRepository:
         else:
             from .structured_apps import ViralTitlesOutput, validate_titles_output
 
-            for candidate in payload.get("candidates", []):
-                if isinstance(candidate, dict) and isinstance(candidate.get("title"), str):
-                    candidate["length"] = len(candidate["title"])
             model = ViralTitlesOutput.model_validate(payload)
-            objective = model.candidates[0].objective if model.candidates else "click"
             title_input = fact_input if isinstance(fact_input, dict) else {}
             title_input = {
                 **title_input,
                 "count": len(model.candidates),
-                "objective": title_input.get("objective", objective),
+                "objective": title_input.get("objective", "click"),
+                "platform": title_input.get("platform", "douyin"),
             }
             validate_titles_output(
                 model, title_input, fact_context if isinstance(fact_context, dict) else {}
@@ -1602,11 +1745,11 @@ class AppCenterRepository:
             target_app_id == "builtin.viral-titles"
             and source_artifact.artifact_type == "copywriting"
         ):
-            if source_version.schema_version != 1:
-                raise AppCenterRepositoryError("copywriting source version must use schema v1")
+            if source_version.schema_version not in {1, 2}:
+                raise AppCenterRepositoryError("copywriting source version schema is unsupported")
             try:
                 self._normalize_structured_artifact_content(
-                    "copywriting", source_version.content, schema_version=1
+                    "copywriting", source_version.content, schema_version=source_version.schema_version
                 )
             except (AppLLMPortError, ValueError) as exc:
                 raise AppCenterRepositoryError(

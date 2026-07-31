@@ -23,6 +23,10 @@ BUILTIN_MANIFESTS: tuple[dict[str, Any], ...] = (
             "1.0.0": "marketing-copy-input.v1",
             "1.1.0": "marketing-copy-input.v2",
         },
+        "output_schema_by_version": {
+            "1.0.0": "marketing-copy-output.v1",
+            "1.1.0": "marketing-copy-output.v2",
+        },
         "name": "门店营销文案",
         "description": "生成可编辑门店营销文案",
         "category": "copywriting",
@@ -51,6 +55,10 @@ BUILTIN_MANIFESTS: tuple[dict[str, Any], ...] = (
         "input_schema_by_version": {
             "1.0.0": "viral-titles-input.v1",
             "1.1.0": "viral-titles-input.v2",
+        },
+        "output_schema_by_version": {
+            "1.0.0": "viral-titles-output.v1",
+            "1.1.0": "viral-titles-output.v2",
         },
         "name": "爆款标题",
         "description": "生成多角度标题候选",
@@ -188,6 +196,9 @@ def get_app(app_id: str, *, version: str | None = None) -> dict[str, Any] | None
     schema_by_version = resolved.get("input_schema_by_version", {})
     if version in schema_by_version:
         resolved["input_schema"] = schema_by_version[version]
+    output_schema_by_version = resolved.get("output_schema_by_version", {})
+    if version in output_schema_by_version:
+        resolved["output_schema"] = output_schema_by_version[version]
     return resolved
 
 

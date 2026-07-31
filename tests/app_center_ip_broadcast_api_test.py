@@ -9,6 +9,7 @@ from pixelle_video.app_center.ip_broadcast_adapter import (
     IpBroadcastAppAdapter,
     IpBroadcastBindingStore,
 )
+from pixelle_video.app_center.llm_port import FakeLLMPort
 from pixelle_video.services.ip_broadcast_workflow import IpBroadcastSessionStore
 
 
@@ -123,6 +124,71 @@ def test_ip_broadcast_app_api_projects_safe_status_and_cancel(monkeypatch, tmp_p
     )
     assert forbidden.status_code == 422
     assert forbidden.json()["detail"]["code"] == "INPUT_PAYLOAD_INVALID"
+
+
+def test_ip_broadcast_prepare_script_api_returns_editable_script_without_creating_run(
+    monkeypatch, tmp_path
+):
+    monkeypatch.setenv("PIXELLE_APP_CENTER_DB", str(tmp_path / "prepare-api.sqlite"))
+    monkeypatch.setenv("PIXELLE_VIDEO_ROOT", str(tmp_path))
+    get_app_center_repository.cache_clear()
+    repository = get_app_center_repository()
+    adapter = IpBroadcastAppAdapter(
+        repository,
+        session_store=IpBroadcastSessionStore(tmp_path / "sessions"),
+        binding_store=IpBroadcastBindingStore(tmp_path / "bindings.json"),
+        enforce_feature_flag=False,
+        dual_backend_flag=True,
+        dual_desktop_flag=True,
+        dual_desktop_ready=True,
+        digital_human_asset_resolver=lambda _scene_id: (
+            {
+                "media_type": "image",
+                "status": "ready",
+                "revision_id": "revision-a",
+                "mime_type": "image/jpeg",
+                "width": 1080,
+                "height": 1920,
+            },
+            {"media_type": "image", "profile_id": "portrait-a"},
+        ),
+    )
+    monkeypatch.setattr(
+        "api.routers.ip_broadcast_app.get_ip_broadcast_app_adapter", lambda: adapter
+    )
+    monkeypatch.setattr(
+        "api.routers.ip_broadcast_app.ConfigAppLLMPort",
+        lambda: FakeLLMPort({"spoken_script": "整理后的第一句。\n整理后的行动。"}),
+    )
+    client = TestClient(app)
+    project = client.post(
+        "/api/content-projects", json={"name": "准备稿 API", "primary_goal": "验证口播稿"}
+    ).json()
+    response = client.post(
+        "/api/app-center/ip-broadcast/prepare-script",
+        json={
+            "project_id": project["project_id"],
+            "input_payload": {
+                "schema_version": 2,
+                "app_version": "1.1.0",
+                "content_source": {
+                    "mode": "custom_script",
+                    "script": "原始内容。",
+                },
+                "digital_human": {
+                    "mode": "image_talking",
+                    "portrait_id": "portrait-a",
+                    "scene_id": "scene-a",
+                    "asset_revision_id": "revision-a",
+                    "workflow_profile": "stable",
+                },
+                "delivery": {"subtitle_preset": "readable_v2"},
+            },
+        },
+    )
+    assert response.status_code == 200
+    assert response.json()["spoken_script"] == "整理后的第一句。\n整理后的行动。"
+    assert repository.list_app_runs(project["project_id"]) == []
 
 
 def test_legacy_artifact_endpoint_resolves_v2_repository_artifact_ids(monkeypatch, tmp_path):

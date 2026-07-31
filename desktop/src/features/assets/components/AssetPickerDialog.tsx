@@ -66,6 +66,10 @@ export function AssetPickerDialog({
       .then((result) => {
         if (!cancelled) {
           setItems(result.items);
+          if (selectionMode === "single" && selectedId) {
+            const current = result.items.find((item) => item.resource_id === selectedId);
+            if (current) setPendingItem(current);
+          }
           if (selectionMode === "multiple") {
             const selectedKeys = new Set(selectedIdsKey.split("|").filter(Boolean));
             const visibleKeys = new Set(result.items.map((item) => item.resource_id));
@@ -167,7 +171,7 @@ export function AssetPickerDialog({
         <header className="modal-title">
           <div>
             <h2>选择{labels[kind]}资产</h2>
-            <p>{context?.purpose ? `${context.purpose} · ` : ""}先预览，再确认；确认后才会把稳定资源 ID 写入生产流。</p>
+            <p>{context?.purpose ? `${context.purpose} · ` : ""}先预览，确认后用于本次创作。</p>
           </div>
           <div className="library-picker-header-actions">
             {(kind === "video" || kind === "image" || kind === "audio" || kind === "voice") ? <button type="button" className="library-picker-upload" onClick={() => setQueueOpen(true)}><Upload size={15} /> 快捷上传</button> : null}
@@ -211,7 +215,7 @@ export function AssetPickerDialog({
           })}
           {!loading && !items.length ? <div className="empty-state">没有匹配的资产。</div> : null}
         </div>
-        {pendingItem ? <div className="library-picker-preview" aria-label="当前资产预览"><div>{pendingItem.cover_url && (pendingItem.kind === "image" || pendingItem.kind === "digital_human") ? <PickerProtectedImage src={pendingItem.cover_url} alt={pendingItem.name} /> : pendingItem.kind === "voice" || pendingItem.kind === "audio" ? <PickerProtectedAudio src={pendingItem.file_url || pendingItem.cover_url || ""} title={pendingItem.name} /> : <strong>{labels[pendingItem.kind]}</strong>}</div><section><strong>{pendingItem.name}</strong><span>{pendingItem.description || "暂无说明"}</span><small>{pendingItem.kind === "video" ? "播放预览可在详情中打开" : "当前选择不会写入生产流，点击底部确认后才会回填"}</small></section></div> : null}
+        {pendingItem ? <div className="library-picker-preview" aria-label="当前资产预览"><div>{pendingItem.cover_url && (pendingItem.kind === "image" || pendingItem.kind === "digital_human") ? <PickerProtectedImage src={pendingItem.cover_url} alt={pendingItem.name} /> : pendingItem.kind === "voice" || pendingItem.kind === "audio" ? <PickerProtectedAudio src={pendingItem.file_url || pendingItem.cover_url || ""} title={pendingItem.name} /> : <strong>{labels[pendingItem.kind]}</strong>}</div><section><strong>{pendingItem.name}</strong><span>{pendingItem.description || "暂无说明"}</span><small>{pendingItem.kind === "video" ? "播放预览可在详情中打开" : "点击底部确认后用于本次创作"}</small></section></div> : null}
         {activeItem?.kind === "digital_human" ? (
           <div className="library-picker-scene-panel" aria-label="选择数字人场景">
             <div><strong>{activeItem.name} · 选择场景</strong><button type="button" onClick={() => setActiveItem(null)}>返回人物列表</button></div>
@@ -224,7 +228,7 @@ export function AssetPickerDialog({
             </div>
           </div>
         ) : null}
-        {selectionMode === "multiple" ? <footer className="library-picker-multi-footer"><span>已选 {multiSelected.length} 项</span><button type="button" className="primary" disabled={!multiSelected.length} onClick={() => { recordAssetTelemetry("asset_picker_confirmed", { kind, entry: "picker" }); onSelectMany?.(multiSelected); }}>确认选择</button></footer> : <footer className="library-picker-multi-footer"><span>{pendingItem ? `已预览：${pendingItem.name}${pendingScene ? " · 已选场景" : ""}` : "请选择并预览一个资产"}</span><span>{pendingItem && context?.required_capabilities?.length ? `适配能力：${context.required_capabilities.join("、")}` : ""}</span>{pendingItem && getPickerCompatibility(pendingItem, context).reason ? <small role="alert">{getPickerCompatibility(pendingItem, context).reason}</small> : null}<button type="button" className="primary" disabled={!pendingItem || Boolean(pendingItem && getPickerCompatibility(pendingItem, context).reason) || (pendingItem?.kind === "digital_human" && Boolean(pendingItem.scenes?.length) && !pendingScene)} onClick={() => { if (!pendingItem || getPickerCompatibility(pendingItem, context).reason) return; recordAssetTelemetry("asset_picker_confirmed", { kind: pendingItem.kind, entry: "picker" }); if (pendingScene && onSelectScene) onSelectScene(pendingItem, pendingScene); else onSelect(pendingItem); onClose(); }}>确认使用</button></footer>}
+        {selectionMode === "multiple" ? <footer className="library-picker-multi-footer"><span>已选 {multiSelected.length} 项</span><button type="button" className="primary" disabled={!multiSelected.length} onClick={() => { recordAssetTelemetry("asset_picker_confirmed", { kind, entry: "picker" }); onSelectMany?.(multiSelected); }}>确认选择</button></footer> : <footer className="library-picker-multi-footer"><span>{pendingItem ? `已预览：${pendingItem.name}${pendingScene ? " · 已选场景" : ""}` : "请选择并预览一个资产"}</span>{pendingItem && getPickerCompatibility(pendingItem, context).reason ? <small role="alert">{getPickerCompatibility(pendingItem, context).reason}</small> : null}<button type="button" className="primary" disabled={!pendingItem || Boolean(pendingItem && getPickerCompatibility(pendingItem, context).reason) || (pendingItem?.kind === "digital_human" && Boolean(pendingItem.scenes?.length) && !pendingScene)} onClick={() => { if (!pendingItem || getPickerCompatibility(pendingItem, context).reason) return; recordAssetTelemetry("asset_picker_confirmed", { kind: pendingItem.kind, entry: "picker" }); if (pendingScene && onSelectScene) onSelectScene(pendingItem, pendingScene); else onSelect(pendingItem); onClose(); }}>确认使用</button></footer>}
       </section>
       {queueOpen ? <AssetUploadQueue allowedKinds={kind === "voice" ? ["audio"] : [kind as "image" | "video" | "audio"]} domainKind={kind === "voice" ? "voice" : undefined} onClose={() => setQueueOpen(false)} onUploaded={async () => { const result = await listLibraryItemsV2(kind, "", { sort: "recent", limit: 1 }); const newest = result.items[0]; if (newest) setPendingItem(newest); setQueueOpen(false); }} /> : null}
     </div>

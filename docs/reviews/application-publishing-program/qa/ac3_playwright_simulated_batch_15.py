@@ -14,7 +14,6 @@ from urllib.parse import urlparse
 
 from playwright.sync_api import Page, Route, sync_playwright
 
-
 SCENARIOS = [
     ("火锅老板", "周末双人套餐", "火锅"),
     ("美容老板", "新客到店体验", "美容"),
