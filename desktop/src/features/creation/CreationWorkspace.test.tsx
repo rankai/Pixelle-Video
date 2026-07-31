@@ -62,6 +62,7 @@ vi.mock("../assets/components/AssetPickerDialog", () => ({
 
 describe("CreationWorkspace", () => {
   beforeEach(() => {
+    window.localStorage.clear();
     listContentProjects.mockResolvedValue([]);
     listAppRuns.mockResolvedValue([]);
     mocks.listGenerationRecords.mockResolvedValue({
