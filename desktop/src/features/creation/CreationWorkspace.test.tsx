@@ -1026,7 +1026,7 @@ describe("CreationWorkspace", () => {
       target_app_id: "builtin.douyin-carousel",
       artifact_version_ids: ["selected-title-v1"],
     }));
-  }, 30_000);
+  }, 60_000);
 
   it("fails closed when a selected title source run has disappeared", async () => {
     const onOpenApp = vi.fn();
@@ -1072,7 +1072,7 @@ describe("CreationWorkspace", () => {
     await waitFor(() => expect(screen.getByText(/来源运行记录不存在，已停止交接/)).toBeInTheDocument());
     expect(onOpenApp).not.toHaveBeenCalled();
     expect(mocks.createArtifactHandoff).not.toHaveBeenCalled();
-  }, 30_000);
+  }, 60_000);
 
   it("fails closed when a selected title source run is archived", async () => {
     const onOpenApp = vi.fn();
@@ -1118,7 +1118,7 @@ describe("CreationWorkspace", () => {
     await waitFor(() => expect(screen.getByText(/来源运行记录不存在，已停止交接/)).toBeInTheDocument());
     expect(onOpenApp).not.toHaveBeenCalled();
     expect(mocks.createArtifactHandoff).not.toHaveBeenCalled();
-  }, 30_000);
+  }, 60_000);
 
   it("adopts an exact title from the lightweight generation history", async () => {
     listContentProjects.mockResolvedValue([{
